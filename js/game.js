@@ -294,7 +294,7 @@ function loadMap(id, at) {
   world.appendChild(player.el); world.appendChild(fox.el);
   (def.npcs || []).forEach(n => {
     const info = D.npcs[n.id];
-    const a = makeActor('npc', n.id, n.id, info.name, I(n.at[0], n.at[1]), { color: info.color, title: info.title, titleColor: info.titleColor });
+    const a = makeActor('npc', n.id, info.sprite || n.id, info.name, I(n.at[0], n.at[1]), { color: info.color, title: info.title, titleColor: info.titleColor });
     M.npcs[n.id] = a; M.list.push(a);
   });
   (def.portals || []).forEach(p => M.list.push(makePortal(p)));
@@ -448,7 +448,7 @@ $('wmapClose').addEventListener('click', e => { e.stopPropagation(); $('wmap').h
 // ---------- 对话 ----------
 let typing = null, dialogFull = '', dialogAfter = null;
 function openDialog(n, text, after) {
-  $('dFace').src = IMG('head_' + n.id); $('dName').textContent = n.name; $('dialog').hidden = false;
+  $('dFace').src = IMG((D.npcs[n.id] && D.npcs[n.id].head) || 'head_' + n.id); $('dName').textContent = n.name; $('dialog').hidden = false;
   const p = $('dText'); p.textContent = ''; let i = 0; clearInterval(typing);
   if (reduce) p.textContent = text; else typing = setInterval(() => { p.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(typing); }, 26);
   dialogFull = text; dialogAfter = after || null;
@@ -474,6 +474,7 @@ function talk(n) {
   const info = D.npcs[n.id];
   openDialog(n, info.idle, () => {
     if (info.shop) openShop(info.shop);
+    else if (info.act === 'arena') openModal('竞技场', '<p class="center">五对五模拟对战（不影响存档）。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">上擂台</button>　<button type="button" class="tbtn" data-act="close">再看看</button></p>');
     else if (info.rest) { const st = stats(); if (S.hp < st.maxHp || S.mp < st.maxMp) { S.hp = st.maxHp; S.mp = st.maxMp; save(); refresh(); toast(info.restMsg || '歇了一会儿，气血法力回满'); } }
   });
 }
@@ -971,5 +972,5 @@ function enterGame(role, serverName) {
 }
 function peekLevel(id) { try { const t = localStorage.getItem('guiqin-save:' + id); if (t) return JSON.parse(t).lv || D.start.lv; } catch (e) {} return D.start.lv; }
 function wipe(id) { try { localStorage.removeItem('guiqin-save:' + id); } catch (e) {} }
-window.GAME = { get state() { return S; }, get map() { return M; }, battle: B, player, startBattle, startArena, loadMap, data: D, enter: enterGame, peekLevel, wipe };
+window.GAME = { goTalk, get state() { return S; }, get map() { return M; }, battle: B, player, startBattle, startArena, loadMap, data: D, enter: enterGame, peekLevel, wipe };
 })();

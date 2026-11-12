@@ -120,7 +120,7 @@ def portraits(src, names):
         hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{n}.webp',quality=90)
 portraits(G+'/male.png',['m_sword','m_spear','m_mage']); portraits(G+'/female.png',['f_sword','f_heal','f_bow'])
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
-t=Image.open(G+'/bg.png').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=88,optimize=True); t.resize((256,384),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
+t=Image.open(G+'/town2.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=86,optimize=True); t.resize((512,283),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)
 if os.path.exists(f'{AD}/mini.jpg'): os.remove(f'{AD}/mini.jpg')
 b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.width-cw)//2
