@@ -1,0 +1,6 @@
+Icon sheet for an original Chinese wuxia fantasy mobile MMORPG user interface, hand-painted polished game art. Exactly 16 round button icons arranged in a neat 4 columns by 4 rows grid, evenly spaced, all the same size, none touching. Each icon is a circle with an ornate antique gold rim and a dark indigo lacquer centre holding one glossy painted object. In reading order, row by row:
+Row 1: a warrior helmet; a cloth drawstring bag; a scroll crossed with a sword; an orange paw print.
+Row 2: a war banner flag; two friendly figures side by side; a red festival drum; a red gift box with gold ribbon.
+Row 3: a gold ingot (yuanbao); a gold trophy cup; two crossed swords on a red centre; a horse head.
+Row 4: a red medicine gourd; a brass compass; a rolled quest scroll with a red seal; a bronze gear.
+Background: completely flat solid pure green (#00FF00) chroma key, no shadows on the background, no text, no letters, no numbers.

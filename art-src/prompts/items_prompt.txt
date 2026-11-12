@@ -1,0 +1,5 @@
+Item icon sheet for an original Chinese wuxia fantasy mobile MMORPG inventory, hand-painted polished game art. Exactly 12 square item icons arranged in a neat 4 columns by 3 rows grid, evenly spaced, all the same size, none touching. Each icon is a rounded square tile with a thin antique gold border and a dark indigo background holding one glossy painted object. In reading order, row by row:
+Row 1: a red medicine gourd bottle; a blue porcelain pill bottle; a plain iron straight sword; an ornate dark steel sword with a blue glow.
+Row 2: a simple folded grey cloth robe; a brown leather chest armour; a chunk of dark iron ore with silver flecks; a white wolf fang.
+Row 3: a pink embroidered silk sachet with a tassel; a string of copper coins; a paper festival lantern painted with flowers; a small wooden treasure chest.
+Background: completely flat solid pure green (#00FF00) chroma key, no shadows on the background, no text, no letters, no numbers.

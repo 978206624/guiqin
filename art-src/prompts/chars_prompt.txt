@@ -1,0 +1,8 @@
+Game character sprite sheet for an original Chinese wuxia fantasy 2.5D isometric mobile MMORPG, hand-painted polished game art matching a painterly lantern-festival town. Exactly six separate full-body figures standing in ONE horizontal row, evenly spaced with clear gaps between them, none overlapping, each standing idle, seen from a slightly elevated three-quarter front view (isometric game camera), about 5 heads tall, facing slightly toward the lower-right. From left to right:
+1) a young swordsman hero in a white and light-blue robe with a dark blue cape, black hair in a topknot tied with a blue ribbon, a sword sheathed on his back;
+2) a small cute orange spirit fox with a fluffy white-tipped tail, sitting;
+3) a friendly inn waiter in a plain brown tunic and small cap with a white towel over his shoulder;
+4) a burly bearded blacksmith with a red headband, dark leather apron, holding a hammer;
+5) a graceful young lady in a pink hanfu dress with twin hair buns and a long ribbon sash;
+6) a cheerful fruit vendor wearing a conical straw hat and green clothes.
+Background: completely flat solid pure green (#00FF00) chroma key, no ground, no cast shadows, no gradients, no text, no labels, no borders. No green colour on any character.
