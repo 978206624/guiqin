@@ -612,7 +612,7 @@ $('town').addEventListener('click', e => {
   if (!$('dialog').hidden) { closeDialog(); return; }
   const r = stage.getBoundingClientRect(); const p = { x: (e.clientX - r.left) / scale + cam.x, y: (e.clientY - r.top) / scale + cam.y };
   let hit = null;
-  for (const n of M.list) if (Math.abs(p.x - n.pos.x) < 40 && p.y < n.pos.y + 16 && p.y > n.pos.y - n.h - 34) hit = n;
+  for (const n of M.list) if (Math.abs(p.x - n.pos.x) < 54 && p.y < n.pos.y + 20 && p.y > n.pos.y - (n.kind === 'portal' ? n.h : n.h * 1.35) - 40) hit = n;
   wander = false; autoBtn.classList.remove('on');
   if (hit) goTalk(hit); else { talkNpc = null; moveTo(p, false); }
 });

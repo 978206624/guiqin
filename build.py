@@ -62,7 +62,7 @@ def head(src_png, idx, n_total, name, cx):
     sz=int(c.width*0.6); l=max(0,min(c.width-sz,int(c.width*cx-sz/2)))
     c.crop((l,0,l+sz,sz)).resize((160,160),Image.LANCZOS).save(f'{AD}/head_{name}.webp',quality=90)
 head(G+'/npc2.png',0,4,'elder',0.4); head(G+'/npc2.png',1,4,'axiu',0.5)
-v=Image.open(G+'/village.png').convert('RGB'); v.save(f'{AD}/bg_village.jpg',quality=88,optimize=True); v.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_village.jpg',quality=80)
+v=Image.open(G+'/village2.png').convert('RGB'); v.save(f'{AD}/bg_village.jpg',quality=88,optimize=True); v.resize((512,384),Image.LANCZOS).save(f'{AD}/mini_village.jpg',quality=80)
 wm=Image.open(G+'/world.png').convert('RGB'); wm.save(f'{AD}/world.jpg',quality=86,optimize=True); size['world']=list(wm.size)
 b2=Image.open(G+'/battle2.png').convert('RGB'); cw2=round(b2.height*9/16); x2=(b2.width-cw2)//2
 b2.crop((x2,0,x2+cw2,b2.height)).save(f'{AD}/bg_battle2.jpg',quality=88,optimize=True)
