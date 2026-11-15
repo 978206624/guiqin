@@ -225,6 +225,25 @@ button.row[disabled]{opacity:.45;cursor:default}
 #chatCh{flex:none;font-size:17px;font-weight:700;color:#7ad7ff;border:1px solid rgba(122,215,255,.5);border-radius:999px;padding:6px 14px}
 #chatInput{flex:1;min-width:0;font:inherit;font-size:20px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(226,176,74,.35);border-radius:999px;padding:9px 16px;outline:none}
 #chatInput:focus{border-color:var(--gold)}#chatInput:disabled{opacity:.5}#chatSend:disabled{opacity:.5}
+#chat{position:absolute}#chatDot{position:absolute;right:8px;top:8px;width:14px;height:14px;border-radius:50%;background:#e8362e;border:2px solid #fff}#chatDot[hidden]{display:none}
+.ctab{position:relative;padding:6px 13px!important;font-size:18px!important}.ctab u,.peer u{position:absolute;right:2px;top:0;width:10px;height:10px;border-radius:50%;background:#e8362e;border:1.5px solid #fff;text-decoration:none}
+#chatStrip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(226,176,74,.25);font-size:17px;color:var(--gold-hi)}
+#chatStrip>span{min-width:0}#chatStrip>span b{color:#ffd56a}#chatStrip>button{flex:none;font:inherit;font-size:15px;padding:4px 12px;border-radius:999px;border:1px solid rgba(226,176,74,.5);background:rgba(255,255,255,.06);color:#fff3c4;cursor:pointer}
+#chatStrip .card{width:100%;text-align:center;padding:8px 0}#chatStrip .card h4{margin:0 0 4px;font-size:22px;color:#fff3c4;font-weight:700}#chatStrip .card p{margin:0 0 10px;font-size:16px;color:var(--muted)}
+#chatStrip .peers{display:flex;gap:8px;overflow-x:auto;width:100%;padding:2px 0}.peer{position:relative;flex:none;font:inherit;font-size:17px;padding:5px 14px;border-radius:999px;border:1px solid rgba(226,176,74,.35);background:rgba(255,255,255,.05);color:#fff3c4;cursor:pointer}
+.peer.on{border-color:#ff8ad4;background:rgba(255,138,212,.18)}
+.cm a.cn{cursor:pointer;text-decoration:underline dotted rgba(168,230,255,.5);text-underline-offset:3px}.cm a.il{cursor:pointer;font-weight:700}
+svg.em{width:1.25em;height:1.25em;vertical-align:-.28em;margin:0 1px}
+#chatCh{flex:none;font:inherit;font-size:17px;font-weight:700;color:#7ad7ff;background:none;border:1px solid rgba(122,215,255,.5);border-radius:999px;padding:6px 12px;cursor:pointer}#chatCh:disabled{cursor:default}
+#chatForm .ib{flex:none;width:42px;height:42px;padding:0;border-radius:50%;border:1px solid rgba(226,176,74,.4);background:rgba(255,255,255,.07);cursor:pointer}#chatForm .ib svg{width:26px;height:26px}#chatForm .ib:disabled{opacity:.45}
+#chatForm{gap:8px!important;padding-left:12px!important;padding-right:12px!important}#chatInput{padding:9px 14px!important}
+#chatPop{position:absolute;left:12px;right:12px;bottom:84px;max-height:240px;overflow:auto;background:#1d1433;border:1px solid var(--gold);border-radius:12px;box-shadow:0 -4px 20px rgba(0,0,0,.6);padding:8px}
+.emg{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.emg button{padding:8px 0;border:0;border-radius:10px;background:rgba(255,255,255,.06);cursor:pointer}.emg svg{width:36px;height:36px}
+.itg{display:flex;flex-wrap:wrap;gap:8px}.itg button{font:inherit;font-size:18px;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid rgba(226,176,74,.4);background:rgba(255,255,255,.06);cursor:pointer}
+#chatMenu{position:absolute;z-index:3;width:190px;padding:8px;border-radius:12px;background:#241a3c;border:1px solid var(--gold);box-shadow:0 6px 20px rgba(0,0,0,.7);display:flex;flex-direction:column;gap:6px}
+#chatMenu[hidden]{display:none}#chatMenu b{text-align:center;color:#fff3c4;font-size:19px;padding-bottom:4px;border-bottom:1px solid rgba(226,176,74,.3)}
+#chatMenu button{font:inherit;font-size:18px;padding:8px;border-radius:8px;border:0;background:rgba(255,255,255,.07);color:#fff;cursor:pointer}
+#quest h3 span{cursor:pointer}#qParty .q{margin-top:6px}#qParty small{color:var(--muted)}
 #wmap{inset:0;z-index:6;background:var(--ink)}
 #wmap .bgimg{object-fit:cover}
 #wmap h2{position:absolute;left:0;right:0;top:34px;margin:0;text-align:center;font-family:var(--display);font-weight:400;font-size:52px;color:#4a2a10;text-shadow:0 0 8px #fbf0cc,0 0 8px #fbf0cc,0 0 2px #fbf0cc}
@@ -387,20 +406,24 @@ button.row[disabled]{opacity:.45;cursor:default}
     <button type="button" class="ui" id="wxBtn" aria-label="天气"></button>
     <div class="ui" id="coin"></div>
     <div class="ui panel" id="quest" role="button" tabindex="0" aria-label="任务追踪，点击自动寻路">
-      <h3><span class="on">任务</span><span>队伍</span></h3>
+      <h3><span class="on" data-qt="0">任务</span><span data-qt="1">队伍</span></h3>
       <div class="q cur"><em style="color:var(--amber)">[主线]</em> <span id="qTitle"></span><p id="qGoal"></p></div>
       <div class="q"><em style="color:var(--sky)">[历练]</em> 各地敌人<p id="qSide"></p></div>
+      <div id="qParty" hidden></div>
     </div>
-    <div class="ui panel" id="chat"><div id="chatLog"></div><div class="in">点这里聊天…</div></div>
+    <div class="ui panel" id="chat"><div id="chatLog"></div><div class="in">点这里聊天…</div><i id="chatDot" hidden></i></div>
     <div class="ui" id="notice" hidden><b>公告</b><div class="nr"><span id="noticeTxt"></span></div></div>
     <div class="ui" id="chatP" hidden>
       <div id="chatDim"></div>
       <div id="chatSheet">
         <div class="cp-head"><div id="chatTabs"></div><button type="button" id="chatX" aria-label="关闭">×</button></div>
+        <div id="chatStrip" hidden></div>
         <div id="chatList"></div>
         <div id="chatHint"></div>
-        <form id="chatForm"><span id="chatCh">世界</span><input id="chatInput" maxlength="40" autocomplete="off"><button type="submit" class="tbtn" id="chatSend">发送</button></form>
+        <div id="chatPop" hidden></div>
+        <form id="chatForm"><button type="button" id="chatCh">世界</button><button type="button" class="ib" id="chatEmo" aria-label="表情"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffd24a" stroke="#b9750d" stroke-width="1.2"/><path d="M7.5 10q1.5-2 3 0M13.5 10q1.5-2 3 0M8 14.5q4 4 8 0" fill="none" stroke="#5a2d0a" stroke-width="1.6" stroke-linecap="round"/></svg></button><button type="button" class="ib" id="chatItem" aria-label="物品"><svg viewBox="0 0 24 24"><path d="M5 9h14l-1 11H6z" fill="#c9884a" stroke="#6b3d14" stroke-width="1.2" stroke-linejoin="round"/><path d="M8.5 9V7a3.5 3.5 0 0 1 7 0v2" fill="none" stroke="#6b3d14" stroke-width="1.4"/></svg></button><input id="chatInput" maxlength="40" autocomplete="off"><button type="submit" class="tbtn" id="chatSend">发送</button></form>
       </div>
+      <div id="chatMenu" hidden></div>
     </div>
     <div id="btns"></div>
     <div class="ui" id="dock"></div>

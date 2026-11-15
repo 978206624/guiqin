@@ -448,6 +448,8 @@ function onBtn(key, label, b) {
   else if (key === 'skill') openSkills();
   else if (key === 'pet') openPet();
   else if (key === 'mall') openShop('vendor');
+  else if (key === 'guild') window.CHAT.open('guild');
+  else if (key === 'friend') window.CHAT.open('pm');
   else if (key === 'auto') { wander = !wander; wanderWait = 0; autoBtn.classList.toggle('on', wander); if (!wander) stop(); toast(wander ? '开始挂机闲逛，再点一次停止' : '停止挂机'); }
   else if (key === 'potion') { if (!S.items.hp_potion) toast('没有金创药了，找货郎买点吧'); else usePotion('hp_potion'); }
   else if (key === 'gift') {
@@ -1124,7 +1126,27 @@ function leaveBattle() {
 }
 
 // ============================================================ 启动
-window.CHAT.bind(() => ({ name: ROLE.name, cls: ROLE.cls, lv: S.lv, weather: WXD[wxKind()].name, battle: B.active }));
+window.CHAT.bind(() => ({
+  name: ROLE.name, cls: ROLE.cls, lv: S.lv, weather: WXD[wxKind()].name, battle: B.active,
+  bagItems: () => [...new Set(Object.keys(S.items).concat(Object.values(S.equip).filter(Boolean)))].filter(id => D.items[id]),
+  showItem(id) {                                                        // 点聊天里的物品链接 → 物品详情
+    const it = D.items[id]; if (!it) return;
+    openModal(it.name, '<div class="who"><div class="tile" style="width:96px;flex:none">' + itemImg(id) + '</div><div><h5>' + it.name + '</h5><p>' + ({ equip: '装备', potion: '药品' }[it.type] || '物品') + (it.price ? ' · 售价 ' + it.price + ' 银两' : '') + '</p>' + (itemBonus(it) ? '<p style="color:#7ee08a">' + itemBonus(it) + '</p>' : '') + '</div></div><p style="color:var(--muted);margin:0">' + (it.desc || '') + '</p>');
+  },
+  showInfo(name, cls, lv) {                                              // 点名字 → 查看
+    const c = D.classes[cls];
+    openModal('玩家信息', '<div class="who">' + (c ? '<img alt="" src="' + IMG('cls_' + cls) + '">' : '') + '<div><h5>' + name + '</h5><p>' + (c ? c.name + ' · ' + c.role : '路人') + '</p><p>等级 ' + (lv || '?') + '</p><p style="color:#7ee08a">在线</p></div></div>');
+  }
+}));
+// 左侧任务栏的“队伍”页签：显示自己和聊天里拉进来的队友
+function drawParty() {
+  const ps = window.CHAT.party(), row = (n, c, l, me) => '<div class="q"><em style="color:' + (me ? 'var(--amber)' : 'var(--sky)') + '">' + (me ? '队长' : '队友') + '</em> ' + n + '<p>' + (c ? D.classes[c].name + ' · ' : '') + (l || '?') + ' 级</p></div>';
+  $('qParty').innerHTML = row(ROLE.name, ROLE.cls, S.lv, true) + (ps.length ? ps.map(n => { const b = (D.chat.bots.find(x => x.name === n) || {}); return row(n, b.cls, b.lv, false); }).join('') : '<div class="q"><small>还没有队友。点聊天里的名字，选“邀请组队”。</small></div>');
+}
+let qTab = 0;
+function showQuestTab(i) { qTab = i; $('quest').querySelectorAll('h3 span').forEach((s, j) => s.classList.toggle('on', j === i)); $('quest').querySelectorAll('.q').forEach(q => { if (!q.closest('#qParty')) q.hidden = i === 1; }); $('qParty').hidden = i === 0; if (i === 1) drawParty(); }
+$('quest').querySelectorAll('h3 span').forEach((s, i) => s.addEventListener('click', e => { e.stopPropagation(); showQuestTab(i); }));
+window.addEventListener('chat-party', () => { if (qTab === 1) drawParty(); });
 $('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!S.gift; });
 loadMap(D.maps[S.map] ? S.map : D.start.map, S.pos); refresh(); requestAnimationFrame(frame);
 // 给自动化测试和调试用
