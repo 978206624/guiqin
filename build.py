@@ -65,6 +65,8 @@ wm=Image.open(G+'/world.png').convert('RGB'); wm.save(f'{AD}/world.jpg',quality=
 o=Image.open(G+'/outskirts.jpg').convert('RGB'); o.save(f'{AD}/bg_outskirts.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_outskirts.jpg',quality=80)
 o=Image.open(G+'/creek.jpg').convert('RGB'); o.save(f'{AD}/bg_creek.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_creek.jpg',quality=80)
 o=Image.open(G+'/mist.jpg').convert('RGB'); o.save(f'{AD}/bg_mist.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_mist.jpg',quality=80)
+o=Image.open(G+'/pine.jpg').convert('RGB'); o.save(f'{AD}/bg_pine.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_pine.jpg',quality=80)
+o=Image.open(G+'/wolfvalley.jpg').convert('RGB'); o.save(f'{AD}/bg_wolfvalley.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_wolfvalley.jpg',quality=80)
 b2=Image.open(G+'/battle2.png').convert('RGB'); cw2=round(b2.height*9/16); x2=(b2.width-cw2)//2
 b2.crop((x2,0,x2+cw2,b2.height)).save(f'{AD}/bg_battle2.jpg',quality=88,optimize=True)
 

@@ -146,6 +146,10 @@ window.DATA = {
     { id: 'creekgang', name: '溪边劫匪', rec: 6, enemies: ['grunt', 'grunt', 'wolf'], desc: '躲在竹林里打劫行人的山贼。', need: 'creekwolf' },
     { id: 'mistwolf', name: '谷底狼群', rec: 7, enemies: ['wolf', 'wolf', 'wolf'],  desc: '栖在云雾谷里的狼群，毛色被雾气染得发白。', need: 'creekgang' },
     { id: 'mistgang', name: '雾谷悍匪', rec: 8, enemies: ['grunt', 'wolf', 'grunt'], desc: '躲进云雾谷落脚的山贼，熟悉每一块石头。', need: 'mistwolf' },
+    { id: 'pinegang', name: '松林伏兵', rec: 9,  enemies: ['grunt', 'grunt', 'grunt'], desc: '埋伏在石柱后面的三个山贼。', need: 'boss' },
+    { id: 'pinewolf', name: '石间狼群', rec: 10, enemies: ['wolf', 'wolf', 'wolf'],   desc: '在石松林里巡游的狼群，爪子磨得发亮。', need: 'pinegang' },
+    { id: 'denwolf',  name: '狼窝外围', rec: 11, enemies: ['wolf', 'wolf', 'wolf'],   desc: '守在洞口的狼，嘴边还带着血。', need: 'pinewolf' },
+    { id: 'wolfboss', name: '驯狼匪首', rec: 12, enemies: ['wolf', 'boss', 'wolf'],   desc: '把狼群当成打手的山贼头子，每三回合会使出横扫千军。', need: 'denwolf' },
     { id: 'path',    name: '竹林小径', rec: 5, enemies: ['grunt', 'grunt'],          desc: '两个拦路的山贼喽啰。' },
     { id: 'wolves',  name: '狼群出没', rec: 6, enemies: ['wolf', 'wolf', 'wolf'],    desc: '三头饿狼，速度很快。', need: 'path' },
     { id: 'outpost', name: '山寨前哨', rec: 7, enemies: ['grunt', 'wolf', 'grunt'],  desc: '山贼和他们养的狼。',   need: 'wolves' },
@@ -186,6 +190,8 @@ window.DATA = {
     byMap: {
       village: { clear: 4, cloudy: 3, fog: 3, rain: 2, snow: 1 },
       town:    { clear: 5, cloudy: 2, rain: 2, storm: 1 },
+      pine: { clear: 4, cloudy: 3, rain: 2, fog: 1 },
+      wolfvalley: { clear: 2, cloudy: 4, fog: 2, storm: 2 },
       mist: { clear: 2, cloudy: 3, fog: 4, rain: 2 },
       creek: { clear: 4, cloudy: 2, fog: 3, rain: 3 },
       outskirts: { clear: 4, cloudy: 2, fog: 2, rain: 2 },
@@ -360,6 +366,30 @@ window.DATA = {
       portals: [{ to: 'creek', name: '回清溪谷', at: [760, 1470], arrive: [1790, 130] }],
       foes: [{ stage: 'mistwolf', at: [1130, 1240] }, { stage: 'mistgang', at: [1170, 430] }]
     },
+    pine: {
+      name: '石松林', world: [800, 1130], note: '古松石柱', home: 'town', img: 'bg_pine', mini: 'mini_pine', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [800, 1440],
+      alt: '石柱与古松交错的深林：松针铺成的小路在青苔石柱和盘曲的老松之间蜿蜒向上',
+      walk: [],
+      roads: [
+        { r: 100, pts: [[800,1480],[900,1400],[1100,1290],[1020,1180],[900,1100],[860,1030],[980,900],[1100,780],[1180,740],[1300,660],[1200,540],[1100,480],[1050,400],[1180,300],[1200,200],[1130,120],[1090,20]] }
+      ],
+      blocks: [],
+      glows: [[900,1100],[1200,540]],
+      portals: [{ to: 'wild', name: '回城外竹林', at: [800, 1470], arrive: [440, 232] }, { to: 'wolfvalley', name: '入恶狼谷', at: [1090, 30], arrive: [90, 1310] }],
+      foes: [{ stage: 'pinegang', at: [1000, 1170] }, { stage: 'pinewolf', at: [1180, 650] }]
+    },
+    wolfvalley: {
+      name: '恶狼谷', world: [900, 1010], note: '狼群盘踞', home: 'town', img: 'bg_wolfvalley', mini: 'mini_wolfvalley', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [90, 1310],
+      alt: '荒凉的山谷：土路上满是爪印，岩壁里有一个个狼洞，洞口散着兽骨，路边是枯树和荆棘',
+      walk: [],
+      roads: [
+        { r: 100, pts: [[40,1340],[300,1130],[540,990],[760,870],[900,790],[1050,690],[1150,640],[1250,540],[1420,440],[1550,390],[1500,330],[1380,290],[1250,230],[1130,160],[1090,60]] }
+      ],
+      blocks: [],
+      glows: [[540,990],[1420,440]],
+      portals: [{ to: 'pine', name: '回石松林', at: [40, 1345], arrive: [1090, 110] }],
+      foes: [{ stage: 'denwolf', at: [760, 870] }, { stage: 'wolfboss', at: [1380, 300] }]
+    },
     town: {
       name: '汉中郡', world: [467, 765], note: '主城', home: 'town', img: 'bg_town', mini: 'mini_town', iw: 2576, ih: 1426, scale: 1.5, k: 1.288, start: [850, 575],
       alt: '青瓦红柱的繁华主城：中央是高耸的玄兵塔，周围有擂台、锻造坊、寄卖行、集市和荷塘石桥',
@@ -393,7 +423,7 @@ window.DATA = {
         { r: 32, pts: [[855,172],[918,142]] }
       ],
       glows: [[440,165],[75,445],[250,440],[140,490],[165,410],[808,262],[898,298],[872,78],[960,85]],
-      portals: [{ to: 'town', name: '回汉中郡', at: [40, 515], arrive: [300, 800] }],
+      portals: [{ to: 'town', name: '回汉中郡', at: [40, 515], arrive: [300, 800] }, { to: 'pine', name: '入石松林', at: [440, 206], arrive: [800, 1440] }],
       foes: [{ stage: 'path', at: [352, 352] }, { stage: 'wolves', at: [150, 140] }, { stage: 'outpost', at: [850, 288] }, { stage: 'boss', at: [926, 116] }]
     }
   },
