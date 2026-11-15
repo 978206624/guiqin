@@ -204,7 +204,7 @@ for n,q in [('bg_town',33),('bg_village',68),('bg_wild',78),('world',50),('bg_ba
     im.save(f'{AD}/{n}.webp',quality=q,method=6); os.remove(p)
 # kunkunxunqin 项目的 NPC 静态图（art-src/kunkun-npc/<资源名>.png，1000×600 画布里一个小人）：裁掉空白 → kk_<名> 立绘（显示高度见表，2 倍存储）+ head_kk_<名> 头像
 # 当前接入第一章用到的；后续章节的（npc_qxz 赵村村长 / npc_xhs 萧恨水 / npc_hx 韩信 / npc15 装备商人 / npc_bs 白素）原图已在 art-src/kunkun-npc，用到时加进来（单文件版有 16MB 上限）
-KK_NPC = dict(npc14=104, npc_zhw=118, npc_cyblq=132, npc13=104, npc07=104, npc33=104, npc57=112, npc45=112, npc47=116)   # npc57 道家门主 / npc45 琴魔堂主 / npc47 天音堂主
+KK_NPC = dict(npc14=104, npc_zhw=118, npc_cyblq=132, npc13=104, npc07=104, npc33=104, npc57=150, npc45=150, npc47=156)   # npc57 道家门主 / npc45 琴魔堂主 / npc47 天音堂主
 for n,hh in KK_NPC.items():
     sp=f'{G}/kunkun-npc/{n}.png'
     if not os.path.exists(sp): continue

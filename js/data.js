@@ -468,7 +468,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[1200, 900], [1560, 380]],
-      npcs: [{ id: 'dao_menzhu', at: [1200, 800] }, { id: 'dao_qinmo', at: [1660, 400] }, { id: 'dao_tianyin', at: [420, 1370] }],
+      npcs: [{ id: 'dao_menzhu', at: [330, 250] }, { id: 'dao_qinmo', at: [1690, 390] }, { id: 'dao_tianyin', at: [390, 1390] }],
       portals: [{ to: 'town', name: '返回汉中郡', at: [900, 1060], arrive: [850, 575] }]
     },
     taixupeak: {
