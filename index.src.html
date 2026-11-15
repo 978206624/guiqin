@@ -206,6 +206,25 @@ button.row[disabled]{opacity:.45;cursor:default}
 .wxgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
 .wxgrid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;font:inherit;font-size:18px;color:#fff3c4;border:1px solid rgba(226,176,74,.35);border-radius:10px;background:rgba(255,255,255,.05);cursor:pointer}
 .wxgrid button.on{border-color:var(--gold);background:linear-gradient(#3b2a5c,#1d1433)}.wxgrid svg{width:40px;height:40px}
+#notice{left:20px;right:100px;top:318px;height:38px;display:flex;align-items:center;gap:10px;padding:0 12px;box-sizing:border-box;border-radius:19px;background:linear-gradient(90deg,rgba(120,40,20,.86),rgba(30,16,40,.82));border:1px solid rgba(255,176,32,.7);box-shadow:0 3px 10px rgba(0,0,0,.5);z-index:4;pointer-events:none}
+#notice b{flex:none;font-size:15px;color:#2a1405;background:#ffb020;border-radius:10px;padding:1px 9px}
+#notice .nr{flex:1;min-width:0;overflow:hidden;white-space:nowrap}#notice .nr span{display:inline-block;font-size:18px;color:#fff3c4;text-shadow:0 1px 2px #000}
+#chatP{inset:0;z-index:6}#chatDim{position:absolute;left:0;right:0;top:0;height:470px;background:rgba(8,4,18,.45)}
+#chatSheet{position:absolute;left:0;right:0;bottom:0;top:470px;display:flex;flex-direction:column;background:linear-gradient(#241a3c,#140d24);border-top:2px solid var(--gold);border-radius:18px 18px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.6)}
+.cp-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;border-bottom:1px solid rgba(226,176,74,.35)}
+#chatTabs{display:flex;gap:8px}.ctab{font:inherit;font-size:19px;font-weight:700;padding:6px 20px;border-radius:999px;border:1px solid rgba(226,176,74,.35);background:rgba(255,255,255,.05);color:var(--muted);cursor:pointer}
+.ctab.on{color:var(--gold-hi);border-color:var(--gold);background:linear-gradient(#3b2a5c,#1d1433)}
+#chatX{width:44px;height:44px;border-radius:50%;border:1px solid var(--gold);background:#2b1b42;color:var(--gold-hi);font-size:28px;line-height:1;cursor:pointer}
+#chatList{flex:1;min-height:0;overflow-y:auto;padding:6px 0;overscroll-behavior:contain}
+.cm{position:relative;padding:6px 18px 6px;font-size:19px;line-height:1.55;word-break:break-all}.cm small{margin-left:8px;font-size:12px;color:var(--muted);opacity:.7}
+.cm .cn{color:#a8e6ff;font-weight:700}.cm .cn.me{color:#8fe08f}.cm .cl{font-style:normal;font-size:13px;color:var(--muted);margin-left:5px}
+.cm.n{background:linear-gradient(90deg,rgba(255,176,32,.24),transparent);border-left:3px solid #ffb020;padding-left:15px;color:#fff3c4}
+.cempty{color:var(--muted);text-align:center;margin:40px 0}
+#chatHint{min-height:20px;padding:0 18px;font-size:15px;color:#ff9a8a}
+#chatForm{display:flex;gap:10px;align-items:center;padding:6px 16px 20px}
+#chatCh{flex:none;font-size:17px;font-weight:700;color:#7ad7ff;border:1px solid rgba(122,215,255,.5);border-radius:999px;padding:6px 14px}
+#chatInput{flex:1;min-width:0;font:inherit;font-size:20px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(226,176,74,.35);border-radius:999px;padding:9px 16px;outline:none}
+#chatInput:focus{border-color:var(--gold)}#chatInput:disabled{opacity:.5}#chatSend:disabled{opacity:.5}
 #wmap{inset:0;z-index:6;background:var(--ink)}
 #wmap .bgimg{object-fit:cover}
 #wmap h2{position:absolute;left:0;right:0;top:34px;margin:0;text-align:center;font-family:var(--display);font-weight:400;font-size:52px;color:#4a2a10;text-shadow:0 0 8px #fbf0cc,0 0 8px #fbf0cc,0 0 2px #fbf0cc}
@@ -372,7 +391,17 @@ button.row[disabled]{opacity:.45;cursor:default}
       <div class="q cur"><em style="color:var(--amber)">[主线]</em> <span id="qTitle"></span><p id="qGoal"></p></div>
       <div class="q"><em style="color:var(--sky)">[历练]</em> 各地敌人<p id="qSide"></p></div>
     </div>
-    <div class="ui panel" id="chat"><div id="chatLog"></div><div class="in">点击输入…</div></div>
+    <div class="ui panel" id="chat"><div id="chatLog"></div><div class="in">点这里聊天…</div></div>
+    <div class="ui" id="notice" hidden><b>公告</b><div class="nr"><span id="noticeTxt"></span></div></div>
+    <div class="ui" id="chatP" hidden>
+      <div id="chatDim"></div>
+      <div id="chatSheet">
+        <div class="cp-head"><div id="chatTabs"></div><button type="button" id="chatX" aria-label="关闭">×</button></div>
+        <div id="chatList"></div>
+        <div id="chatHint"></div>
+        <form id="chatForm"><span id="chatCh">世界</span><input id="chatInput" maxlength="40" autocomplete="off"><button type="submit" class="tbtn" id="chatSend">发送</button></form>
+      </div>
+    </div>
     <div id="btns"></div>
     <div class="ui" id="dock"></div>
     <div id="dockBtns"></div>

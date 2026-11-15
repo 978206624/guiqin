@@ -70,7 +70,7 @@ function grant(r) {
   if (r.exp) {
     S.exp += r.exp;
     while (S.exp >= expNeed()) { S.exp -= expNeed(); S.lv++; ups++; }
-    if (ups) { S.hp = null; S.mp = null; }
+    if (ups) { S.hp = null; S.mp = null; if (S.lv % 5 === 0) window.CHAT.notice('恭喜玩家「' + ROLE.name + '」等级突破 ' + S.lv + ' 级！'); }
   }
   clampVitals(); save(); refresh();
   return ups;
@@ -98,8 +98,7 @@ function refresh() {
 }
 let toastT;
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2000); }
-function say(html) { const log = $('chatLog'); const d = document.createElement('div'); d.innerHTML = html; log.appendChild(d); while (log.children.length > 3) log.removeChild(log.firstChild); }
-const sys = t => say('<span style="color:#ff7a5a">[系统]</span> ' + t);
+const sys = t => window.CHAT.sys(t);
 
 // ============================================================ 弹窗
 let modalOnClose = null;
@@ -1125,9 +1124,7 @@ function leaveBattle() {
 }
 
 // ============================================================ 启动
-sys('点击地面行走，点击人物对话');
-say('<span style="color:#ffc860">[世界]</span> <span style="color:#a8e6ff">凌霄阁主</span>：汉中郡外竹林有山贼，组队的来～');
-say('<span style="color:#7fe07f">[帮派]</span> <span style="color:#a8e6ff">青锋</span>：今晚八点帮战，全员集合！');
+window.CHAT.bind(() => ({ name: ROLE.name, cls: ROLE.cls, lv: S.lv, weather: WXD[wxKind()].name, battle: B.active }));
 $('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!S.gift; });
 loadMap(D.maps[S.map] ? S.map : D.start.map, S.pos); refresh(); requestAnimationFrame(frame);
 // 给自动化测试和调试用
@@ -1140,9 +1137,7 @@ function enterGame(role, serverName) {
   player.name = role.name; player.title = '【' + c.name + '】'; drawTag(player);
   $('hudName').textContent = role.name; $('hudSect').textContent = c.name; $('hudFace').src = IMG('head_' + role.cls);
   $('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!S.gift; });
-  $('chatLog').innerHTML = '';
-  sys('欢迎来到 ' + serverName + '，' + role.name);
-  sys('点击地面行走，按住可以拖着走；点击人物对话');
+  window.CHAT.reset(serverName, role.name);
   loadMap(D.maps[S.map] ? S.map : D.start.map, S.pos); refresh(); save(); last = performance.now();
 }
 function peekLevel(id) { try { const t = localStorage.getItem('guiqin-save:' + id); if (t) return JSON.parse(t).lv || D.start.lv; } catch (e) {} return D.start.lv; }
