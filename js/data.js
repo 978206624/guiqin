@@ -134,6 +134,8 @@ window.DATA = {
     attack: { name: '攻击',     mp: 0,   power: 1.0, target: 'one',  desc: '普通一击。' },
     // ---- 道家·琴魔 ----
     dangmo_qm: { name: '荡魔曲', mp: 40,  power: 1.35, target: 'one', magic: true, lv: 1,  desc: '拨动古琴，以魔音重创一名敌人。' },
+    dangmo_fs: { name: '荡魔曲', mp: 40,  power: 1.0, target: 'one', magic: true, lv: 1, desc: '拨动箜篌，以曲音震伤一名敌人。' },
+    lingmai_fs:{ name: '灵脉曲', mp: 50,  heal: 0.1, target: 'ally', cleanse: true, lv: 1, desc: '解除一名友方的减速、魔化等状态（原作只解除状态，演示里附带少量回血）。' },
     lingmai_qm:{ name: '灵脉曲', mp: 50,  heal: 0.22, target: 'ally', cleanse: true, lv: 3, desc: '疏通灵脉：为气血最低的友方回复 22% 气血，并解除减速、魔化等状态。' },
     mohun:     { name: '魔魂曲', mp: 90,  power: 0.8, target: 'one', hits: 3, mark: 2, magic: true, lv: 5, desc: '魔音扩散，攻击最多 3 个敌人，并使其魔化 2 回合。' },
     duohun:    { name: '夺魂曲', mp: 70,  power: 1.1, vsMark: 1.7, target: 'one', magic: true, lv: 8, desc: '单体伤害，对魔化状态的敌人伤害 ×1.7。' },
@@ -591,7 +593,13 @@ window.DATA = {
 (function () { const C = window.DATA.classes;
   C.dao_ty_m = Object.assign({}, C.dao_ty, { gender: 'm', hidden: true });
   C.dao_qm_m = Object.assign({}, C.dao_qm, { gender: 'm', hidden: true });
+  // 技能修炼：NPC → 能学 / 升级的技能。门主管道家基础技能，分堂技能由堂主管（见 game.js openTrain）
+  window.DATA.train = { maxLv: 5, learnCoin: 150, upCoin: 100, upLv: 2, base: ['dangmo_fs', 'lingmai_fs'] };
   // 拜入道家、尚未选分堂：新手的技能与数值不变，形象换成道家服饰、背负并手持箜篌（美术键 *_dao_dz / *_dao_dz_m）
-  C.dao_dz   = Object.assign({}, C.novice_f, { name: '道家弟子', sect: '道家', role: '近战 · 箜篌', weapon: '箜篌', hidden: true, desc: '已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。' });
-  C.dao_dz_m = Object.assign({}, C.novice_m, { name: '道家弟子', sect: '道家', role: '近战 · 箜篌', weapon: '箜篌', hidden: true, desc: '已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。' });
+  C.dao_dz   = Object.assign({}, C.novice_f, { name: '道家弟子', sect: '道家', role: '近战 · 箜篌', weapon: '箜篌', hidden: true, magicAtk: true, skills: ['dangmo_fs', 'lingmai_fs'], mod: { atk: 0.8, matk: 1.15, def: 1.0, mdef: 1.1, hp: 1.05, mp: 1.1 },
+    heart: { name: '道家心法', desc: '每级提升法攻 2 点、法防 2 点（原作：智力、精神）', perLv: { matk: 2, mdef: 2 } },
+    auto: [['lingmai_fs', 'selfHurt'], ['dangmo_fs', 'always']], desc: '已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。' });
+  C.dao_dz_m = Object.assign({}, C.novice_m, { name: '道家弟子', sect: '道家', role: '近战 · 箜篌', weapon: '箜篌', hidden: true, magicAtk: true, skills: ['dangmo_fs', 'lingmai_fs'], mod: { atk: 0.8, matk: 1.15, def: 1.0, mdef: 1.1, hp: 1.05, mp: 1.1 },
+    heart: { name: '道家心法', desc: '每级提升法攻 2 点、法防 2 点（原作：智力、精神）', perLv: { matk: 2, mdef: 2 } },
+    auto: [['lingmai_fs', 'selfHurt'], ['dangmo_fs', 'always']], desc: '已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。' });
 })();

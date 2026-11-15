@@ -356,6 +356,26 @@ svg.em{width:1.25em;height:1.25em;vertical-align:-.28em;margin:0 1px}
 @keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}15%{transform:translateY(-10px) scale(1.15);opacity:1}100%{transform:translateY(-70px) scale(1);opacity:0}}
 .slash{position:absolute;width:150px;height:8px;margin:-4px 0 0 -75px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,0),#fff 40%,#9fe0ff 60%,rgba(159,224,255,0));pointer-events:none;z-index:1999;animation:slash .28s ease-out forwards}
 .slash.fire{background:linear-gradient(90deg,rgba(255,200,80,0),#fff3b0 40%,#ff7a2a 60%,rgba(255,90,30,0));height:14px}
+
+/* 技能特效（代码绘制的轻量版，配色与意象参考 kunkunxunqin 道家高清特效：声波环 / 魔雾 / 魂影 / 锁链 / 回春光环 / 天籁音符 / 返魂光柱） */
+.sfx{position:absolute;pointer-events:none;z-index:1998;transform:translate(-50%,-50%)}
+.sfx.wave{width:60px;height:34px;border-radius:50%;border:3px solid #ffe9a8;box-shadow:0 0 14px #c79bff,inset 0 0 12px #8a5cff;animation:sfxwave .6s ease-out forwards}
+.sfx.wave.b{animation-delay:.12s;border-color:#d7b8ff;opacity:0}.sfx.wave.c{animation-delay:.24s;border-color:#fff;opacity:0}
+.sfx.mist{width:130px;height:90px;border-radius:50%;background:radial-gradient(ellipse,rgba(120,40,200,.85),rgba(60,10,110,.45) 55%,rgba(40,0,80,0) 72%);filter:blur(3px);animation:sfxmist .75s ease-out forwards}
+.sfx.soul{width:46px;height:70px;border-radius:50% 50% 40% 40%;background:radial-gradient(ellipse at 50% 35%,#fff,#d6c4ff 45%,rgba(150,110,255,0) 75%);box-shadow:0 0 16px #b69bff;animation:sfxsoul .85s ease-out forwards}
+.sfx.chain{width:70px;height:40px;border-radius:50%;border:3px dashed #b9a2ff;box-shadow:0 0 10px #7a52d8;animation:sfxchain .8s ease-out forwards}
+.sfx.ring{width:80px;height:44px;border-radius:50%;border:3px solid #9dffc8;box-shadow:0 0 14px #46e6a0,inset 0 0 14px #46e6a0;animation:sfxring .8s ease-out forwards}
+.sfx.heal{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.85),rgba(255,170,210,.55) 40%,rgba(120,255,190,.25) 65%,rgba(120,255,190,0) 75%);animation:sfxheal .8s ease-out forwards}
+.sfx.note{font:700 22px/1 serif;color:#ffe08a;text-shadow:0 0 8px #ffb84a,0 0 2px #fff;animation:sfxnote 1s ease-out forwards}
+.sfx.revive{width:46px;height:190px;margin-top:-80px;border-radius:50% 50% 20% 20%;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,244,190,.95) 40%,rgba(255,210,110,.5) 80%,rgba(255,210,110,0));box-shadow:0 0 22px #ffd36a;animation:sfxrev 1s ease-out forwards}
+@keyframes sfxwave{0%{transform:translate(-50%,-50%) scale(.2);opacity:1}100%{transform:translate(-50%,-50%) scale(2.4);opacity:0}}
+@keyframes sfxmist{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}35%{opacity:1}100%{transform:translate(-50%,-50%) scale(1.3);opacity:0}}
+@keyframes sfxsoul{0%{transform:translate(-50%,-30%) scale(.5);opacity:0}30%{opacity:1}100%{transform:translate(-50%,-150%) scale(1.15);opacity:0}}
+@keyframes sfxchain{0%{transform:translate(-50%,-50%) scale(2) rotate(0);opacity:0}30%{opacity:1}100%{transform:translate(-50%,-50%) scale(.7) rotate(200deg);opacity:0}}
+@keyframes sfxring{0%{transform:translate(-50%,30%) scale(.8);opacity:0}25%{opacity:1}100%{transform:translate(-50%,-170%) scale(1.1);opacity:0}}
+@keyframes sfxheal{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}30%{opacity:1}100%{transform:translate(-50%,-50%) scale(1.25);opacity:0}}
+@keyframes sfxnote{0%{transform:translate(-50%,0) scale(.5);opacity:0}25%{opacity:1}100%{transform:translate(calc(-50% + var(--dx)),-90px) scale(1.1);opacity:0}}
+@keyframes sfxrev{0%{transform:translate(-50%,-50%) scaleY(.2);opacity:0}30%{opacity:1;transform:translate(-50%,-50%) scaleY(1)}100%{transform:translate(-50%,-62%) scaleY(1.05);opacity:0}}
 @keyframes slash{0%{transform:rotate(var(--r)) scaleX(.1);opacity:0}40%{opacity:1}100%{transform:rotate(var(--r)) scaleX(1.2);opacity:0}}
 #bmsg{left:110px;top:196px;width:500px;text-align:center;font-family:var(--display);font-size:30px;color:var(--amber);text-shadow:var(--edge);pointer-events:none;z-index:3}
 #bturn{left:596px;top:20px;width:104px;height:104px;border-radius:50%;z-index:3;background:radial-gradient(circle at 50% 35%,#3b2a5c,#150e26);border:3px solid var(--gold);box-shadow:0 3px 10px rgba(0,0,0,.6);text-align:center;box-sizing:border-box}
