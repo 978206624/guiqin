@@ -155,11 +155,23 @@ def portraits(src, names):
     assert len(runs)==len(names),(src,runs)
     for n,(x0,x1) in zip(names,runs):
         c=im.crop((x0,0,x1,im.height)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
-        c.save(f'{AD}/cls_{n}.webp',quality=90,method=6)
+        c.save(f'{AD}/cls_{n}.webp',quality=62,method=6)
         hx=c.width*HEAD_X[n]; sz=int(c.height*0.2); l=int(max(0,min(c.width-sz,hx-sz/2))); t=int(c.height*0.02)
         hd=Image.new('RGBA',(sz,sz),(43,36,64,255)); hd.alpha_composite(c.crop((l,t,l+sz,t+sz)))
         hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{n}.webp',quality=90)
 portraits(G+'/male.png',['m_sword','m_spear','m_mage']); portraits(G+'/female.png',['f_sword','f_heal','f_bow'])
+
+# 道家女主（用户提供形象）：天音（琵琶，行走时背在身后）/ 琴魔（古琴）。行走正/背面 4 帧表、战斗背影（back.png 左天音右琴魔）、立绘与头像
+DA=G+'/daoist'
+walk_sheet(DA+'/walkf_ty.png','walk_f_dao_ty',118); walk_sheet(DA+'/walkb_ty.png','walk_b_dao_ty',118)
+walk_sheet(DA+'/walkf_qm.png','walk_f_dao_qm',118); walk_sheet(DA+'/walkb_qm.png','walk_b_dao_qm',118)
+cut_row(DA+'/back.png',['b_dao_ty','b_dao_qm'],dict(b_dao_ty=126,b_dao_qm=126))
+def dao_head(c,name):
+    sz=int(c.height*0.34); l=int(max(0,min(c.width-sz,c.width*0.5-sz/2))); t=int(c.height*0.02)
+    hd=Image.new('RGBA',(sz,sz),(43,36,64,255)); hd.alpha_composite(c.crop((l,t,l+sz,t+sz))); hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{name}.webp',quality=90)
+for n,src in [('dao_ty',DA+'/port_ty.png' if os.path.exists(DA+'/port_ty.png') else DA+'/ref.png'),('dao_qm',DA+'/port_qm.png')]:
+    c=keyed(src); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
+    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)
@@ -168,7 +180,7 @@ b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.wid
 b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=True)
 
 from PIL import ImageFilter
-for n,q in [('bg_town',52),('bg_village',78),('bg_wild',78),('world',62),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',72),('bg_wolfvalley',78)]:
+for n,q in [('bg_town',42),('bg_village',78),('bg_wild',78),('world',56),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',72),('bg_wolfvalley',78)]:
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue
     im=Image.open(p).convert('RGB')

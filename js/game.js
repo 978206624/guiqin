@@ -58,9 +58,16 @@ function slotBonus(slot) {
   return out;
 }
 function gearSum() { const t = {}; for (const slot in S.equip) { const o = slotBonus(slot); for (const k in o) t[k] = (t[k] || 0) + o[k]; } return t; }
+const curCls = () => D.classes[ROLE.cls] || D.classes.dao_ty;
+const clsName = c => (c.sect ? c.sect + '·' : '') + c.name;
+// 职业倍率（按基础+成长算）和心法加成（每级固定值，对应原作的“心法”被动）
+const clsMul = k => (curCls().mod || {})[k] || 1;
+const heartBonus = k => { const h = curCls().heart; return h && h.perLv[k] ? h.perLv[k] * S.lv : 0; };
+const playerSkills = () => curCls().skills || D.playerSkills;
 function stats() {
-  const b = D.base, g = D.grow, L = S.lv;
-  const st = { maxHp: b.hp + g.hp * L, maxMp: b.mp + g.mp * L, atk: b.atk + g.atk * L, matk: b.matk + g.matk * L, def: b.def + g.def * L, mdef: b.mdef + g.mdef * L, spd: b.spd + g.spd * L, crit: b.crit, dodge: b.dodge };
+  const b = D.base, g = D.grow, L = S.lv, m = clsMul;
+  const st = { maxHp: (b.hp + g.hp * L) * m('hp'), maxMp: (b.mp + g.mp * L) * m('mp'), atk: (b.atk + g.atk * L) * m('atk'), matk: (b.matk + g.matk * L) * m('matk') + heartBonus('matk'), def: (b.def + g.def * L) * m('def'), mdef: (b.mdef + g.mdef * L) * m('mdef') + heartBonus('mdef'), spd: b.spd + g.spd * L, crit: b.crit, dodge: b.dodge };
+  for (const k of ['maxHp', 'maxMp', 'atk', 'matk', 'def', 'mdef']) st[k] = Math.round(st[k]);
   const gs = gearSum(); for (const k in gs) st[STATKEY[k]] += gs[k];
   return st;
 }
@@ -192,7 +199,7 @@ function equipView() {
   const slotTile = sl => { const id = S.equip[sl], q = id ? itemQ(id).color : 'rgba(226,176,74,.3)', on = eqSel && eqSel.t === 'slot' && eqSel.v === sl;
     return '<button type="button" class="dslot' + (id ? qHi(id) : ' empty') + (on ? ' sel' : '') + '" style="--qc:' + q + '" data-act="eqSlot:' + sl + '" aria-label="' + SLOTNAME[sl] + '">' + (id ? itemImg(id) : '') + (getGear(sl).star ? '<i class="sstar">★' + getGear(sl).star + '</i>' : '') + '<span>' + SLOTNAME[sl] + '</span></button>'; };
   let h = '<div class="doll"><div class="dglow"></div><div class="dcol dl">' + D.slotLeft.map(slotTile).join('') + '</div><div class="dcol dr">' + D.slotRight.map(slotTile).join('') + '</div>' +
-    '<div class="dname"><b>' + ROLE.name + '</b><small>Lv.' + S.lv + ' · ' + D.classes[ROLE.cls].name + '</small></div><div class="dpow">战力 <b>' + fmt(powerOf(st)) + '</b></div>' +
+    '<div class="dname"><b>' + ROLE.name + '</b><small>Lv.' + S.lv + ' · ' + clsName(D.classes[ROLE.cls]) + '</small></div><div class="dpow">战力 <b>' + fmt(powerOf(st)) + '</b></div>' +
     '<img alt="" src="' + IMG('cls_' + ROLE.cls) + '">' +
     '<div class="dstats"><div>攻击<b>' + Math.round(st.atk) + '</b></div><div>防御<b>' + Math.round(st.def) + '</b></div><div>速度<b>' + Math.round(st.spd) + '</b></div><div>气血<b>' + Math.round(st.maxHp) + '</b></div></div></div>';
   h += '<div class="grid eqgrid">';
@@ -282,15 +289,15 @@ function openRole() {
   lastPanel = 'role';
   const st = stats(), cls = D.classes[ROLE.cls], need = expNeed();
   const bar = (cur, max, cls2) => '<div class="rbar ' + cls2 + '"><i style="width:' + Math.max(0, Math.min(100, cur / max * 100)) + '%"></i><span>' + Math.round(cur) + ' / ' + max + '</span></div>';
-  let h = '<div class="who"><img alt="" src="' + IMG('cls_' + ROLE.cls) + '"><div><h5>' + ROLE.name + '</h5><p>' + cls.name + ' · ' + cls.role + ' · ' + (cls.gender === 'm' ? '男' : '女') + '</p>' +
+  let h = '<div class="who"><img alt="" src="' + IMG('cls_' + ROLE.cls) + '"><div><h5>' + ROLE.name + '</h5><p>' + clsName(cls) + ' · ' + cls.role + ' · ' + (cls.gender === 'm' ? '男' : '女') + '</p>' +
     '<p>等级 <b class="gold">' + S.lv + '</b>　战力 <b class="gold">' + fmt(powerOf(st)) + '</b></p>' +
     '<p class="small">经验 ' + S.exp + ' / ' + need + '</p><div class="rbar exp"><i style="width:' + Math.min(100, S.exp / need * 100) + '%"></i></div></div></div>' +
     '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') + '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') + '" data-act="roleTab:equip">装备</button><button type="button" class="rtab' + (roleTab === 'skill' ? ' on' : '') + '" data-act="roleTab:skill">技能</button></div>';
   if (roleTab === 'attr') {
     // 每项属性拆成 基础 + 等级成长 + 装备（含星级和宝石），装备加成用绿色标出来
     const gear = gearSum(), base = D.base, grow = D.grow, L = S.lv;
-    const line = (k, tip) => { const sk = STATKEY[k], tot = st[sk], e = gear[k] || 0;
-      return '<div class="arow"><span>' + D.statName[k] + '</span><b>' + fmtStat(k, tot) + '</b><small>' + (tip || '基础 ' + fmtStat(k, base[k]) + (grow[k] ? ' + 成长 ' + fmtStat(k, grow[k] * L) : '')) + (e ? ' <em>+ 装备 ' + fmtStat(k, e) + '</em>' : '') + '</small></div>'; };
+    const line = (k, tip) => { const sk = STATKEY[k], tot = st[sk], e = gear[k] || 0, mu = clsMul(k), hb = heartBonus(k);
+      return '<div class="arow"><span>' + D.statName[k] + '</span><b>' + fmtStat(k, tot) + '</b><small>' + (tip || '基础 ' + fmtStat(k, Math.round(base[k] * mu)) + (grow[k] ? ' + 成长 ' + fmtStat(k, Math.round(grow[k] * L * mu)) : '') + (hb ? ' + 心法 ' + hb : '')) + (e ? ' <em>+ 装备 ' + fmtStat(k, e) + '</em>' : '') + '</small></div>'; };
     h += '<div class="vit"><div><small>生命</small>' + bar(S.hp, st.maxHp, 'hp') + '</div><div><small>魔法</small>' + bar(S.mp, st.maxMp, 'mp') + '</div></div>' +
       '<div class="alist">' + ['atk', 'matk', 'def', 'mdef', 'hp', 'mp', 'spd'].map(k => line(k)).join('') +
       line('crit', '暴击时伤害 ×1.5') + line('dodge', '被攻击时有几率完全躲开') +
@@ -307,11 +314,13 @@ function openRole() {
 }
 function skillsHTML() {
   let h = '';
-  D.playerSkills.forEach(id => {
+  const hc = curCls().heart;
+  if (hc) h += '<div class="row"><div><h5>' + hc.name + '</h5><p>' + hc.desc + '</p></div><span>被动</span></div>';
+  playerSkills().forEach(id => {
     const x = D.skills[id], ok = S.lv >= (x.lv || 1);
     h += '<div class="row" style="' + (ok ? '' : 'opacity:.5') + '"><div><h5>' + x.name + '</h5><p>' + x.desc + '</p></div><span>' + (ok ? '法力 ' + x.mp : x.lv + ' 级解锁') + '</span></div>';
   });
-  return h + '<p class="hint" style="margin-top:14px">技能在战斗中使用。</p>';
+  return h + '<p class="hint" style="margin-top:14px">技能在战斗中使用。' + (curCls().weapon ? '武器：' + curCls().weapon + '。' : '') + '</p>';
 }
 let petTab = 'attr', petSel = 'fox';
 function petPower(p) { return Math.round(p.maxHp / 10 + p.atk * 2 + p.def * 1.5 + p.spd); }
@@ -470,6 +479,11 @@ const fox = makeActor('pet', 'fox', 'fox', '灵狐', { x: 0, y: 0 }, { color: '#
 // 主角用行走帧：正面一套（朝右下）、背面一套（朝左上），各 4 帧；另外两个方向靠水平翻转
 // 精灵表一行 4 格，AS.size.walk_f = [每格宽, 每格高, 头部中心在格内的 x]
 const WALK_SHEET = { f: 'walk_f', b: 'walk_b' }, STEP_LEN = 26;
+function setPlayerLook(cls) {      // 按职业换行走精灵表（没有专属图就用默认的）
+  WALK_SHEET.f = AS.size['walk_f_' + cls] ? 'walk_f_' + cls : 'walk_f'; WALK_SHEET.b = AS.size['walk_b_' + cls] ? 'walk_b_' + cls : 'walk_b';
+  player.shown = ''; const sz = AS.size[WALK_SHEET.f]; player.tag.style.bottom = (sz[1] + 2) + 'px'; player.h = sz[1];
+  Object.values(WALK_SHEET).forEach(k => { const im = new Image(); im.src = IMG(k); });
+}
 player.walk = document.createElement('div'); player.walk.className = 'walk';
 player.el.insertBefore(player.walk, player.tag); player.img.hidden = true;
 player.dir = 'f'; player.shown = ''; player.dist = 0; player.mt = 0;
@@ -1227,12 +1241,12 @@ function makeUnit(side, row, def, pos) {
   const el = document.createElement('div'); el.className = 'unit ' + side + ' ' + row;
   el.innerHTML = '<div class="sh"></div><img alt="" src="' + IMG(def.sprite) + '" style="width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px' + (def.flip ? ';scale:-1 1' : '') + '">' +
     '<div class="tap" style="left:' + (-w / 2) + 'px;bottom:0;width:' + w + 'px;height:' + h + 'px"></div>' +
-    '<div class="hpb" style="bottom:' + (h + 4) + 'px"><i></i></div>' + (row === 'person' ? '<div class="nm" style="bottom:' + (h + 13) + 'px">' + def.name + '</div>' : '');
+    '<div class="hpb" style="bottom:' + (h + 4) + 'px"><i></i></div><div class="stt"></div>' + (row === 'person' ? '<div class="nm" style="bottom:' + (h + 13) + 'px">' + def.name + '</div>' : '');
   el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px'; el.style.zIndex = Math.round(pos.y);
   $('units').appendChild(el);
   const st = def.stats;
   const u = { side, row, name: def.name, el, pos, h, hp: st.hp, maxHp: st.maxHp, mp: st.mp || 0, maxMp: st.maxMp || 0, atk: st.atk, def: st.def, matk: st.matk != null ? st.matk : st.atk, mdef: st.mdef != null ? st.mdef : st.def, crit: st.crit != null ? st.crit : 10, dodge: st.dodge || 0, spd: st.spd,
-    alive: true, defending: false, ai: def.ai || 'attack', aggro: def.aggro || 1, data: def.data || null };
+    alive: true, defending: false, ai: def.ai || 'attack', aggro: def.aggro || 1, data: def.data || null, magicAtk: !!def.magicAtk, st: {} };
   if (side === 'enemy') el.addEventListener('click', () => { if (B.picking && u.alive) { const f = B.picking; B.picking = null; f(u); } });
   B.units.push(u); drawUnit(u); return u;
 }
@@ -1280,7 +1294,7 @@ function startBattle(st) {
       stats: { hp: e.hp, maxHp: e.hp, atk: e.atk, def: e.def, spd: e.spd } });
   });
   beginBattle('pve', st.name, {
-    ally: { persons: [{ name: ROLE.name, sprite: 'b_player', h: 126, me: true, stats: { hp: Math.max(1, S.hp), maxHp: ps.maxHp, mp: S.mp, maxMp: ps.maxMp, atk: ps.atk, matk: ps.matk, def: ps.def, mdef: ps.mdef, crit: ps.crit, dodge: ps.dodge, spd: ps.spd } }],
+    ally: { persons: [{ name: ROLE.name, sprite: AS.size['b_' + ROLE.cls] ? 'b_' + ROLE.cls : 'b_player', h: 126, me: true, magicAtk: !!curCls().magicAtk, stats: { hp: Math.max(1, S.hp), maxHp: ps.maxHp, mp: S.mp, maxMp: ps.maxMp, atk: ps.atk, matk: ps.matk, def: ps.def, mdef: ps.mdef, crit: ps.crit, dodge: ps.dodge, spd: ps.spd } }],
             pets: [{ name: '灵狐', sprite: 'b_fox', h: 62, ai: 'fox', stats: { hp: fs.maxHp, maxHp: fs.maxHp, atk: fs.atk, matk: fs.matk, def: fs.def, mdef: fs.mdef, crit: fs.crit, dodge: fs.dodge, spd: fs.spd } }] },
     enemy: foes
   }, [st.name, '我方']);
@@ -1318,7 +1332,9 @@ async function loop() {
     for (const u of order) {
       if (!u.alive || B.over) continue;
       u.el.classList.add('turn');
+      statusStart(u);
       await perform(u, u === B.player ? act : unitAct(u));
+      statusEnd(u);
       u.el.classList.remove('turn');
       if (!living('enemy').length) B.over = 'win';
       else if (B.mode === 'arena' ? !living('ally').length : !B.player.alive) B.over = 'lose';
@@ -1363,7 +1379,7 @@ function onCmd(cmd) {
   else if (cmd === 'flee') B.resolve({ type: 'flee' });
   else if (cmd === 'skill') {
     tip('选择技能');
-    $('cmdList').innerHTML = D.playerSkills.map(id => { const s = D.skills[id], lock = B.mode !== 'arena' && S.lv < (s.lv || 1);
+    $('cmdList').innerHTML = playerSkills().map(id => { const s = D.skills[id], lock = B.mode !== 'arena' && S.lv < (s.lv || 1);
       return '<button type="button" class="tbtn" data-pick="skill:' + id + '"' + (lock || B.player.mp < s.mp ? ' disabled' : '') + '>' + s.name + '<small>' + (lock ? s.lv + ' 级解锁' : '法力 ' + s.mp) + '</small></button>'; }).join('');
   } else if (cmd === 'item') {
     const ids = B.mode === 'arena' ? [] : Object.keys(S.items).filter(i => D.items[i].type === 'potion');
@@ -1379,10 +1395,27 @@ function onPick(v) {
   if (s.target === 'one') pickTarget(t => ({ type: 'skill', skill: id, target: t }));
   else B.resolve({ type: 'skill', skill: id });
 }
-// 主角的自动出手
+// 主角的自动出手：有职业规则（data.js 的 classes[x].auto：[技能, 条件] 依次试）就按规则，否则走通用逻辑
 function autoAct() {
-  const p = B.player, free = B.mode === 'arena', has = id => (free || S.lv >= D.skills[id].lv) && p.mp >= D.skills[id].mp;
+  const p = B.player, free = B.mode === 'arena', cls = curCls();
   if (!p.alive) return { type: 'none' };
+  const ok = id => D.skills[id] && (free || S.lv >= (D.skills[id].lv || 1)) && p.mp >= D.skills[id].mp;
+  const foes = living('enemy'), mates = B.units.filter(x => x.side === 'ally');
+  if (cls.auto) {
+    if (p.hp < p.maxHp * 0.3 && !free && S.items.hp_potion) return { type: 'item', item: 'hp_potion' };
+    const cond = {
+      selfHurt: () => p.hp < p.maxHp * 0.5, allyHurt: () => mates.some(x => x.alive && x.hp < x.maxHp * 0.55),
+      allyHurtMany: () => mates.filter(x => x.alive && x.hp < x.maxHp * 0.7).length >= 2, dead: () => mates.some(x => !x.alive),
+      many: () => foes.length >= 3, marked: () => foes.some(f => f.st.mark), fast: () => foes.some(f => !f.st.slow) && B.round % 3 === 2, always: () => true };
+    for (const [id, c] of cls.auto) {
+      if (!ok(id) || !cond[c]()) continue;
+      const sk = D.skills[id];
+      if (sk.target === 'one') return { type: 'skill', skill: id, target: (c === 'marked' && foes.find(f => f.st.mark)) || weakestOf('enemy') };
+      return { type: 'skill', skill: id };
+    }
+    return { type: 'skill', skill: 'attack', target: weakestOf('enemy') };
+  }
+  const has = id => (free || S.lv >= D.skills[id].lv) && p.mp >= D.skills[id].mp;
   if (p.hp < p.maxHp * 0.35) {
     if (has('ningshen')) return { type: 'skill', skill: 'ningshen' };
     if (!free && S.items.hp_potion) return { type: 'item', item: 'hp_potion' };
@@ -1409,6 +1442,13 @@ function unitAct(u) {
   }
 }
 
+// ---------- 状态：魔化 mark / 减速 slow / 护体 shield / 持续回复 hot ----------
+const FX_BADGE = { mark: ['魔', '#a64bff'], slow: ['缓', '#3d8bff'], shield: ['盾', '#e0a526'], hot: ['愈', '#33b36b'] };
+function refreshFx(u) { u.el.querySelector('.stt').innerHTML = Object.keys(u.st).map(k => '<b style="background:' + FX_BADGE[k][1] + '">' + FX_BADGE[k][0] + u.st[k].turns + '</b>').join(''); }
+function clearStatus(u, k) { if (!u.st[k]) return; if (k === 'slow') { u.spd = u._spd0; u.dodge = u._dg0; } delete u.st[k]; refreshFx(u); }
+function statusStart(u) { if (u.alive && u.st.hot) { const v = u.st.hot.v; u.hp = Math.min(u.maxHp, u.hp + v); floatText(u, '+' + v, 'heal'); drawUnit(u); } }
+function statusEnd(u) { for (const k of Object.keys(u.st)) { if (--u.st[k].turns <= 0) clearStatus(u, k); } refreshFx(u); }
+
 // ---------- 出手 ----------
 async function perform(u, act) {
   if (!act || act.type === 'none') return;
@@ -1421,13 +1461,29 @@ async function perform(u, act) {
   const s = D.skills[act.skill];
   if (s.mp) { if (u.mp < s.mp) return perform(u, { type: 'skill', skill: 'attack', target: weakestOf(other(u.side)) }); u.mp -= s.mp; drawUnit(u); }
   bmsg(act.skill === 'attack' || act.skill === 'bite' ? '' : u.name + ' · ' + s.name);
-  if (s.heal) {
-    const t = act.target && act.target.alive ? act.target : u, v = Math.round(t.maxHp * s.heal);
-    t.hp = Math.min(t.maxHp, t.hp + v); floatText(t, '+' + v, 'heal'); drawUnit(t); await sleep(480); return;
+  if (s.heal || s.healPow || s.revive) {
+    const mates = B.units.filter(x => x.side === u.side), lowest = () => mates.filter(x => x.alive).sort((x, y) => x.hp / x.maxHp - y.hp / y.maxHp)[0] || u;
+    if (s.revive) {
+      const dead = mates.find(x => !x.alive);
+      if (dead) { dead.alive = true; dead.hp = Math.round(dead.maxHp * s.revive); dead.el.classList.remove('dead'); floatText(dead, '复活', 'heal'); drawUnit(dead); await sleep(560); return; }
+    }
+    const ts = s.target === 'allies' ? mates.filter(x => x.alive) : s.target === 'self' ? [u] : [act.target && act.target.alive && act.target.side === u.side ? act.target : lowest()];
+    for (const t of ts) {
+      const v = s.healPow ? Math.round(u.matk * s.healPow * rnd(0.9, 1.1)) : Math.round(t.maxHp * (s.heal || 0.3));
+      t.hp = Math.min(t.maxHp, t.hp + v); floatText(t, '+' + v, 'heal');
+      if (s.cleanse) { clearStatus(t, 'slow'); clearStatus(t, 'mark'); }
+      if (s.shield) { t.st.shield = { turns: s.shield }; floatText(t, '护体', 'info'); }
+      if (s.hot) t.st.hot = { turns: s.hot.turns, v: Math.round(v * s.hot.pct) };
+      drawUnit(t); refreshFx(t);
+    }
+    await sleep(520); return;
   }
   const foes = living(other(u.side));
   if (!foes.length) return;
-  const targets = s.target === 'all' ? foes : [act.target && act.target.alive && act.target.side !== u.side ? act.target : foes[0]];
+  const primary = act.target && act.target.alive && act.target.side !== u.side ? act.target : foes[0];
+  let targets = s.target === 'all' ? foes : [primary];
+  if (s.hits > 1) targets = [primary].concat(foes.filter(x => x !== primary).sort(() => Math.random() - 0.5).slice(0, s.hits - 1));
+  const magic = !!s.magic || (act.skill === 'attack' && u.magicAtk);
   // 冲上去
   const t0 = targets[0], k = s.target === 'all' ? 0.4 : 0.7;
   u.el.style.zIndex = 1500;
@@ -1436,14 +1492,21 @@ async function perform(u, act) {
   for (const t of targets) {
     if (Math.random() * 100 < (t.dodge || 0)) { floatText(t, '闪避', ''); if (targets.length > 1) await sleep(60); continue; }
     const crit = Math.random() * 100 < (u.crit != null ? u.crit : 10);
-    let dmg = (s.magic ? u.matk : u.atk) * s.power * rnd(0.9, 1.1) * (crit ? 1.5 : 1) - (s.magic ? t.mdef : t.def) * 0.6;
+    let dmg = (magic ? u.matk : u.atk) * s.power * rnd(0.9, 1.1) * (crit ? 1.5 : 1) - (magic ? t.mdef : t.def) * 0.6;
+    if (s.vsMark && t.st.mark) dmg *= s.vsMark;
+    if (t.st.shield) dmg *= 0.7;
     if (t.defending) dmg *= 0.5;
     dmg = Math.max(1, Math.round(dmg));
     t.hp = Math.max(0, t.hp - dmg);
     slashFx(t, !!s.fire); floatText(t, (crit ? '暴击 ' : '') + '-' + dmg, crit ? 'crit' : '');
     t.el.classList.remove('hit'); void t.el.offsetWidth; t.el.classList.add('hit');
     drawUnit(t);
-    if (t.hp <= 0) { t.alive = false; t.el.classList.add('dead'); }
+    if (t.hp <= 0) { t.alive = false; t.el.classList.add('dead'); t.st = {}; }
+    else {
+      if (s.mark) { t.st.mark = { turns: s.mark }; floatText(t, '魔化', 'info'); }
+      if (s.slow) { if (!t.st.slow) { t._spd0 = t.spd; t._dg0 = t.dodge; t.spd = Math.round(t.spd * 0.8); t.dodge = Math.max(0, t.dodge - 10); } t.st.slow = { turns: s.slow }; floatText(t, '减速', 'info'); }
+    }
+    refreshFx(t);
     if (targets.length > 1) await sleep(60);
   }
   await sleep(200);
@@ -1520,7 +1583,7 @@ window.CHAT.bind(() => ({
   },
   showInfo(name, cls, lv) {                                              // 点名字 → 查看
     const c = D.classes[cls];
-    openModal('玩家信息', '<div class="who">' + (c ? '<img alt="" src="' + IMG('cls_' + cls) + '">' : '') + '<div><h5>' + name + '</h5><p>' + (c ? c.name + ' · ' + c.role : '路人') + '</p><p>等级 ' + (lv || '?') + '</p><p style="color:#7ee08a">在线</p></div></div>');
+    openModal('玩家信息', '<div class="who">' + (c ? '<img alt="" src="' + IMG('cls_' + cls) + '">' : '') + '<div><h5>' + name + '</h5><p>' + (c ? clsName(c) + ' · ' + c.role : '路人') + '</p><p>等级 ' + (lv || '?') + '</p><p style="color:#7ee08a">在线</p></div></div>');
   }
 }));
 // 左侧任务栏的“队伍”页签：显示自己和聊天里拉进来的队友
@@ -1541,8 +1604,9 @@ function enterGame(role, serverName) {
   ROLE = role; SAVE_KEY = 'guiqin-save:' + role.id;
   S = load() || newGame(); bagSel = null;
   const c = D.classes[role.cls];
-  player.name = role.name; player.title = '【' + c.name + '】'; drawTag(player);
-  $('hudName').textContent = role.name; $('hudSect').textContent = c.name; $('hudFace').src = IMG('head_' + role.cls);
+  setPlayerLook(role.cls);
+  player.name = role.name; player.title = '【' + clsName(c) + '】'; drawTag(player);
+  $('hudName').textContent = role.name; $('hudSect').textContent = clsName(c); $('hudFace').src = IMG(AS.img['head_' + role.cls] ? 'head_' + role.cls : 'head_player');
   $('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!S.gift; });
   window.CHAT.reset(serverName, role.name);
   loadMap(D.maps[S.map] ? S.map : D.start.map, S.pos); refresh(); save(); last = performance.now();

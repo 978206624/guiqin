@@ -35,7 +35,7 @@ try { const t = localStorage.getItem(ROLE_KEY); if (t) book = JSON.parse(t) || {
 const persist = () => { try { localStorage.setItem(ROLE_KEY, JSON.stringify(book)); } catch (e) {} };
 const rolesOf = sid => book[sid] || [];
 let account = '', server = null, picked = 0, group = 'rec';
-let draft = { gender: 'm', cls: 'm_sword' };
+let draft = { gender: 'f', cls: 'dao_ty' };
 
 // ---------- 切换界面 ----------
 const SCREENS = ['fLogin', 'fServer', 'fRoles', 'fCreate'];
@@ -107,7 +107,7 @@ function drawRoles() {
   if (r) {
     const c = D.classes[r.cls];
     $('fRoleArt').src = IMG('cls_' + r.cls); $('fRoleArt').hidden = false;
-    $('fRoleName').textContent = r.name; $('fRoleInfo').textContent = G.peekLevel(r.id) + ' 级 · ' + c.name + ' · ' + (c.gender === 'm' ? '男' : '女');
+    $('fRoleName').textContent = r.name; $('fRoleInfo').textContent = G.peekLevel(r.id) + ' 级 · ' + (c.sect ? c.sect + '·' : '') + c.name + ' · ' + (c.gender === 'm' ? '男' : '女');
     $('fEnter').disabled = false; $('fDel').hidden = false;
   } else {
     $('fRoleArt').hidden = true; $('fRoleName').textContent = '还没有角色'; $('fRoleInfo').textContent = '点下面的空栏位创建一个';
@@ -133,13 +133,15 @@ $('fEnter').addEventListener('click', () => {
 // ---------- 创建角色 ----------
 function randomName() { const g = D.classes[draft.cls].gender; return NAMES_A[Math.floor(Math.random() * NAMES_A.length)] + NAMES_B[g][Math.floor(Math.random() * NAMES_B[g].length)]; }
 function drawCreate() {
-  const ids = Object.keys(D.classes).filter(k => D.classes[k].gender === draft.gender);
+  const vis = Object.keys(D.classes).filter(k => !D.classes[k].hidden), genders = [...new Set(vis.map(k => D.classes[k].gender))];
+  if (!genders.includes(draft.gender)) draft.gender = genders[0];
+  const ids = vis.filter(k => D.classes[k].gender === draft.gender);
   if (!ids.includes(draft.cls)) draft.cls = ids[0];
   const c = D.classes[draft.cls];
-  $('fGender').innerHTML = [['m', '男'], ['f', '女']].map(g => '<button type="button" class="tab' + (g[0] === draft.gender ? ' on' : '') + '" data-gender="' + g[0] + '">' + g[1] + '</button>').join('');
+  $('fGender').innerHTML = genders.length < 2 ? '' : [['m', '男'], ['f', '女']].map(g => '<button type="button" class="tab' + (g[0] === draft.gender ? ' on' : '') + '" data-gender="' + g[0] + '">' + g[1] + '</button>').join('');
   $('fClasses').innerHTML = ids.map(id => '<button type="button" class="cls' + (id === draft.cls ? ' on' : '') + '" data-cls="' + id + '"><img alt="" src="' + IMG('head_' + id) + '"><span>' + D.classes[id].name + '</span></button>').join('');
   $('fNewArt').src = IMG('cls_' + draft.cls);
-  $('fClsName').textContent = c.name; $('fClsRole').textContent = c.role; $('fClsDesc').textContent = c.desc;
+  $('fClsName').textContent = (c.sect ? c.sect + '·' : '') + c.name; $('fClsRole').textContent = c.role; $('fClsDesc').textContent = c.desc;
   $('fStats').innerHTML = Object.keys(c.stats).map(k => '<div><span>' + k + '</span><i><b style="width:' + c.stats[k] * 20 + '%"></b></i></div>').join('');
   $('fNewErr').textContent = '';
   $('fBackRoles').textContent = rolesOf(server.id).length ? '返回' : '换区';

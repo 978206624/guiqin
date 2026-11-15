@@ -57,12 +57,25 @@ window.DATA = {
 
   // 可选职业：男女各三种。stats 是创建界面上的五维条（1-5），只用于展示
   classes: {
+    // ---- 道家（女）两个分堂：技能参考 kunkunxunqin（data_skill_defs 的 qm / ty），数值按本游戏的回合制重新折算 ----
+    dao_ty: { name: '天音', sect: '道家', gender: 'f', role: '辅助 · 琵琶', weapon: '琵琶', magicAtk: true,
+      desc: '道家天音分堂，怀抱琵琶，以曲音疗伤、护体、返魂。队伍里最可靠的后盾，自己也能用荡魔曲出手。', stats: { 攻击: 1, 防御: 3, 速度: 3, 法术: 4, 气血: 4 },
+      mod: { atk: 0.7, matk: 1.2, def: 1.05, mdef: 1.2, hp: 1.1, mp: 1.15 },
+      heart: { name: '天音心法', desc: '每级提升法攻 3 点、法防 6 点（原作：智力 +12、精神 +36）', perLv: { matk: 3, mdef: 6 } },
+      skills: ['dangmo_ty', 'lingmai_ty', 'yangsheng', 'tianlai', 'fanhun'],
+      auto: [['fanhun', 'dead'], ['lingmai_ty', 'selfHurt'], ['yangsheng', 'allyHurt'], ['tianlai', 'allyHurtMany'], ['dangmo_ty', 'always']] },
+    dao_qm: { hidden: true, name: '琴魔', sect: '道家', gender: 'f', role: '法攻 · 古琴', weapon: '古琴', magicAtk: true,
+      desc: '道家琴魔分堂，抚古琴，以魔音入敌心：魔化、减速、夺魂。输出和控制兼顾，血线要靠自己看着。', stats: { 攻击: 1, 防御: 2, 速度: 3, 法术: 5, 气血: 3 },
+      mod: { atk: 0.7, matk: 1.4, def: 0.95, mdef: 1.1, hp: 1.0, mp: 1.2 },
+      heart: { name: '琴魔心法', desc: '每级提升法攻 6 点、法防 2 点（原作：智力 +36、精神 +12）', perLv: { matk: 6, mdef: 2 } },
+      skills: ['dangmo_qm', 'lingmai_qm', 'mohun', 'duohun', 'fuling'],
+      auto: [['lingmai_qm', 'selfHurt'], ['mohun', 'many'], ['duohun', 'marked'], ['fuling', 'fast'], ['dangmo_qm', 'always']] },
     m_sword: { name: '游侠', gender: 'm', role: '近战 · 剑',   desc: '仗剑行走江湖的侠客，攻守均衡，出手干净利落。', stats: { 攻击: 4, 防御: 3, 速度: 4, 法术: 2, 气血: 3 } },
-    m_spear: { name: '锐士', gender: 'm', role: '近战 · 戟',   desc: '大秦锐士，披坚执锐。气血和防御最高，适合顶在最前面。', stats: { 攻击: 3, 防御: 5, 速度: 2, 法术: 1, 气血: 5 } },
-    m_mage:  { name: '方士', gender: 'm', role: '远程 · 法术', desc: '通晓阴阳五行的方士，以符箓和铜镜施法，擅长群体攻击。', stats: { 攻击: 2, 防御: 2, 速度: 3, 法术: 5, 气血: 2 } },
-    f_sword: { name: '剑姬', gender: 'f', role: '近战 · 剑',   desc: '剑舞一脉的传人，身法最快，连击和暴击是她的拿手好戏。', stats: { 攻击: 4, 防御: 2, 速度: 5, 法术: 2, 气血: 3 } },
-    f_heal:  { name: '医者', gender: 'f', role: '辅助 · 治疗', desc: '悬壶济世的游方医者，能为队友疗伤解毒，队伍里少不了她。', stats: { 攻击: 1, 防御: 3, 速度: 3, 法术: 4, 气血: 4 } },
-    f_bow:   { name: '羽林', gender: 'f', role: '远程 · 弓',   desc: '百步穿杨的神射手，专挑残血的敌人下手，单体伤害最高。', stats: { 攻击: 5, 防御: 2, 速度: 4, 法术: 1, 气血: 2 } }
+    m_spear: { hidden: true, name: '锐士', gender: 'm', role: '近战 · 戟',   desc: '大秦锐士，披坚执锐。气血和防御最高，适合顶在最前面。', stats: { 攻击: 3, 防御: 5, 速度: 2, 法术: 1, 气血: 5 } },
+    m_mage:  { hidden: true, name: '方士', gender: 'm', role: '远程 · 法术', desc: '通晓阴阳五行的方士，以符箓和铜镜施法，擅长群体攻击。', stats: { 攻击: 2, 防御: 2, 速度: 3, 法术: 5, 气血: 2 } },
+    f_sword: { hidden: true, name: '剑姬', gender: 'f', role: '近战 · 剑',   desc: '剑舞一脉的传人，身法最快，连击和暴击是她的拿手好戏。', stats: { 攻击: 4, 防御: 2, 速度: 5, 法术: 2, 气血: 3 } },
+    f_heal:  { hidden: true, name: '医者', gender: 'f', role: '辅助 · 治疗', desc: '悬壶济世的游方医者，能为队友疗伤解毒，队伍里少不了她。', stats: { 攻击: 1, 防御: 3, 速度: 3, 法术: 4, 气血: 4 } },
+    f_bow:   { hidden: true, name: '羽林', gender: 'f', role: '远程 · 弓',   desc: '百步穿杨的神射手，专挑残血的敌人下手，单体伤害最高。', stats: { 攻击: 5, 防御: 2, 速度: 4, 法术: 1, 气血: 2 } }
   },
 
   items: {
@@ -114,6 +127,18 @@ window.DATA = {
   // power：伤害倍率；target：one 单体 / all 全体 / self 自己；heal：按气血上限比例回复
   skills: {
     attack: { name: '攻击',     mp: 0,   power: 1.0, target: 'one',  desc: '普通一击。' },
+    // ---- 道家·琴魔 ----
+    dangmo_qm: { name: '荡魔曲', mp: 40,  power: 1.35, target: 'one', magic: true, lv: 1,  desc: '拨动古琴，以魔音重创一名敌人。' },
+    lingmai_qm:{ name: '灵脉曲', mp: 50,  heal: 0.22, target: 'ally', cleanse: true, lv: 3, desc: '疏通灵脉：为气血最低的友方回复 22% 气血，并解除减速、魔化等状态。' },
+    mohun:     { name: '魔魂曲', mp: 90,  power: 0.8, target: 'one', hits: 3, mark: 2, magic: true, lv: 5, desc: '魔音扩散，攻击最多 3 个敌人，并使其魔化 2 回合。' },
+    duohun:    { name: '夺魂曲', mp: 70,  power: 1.1, vsMark: 1.7, target: 'one', magic: true, lv: 8, desc: '单体伤害，对魔化状态的敌人伤害 ×1.7。' },
+    fuling:    { name: '缚灵曲', mp: 80,  power: 0.95, target: 'one', slow: 2, magic: true, lv: 10, desc: '单体伤害，并使目标出手速度和闪避下降 2 回合。' },
+    // ---- 道家·天音 ----
+    dangmo_ty: { name: '荡魔曲', mp: 40,  power: 1.2, target: 'one', magic: true, lv: 1,  desc: '拨动琵琶，以曲音震伤一名敌人。' },
+    lingmai_ty:{ name: '灵脉曲', mp: 50,  heal: 0.2, target: 'ally', cleanse: true, shield: 2, lv: 3, desc: '为气血最低的友方回复 20% 气血，解除减速、魔化，并降低 30% 所受伤害（2 回合）。' },
+    yangsheng: { name: '养生曲', mp: 60,  healPow: 2.2, target: 'ally', lv: 5, desc: '以法攻为基础，为气血最低的友方恢复大量气血。' },
+    tianlai:   { name: '天籁曲', mp: 120, healPow: 1.2, target: 'allies', hot: { pct: 0.35, turns: 4 }, lv: 8, desc: '恢复友方全体气血，随后 4 回合每回合再恢复 35%。' },
+    fanhun:    { name: '返魂曲', mp: 150, revive: 0.4, target: 'ally', lv: 10, desc: '复活一名倒下的友方并恢复 40% 气血；无人倒下时为最伤的友方回复气血。' },
     pokong: { name: '天剑·破空', mp: 60,  power: 1.9, target: 'one',  desc: '凝气于剑，重创一名敌人。', lv: 1 },
     zongheng:{ name: '剑气纵横', mp: 110, power: 1.15, target: 'all', magic: true, desc: '剑气四散，攻击全体敌人。', lv: 6 },
     ningshen:{ name: '凝神诀',   mp: 80,  heal: 0.35, target: 'self', desc: '调息凝神，回复 35% 气血。', lv: 7 },

@@ -3,6 +3,8 @@ window.ASSETS = {
  "img": {
   "axiu": "assets/axiu.webp",
   "b_axiu": "assets/b_axiu.webp",
+  "b_dao_qm": "assets/b_dao_qm.webp",
+  "b_dao_ty": "assets/b_dao_ty.webp",
   "b_deer": "assets/b_deer.webp",
   "b_fox": "assets/b_fox.webp",
   "b_girl": "assets/b_girl.webp",
@@ -27,6 +29,8 @@ window.ASSETS = {
   "bg_wolfvalley": "assets/bg_wolfvalley.webp",
   "boar": "assets/boar.webp",
   "boss": "assets/boss.webp",
+  "cls_dao_qm": "assets/cls_dao_qm.webp",
+  "cls_dao_ty": "assets/cls_dao_ty.webp",
   "cls_f_bow": "assets/cls_f_bow.webp",
   "cls_f_heal": "assets/cls_f_heal.webp",
   "cls_f_sword": "assets/cls_f_sword.webp",
@@ -49,6 +53,8 @@ window.ASSETS = {
   "girl": "assets/girl.webp",
   "grunt": "assets/grunt.webp",
   "head_axiu": "assets/head_axiu.webp",
+  "head_dao_qm": "assets/head_dao_qm.webp",
+  "head_dao_ty": "assets/head_dao_ty.webp",
   "head_elder": "assets/head_elder.webp",
   "head_f_bow": "assets/head_f_bow.webp",
   "head_f_heal": "assets/head_f_heal.webp",
@@ -158,7 +164,11 @@ window.ASSETS = {
   "vendor": "assets/vendor.webp",
   "waiter": "assets/waiter.webp",
   "walk_b": "assets/walk_b.webp",
+  "walk_b_dao_qm": "assets/walk_b_dao_qm.webp",
+  "walk_b_dao_ty": "assets/walk_b_dao_ty.webp",
   "walk_f": "assets/walk_f.webp",
+  "walk_f_dao_qm": "assets/walk_f_dao_qm.webp",
+  "walk_f_dao_ty": "assets/walk_f_dao_ty.webp",
   "wolf": "assets/wolf.webp",
   "world": "assets/world.webp"
  },
@@ -308,6 +318,34 @@ window.ASSETS = {
    66.5,
    120.0,
    45.688926458157226
+  ],
+  "walk_f_dao_ty": [
+   97.0,
+   121.5,
+   45.63738019169329
+  ],
+  "walk_b_dao_ty": [
+   87.5,
+   123.5,
+   45.91392405063291
+  ],
+  "walk_f_dao_qm": [
+   97.0,
+   120.5,
+   45.48361310951239
+  ],
+  "walk_b_dao_qm": [
+   93.0,
+   120.5,
+   49.300000000000004
+  ],
+  "b_dao_ty": [
+   106.0,
+   126.0
+  ],
+  "b_dao_qm": [
+   112.0,
+   126.0
   ],
   "kk_npc14": [
    58.0,
