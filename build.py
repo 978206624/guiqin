@@ -155,7 +155,7 @@ def portraits(src, names):
     assert len(runs)==len(names),(src,runs)
     for n,(x0,x1) in zip(names,runs):
         c=im.crop((x0,0,x1,im.height)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
-        c.save(f'{AD}/cls_{n}.webp',quality=62,method=6)
+        c.save(f'{AD}/cls_{n}.webp',quality=50,method=6)
         hx=c.width*HEAD_X[n]; sz=int(c.height*0.2); l=int(max(0,min(c.width-sz,hx-sz/2))); t=int(c.height*0.02)
         hd=Image.new('RGBA',(sz,sz),(43,36,64,255)); hd.alpha_composite(c.crop((l,t,l+sz,t+sz)))
         hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{n}.webp',quality=90)
@@ -172,10 +172,13 @@ def dao_head(c,name):
 for n,src in [('dao_ty',DA+'/port_ty.png' if os.path.exists(DA+'/port_ty.png') else DA+'/ref.png'),('dao_qm',DA+'/port_qm.png')]:
     c=keyed(src); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
     c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
-# 新手男 / 女：用游戏本来的角色美术（男＝游侠 m_sword，女＝剑姬 f_sword）；没有专属行走图 / 战斗背影，走默认的 walk_f / walk_b / b_player。
-# （之前生成的 Q 版新手图还留在 art-src/novice/，当前不参与构建）
-for n,o in [('novice_m','m_sword'),('novice_f','f_sword')]:
-    shutil.copy(f'{AD}/cls_{o}.webp',f'{AD}/cls_{n}.webp'); shutil.copy(f'{AD}/head_{o}.webp',f'{AD}/head_{n}.webp')
+# 新手男 / 女：参考 kunkunxunqin 创角预览里的赤绳少年 / 青带少女，用本游戏的手绘画风重画（art-src/novice-kk/）
+NK=G+'/novice-kk'
+for k,n in [('nf','novice_f'),('nm','novice_m')]:
+    walk_sheet(f'{NK}/walkf_{k}.png','walk_f_'+n,118); walk_sheet(f'{NK}/walkb_{k}.png','walk_b_'+n,118)
+    cut_row(f'{NK}/back_{k}.png',['b_'+n],{'b_'+n:126})
+    c=keyed(f'{NK}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
+    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
 # 道家男角色（天音 / 琴魔）：人物参考新手男，风格参考女主
 DM=G+'/daoist-m'
 for k in ['ty','qm']:

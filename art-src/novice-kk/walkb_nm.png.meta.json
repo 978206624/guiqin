@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "art-src/novice-kk/walkb_nm.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 238.1,
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "art-src/novice-kk/port_nf.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1024x1536",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 161.1,
+      "error": null
+    }
+  ]
+}
