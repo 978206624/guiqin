@@ -1342,7 +1342,7 @@ async function castPose(u) { u.el.classList.add('cast'); await sleep(560); u.el.
 function castFx(u, id) {                       // 出手者一侧：乐声起势
   const k = SKILL_FX[id]; if (!k) return;
   const ck = CAST_FX[id];
-  if (ck && AS.img['fxc_' + ck] && (ck === 'wave' || ck === 'mist' || ck === 'soul' || ck === 'chain')) { castSheet(ck, u, { behind: ck !== 'chain', face: u.side === 'ally' ? -1 : 1, dx: u.side === 'ally' ? -70 : 70, w: ck === 'chain' ? 260 : 360 }); }
+  if (ck && AS.img['fxc_' + ck] && (ck === 'wave' || ck === 'mist' || ck === 'soul' || ck === 'chain')) { castSheet(ck, u, { face: u.side === 'ally' ? 1 : -1, dx: u.side === 'ally' ? -34 : 34, up: 1.6, w: ck === 'chain' ? 260 : 320 }); }
   ['wave', 'wave b', 'wave c'].forEach(c => fxAt(c, u, 800, 6));
 }
 // 高清光效：4×2 = 8 帧的精灵表（art-src/fx，图像生成重画），黑底，用 screen 混合叠在战场上；缺图时退回下面的代码绘制版
