@@ -91,7 +91,7 @@ function refresh() {
   $('hudLv').textContent = S.lv;
   if (B.active && B.player) { setBar('hp', B.player.hp, B.player.maxHp); setBar('mp', B.player.mp, B.player.maxMp); }
   else { setBar('hp', S.hp, st.maxHp); setBar('mp', S.mp, st.maxMp); }
-  $('hudPow').textContent = fmt(st.atk * 6 + st.def * 5 + st.maxHp / 2 + st.spd * 3);
+  $('hudPow').textContent = fmt(powerOf(st));
   $('coin').textContent = '银两 ' + fmt(S.coin);
   $('expBar').style.width = (S.exp / expNeed() * 100) + '%';
   showQuest();
@@ -145,18 +145,40 @@ function usePotion(id) {
   toast('使用' + it.name + (it.hp ? '，气血 +' + it.hp : '') + (it.mp ? '，法力 +' + it.mp : ''));
   return true;
 }
+let roleTab = 'attr';
+const powerOf = st => Math.round(st.atk * 6 + st.def * 5 + st.maxHp / 2 + st.spd * 3);
 function openRole() {
-  const st = stats();
+  const st = stats(), cls = D.classes[ROLE.cls], need = expNeed();
   const slotName = { weapon: '兵器', armor: '衣甲', charm: '饰品' };
-  let h = '<div class="who"><img alt="" src="' + IMG('cls_' + ROLE.cls) + '"><div><h5>' + ROLE.name + '</h5><p>' + D.classes[ROLE.cls].name + ' · ' + D.classes[ROLE.cls].role + '</p><p>等级 ' + S.lv + '　经验 ' + S.exp + ' / ' + expNeed() + '</p><div class="slots">';
-  for (const slot in slotName) {
-    const id = S.equip[slot];
-    h += '<div><div class="tile' + (id ? '' : ' empty') + '">' + (id ? itemImg(id) : '') + '</div><small>' + (id ? D.items[id].name : slotName[slot]) + '</small></div>';
+  const bar = (cur, max, cls2) => '<div class="rbar ' + cls2 + '"><i style="width:' + Math.max(0, Math.min(100, cur / max * 100)) + '%"></i><span>' + Math.round(cur) + ' / ' + max + '</span></div>';
+  let h = '<div class="who"><img alt="" src="' + IMG('cls_' + ROLE.cls) + '"><div><h5>' + ROLE.name + '</h5><p>' + cls.name + ' · ' + cls.role + ' · ' + (cls.gender === 'm' ? '男' : '女') + '</p>' +
+    '<p>等级 <b class="gold">' + S.lv + '</b>　战力 <b class="gold">' + fmt(powerOf(st)) + '</b></p>' +
+    '<p class="small">经验 ' + S.exp + ' / ' + need + '</p><div class="rbar exp"><i style="width:' + Math.min(100, S.exp / need * 100) + '%"></i></div></div></div>' +
+    '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') + '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') + '" data-act="roleTab:equip">装备</button></div>';
+  if (roleTab === 'attr') {
+    // 每项属性拆成 基础 + 等级成长 + 装备，装备加成用绿色标出来
+    const gear = { maxHp: 0, atk: 0, def: 0, spd: 0 };
+    for (const slot in S.equip) { const it = D.items[S.equip[slot]]; if (!it) continue; gear.atk += it.atk || 0; gear.def += it.def || 0; gear.maxHp += it.hp || 0; gear.spd += it.spd || 0; }
+    const base = D.base, grow = D.grow, L = S.lv;
+    const line = (name, total, b, g2, e) => '<div class="arow"><span>' + name + '</span><b>' + total + '</b><small>基础 ' + b + ' + 成长 ' + g2 + (e ? ' <em>+ 装备 ' + e + '</em>' : '') + '</small></div>';
+    h += '<div class="vit"><div><small>气血</small>' + bar(S.hp, st.maxHp, 'hp') + '</div><div><small>法力</small>' + bar(S.mp, st.maxMp, 'mp') + '</div></div>' +
+      '<div class="alist">' +
+      line('攻击', st.atk, base.atk, grow.atk * L, gear.atk) + line('防御', st.def, base.def, grow.def * L, gear.def) +
+      line('速度', st.spd, base.spd, grow.spd * L, gear.spd) + line('气血上限', st.maxHp, base.hp, grow.hp * L, gear.maxHp) +
+      line('法力上限', st.maxMp, base.mp, grow.mp * L, 0) +
+      '<div class="arow"><span>暴击</span><b>10%</b><small>暴击时伤害 ×1.5</small></div>' +
+      '<div class="arow"><span>银两</span><b>' + fmt(S.coin) + '</b><small></small></div></div>' +
+      '<p class="hint">升级时五项属性按固定成长自动提升；装备和饰品提供额外加成。</p>';
+  } else {
+    h += '<div class="elist">';
+    for (const slot in slotName) {
+      const id = S.equip[slot], it = id && D.items[id];
+      h += '<div class="erow"><div class="tile' + (id ? '' : ' empty') + '">' + (id ? itemImg(id) : '') + '</div><div><small>' + slotName[slot] + '</small><h6>' + (it ? it.name : '空') + '</h6><p>' + (it ? itemBonus(it) : '背包里有合适的就能装备') + '</p></div>' +
+        (it ? '<button type="button" class="tbtn" data-act="unequip:' + slot + '">卸下</button>' : '') + '</div>';
+    }
+    h += '</div><p class="center" style="margin:12px 0 0"><button type="button" class="tbtn" data-act="openBag">去背包换装备</button></p>';
   }
-  h += '</div></div></div><div class="stats">' +
-    '<div>气血<b>' + Math.round(S.hp) + ' / ' + st.maxHp + '</b></div><div>法力<b>' + Math.round(S.mp) + ' / ' + st.maxMp + '</b></div>' +
-    '<div>攻击<b>' + st.atk + '</b></div><div>防御<b>' + st.def + '</b></div><div>速度<b>' + st.spd + '</b></div><div>银两<b>' + fmt(S.coin) + '</b></div></div>' +
-    '<p class="center" style="margin:16px 0 0"><button type="button" class="tbtn" data-act="switchRole">切换角色</button>　<button type="button" class="tbtn red" data-act="reset">重新开始</button></p>';
+  h += '<p class="center" style="margin:16px 0 0"><button type="button" class="tbtn" data-act="switchRole">切换角色</button>　<button type="button" class="tbtn red" data-act="reset">重新开始</button></p>';
   openModal('角色', h);
 }
 function openSkills() {
@@ -201,6 +223,9 @@ const ACTS = {
   reset() { openModal('重新开始', '<p class="center">会清掉等级、背包和任务进度，从头再来。</p><p class="center"><button type="button" class="tbtn red" data-act="resetYes">确定清档</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>'); },
   resetYes() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} S = newGame(); bagSel = null; loadMap(S.map); closeModal(); refresh(); toast('已重新开始'); },
   arena() { $('modal').hidden = true; modalOnClose = null; if (B.active) { B.active = false; $('units').innerHTML = ''; } startArena(); },
+  roleTab(t) { roleTab = t; openRole(); },
+  unequip(slot) { if (!S.equip[slot]) return; const id = S.equip[slot]; S.equip[slot] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('卸下了' + D.items[id].name); openRole(); },
+  openBag() { openBag(); },
   switchRole() { closeModal(); stop(); save(); window.FRONT.showRoles(); },
   close() { closeModal(); },
   leave() { closeModal(); }
