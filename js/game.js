@@ -805,13 +805,14 @@ function changeClass(id) {         // 拜入门派：换职业、形象、头像
 }
 function offerSect() {
   const opts = (curCls().joinSect || []).map(id => D.classes[id]); if (!opts.length) return;
-  openModal('拜入门派', '<p class="center">道家接引师说：你与道家有缘。选一个分堂吧。</p>' + (curCls().joinSect).map(id => { const c = D.classes[id];
+  openModal('拜入门派', '<p class="center">道家门主说：你与道家有缘。选一个分堂吧。</p>' + (curCls().joinSect).map(id => { const c = D.classes[id];
     return '<div class="q"><img alt="" src="' + IMG('head_' + id) + '" style="width:56px;height:56px;border-radius:50%;float:left;margin-right:10px"><b>' + c.name + '</b>（' + c.weapon + '）<br><small>' + c.desc + '</small><br><button type="button" class="tbtn red" data-act="sect:' + id + '">拜入' + c.name + '</button></div>'; }).join(''));
 }
 ACTS.sect = id => { closeModal(); changeClass(id); };
 // 完成当前这一拍：进入下一拍；任务最后一拍发奖励并播完成对白（下一个任务不是“找人”时，顺带播它的接取对白）
 function finishBeat(q, extra) {
-  const joinNow = D.npcs[q.npc] && D.npcs[q.npc].name === '道家接引师' && curCls().joinSect;
+  const SECT_LV = 10;   // 10 级才可拜入门派，去太虚之林找道家门主
+  const wasLow = S.lv < SECT_LV;
   S.step++; S.cnt = 0;
   let ups = 0, pages = [];
   if (q.last) {
@@ -821,8 +822,9 @@ function finishBeat(q, extra) {
     const nx = D.quests[S.step]; if (nx && nx.first && nx.type !== 'talk' && nx.type !== 'spot') pages = pages.concat(nx.accept);
   }
   toast(ups ? '升到 ' + S.lv + ' 级！气血法力已回满' : (D.quests[S.step] ? '任务更新：' + D.quests[S.step].goal : '第一章已完成，后续剧情敬请期待'));
+  if (wasLow && S.lv >= SECT_LV && curCls().joinSect) sys('你已达 ' + SECT_LV + ' 级，可前往太虚之林，向道家门主拜入门派。');
   save(); refresh();
-  if (pages.length) showPages(pages, joinNow ? offerSect : undefined); else if (joinNow) offerSect();
+  if (pages.length) showPages(pages);
 }
 function talk(n) {
   const q = D.quests[S.step];
@@ -834,7 +836,7 @@ function talk(n) {
   openDialog(n, info.idle, () => {
     if (info.shop === 'smith') openSmith('forge');
     else if (info.shop) openShop(info.shop);
-    else if (info.act === 'joinSect') { if (curCls().joinSect) offerSect(); else toast('你已是道家弟子'); }
+    else if (info.act === 'joinSect') { if (!curCls().joinSect) toast('你已是道家弟子'); else if (S.lv >= 10) offerSect(); else toast('需达到 10 级方可拜入门派（现在 ' + S.lv + ' 级）'); }
     else if (info.act === 'arena') openModal('竞技场', '<p class="center">五对五模拟对战（不影响存档）。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">上擂台</button>　<button type="button" class="tbtn" data-act="close">再看看</button></p>');
     else if (info.rest) { const st = stats(); if (S.hp < st.maxHp || S.mp < st.maxMp) { S.hp = st.maxHp; S.mp = st.maxMp; save(); refresh(); toast(info.restMsg || '歇了一会儿，气血法力回满'); } }
   });

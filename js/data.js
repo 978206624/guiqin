@@ -334,7 +334,7 @@ window.DATA = {
     towerman: { name: '守塔人', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'f_tao', head: 'head_m_mage', idle: '玄兵塔共九层，一层比一层凶险。塔门暂时还不能开，等你再强一些。' },
     trader:   { name: '掌柜',   title: '【寄卖行】', color: '#ffe08a', sprite: 'f_healer', head: 'head_vendor', shop: 'trader', idle: '百宝摊上的项链、戒指、法宝、护符，都是各路好货，少侠随便看。' },
     // 道家驻地（太虚之林）的三位：形象取自 kunkunxunqin（门主 10000463 / 琴魔堂主 10000464 / 天音堂主 10000465）
-    dao_menzhu: { name: '道家门主', title: '【道家】', color: '#bfe8ff', sprite: 'kk_npc57', head: 'head_kk_npc57', act: 'joinSect', idle: '道法自然，无为而无不为。太虚之林乃本门驻地，少侠与道有缘，便可在此拜入道家。' },
+    dao_menzhu: { name: '道家门主', title: '【道家】', color: '#bfe8ff', sprite: 'kk_npc57', head: 'head_kk_npc57', act: 'joinSect', idle: '道法自然，无为而无不为。太虚之林乃本门驻地。年满十级、与道有缘者，可在此拜入道家，择天音或琴魔一堂。' },
     dao_qinmo:  { name: '琴魔堂主', title: '【道家·琴魔】', color: '#bfe8ff', sprite: 'kk_npc45', head: 'head_kk_npc45', idle: '琴魔一脉，以魔音入敌心。琴声不是用来讨好谁的，是用来镇住心里那头兽的。' },
     dao_tianyin: { name: '天音堂主', title: '【道家·天音】', color: '#bfe8ff', sprite: 'kk_npc47', head: 'head_kk_npc47', idle: '天音一脉，琵琶一曲可疗伤、护体、唤回将逝之人。会救人，才算真本事。' },
     taixu_mo:    { name: '墨巨子',   title: '【墨家】', color: '#ffd9a0', sprite: 'f_spear', head: 'head_m_spear', idle: '兼爱非攻，机关为用。太虚之峰的每一道机括，都是墨家弟子亲手所造。' },
