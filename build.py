@@ -157,18 +157,18 @@ def portraits(src, names):
         hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{n}.webp',quality=90)
 portraits(G+'/male.png',['m_sword','m_spear','m_mage']); portraits(G+'/female.png',['f_sword','f_heal','f_bow'])
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
-t=Image.open(G+'/town3.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
+t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)
 if os.path.exists(f'{AD}/mini.jpg'): os.remove(f'{AD}/mini.jpg')
 b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.width-cw)//2
 b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=True)
 
 from PIL import ImageFilter
-for n,q in [('bg_town',85),('bg_outskirts',86),('bg_creek',86),('bg_mist',86),('bg_pine',86),('bg_wolfvalley',86)]:
+for n,q in [('bg_town',66),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',78),('bg_wolfvalley',78)]:
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue
     im=Image.open(p).convert('RGB')
-    if n=='bg_town': im=im.filter(ImageFilter.UnsharpMask(radius=1.6,percent=70,threshold=2))
+    pass
     im.save(f'{AD}/{n}.webp',quality=q,method=6); os.remove(p)
 files=sorted(f for f in os.listdir(AD))
 keys={f.rsplit('.',1)[0]:f for f in files}
