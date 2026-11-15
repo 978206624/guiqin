@@ -9,6 +9,8 @@ window.ASSETS = {
   "b_fox": "assets/b_fox.webp",
   "b_girl": "assets/b_girl.webp",
   "b_hawk": "assets/b_hawk.webp",
+  "b_novice_f": "assets/b_novice_f.webp",
+  "b_novice_m": "assets/b_novice_m.webp",
   "b_player": "assets/b_player.webp",
   "b_rabbit": "assets/b_rabbit.webp",
   "b_tiger": "assets/b_tiger.webp",
@@ -37,6 +39,8 @@ window.ASSETS = {
   "cls_m_mage": "assets/cls_m_mage.webp",
   "cls_m_spear": "assets/cls_m_spear.webp",
   "cls_m_sword": "assets/cls_m_sword.webp",
+  "cls_novice_f": "assets/cls_novice_f.webp",
+  "cls_novice_m": "assets/cls_novice_m.webp",
   "dummy": "assets/dummy.webp",
   "elder": "assets/elder.webp",
   "f_blade": "assets/f_blade.webp",
@@ -69,6 +73,8 @@ window.ASSETS = {
   "head_m_mage": "assets/head_m_mage.webp",
   "head_m_spear": "assets/head_m_spear.webp",
   "head_m_sword": "assets/head_m_sword.webp",
+  "head_novice_f": "assets/head_novice_f.webp",
+  "head_novice_m": "assets/head_novice_m.webp",
   "head_player": "assets/head_player.webp",
   "head_smith": "assets/head_smith.webp",
   "head_vendor": "assets/head_vendor.webp",
@@ -166,9 +172,13 @@ window.ASSETS = {
   "walk_b": "assets/walk_b.webp",
   "walk_b_dao_qm": "assets/walk_b_dao_qm.webp",
   "walk_b_dao_ty": "assets/walk_b_dao_ty.webp",
+  "walk_b_novice_f": "assets/walk_b_novice_f.webp",
+  "walk_b_novice_m": "assets/walk_b_novice_m.webp",
   "walk_f": "assets/walk_f.webp",
   "walk_f_dao_qm": "assets/walk_f_dao_qm.webp",
   "walk_f_dao_ty": "assets/walk_f_dao_ty.webp",
+  "walk_f_novice_f": "assets/walk_f_novice_f.webp",
+  "walk_f_novice_m": "assets/walk_f_novice_m.webp",
   "wolf": "assets/wolf.webp",
   "world": "assets/world.webp"
  },
@@ -345,6 +355,34 @@ window.ASSETS = {
   ],
   "b_dao_qm": [
    112.0,
+   126.0
+  ],
+  "walk_f_novice_f": [
+   66.5,
+   124.0,
+   31.70128885519333
+  ],
+  "walk_b_novice_f": [
+   73.5,
+   121.5,
+   37.283875851627556
+  ],
+  "b_novice_f": [
+   79.5,
+   126.0
+  ],
+  "walk_f_novice_m": [
+   56.5,
+   120.0,
+   30.161054172767205
+  ],
+  "walk_b_novice_m": [
+   60.5,
+   124.5,
+   29.838660578386605
+  ],
+  "b_novice_m": [
+   64.5,
    126.0
   ],
   "kk_npc14": [

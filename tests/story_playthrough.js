@@ -15,6 +15,7 @@ const S=require('os').tmpdir()+'/';
   const s=await st(); if(s.step>=s.n){console.log('DONE',s);break}
   if(s.step!==last){console.log(JSON.stringify(s)); last=s.step; idle=0}
   if(await pg.locator('#dialog').isVisible()){ if(shots<3&&i%5==0){await pg.screenshot({path:S+'s32_dlg'+(shots++)+'.png'})} await pg.locator('#dialog').click(); await pg.waitForTimeout(120); continue}
+  const sc=pg.locator('[data-act="sect:dao_ty"]'); if(await sc.isVisible().catch(()=>false)){ console.log('拜入天音'); await sc.click(); await pg.waitForTimeout(400); continue}
   const fb=pg.locator('[data-act^="fight:"]'); if(await fb.first().isVisible().catch(()=>false)){ await fb.first().click(); await pg.waitForTimeout(600); continue}
   if(await pg.evaluate(()=>GAME.battle.active)){ 
     const a=pg.locator('[data-cmd="attack"]'); if(await a.isVisible().catch(()=>false)) {await a.click().catch(()=>{});} 

@@ -57,6 +57,11 @@ window.DATA = {
 
   // 可选职业：男女各三种。stats 是创建界面上的五维条（1-5），只用于展示
   classes: {
+    // ---- 新手：创角页只有这两个（男女各一）。女角色在剧情里拜入道家后，才变成天音 / 琴魔的形象（game.js joinSect）----
+    novice_f: { name: '新手', gender: 'f', role: '近战 · 拳脚', weapon: '无', joinSect: ['dao_ty', 'dao_qm'],
+      desc: '刚下山的少女，布衣素裙，什么门派都还没入。到了清溪边，遇到各家接引师，再决定要走哪条路。', stats: { 攻击: 3, 防御: 3, 速度: 3, 法术: 3, 气血: 3 } },
+    novice_m: { name: '新手', gender: 'm', role: '近战 · 棍', weapon: '木棍',
+      desc: '刚出山的少年，麻衣木棍，样样都会一点。路还很长，先把清溪的事了了。', stats: { 攻击: 3, 防御: 3, 速度: 3, 法术: 3, 气血: 3 } },
     // ---- 道家（女）两个分堂：技能参考 kunkunxunqin（data_skill_defs 的 qm / ty），数值按本游戏的回合制重新折算 ----
     dao_ty: { name: '天音', sect: '道家', gender: 'f', role: '辅助 · 琵琶', weapon: '琵琶', magicAtk: true,
       desc: '道家天音分堂，怀抱琵琶，以曲音疗伤、护体、返魂。队伍里最可靠的后盾，自己也能用荡魔曲出手。', stats: { 攻击: 1, 防御: 3, 速度: 3, 法术: 4, 气血: 4 },
@@ -70,7 +75,7 @@ window.DATA = {
       heart: { name: '琴魔心法', desc: '每级提升法攻 6 点、法防 2 点（原作：智力 +36、精神 +12）', perLv: { matk: 6, mdef: 2 } },
       skills: ['dangmo_qm', 'lingmai_qm', 'mohun', 'duohun', 'fuling'],
       auto: [['lingmai_qm', 'selfHurt'], ['mohun', 'many'], ['duohun', 'marked'], ['fuling', 'fast'], ['dangmo_qm', 'always']] },
-    m_sword: { name: '游侠', gender: 'm', role: '近战 · 剑',   desc: '仗剑行走江湖的侠客，攻守均衡，出手干净利落。', stats: { 攻击: 4, 防御: 3, 速度: 4, 法术: 2, 气血: 3 } },
+    m_sword: { hidden: true, name: '游侠', gender: 'm', role: '近战 · 剑',   desc: '仗剑行走江湖的侠客，攻守均衡，出手干净利落。', stats: { 攻击: 4, 防御: 3, 速度: 4, 法术: 2, 气血: 3 } },
     m_spear: { hidden: true, name: '锐士', gender: 'm', role: '近战 · 戟',   desc: '大秦锐士，披坚执锐。气血和防御最高，适合顶在最前面。', stats: { 攻击: 3, 防御: 5, 速度: 2, 法术: 1, 气血: 5 } },
     m_mage:  { hidden: true, name: '方士', gender: 'm', role: '远程 · 法术', desc: '通晓阴阳五行的方士，以符箓和铜镜施法，擅长群体攻击。', stats: { 攻击: 2, 防御: 2, 速度: 3, 法术: 5, 气血: 2 } },
     f_sword: { hidden: true, name: '剑姬', gender: 'f', role: '近战 · 剑',   desc: '剑舞一脉的传人，身法最快，连击和暴击是她的拿手好戏。', stats: { 攻击: 4, 防御: 2, 速度: 5, 法术: 2, 气血: 3 } },

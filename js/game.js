@@ -30,7 +30,7 @@ $('hudFace').src = IMG('head_player'); $('hudPetImg').src = IMG('b_fox');
 
 // ============================================================ 存档与属性
 let SAVE_KEY = 'guiqin-save:guest';      // 每个角色一份存档，进游戏时换成 guiqin-save:<角色 id>
-let ROLE = { id: 'guest', name: '云中客', cls: 'm_sword' };
+let ROLE = { id: 'guest', name: '云中客', cls: 'novice_m' };
 function newGame() {
   const s = JSON.parse(JSON.stringify(D.start));
   return { lv: s.lv, exp: 0, hp: null, mp: null, coin: s.coin, items: s.items, equip: s.equip, step: 0, cnt: 0, sv: 2, cleared: [], gift: false, map: s.map, pos: null, visited: [] };
@@ -58,7 +58,7 @@ function slotBonus(slot) {
   return out;
 }
 function gearSum() { const t = {}; for (const slot in S.equip) { const o = slotBonus(slot); for (const k in o) t[k] = (t[k] || 0) + o[k]; } return t; }
-const curCls = () => D.classes[ROLE.cls] || D.classes.dao_ty;
+const curCls = () => D.classes[ROLE.cls] || D.classes.novice_f;
 const clsName = c => (c.sect ? c.sect + '·' : '') + c.name;
 // 职业倍率（按基础+成长算）和心法加成（每级固定值，对应原作的“心法”被动）
 const clsMul = k => (curCls().mod || {})[k] || 1;
@@ -796,8 +796,22 @@ function showPages(pages, done) {
   const next = () => { if (i >= pages.length) { if (done) done(); return; } const pg = pages[i++]; speak(pg[0], pg[1], next); };
   next();
 }
+function changeClass(id) {         // 拜入门派：换职业、形象、头像，存档
+  ROLE.cls = id; const c = D.classes[id];
+  setPlayerLook(id); player.title = '【' + clsName(c) + '】'; drawTag(player);
+  $('hudSect').textContent = clsName(c); $('hudFace').src = IMG(AS.img['head_' + id] ? 'head_' + id : 'head_player');
+  S.hp = stats().maxHp; S.mp = stats().maxMp; sys('你拜入' + c.sect + '，成为「' + c.name + '」。'); toast('拜入' + c.sect + '·' + c.name);
+  if (window.GAME.onRoleChange) window.GAME.onRoleChange(); save(); refresh();
+}
+function offerSect() {
+  const opts = (curCls().joinSect || []).map(id => D.classes[id]); if (!opts.length) return;
+  openModal('拜入门派', '<p class="center">道家接引师说：你与道家有缘。选一个分堂吧。</p>' + (curCls().joinSect).map(id => { const c = D.classes[id];
+    return '<div class="q"><img alt="" src="' + IMG('head_' + id) + '" style="width:56px;height:56px;border-radius:50%;float:left;margin-right:10px"><b>' + c.name + '</b>（' + c.weapon + '）<br><small>' + c.desc + '</small><br><button type="button" class="tbtn red" data-act="sect:' + id + '">拜入' + c.name + '</button></div>'; }).join(''));
+}
+ACTS.sect = id => { closeModal(); changeClass(id); };
 // 完成当前这一拍：进入下一拍；任务最后一拍发奖励并播完成对白（下一个任务不是“找人”时，顺带播它的接取对白）
 function finishBeat(q, extra) {
+  const joinNow = D.npcs[q.npc] && D.npcs[q.npc].name === '道家接引师' && curCls().joinSect;
   S.step++; S.cnt = 0;
   let ups = 0, pages = [];
   if (q.last) {
@@ -808,7 +822,7 @@ function finishBeat(q, extra) {
   }
   toast(ups ? '升到 ' + S.lv + ' 级！气血法力已回满' : (D.quests[S.step] ? '任务更新：' + D.quests[S.step].goal : '第一章已完成，后续剧情敬请期待'));
   save(); refresh();
-  if (pages.length) showPages(pages);
+  if (pages.length) showPages(pages, joinNow ? offerSect : undefined); else if (joinNow) offerSect();
 }
 function talk(n) {
   const q = D.quests[S.step];

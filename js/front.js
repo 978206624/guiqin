@@ -35,7 +35,7 @@ try { const t = localStorage.getItem(ROLE_KEY); if (t) book = JSON.parse(t) || {
 const persist = () => { try { localStorage.setItem(ROLE_KEY, JSON.stringify(book)); } catch (e) {} };
 const rolesOf = sid => book[sid] || [];
 let account = '', server = null, picked = 0, group = 'rec';
-let draft = { gender: 'f', cls: 'dao_ty' };
+let draft = { gender: 'f', cls: 'novice_f' };
 
 // ---------- 切换界面 ----------
 const SCREENS = ['fLogin', 'fServer', 'fRoles', 'fCreate'];
@@ -125,6 +125,7 @@ $('fDelYes').addEventListener('click', () => {
   const roles = rolesOf(server.id), r = roles[picked];
   G.wipe(r.id); roles.splice(picked, 1); book[server.id] = roles; persist(); picked = 0; drawRoles();
 });
+G.onRoleChange = () => persist();     // 游戏里换了职业（拜入门派）后把角色表存起来
 $('fEnter').addEventListener('click', () => {
   const r = rolesOf(server.id)[picked]; if (!r) return;
   show(null); G.enter(r, '秦 ' + server.no + ' 区');

@@ -7,6 +7,14 @@
   "file": "assets/b_axiu.webp",
   "bytes": 16384
  },
+ "b_dao_qm": {
+  "file": "assets/b_dao_qm.webp",
+  "bytes": 31662
+ },
+ "b_dao_ty": {
+  "file": "assets/b_dao_ty.webp",
+  "bytes": 31778
+ },
  "b_deer": {
   "file": "assets/b_deer.webp",
   "bytes": 10868
@@ -22,6 +30,14 @@
  "b_hawk": {
   "file": "assets/b_hawk.webp",
   "bytes": 17146
+ },
+ "b_novice_f": {
+  "file": "assets/b_novice_f.webp",
+  "bytes": 23348
+ },
+ "b_novice_m": {
+  "file": "assets/b_novice_m.webp",
+  "bytes": 18176
  },
  "b_player": {
   "file": "assets/b_player.webp",
@@ -53,19 +69,19 @@
  },
  "bg_creek": {
   "file": "assets/bg_creek.webp",
-  "bytes": 460492
+  "bytes": 384536
  },
  "bg_mist": {
   "file": "assets/bg_mist.webp",
-  "bytes": 441200
+  "bytes": 367572
  },
  "bg_outskirts": {
   "file": "assets/bg_outskirts.webp",
-  "bytes": 427916
+  "bytes": 357818
  },
  "bg_pine": {
   "file": "assets/bg_pine.webp",
-  "bytes": 500678
+  "bytes": 449508
  },
  "bg_taixuforest": {
   "file": "assets/bg_taixuforest.webp",
@@ -81,11 +97,11 @@
  },
  "bg_town": {
   "file": "assets/bg_town.webp",
-  "bytes": 3516298
+  "bytes": 2852050
  },
  "bg_village": {
   "file": "assets/bg_village.webp",
-  "bytes": 475734
+  "bytes": 390034
  },
  "bg_wild": {
   "file": "assets/bg_wild.webp",
@@ -103,29 +119,45 @@
   "file": "assets/boss.webp",
   "bytes": 40796
  },
+ "cls_dao_qm": {
+  "file": "assets/cls_dao_qm.webp",
+  "bytes": 144492
+ },
+ "cls_dao_ty": {
+  "file": "assets/cls_dao_ty.webp",
+  "bytes": 135804
+ },
  "cls_f_bow": {
   "file": "assets/cls_f_bow.webp",
-  "bytes": 166348
+  "bytes": 109488
  },
  "cls_f_heal": {
   "file": "assets/cls_f_heal.webp",
-  "bytes": 132802
+  "bytes": 82042
  },
  "cls_f_sword": {
   "file": "assets/cls_f_sword.webp",
-  "bytes": 187072
+  "bytes": 125358
  },
  "cls_m_mage": {
   "file": "assets/cls_m_mage.webp",
-  "bytes": 140494
+  "bytes": 74522
  },
  "cls_m_spear": {
   "file": "assets/cls_m_spear.webp",
-  "bytes": 100476
+  "bytes": 53066
  },
  "cls_m_sword": {
   "file": "assets/cls_m_sword.webp",
-  "bytes": 91896
+  "bytes": 48872
+ },
+ "cls_novice_f": {
+  "file": "assets/cls_novice_f.webp",
+  "bytes": 92006
+ },
+ "cls_novice_m": {
+  "file": "assets/cls_novice_m.webp",
+  "bytes": 86712
  },
  "dummy": {
   "file": "assets/dummy.webp",
@@ -191,6 +223,14 @@
   "file": "assets/head_axiu.webp",
   "bytes": 15482
  },
+ "head_dao_qm": {
+  "file": "assets/head_dao_qm.webp",
+  "bytes": 12606
+ },
+ "head_dao_ty": {
+  "file": "assets/head_dao_ty.webp",
+  "bytes": 11350
+ },
  "head_elder": {
   "file": "assets/head_elder.webp",
   "bytes": 15584
@@ -246,6 +286,14 @@
  "head_m_sword": {
   "file": "assets/head_m_sword.webp",
   "bytes": 7182
+ },
+ "head_novice_f": {
+  "file": "assets/head_novice_f.webp",
+  "bytes": 10466
+ },
+ "head_novice_m": {
+  "file": "assets/head_novice_m.webp",
+  "bytes": 8878
  },
  "head_player": {
   "file": "assets/head_player.webp",
@@ -627,9 +675,41 @@
   "file": "assets/walk_b.webp",
   "bytes": 72740
  },
+ "walk_b_dao_qm": {
+  "file": "assets/walk_b_dao_qm.webp",
+  "bytes": 96320
+ },
+ "walk_b_dao_ty": {
+  "file": "assets/walk_b_dao_ty.webp",
+  "bytes": 101286
+ },
+ "walk_b_novice_f": {
+  "file": "assets/walk_b_novice_f.webp",
+  "bytes": 69454
+ },
+ "walk_b_novice_m": {
+  "file": "assets/walk_b_novice_m.webp",
+  "bytes": 55348
+ },
  "walk_f": {
   "file": "assets/walk_f.webp",
   "bytes": 67946
+ },
+ "walk_f_dao_qm": {
+  "file": "assets/walk_f_dao_qm.webp",
+  "bytes": 113028
+ },
+ "walk_f_dao_ty": {
+  "file": "assets/walk_f_dao_ty.webp",
+  "bytes": 111818
+ },
+ "walk_f_novice_f": {
+  "file": "assets/walk_f_novice_f.webp",
+  "bytes": 65334
+ },
+ "walk_f_novice_m": {
+  "file": "assets/walk_f_novice_m.webp",
+  "bytes": 60830
  },
  "wolf": {
   "file": "assets/wolf.webp",
@@ -637,6 +717,6 @@
  },
  "world": {
   "file": "assets/world.webp",
-  "bytes": 1095036
+  "bytes": 941978
  }
 }

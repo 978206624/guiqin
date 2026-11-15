@@ -172,6 +172,13 @@ def dao_head(c,name):
 for n,src in [('dao_ty',DA+'/port_ty.png' if os.path.exists(DA+'/port_ty.png') else DA+'/ref.png'),('dao_qm',DA+'/port_qm.png')]:
     c=keyed(src); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
     c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
+# 新手男 / 女（创角页只有这两个；女角色拜入道家后换成上面的天音 / 琴魔）
+NV=G+'/novice'
+for k,n in [('nf','novice_f'),('nm','novice_m')]:
+    walk_sheet(f'{NV}/walkf_{k}.png','walk_f_'+n,118); walk_sheet(f'{NV}/walkb_{k}.png','walk_b_'+n,118)
+    cut_row(f'{NV}/back_{k}.png',['b_'+n],{'b_'+n:126})
+    c=keyed(f'{NV}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
+    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)
@@ -180,7 +187,7 @@ b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.wid
 b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=True)
 
 from PIL import ImageFilter
-for n,q in [('bg_town',42),('bg_village',78),('bg_wild',78),('world',56),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',72),('bg_wolfvalley',78)]:
+for n,q in [('bg_town',36),('bg_village',68),('bg_wild',78),('world',50),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',70),('bg_creek',70),('bg_mist',70),('bg_pine',64),('bg_wolfvalley',78)]:
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue
     im=Image.open(p).convert('RGB')
