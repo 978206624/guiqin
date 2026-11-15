@@ -3,6 +3,8 @@ window.ASSETS = {
  "img": {
   "axiu": "assets/axiu.webp",
   "b_axiu": "assets/b_axiu.webp",
+  "b_dao_dz": "assets/b_dao_dz.webp",
+  "b_dao_dz_m": "assets/b_dao_dz_m.webp",
   "b_dao_qm": "assets/b_dao_qm.webp",
   "b_dao_qm_m": "assets/b_dao_qm_m.webp",
   "b_dao_ty": "assets/b_dao_ty.webp",
@@ -33,6 +35,8 @@ window.ASSETS = {
   "bg_wolfvalley": "assets/bg_wolfvalley.webp",
   "boar": "assets/boar.webp",
   "boss": "assets/boss.webp",
+  "cls_dao_dz": "assets/cls_dao_dz.webp",
+  "cls_dao_dz_m": "assets/cls_dao_dz_m.webp",
   "cls_dao_qm": "assets/cls_dao_qm.webp",
   "cls_dao_qm_m": "assets/cls_dao_qm_m.webp",
   "cls_dao_ty": "assets/cls_dao_ty.webp",
@@ -61,6 +65,8 @@ window.ASSETS = {
   "girl": "assets/girl.webp",
   "grunt": "assets/grunt.webp",
   "head_axiu": "assets/head_axiu.webp",
+  "head_dao_dz": "assets/head_dao_dz.webp",
+  "head_dao_dz_m": "assets/head_dao_dz_m.webp",
   "head_dao_qm": "assets/head_dao_qm.webp",
   "head_dao_qm_m": "assets/head_dao_qm_m.webp",
   "head_dao_ty": "assets/head_dao_ty.webp",
@@ -182,6 +188,8 @@ window.ASSETS = {
   "vendor": "assets/vendor.webp",
   "waiter": "assets/waiter.webp",
   "walk_b": "assets/walk_b.webp",
+  "walk_b_dao_dz": "assets/walk_b_dao_dz.webp",
+  "walk_b_dao_dz_m": "assets/walk_b_dao_dz_m.webp",
   "walk_b_dao_qm": "assets/walk_b_dao_qm.webp",
   "walk_b_dao_qm_m": "assets/walk_b_dao_qm_m.webp",
   "walk_b_dao_ty": "assets/walk_b_dao_ty.webp",
@@ -189,6 +197,8 @@ window.ASSETS = {
   "walk_b_novice_f": "assets/walk_b_novice_f.webp",
   "walk_b_novice_m": "assets/walk_b_novice_m.webp",
   "walk_f": "assets/walk_f.webp",
+  "walk_f_dao_dz": "assets/walk_f_dao_dz.webp",
+  "walk_f_dao_dz_m": "assets/walk_f_dao_dz_m.webp",
   "walk_f_dao_qm": "assets/walk_f_dao_qm.webp",
   "walk_f_dao_qm_m": "assets/walk_f_dao_qm_m.webp",
   "walk_f_dao_ty": "assets/walk_f_dao_ty.webp",
@@ -427,6 +437,34 @@ window.ASSETS = {
   ],
   "b_dao_qm_m": [
    91.0,
+   126.0
+  ],
+  "walk_f_dao_dz": [
+   96.5,
+   121.5,
+   51.97423510466989
+  ],
+  "walk_b_dao_dz": [
+   88.0,
+   124.0,
+   46.08791208791209
+  ],
+  "b_dao_dz": [
+   93.0,
+   126.0
+  ],
+  "walk_f_dao_dz_m": [
+   73.0,
+   122.5,
+   33.87975646879757
+  ],
+  "walk_b_dao_dz_m": [
+   67.5,
+   122.0,
+   39.39297658862876
+  ],
+  "b_dao_dz_m": [
+   69.0,
    126.0
   ],
   "kk_npc14": [

@@ -156,7 +156,7 @@ def portraits(src, names):
     assert len(runs)==len(names),(src,runs)
     for n,(x0,x1) in zip(names,runs):
         c=im.crop((x0,0,x1,im.height)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
-        c.save(f'{AD}/cls_{n}.webp',quality=20,method=6)
+        c.resize((max(1,c.width//2),max(1,c.height//2)),Image.LANCZOS).save(f'{AD}/cls_{n}.webp',quality=40,method=6)   # 已隐藏的旧职业立绘，缩半以省体积
         hx=c.width*HEAD_X[n]; sz=int(c.height*0.2); l=int(max(0,min(c.width-sz,hx-sz/2))); t=int(c.height*0.02)
         hd=Image.new('RGBA',(sz,sz),(43,36,64,255)); hd.alpha_composite(c.crop((l,t,l+sz,t+sz)))
         hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{n}.webp',quality=90)
@@ -188,6 +188,13 @@ for k in ['ty','qm']:
     c=keyed(f'{DM}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
     c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=64,method=6); dao_head(c,n)
 cut_row(DM+'/back.png',['b_dao_ty_m','b_dao_qm_m'],dict(b_dao_ty_m=126,b_dao_qm_m=126))
+# 道家弟子（拜入道家、尚未选分堂）：道家服饰 + 背负箜篌，art-src/dao-base/（f=女，m=男）
+DB=G+'/dao-base'
+for k,n in [('f','dao_dz'),('m','dao_dz_m')]:
+    walk_sheet(f'{DB}/walkf_{k}.png','walk_f_'+n,118,flip=True); walk_sheet(f'{DB}/walkb_{k}.png','walk_b_'+n,118)
+    cut_row(f'{DB}/back_{k}.png',['b_'+n],{'b_'+n:126})
+    c=keyed(f'{DB}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
+    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=52,method=6); dao_head(c,n)
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)
@@ -196,7 +203,7 @@ b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.wid
 b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=True)
 
 from PIL import ImageFilter
-for n,q in [('bg_town',33),('bg_village',68),('bg_wild',78),('world',50),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',70),('bg_creek',70),('bg_mist',70),('bg_pine',64),('bg_wolfvalley',78)]:
+for n,q in [('bg_town',24),('bg_village',60),('bg_wild',78),('world',40),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',70),('bg_creek',70),('bg_mist',70),('bg_pine',56),('bg_wolfvalley',78)]:
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue
     im=Image.open(p).convert('RGB')
