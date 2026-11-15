@@ -124,7 +124,7 @@ function itemBonus(it) {
 }
 
 let bagSel = null;
-let bagTab = 'all';
+let bagTab = 'all', lastPanel = 'bag', eqSel = null;
 const BAGCAT = { all: '全部', potion: '药品', equip: '装备', mat: '材料' }, TYPENAME = { potion: '药品', equip: '装备', mat: '材料' }, SLOTNAME = { weapon: '兵器', armor: '衣甲', charm: '饰品' };
 const itemQ = id => D.petQuality[(D.items[id] && D.items[id].q) || 1];
 function bagDelta(it) {   // 对比当前同部位装备
@@ -133,6 +133,7 @@ function bagDelta(it) {   // 对比当前同部位装备
   return out.join(' ');
 }
 function openBag() {
+  lastPanel = 'bag';
   const all = Object.keys(S.items), ids = all.filter(id => bagTab === 'all' || D.items[id].type === bagTab);
   if (!ids.includes(bagSel)) bagSel = ids[0] || null;
   const cap = D.bagSize;
@@ -169,7 +170,38 @@ function usePotion(id) {
 }
 let roleTab = 'attr';
 const powerOf = st => Math.round(st.atk * 6 + st.def * 5 + st.maxHp / 2 + st.spd * 3);
+function reopen() { if (lastPanel === 'role') openRole(); else openBag(); }
+// 装备页：上面人物预览 + 装备栏，下面背包格子，点格子看详情、对比、穿戴
+function equipView() {
+  const st = stats(), IT = D.items, ids = Object.keys(S.items);
+  if (!eqSel || (eqSel.t === 'bag' && !S.items[eqSel.v]) || (eqSel.t === 'slot' && !S.equip[eqSel.v] && false)) eqSel = null;
+  if (!eqSel) { const first = ids.find(i => IT[i].type === 'equip') || ids[0]; eqSel = first ? { t: 'bag', v: first } : null; }
+  const slotTile = (sl, pos) => { const id = S.equip[sl], q = id ? itemQ(id).color : 'rgba(226,176,74,.3)', on = eqSel && eqSel.t === 'slot' && eqSel.v === sl;
+    return '<button type="button" class="dslot ' + pos + (id ? '' : ' empty') + (on ? ' sel' : '') + '" style="--qc:' + q + '" data-act="eqSlot:' + sl + '">' + (id ? itemImg(id) : '') + '<span>' + (id ? IT[id].name : SLOTNAME[sl]) + '</span></button>'; };
+  let h = '<div class="doll"><div class="dglow"></div><div class="dname"><b>' + ROLE.name + '</b><small>Lv.' + S.lv + ' · ' + D.classes[ROLE.cls].name + '</small></div><div class="dpow">战力<b>' + fmt(powerOf(st)) + '</b></div>' +
+    '<img alt="" src="' + IMG('cls_' + ROLE.cls) + '">' + slotTile('weapon', 'l1') + slotTile('armor', 'l2') + slotTile('charm', 'r1') +
+    '<div class="dstats"><div>攻击<b>' + Math.round(st.atk) + '</b></div><div>防御<b>' + Math.round(st.def) + '</b></div><div>速度<b>' + Math.round(st.spd) + '</b></div><div>气血<b>' + Math.round(st.maxHp) + '</b></div></div></div>';
+  h += '<div class="grid eqgrid">';
+  ids.forEach(id => { const it = IT[id], on = eqSel && eqSel.t === 'bag' && eqSel.v === id;
+    h += '<button type="button" class="tile q' + (on ? ' sel' : '') + (it.type === 'equip' ? '' : ' dim') + '" style="--qc:' + itemQ(id).color + '" data-act="eqBag:' + id + '" aria-label="' + it.name + '">' + itemImg(id) + (it.type !== 'equip' || S.items[id] > 1 ? '<b>' + S.items[id] + '</b>' : '') + (it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>'; });
+  for (let i = ids.length; i < Math.max(10, Math.ceil(ids.length / 5) * 5); i++) h += '<div class="tile empty"></div>';
+  h += '</div>';
+  if (eqSel) {
+    const id = eqSel.t === 'slot' ? S.equip[eqSel.v] : eqSel.v, it = id && IT[id];
+    if (!it) h += '<div class="idetail"><div class="ibody"><p>' + SLOTNAME[eqSel.v] + '栏是空的。点下面背包里的' + SLOTNAME[eqSel.v] + '就能穿上。</p></div></div>';
+    else { const q = itemQ(id); let btn = '';
+      if (eqSel.t === 'slot') btn = '<button type="button" class="tbtn" data-act="unequip:' + eqSel.v + '">卸下</button>';
+      else if (it.type === 'equip') btn = '<button type="button" class="tbtn red" data-act="equip:' + id + '">装备</button>';
+      else if (it.type === 'potion') btn = '<button type="button" class="tbtn red" data-act="use:' + id + '">使用</button>';
+      h += '<div class="idetail"><div class="itile" style="--qc:' + q.color + '">' + itemImg(id) + '</div><div class="ibody"><h5>' + it.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
+        '<p class="meta">' + TYPENAME[it.type] + (it.slot ? ' · ' + SLOTNAME[it.slot] : '') + (eqSel.t === 'slot' ? '　已装备' : '　持有 ' + S.items[id]) + '</p>' +
+        (it.type === 'equip' ? '<p class="bonus">' + itemBonus(it) + '</p>' + (eqSel.t === 'bag' ? '<p class="cmp">' + (S.equip[it.slot] ? '对比当前「' + IT[S.equip[it.slot]].name + '」：' + (bagDelta(it) || '无差别') : '该部位空着，装上就是净提升') + '</p>' : '') : '') +
+        '<p>' + it.desc + '</p></div><div class="ibtn1">' + btn + '</div></div>'; }
+  }
+  return h + '<p class="center" style="margin:12px 0 0"><button type="button" class="tbtn" data-act="openBag">打开完整背包（整理 / 出售）</button></p>';
+}
 function openRole() {
+  lastPanel = 'role';
   const st = stats(), cls = D.classes[ROLE.cls], need = expNeed();
   const slotName = { weapon: '兵器', armor: '衣甲', charm: '饰品' };
   const bar = (cur, max, cls2) => '<div class="rbar ' + cls2 + '"><i style="width:' + Math.max(0, Math.min(100, cur / max * 100)) + '%"></i><span>' + Math.round(cur) + ' / ' + max + '</span></div>';
@@ -194,13 +226,8 @@ function openRole() {
   } else if (roleTab === 'skill') {
     h += skillsHTML();
   } else {
-    h += '<div class="elist">';
-    for (const slot in slotName) {
-      const id = S.equip[slot], it = id && D.items[id];
-      h += '<div class="erow"><div class="tile' + (id ? '' : ' empty') + '">' + (id ? itemImg(id) : '') + '</div><div><small>' + slotName[slot] + '</small><h6>' + (it ? it.name : '空') + '</h6><p>' + (it ? itemBonus(it) : '背包里有合适的就能装备') + '</p></div>' +
-        (it ? '<button type="button" class="tbtn" data-act="unequip:' + slot + '">卸下</button>' : '') + '</div>';
-    }
-    h += '</div><p class="center" style="margin:12px 0 0"><button type="button" class="tbtn" data-act="openBag">去背包换装备</button></p>';
+    h = h.slice(h.indexOf('<div class="rtabs">')) + equipView();
+    openModal('角色', h); return;
   }
   h += '<p class="center" style="margin:16px 0 0"><button type="button" class="tbtn" data-act="switchRole">切换角色</button>　<button type="button" class="tbtn red" data-act="reset">重新开始</button></p>';
   openModal('角色', h);
@@ -265,11 +292,13 @@ function openShop(id) {
 }
 const ACTS = {
   sel(id) { bagSel = id; openBag(); },
-  use(id) { usePotion(id); openBag(); },
+  eqBag(id) { eqSel = { t: 'bag', v: id }; openRole(); },
+  eqSlot(sl) { eqSel = { t: 'slot', v: sl }; openRole(); },
+  use(id) { usePotion(id); reopen(); },
   equip(id) {
     const it = D.items[id], old = S.equip[it.slot];
     addItem(id, -1); if (old) addItem(old, 1); S.equip[it.slot] = id; S.hp = Math.min(S.hp, stats().maxHp);
-    save(); refresh(); toast('装备了' + it.name); openBag();
+    save(); refresh(); toast('装备了' + it.name); eqSel = { t: 'slot', v: it.slot }; reopen();
   },
   buy(id) { const it = D.items[id]; if (S.coin < it.price) return; S.coin -= it.price; addItem(id, 1); save(); refresh(); toast('买下了' + it.name); openShop(shopId); },
   sell(id) { const it = D.items[id]; if (!S.items[id]) return; addItem(id, -1); S.coin += it.price; save(); refresh(); openShop(shopId); },
@@ -282,7 +311,7 @@ const ACTS = {
   roleTab(t) { roleTab = t; openRole(); },
   petTab(t) { petTab = t; openPet(); },
   petSel(id) { petSel = id; petTab = 'dex'; openPet(); },
-  unequip(slot) { if (!S.equip[slot]) return; const id = S.equip[slot]; S.equip[slot] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('卸下了' + D.items[id].name); openRole(); },
+  unequip(slot) { if (!S.equip[slot]) return; const id = S.equip[slot]; S.equip[slot] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('卸下了' + D.items[id].name); eqSel = { t: 'bag', v: id }; openRole(); },
   openBag() { openBag(); },
   bagTab(t) { bagTab = t; openBag(); },
   bagSort() { const order = { equip: 0, potion: 1, mat: 2 }, ids = Object.keys(S.items).sort((a, b) => order[D.items[a].type] - order[D.items[b].type] || (D.items[b].q || 1) - (D.items[a].q || 1)), o = {}; ids.forEach(i => o[i] = S.items[i]); S.items = o; save(); toast('已整理背包'); openBag(); },
