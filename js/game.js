@@ -203,13 +203,13 @@ function equipView() {
     const id = eqSel.t === 'slot' ? S.equip[eqSel.v] : eqSel.v, it = id && IT[id];
     if (!it) h += '<div class="idetail"><div class="ibody"><p>「' + SLOTNAME[eqSel.v] + '」还空着。点下面背包里带「' + SLOTNAME[eqSel.v] + '」标记的装备就能穿上，铁匠铺和百宝摊也有卖。</p></div></div>';
     else { const q = itemQ(id); let btn = '';
-      if (eqSel.t === 'slot') btn = '<button type="button" class="tbtn red" data-act="forgeGo:' + eqSel.v + '">锻造</button><button type="button" class="tbtn" data-act="unequip:' + eqSel.v + '">卸下</button>';
+      if (eqSel.t === 'slot') btn = '<button type="button" class="tbtn" data-act="unequip:' + eqSel.v + '">卸下</button>';
       else if (it.type === 'equip') btn = '<button type="button" class="tbtn red" data-act="equip:' + id + '">装备</button>';
       else if (it.type === 'potion') btn = '<button type="button" class="tbtn red" data-act="use:' + id + '">使用</button>';
       h += '<div class="idetail"><div class="itile" style="--qc:' + q.color + '">' + itemImg(id) + '</div><div class="ibody"><h5>' + it.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
         '<p class="meta">' + TYPENAME[it.type] + (it.slot ? ' · ' + SLOTNAME[it.slot] : '') + (eqSel.t === 'slot' ? '　已装备' : '　持有 ' + S.items[id]) + '</p>' +
         (it.type === 'equip' ? '<p class="bonus">' + itemBonus(it) + (eqSel.t === 'slot' && getGear(eqSel.v).star ? '　<span class="gold2">★' + getGear(eqSel.v).star + ' 锻造 +' + Math.round(getGear(eqSel.v).star * D.forge.perStar * 100) + '%</span>' : '') + '</p>' + (eqSel.t === 'bag' ? '<p class="cmp">' + (S.equip[it.slot] ? '对比当前「' + IT[S.equip[it.slot]].name + '」：' + (bagDelta(it) || '无差别') : '该部位空着，装上就是净提升') + '</p>' : '') : '') +
-        '<p>' + it.desc + '</p></div><div class="ibtn1">' + btn + '</div></div>'; }
+        '<p>' + it.desc + '</p>' + (eqSel.t === 'slot' ? '<p class="hint" style="margin:4px 0 0">锻造升星、镶嵌宝石：去汉中郡找王铁匠。</p>' : '') + '</div><div class="ibtn1">' + btn + '</div></div>'; }
   }
   return h + '<p class="center" style="margin:12px 0 0"><button type="button" class="tbtn" data-act="openBag">打开完整背包（整理 / 出售）</button></p>';
 }
@@ -265,7 +265,7 @@ function forgeDo(slot) {
     if (gr.star >= 10) window.CHAT.notice('恭喜玩家「' + ROLE.name + '」将' + it.name + '锻造至 ' + gr.star + ' 星！');
   } else if (s0 >= F.dropFrom) { gr.star--; toast('锻造失败……' + it.name + ' 掉到了 ' + gr.star + ' 星'); }
   else toast('锻造失败，星级没有变化');
-  clampVitals(); save(); refresh(); openRole();
+  clampVitals(); save(); refresh(); openSmith('forge');
 }
 function openRole() {
   lastPanel = 'role';
@@ -274,7 +274,7 @@ function openRole() {
   let h = '<div class="who"><img alt="" src="' + IMG('cls_' + ROLE.cls) + '"><div><h5>' + ROLE.name + '</h5><p>' + cls.name + ' · ' + cls.role + ' · ' + (cls.gender === 'm' ? '男' : '女') + '</p>' +
     '<p>等级 <b class="gold">' + S.lv + '</b>　战力 <b class="gold">' + fmt(powerOf(st)) + '</b></p>' +
     '<p class="small">经验 ' + S.exp + ' / ' + need + '</p><div class="rbar exp"><i style="width:' + Math.min(100, S.exp / need * 100) + '%"></i></div></div></div>' +
-    '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') + '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') + '" data-act="roleTab:equip">装备</button><button type="button" class="rtab' + (roleTab === 'forge' ? ' on' : '') + '" data-act="roleTab:forge">锻造</button><button type="button" class="rtab' + (roleTab === 'skill' ? ' on' : '') + '" data-act="roleTab:skill">技能</button></div>';
+    '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') + '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') + '" data-act="roleTab:equip">装备</button><button type="button" class="rtab' + (roleTab === 'skill' ? ' on' : '') + '" data-act="roleTab:skill">技能</button></div>';
   if (roleTab === 'attr') {
     // 每项属性拆成 基础 + 等级成长 + 装备（含星级和宝石），装备加成用绿色标出来
     const gear = gearSum(), base = D.base, grow = D.grow, L = S.lv;
@@ -287,9 +287,6 @@ function openRole() {
       '<p class="hint">物攻用于普通招式，法攻用于剑气纵横、狐火这类法术招式；物防、法防分别抵挡对应伤害。升级固定成长，装备、星级和宝石提供额外加成。</p>';
   } else if (roleTab === 'skill') {
     h += skillsHTML();
-  } else if (roleTab === 'forge') {
-    h = h.slice(h.indexOf('<div class="rtabs">')) + forgeView();
-    openModal('角色', h); return;
   } else {
     h = h.slice(h.indexOf('<div class="rtabs">')) + equipView();
     openModal('角色', h); return;
@@ -341,8 +338,8 @@ function openPet() {
   openModal('宠物', h);
 }
 let shopId = null;
-function openShop(id) {
-  shopId = id; const shop = D.shops[id];
+function shopHTML(id) {
+  const shop = D.shops[id];
   let h = '<p class="center" style="margin:0;color:var(--amber)">银两 ' + fmt(S.coin) + '</p>';
   shop.sell.forEach(iid => {
     const it = D.items[iid];
@@ -353,7 +350,19 @@ function openShop(id) {
     h += '<p style="margin:16px 0 0;color:var(--muted)">出售材料</p>';
     sellable.forEach(iid => { const it = D.items[iid]; h += '<button type="button" class="row" data-act="sell:' + iid + '">' + itemImg(iid) + '<div><h5>' + it.name + ' ×' + S.items[iid] + '</h5><p>' + it.desc + '</p></div><span>卖 ' + it.price + ' 两</span></button>'; });
   }
-  openModal(shop.name, h);
+  return h;
+}
+function openShop(id) {
+  shopId = id;
+  if (id === 'smith') { openSmith(); return; }
+  openModal(D.shops[id].name, shopHTML(id));
+}
+// 铁匠铺：锻造升星 / 镶嵌宝石 / 买卖
+let smithTabNow = 'forge';
+function openSmith(tab) {
+  smithTabNow = tab || smithTabNow; shopId = 'smith';
+  const tabs = '<div class="rtabs"><button type="button" class="rtab' + (smithTabNow === 'forge' ? ' on' : '') + '" data-act="smithTab:forge">锻造 · 镶嵌</button><button type="button" class="rtab' + (smithTabNow === 'shop' ? ' on' : '') + '" data-act="smithTab:shop">买卖</button></div>';
+  openModal('王记铁匠铺', tabs + (smithTabNow === 'forge' ? forgeView() : shopHTML('smith')));
 }
 const ACTS = {
   sel(id) { bagSel = id; openBag(); },
@@ -373,13 +382,13 @@ const ACTS = {
   arena() { $('modal').hidden = true; modalOnClose = null; if (B.active) { B.active = false; $('units').innerHTML = ''; } startArena(); },
   wx(k) { wxLock = k; wxUpdate(true); openWeather(); },
   wxAuto() { wxLock = null; wxUpdate(true); openWeather(); },
-  forgeSlot(sl) { forgeSlot = sl; gemPick = null; openRole(); },
-  forgeGo(sl) { forgeSlot = sl; gemPick = null; roleTab = 'forge'; openRole(); },
+  forgeSlot(sl) { forgeSlot = sl; gemPick = null; openSmith('forge'); },
+  smithTab(t) { openSmith(t); },
   forge(sl) { forgeDo(sl); },
-  gemPick(arg) { const [sl, i] = arg.split(':'); gemPick = { slot: sl, i: +i }; openRole(); },
-  gemSet(id) { if (!gemPick || !S.items[id]) return; const gr = (S.gear = S.gear || {})[gemPick.slot] || (S.gear[gemPick.slot] = { star: 0, gems: [] }); gr.gems = gr.gems || []; gr.gems[gemPick.i] = id; addItem(id, -1); gemPick = null; clampVitals(); save(); refresh(); toast('镶嵌了' + D.items[id].name); openRole(); },
-  gemOff(arg) { const [sl, i] = arg.split(':'); const gr = getGear(sl), id = gr.gems && gr.gems[+i]; if (!id) return; S.gear[sl].gems[+i] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('摘下了' + D.items[id].name); openRole(); },
-  gemMerge(id) { if ((S.items[id] || 0) < 3) return; const nx = id.replace(/_\d$/, '_' + (D.items[id].lv + 1)); addItem(id, -3); addItem(nx, 1); save(); toast('合成了' + D.items[nx].name); openRole(); },
+  gemPick(arg) { const [sl, i] = arg.split(':'); gemPick = { slot: sl, i: +i }; openSmith('forge'); },
+  gemSet(id) { if (!gemPick || !S.items[id]) return; const gr = (S.gear = S.gear || {})[gemPick.slot] || (S.gear[gemPick.slot] = { star: 0, gems: [] }); gr.gems = gr.gems || []; gr.gems[gemPick.i] = id; addItem(id, -1); gemPick = null; clampVitals(); save(); refresh(); toast('镶嵌了' + D.items[id].name); openSmith('forge'); },
+  gemOff(arg) { const [sl, i] = arg.split(':'); const gr = getGear(sl), id = gr.gems && gr.gems[+i]; if (!id) return; S.gear[sl].gems[+i] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('摘下了' + D.items[id].name); openSmith('forge'); },
+  gemMerge(id) { if ((S.items[id] || 0) < 3) return; const nx = id.replace(/_\d$/, '_' + (D.items[id].lv + 1)); addItem(id, -3); addItem(nx, 1); save(); toast('合成了' + D.items[nx].name); openSmith('forge'); },
   roleTab(t) { roleTab = t; gemPick = null; openRole(); },
   petTab(t) { petTab = t; openPet(); },
   petSel(id) { petSel = id; petTab = 'dex'; openPet(); },
@@ -704,7 +713,8 @@ function talk(n) {
   }
   const info = D.npcs[n.id];
   openDialog(n, info.idle, () => {
-    if (info.shop) openShop(info.shop);
+    if (info.shop === 'smith') openSmith('forge');
+    else if (info.shop) openShop(info.shop);
     else if (info.act === 'arena') openModal('竞技场', '<p class="center">五对五模拟对战（不影响存档）。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">上擂台</button>　<button type="button" class="tbtn" data-act="close">再看看</button></p>');
     else if (info.rest) { const st = stats(); if (S.hp < st.maxHp || S.mp < st.maxMp) { S.hp = st.maxHp; S.mp = st.maxMp; save(); refresh(); toast(info.restMsg || '歇了一会儿，气血法力回满'); } }
   });

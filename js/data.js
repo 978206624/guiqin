@@ -265,7 +265,7 @@ window.DATA = {
     elder:  { name: '村长',   title: '【恒山村】', idle: '山下不比村里，凡事多留个心眼。累了就回来歇歇。' },
     axiu:   { name: '阿秀',   color: '#a8e6ff', idle: '我刚采了草药，熬了一锅汤，少侠喝一碗再走吧。', rest: true, restMsg: '喝了一碗草药汤，气血法力回满' },
     waiter: { name: '店小二', idle: '客官辛苦，喝壶热茶歇歇脚吧。', rest: true, restMsg: '喝了一壶热茶，气血法力回满' },
-    smith:  { name: '王铁匠', idle: '打铁还需自身硬。少侠看看有什么用得上的。', shop: 'smith' },
+    smith:  { name: '王铁匠', idle: '打铁还需自身硬。要给兵器、铠甲锻造升星，或是镶宝石，都找老夫；打好的家伙也有现成的。', shop: 'smith' },
     girl:   { name: '逍遥子', title: '【百花谷】', color: '#dca8ff', titleColor: '#ffa8d0', idle: '今晚灯会的灯谜好难……你也是来猜谜的吗？' },
     arenaman: { name: '擂台官', title: '【竞技场】', color: '#ff9a8a', sprite: 'f_blade', head: 'head_m_spear', idle: '擂台已经备好，五对五，人宠齐上。要不要上去练练手？', act: 'arena' },
     towerman: { name: '守塔人', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'f_tao', head: 'head_m_mage', idle: '玄兵塔共九层，一层比一层凶险。塔门暂时还不能开，等你再强一些。' },
