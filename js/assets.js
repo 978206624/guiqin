@@ -20,6 +20,12 @@ window.ASSETS = {
   "b_tiger": "assets/b_tiger.webp",
   "b_wuchen": "assets/b_wuchen.webp",
   "b_yan": "assets/b_yan.webp",
+  "bc_dao_dz": "assets/bc_dao_dz.webp",
+  "bc_dao_dz_m": "assets/bc_dao_dz_m.webp",
+  "bc_dao_qm": "assets/bc_dao_qm.webp",
+  "bc_dao_qm_m": "assets/bc_dao_qm_m.webp",
+  "bc_dao_ty": "assets/bc_dao_ty.webp",
+  "bc_dao_ty_m": "assets/bc_dao_ty_m.webp",
   "bg_battle": "assets/bg_battle.webp",
   "bg_battle2": "assets/bg_battle2.webp",
   "bg_creek": "assets/bg_creek.webp",
@@ -481,6 +487,30 @@ window.ASSETS = {
   "b_dao_dz_m": [
    69.0,
    126.0
+  ],
+  "bc_dao_dz": [
+   145.0,
+   145.0
+  ],
+  "bc_dao_dz_m": [
+   105.0,
+   145.0
+  ],
+  "bc_dao_qm": [
+   141.5,
+   145.0
+  ],
+  "bc_dao_qm_m": [
+   118.5,
+   145.0
+  ],
+  "bc_dao_ty": [
+   148.0,
+   145.0
+  ],
+  "bc_dao_ty_m": [
+   108.5,
+   145.0
   ],
   "kk_npc14": [
    58.0,

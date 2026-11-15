@@ -213,8 +213,9 @@ def cast_anim(src,name,stand_h=126):
         c=im.crop((x0,0,x1,im.height)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
         al=np.array(c.getchannel('A'))>40; low=al[int(c.height*0.6):]; xs=np.nonzero(low.any(0))[0]
         fr.append((c,(xs.min()+xs.max())/2))               # 下半身中心的 x（站位锚点）
-    k=stand_h*2/fr[0][0].height
-    fr=[(c.resize((round(c.width*k),round(c.height*k)),Image.LANCZOS),ax*k) for c,ax in fr]
+    eff=[fr[0][0].height,fr[1][0].height*0.88,fr[2][0].height,fr[3][0].height]      # 第 2 帧举臂过头，不算身高；各帧逐帧归一，避免生成时的大小漂移
+    ks=[stand_h*2/e for e in eff]
+    fr=[(c.resize((round(c.width*k),round(c.height*k)),Image.LANCZOS),ax*k) for (c,ax),k in zip(fr,ks)]
     left=max(ax for c,ax in fr); right=max(c.width-ax for c,ax in fr); cw=int(left+right)+8; ch=max(c.height for c,_ in fr)+4
     sheet=Image.new('RGBA',(cw*4,ch),(0,0,0,0))
     for i,(c,ax) in enumerate(fr): sheet.alpha_composite(c,(i*cw+int(left-ax)+4,ch-c.height))
