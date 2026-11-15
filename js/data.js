@@ -311,7 +311,7 @@ window.DATA = {
     village: {
       name: '恒山村', img: 'bg_village', mini: 'mini_village', iw: 2000, ih: 1500, scale: 1.0, k: 1, start: [930, 690],
       alt: '溪水环绕的山村：茅草屋、拱桥、水车、凉亭和村长的瓦顶大屋，青石台阶一路通向山上',
-      world: [250, 330], note: '新手村', home: 'village', battleBg: 'bg_battle2',
+      world: [888, 710], note: '新手村', home: 'village', battleBg: 'bg_battle2',
       water: { dir: [-1, .3], speed: 20, zones: [{ rect: [790, 0, 1000, 300], dir: [.12, 1], speed: 55 }] },   // 遮罩坐标是 1000×750（地图的一半）
       walk: [
         [[1480,1160],[1760,1140],[1850,1300],[1830,1480],[1500,1480],[1400,1330]]      // 右下角木平台（出村口）
@@ -331,7 +331,7 @@ window.DATA = {
       foes: [{ stage: 'dummy', at: [440, 1225] }, { stage: 'boar', at: [1560, 480] }]
     },
     outskirts: {
-      name: '恒山村郊', world: [330, 540], note: '山野荒径', home: 'village', img: 'bg_outskirts', mini: 'mini_outskirts', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [140, 1360],
+      name: '恒山村郊', world: [968, 930], note: '山野荒径', home: 'village', img: 'bg_outskirts', mini: 'mini_outskirts', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [140, 1360],
       alt: '村外的荒野：土路穿过草地和树林，溪水上有踏脚石，路边有篝火圈、树桩、倒木和路牌',
       walk: [],
       roads: [
@@ -346,7 +346,7 @@ window.DATA = {
       foes: [{ stage: 'hog', at: [560, 1060] }, { stage: 'roam', at: [1330, 505] }]
     },
     creek: {
-      name: '清溪谷', world: [226, 830], note: '碧水幽谷', home: 'village', img: 'bg_creek', mini: 'mini_creek', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [1100, 1450],
+      name: '清溪谷', world: [470, 1040], note: '碧水幽谷', home: 'village', img: 'bg_creek', mini: 'mini_creek', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [1100, 1450],
       alt: '碧绿的溪谷：溪水带着几道小瀑布，木桥横跨溪流，红枫、竹林和荷塘相伴，石板路一路通向山上',
       walk: [],
       roads: [
@@ -360,7 +360,7 @@ window.DATA = {
       foes: [{ stage: 'creekwolf', at: [800, 1110] }, { stage: 'creekgang', at: [1600, 490] }]
     },
     mist: {
-      name: '云雾谷', world: [730, 270], note: '云雾缭绕', home: 'village', img: 'bg_mist', mini: 'mini_mist', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [770, 1440],
+      name: '云雾谷', world: [1760, 560], note: '云雾缭绕', home: 'village', img: 'bg_mist', mini: 'mini_mist', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [770, 1440],
       alt: '深山谷底：碧绿的溪水沿着土路蜿蜒，两侧是爬满藤蔓的崖壁和细瀑布，云雾在谷中缓缓飘动',
       fog: { n: 34, lo: .3, hi: .85 },
       walk: [],
@@ -373,7 +373,7 @@ window.DATA = {
       foes: [{ stage: 'mistwolf', at: [1130, 1240] }, { stage: 'mistgang', at: [1170, 430] }]
     },
     pine: {
-      name: '石松林', world: [800, 1130], note: '古松石柱', home: 'town', img: 'bg_pine', mini: 'mini_pine', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [800, 1440],
+      name: '石松林', world: [1560, 1480], note: '古松石柱', home: 'town', img: 'bg_pine', mini: 'mini_pine', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [800, 1440],
       alt: '石柱与古松交错的深林：松针铺成的小路在青苔石柱和盘曲的老松之间蜿蜒向上',
       walk: [],
       roads: [
@@ -385,7 +385,7 @@ window.DATA = {
       foes: [{ stage: 'pinegang', at: [1000, 1170] }, { stage: 'pinewolf', at: [1180, 650] }]
     },
     wolfvalley: {
-      name: '恶狼谷', world: [740, 940], note: '狼群盘踞', home: 'town', img: 'bg_wolfvalley', mini: 'mini_wolfvalley', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [90, 1310],
+      name: '恶狼谷', world: [1860, 1800], note: '狼群盘踞', home: 'town', img: 'bg_wolfvalley', mini: 'mini_wolfvalley', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [90, 1310],
       alt: '荒凉的山谷：土路上满是爪印，岩壁里有一个个狼洞，洞口散着兽骨，路边是枯树和荆棘',
       walk: [],
       roads: [
@@ -397,7 +397,7 @@ window.DATA = {
       foes: [{ stage: 'denwolf', at: [760, 870] }, { stage: 'wolfboss', at: [1380, 300] }]
     },
     taixuforest: {
-      name: '太虚之林', world: [212, 1152], note: '道家驻地', home: 'town', img: 'bg_taixuforest', mini: 'mini_taixuforest', iw: 2000, ih: 1616, scale: 1.35, k: 1, start: [1200, 900],
+      sect: true, name: '太虚之林', world: [380, 1860], note: '道家驻地', home: 'town', img: 'bg_taixuforest', mini: 'mini_taixuforest', iw: 2000, ih: 1616, scale: 1.35, k: 1, start: [1200, 900],
       alt: '竹林深处的道家驻地：莲花形的八卦石台立在水潭之上，青苔石阶通向四周的石台',
       walk: [[[80, 180], [250, 100], [480, 110], [580, 200], [540, 330], [380, 390], [200, 370], [60, 290]],
              [[180, 1300], [330, 1210], [560, 1220], [660, 1330], [620, 1460], [450, 1540], [260, 1520], [150, 1420]],
@@ -415,7 +415,7 @@ window.DATA = {
       portals: [{ to: 'town', name: '返回汉中郡', at: [900, 1060], arrive: [850, 575] }]
     },
     taixupeak: {
-      name: '太虚之峰', world: [818, 840], note: '墨家驻地', home: 'town', img: 'bg_taixupeak', mini: 'mini_taixupeak', iw: 2000, ih: 1616, scale: 1.35, k: 1, start: [1000, 620],
+      sect: true, name: '太虚之峰', world: [1960, 1060], note: '墨家驻地', home: 'town', img: 'bg_taixupeak', mini: 'mini_taixupeak', iw: 2000, ih: 1616, scale: 1.35, k: 1, start: [1000, 620],
       alt: '山崖上的墨家驻地：木拱桥、机关石台、齿轮平台和凉亭散布在碧松与瀑布之间',
       walk: [[[900, 330], [1100, 280], [1300, 230], [1560, 220], [1680, 300], [1640, 380], [1400, 420], [1200, 470], [1000, 470]],
              [[800, 520], [1050, 500], [1250, 560], [1230, 680], [1000, 700], [800, 660]],
@@ -438,7 +438,7 @@ window.DATA = {
       portals: [{ to: 'town', name: '返回汉中郡', at: [1150, 500], arrive: [850, 575] }]
     },
     taixuvalley: {
-      name: '太虚之谷', world: [476, 276], note: '阴阳家驻地', home: 'town', img: 'bg_taixuvalley', mini: 'mini_taixuvalley', iw: 2000, ih: 1504, scale: 1.35, k: 1, start: [1040, 950],
+      sect: true, name: '太虚之谷', world: [1150, 250], note: '阴阳家驻地', home: 'town', img: 'bg_taixuvalley', mini: 'mini_taixuvalley', iw: 2000, ih: 1504, scale: 1.35, k: 1, start: [1040, 950],
       alt: '幽谷中的阴阳家驻地：八卦石台、方尖碑和莲池环绕，两侧飞瀑垂落',
       walk: [[[1040, 580], [1600, 860], [1040, 1140], [480, 850]],
              [[260, 500], [420, 440], [700, 440], [820, 520], [760, 640], [520, 700], [330, 640]],
@@ -457,7 +457,7 @@ window.DATA = {
       portals: [{ to: 'town', name: '返回汉中郡', at: [1040, 1080], arrive: [850, 575] }]
     },
     town: {
-      name: '汉中郡', world: [467, 765], note: '主城', home: 'town', img: 'bg_town', mini: 'mini_town', iw: 5324, ih: 3042, scale: 1.0359, k: 1.8648, start: [850, 575],
+      name: '汉中郡', world: [1105, 1145], note: '主城', home: 'town', img: 'bg_town', mini: 'mini_town', iw: 5324, ih: 3042, scale: 1.0359, k: 1.8648, start: [850, 575],
       alt: '青瓦红柱的繁华主城：中央是高耸的玄兵塔，周围有擂台、锻造坊、寄卖行、集市和荷塘石桥',
       walk: [],
       roads: [
@@ -478,7 +478,7 @@ window.DATA = {
       portals: [{ to: 'wild', name: '出城·竹林', at: [300, 800], arrive: [150, 453] }, { to: 'outskirts', name: '恒山村郊', at: [570, 160], arrive: [1860, 190] }]
     },
     wild: {
-      name: '城外·竹林', world: [698, 1265], note: '山贼出没', home: 'town', img: 'bg_wild', mini: 'mini_wild', iw: 1672, ih: 941, scale: 2, k: 1.6328, start: [150, 453],
+      name: '城外·竹林', world: [1336, 1690], note: '山贼出没', home: 'town', img: 'bg_wild', mini: 'mini_wild', iw: 1672, ih: 941, scale: 2, k: 1.6328, start: [150, 453],
       alt: '城外的竹林：土路从石桥一路通向山贼的寨门，岔路通往狼窝和石龛',
       walk: [],
       roads: [

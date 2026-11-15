@@ -12,15 +12,18 @@ window.ASSETS = {
   "b_tiger": "assets/b_tiger.webp",
   "b_wuchen": "assets/b_wuchen.webp",
   "b_yan": "assets/b_yan.webp",
-  "bg_battle": "assets/bg_battle.jpg",
-  "bg_battle2": "assets/bg_battle2.jpg",
+  "bg_battle": "assets/bg_battle.webp",
+  "bg_battle2": "assets/bg_battle2.webp",
   "bg_creek": "assets/bg_creek.webp",
   "bg_mist": "assets/bg_mist.webp",
   "bg_outskirts": "assets/bg_outskirts.webp",
   "bg_pine": "assets/bg_pine.webp",
+  "bg_taixuforest": "assets/bg_taixuforest.webp",
+  "bg_taixupeak": "assets/bg_taixupeak.webp",
+  "bg_taixuvalley": "assets/bg_taixuvalley.webp",
   "bg_town": "assets/bg_town.webp",
-  "bg_village": "assets/bg_village.jpg",
-  "bg_wild": "assets/bg_wild.jpg",
+  "bg_village": "assets/bg_village.webp",
+  "bg_wild": "assets/bg_wild.webp",
   "bg_wolfvalley": "assets/bg_wolfvalley.webp",
   "boar": "assets/boar.webp",
   "boss": "assets/boss.webp",
@@ -126,11 +129,14 @@ window.ASSETS = {
   "item_steel_sword": "assets/item_steel_sword.webp",
   "item_wolf_fang": "assets/item_wolf_fang.webp",
   "item_wood_beads": "assets/item_wood_beads.webp",
-  "login": "assets/login.jpg",
+  "login": "assets/login.webp",
   "mini_creek": "assets/mini_creek.jpg",
   "mini_mist": "assets/mini_mist.jpg",
   "mini_outskirts": "assets/mini_outskirts.jpg",
   "mini_pine": "assets/mini_pine.jpg",
+  "mini_taixuforest": "assets/mini_taixuforest.jpg",
+  "mini_taixupeak": "assets/mini_taixupeak.jpg",
+  "mini_taixuvalley": "assets/mini_taixuvalley.jpg",
   "mini_town": "assets/mini_town.jpg",
   "mini_village": "assets/mini_village.jpg",
   "mini_wild": "assets/mini_wild.jpg",
@@ -142,7 +148,7 @@ window.ASSETS = {
   "walk_b": "assets/walk_b.webp",
   "walk_f": "assets/walk_f.webp",
   "wolf": "assets/wolf.webp",
-  "world": "assets/world.jpg"
+  "world": "assets/world.webp"
  },
  "size": {
   "player": [
@@ -278,8 +284,8 @@ window.ASSETS = {
    60.0
   ],
   "world": [
-   1024,
-   1536
+   2300,
+   2300
   ],
   "walk_f": [
    77.0,

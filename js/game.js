@@ -650,25 +650,54 @@ function onBtn(key, label, b) {
 ['hud', 'coin', 'chat'].forEach(id => $(id).addEventListener('click', e => e.stopPropagation()));
 
 // ---------- 世界地图：点小地图打开，点任意地点可以直接传送 ----------
+// 世界地图：一张大图，手指拖动浏览（带惯性）；地点坐标是 D.maps[id].world = [x, y]（大图原图像素），新增地点只要给一个坐标
+const WP = { x: 0, y: 0, vx: 0, vy: 0, drag: false, moved: 0, raf: 0 };
+function wpClamp() {
+  const iw = AS.size.world[0], ih = AS.size.world[1];
+  WP.x = Math.min(0, Math.max(720 - iw, WP.x)); WP.y = Math.min(0, Math.max(1280 - ih, WP.y));
+  $('wmapPan').style.transform = 'translate3d(' + WP.x.toFixed(1) + 'px,' + WP.y.toFixed(1) + 'px,0)';
+}
+function wpCenter(id) { const d = D.maps[id]; WP.x = 360 - d.world[0]; WP.y = 640 - d.world[1] + 40; wpClamp(); }
 function openWorld() {
   if (B.active) return;
   stop(); wander = false; autoBtn.classList.remove('on');
-  const img = $('wmapImg'); img.src = IMG('world');
-  const iw = AS.size.world[0], ih = AS.size.world[1], k = 1280 / ih, off = (iw * k - 720) / 2;   // 图片按高度铺满、左右裁掉
+  const img = $('wmapImg'); img.src = IMG('world'); img.style.width = AS.size.world[0] + 'px'; img.style.height = AS.size.world[1] + 'px';
   $('wmapNodes').innerHTML = Object.keys(D.maps).map(id => {
-    const d = D.maps[id], here = id === M.id, seen = (S.visited || []).includes(id);
-    return '<button type="button" class="wnode' + (here ? ' here' : '') + '" data-go="' + id + '" style="left:' + (d.world[0] * k - off) + 'px;top:' + (d.world[1] * k) + 'px">' + d.name +
+    const d = D.maps[id], here = id === M.id;
+    return '<button type="button" class="wnode' + (here ? ' here' : '') + (d.sect ? ' sect' : '') + '" data-go="' + id + '" style="left:' + d.world[0] + 'px;top:' + d.world[1] + 'px">' + d.name +
       '<small>' + (here ? '你在这里' : d.note) + '</small></button>';
   }).join('');
-  $('wmap').hidden = false;
+  $('wmap').hidden = false; WP.vx = WP.vy = 0; wpCenter(M.id);
 }
-$('wmap').addEventListener('click', e => {
-  e.stopPropagation();
-  const b = e.target.closest('[data-go]'); if (!b || b.disabled) return;
-  const id = b.dataset.go;
-  if (id === M.id) { toast('你已经在' + D.maps[id].name); return; }
-  $('wmap').hidden = true; loadMap(id); save(); toast('传送到 ' + D.maps[id].name);
-});
+{ const wm = $('wmap'); let last = null, pid = null;
+  const stepInertia = () => {
+    if (WP.drag) return;
+    WP.x += WP.vx * 16; WP.y += WP.vy * 16; WP.vx *= 0.93; WP.vy *= 0.93; wpClamp();
+    if (Math.abs(WP.vx) + Math.abs(WP.vy) > 0.01 && !wm.hidden) WP.raf = requestAnimationFrame(stepInertia);
+  };
+  wm.addEventListener('pointerdown', e => {
+    if (e.target.closest('.tbtn')) return;
+    cancelAnimationFrame(WP.raf); WP.drag = true; WP.moved = 0; WP.vx = WP.vy = 0; pid = e.pointerId; last = { x: e.clientX, y: e.clientY, t: performance.now() };
+  });
+  window.addEventListener('pointermove', e => {
+    if (!WP.drag || e.pointerId !== pid) return;
+    const dx = (e.clientX - last.x) / scale, dy = (e.clientY - last.y) / scale, now = performance.now(), dt = Math.max(1, now - last.t);
+    WP.moved += Math.abs(dx) + Math.abs(dy);
+    if (WP.moved > 10) { wm.classList.add('drag'); WP.x += dx; WP.y += dy; wpClamp(); WP.vx = WP.vx * 0.6 + dx / dt * 0.4; WP.vy = WP.vy * 0.6 + dy / dt * 0.4; }
+    last = { x: e.clientX, y: e.clientY, t: now };
+  });
+  const end = e => { if (!WP.drag || e.pointerId !== pid) return; WP.drag = false; wm.classList.remove('drag'); if (WP.moved > 10) WP.raf = requestAnimationFrame(stepInertia); };
+  window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
+  wm.addEventListener('click', e => {
+    e.stopPropagation();
+    if (WP.moved > 10) { WP.moved = 0; return; }              // 拖动不算点击
+    const b = e.target.closest('[data-go]'); if (!b) return;
+    const id = b.dataset.go;
+    if (id === M.id) { toast('你已经在' + D.maps[id].name); return; }
+    wm.hidden = true; loadMap(id); save(); toast('传送到 ' + D.maps[id].name);
+  });
+  $('wmapHome').addEventListener('click', e => { e.stopPropagation(); WP.vx = WP.vy = 0; wpCenter(M.id); });
+}
 $('wmapClose').addEventListener('click', e => { e.stopPropagation(); $('wmap').hidden = true; });
 $('place').addEventListener('click', e => { e.stopPropagation(); openWorld(); });
 // 场景地图（点小地图打开）：当前这张地图的全貌，标出自己、人物、传送点、敌人；点地面走过去，点标记去找人

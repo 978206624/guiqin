@@ -61,7 +61,7 @@ def head(src_png, idx, n_total, name, cx):
     c.crop((l,0,l+sz,sz)).resize((160,160),Image.LANCZOS).save(f'{AD}/head_{name}.webp',quality=90)
 head(G+'/npc2.png',0,4,'elder',0.4); head(G+'/npc2.png',1,4,'axiu',0.5)
 v=Image.open(G+'/village2.png').convert('RGB'); v.save(f'{AD}/bg_village.jpg',quality=88,optimize=True); v.resize((512,384),Image.LANCZOS).save(f'{AD}/mini_village.jpg',quality=80)
-wm=Image.open(G+'/world.png').convert('RGB'); wm.save(f'{AD}/world.jpg',quality=86,optimize=True); size['world']=list(wm.size)
+wm=Image.open(G+('/world2.png' if os.path.exists(G+'/world2.png') else '/world.png')).convert('RGB'); wm.save(f'{AD}/world.jpg',quality=86,optimize=True); size['world']=list(wm.size)
 o=Image.open(G+'/outskirts.jpg').convert('RGB'); o.save(f'{AD}/bg_outskirts.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_outskirts.jpg',quality=80)
 o=Image.open(G+'/creek.jpg').convert('RGB'); o.save(f'{AD}/bg_creek.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_creek.jpg',quality=80)
 o=Image.open(G+'/mist.jpg').convert('RGB'); o.save(f'{AD}/bg_mist.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_mist.jpg',quality=80)
@@ -167,7 +167,7 @@ b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.wid
 b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=True)
 
 from PIL import ImageFilter
-for n,q in [('bg_town',54),('bg_village',78),('bg_wild',78),('world',78),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',78),('bg_wolfvalley',78)]:
+for n,q in [('bg_town',54),('bg_village',78),('bg_wild',78),('world',62),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',72),('bg_wolfvalley',78)]:
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue
     im=Image.open(p).convert('RGB')
