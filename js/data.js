@@ -63,7 +63,7 @@ window.DATA = {
     novice_m: { name: '新手', gender: 'm', role: '近战 · 棍', weapon: '木棍', joinSect: ['dao_ty_m', 'dao_qm_m'],
       desc: '红绳束髻的少年，提着一根枯木棍闯荡江湖，样样都会一点。路还很长，先把清溪的事了了。', stats: { 攻击: 3, 防御: 3, 速度: 3, 法术: 3, 气血: 3 } },
     // ---- 道家（女）两个分堂：技能参考 kunkunxunqin（data_skill_defs 的 qm / ty），数值按本游戏的回合制重新折算 ----
-    dao_ty: { name: '天音', sect: '道家', gender: 'f', role: '辅助 · 琵琶', weapon: '琵琶', magicAtk: true,
+    dao_ty: { hidden: true, name: '天音', sect: '道家', gender: 'f', role: '辅助 · 琵琶', weapon: '琵琶', magicAtk: true,
       desc: '道家天音分堂，怀抱琵琶，以曲音疗伤、护体、返魂。队伍里最可靠的后盾，自己也能用荡魔曲出手。', stats: { 攻击: 1, 防御: 3, 速度: 3, 法术: 4, 气血: 4 },
       mod: { atk: 0.7, matk: 1.2, def: 1.05, mdef: 1.2, hp: 1.1, mp: 1.15 },
       heart: { name: '天音心法', desc: '每级提升法攻 3 点、法防 6 点（原作：智力 +12、精神 +36）', perLv: { matk: 3, mdef: 6 } },
