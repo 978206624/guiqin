@@ -135,13 +135,13 @@ rel='// 素材清单（相对路径版）。单文件版里这一段会被换成
 open(R+'/js/assets.js','w').write(rel)
 inl='window.ASSETS = '+json.dumps(dict(img={k:uri(f'{AD}/{f}') for k,f in keys.items()},size=size))+';'
 src=open(R+'/index.src.html').read()
-single=src.replace('<!--SCRIPTS-->','<script>\n'+inl+'\n</script>\n<script>\n'+open(R+'/js/data.js').read()+'\n</script>\n<script>\n'+open(R+'/js/game.js').read()+'\n</script>\n<script>\n'+open(R+'/js/front.js').read()+'\n</script>')
+single=src.replace('<!--SCRIPTS-->','<script>\n'+inl+'\n</script>\n<script>\n'+open(R+'/js/masks.js').read()+'\n</script>\n<script>\n'+open(R+'/js/data.js').read()+'\n</script>\n<script>\n'+open(R+'/js/game.js').read()+'\n</script>\n<script>\n'+open(R+'/js/front.js').read()+'\n</script>')
 open(R+'/dist/guiqin.html','w').write(single)
-multi='<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<style>body{margin:0}[hidden]{display:none!important}</style>\n'+src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/data.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')+'\n</body>\n</html>\n'
+multi='<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<style>body{margin:0}[hidden]{display:none!important}</style>\n'+src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/masks.js"></script>\n<script src="js/data.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')+'\n</body>\n</html>\n'
 multi=multi.replace('<div id="fit">','</head>\n<body>\n<div id="fit">',1)
 open(R+'/index.html','w').write(multi)
 z=zipfile.ZipFile(R+'/dist/guiqin_source.zip','w',zipfile.ZIP_DEFLATED)
-for p in ['index.html','js/assets.js','js/data.js','js/game.js','js/front.js','README.txt']:
+for p in ['index.html','js/assets.js','js/masks.js','js/data.js','js/game.js','js/front.js','README.txt']:
     if os.path.exists(f'{R}/{p}'): z.write(f'{R}/{p}','guiqin/'+p)
 for f in files: z.write(f'{AD}/{f}','guiqin/assets/'+f)
 z.close()

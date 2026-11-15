@@ -211,7 +211,7 @@ const ACTS = {
 // 地图定义在 data.js 的 maps 里，坐标用“底图原图像素”，这里乘 scale 换成舞台像素。
 let M = null;                                  // 当前地图的运行时数据
 const cam = { x: 0, y: 0 };
-const CELL = 16;                               // 寻路网格的格子边长
+let CELL = 16;                               // 寻路网格的格子边长
 const bgMap = $('bgMap');
 const toMap = (def, x, y) => ({ x: x * def.scale * (def.k || 1), y: y * def.scale * (def.k || 1) });
 const I = (x, y) => toMap(M.def, x, y);
@@ -224,6 +224,12 @@ function inPoly(poly, p) {
   return c;
 }
 function inside(p) {
+  if (M.mask) {                                      // 有碰撞位图的地图：直接查位图（再减去 blocks）
+    const m = M.mask, u = M.def.scale * (M.def.k || 1) * m.cell, gx = Math.floor(p.x / u), gy = Math.floor(p.y / u);
+    if (gx < 0 || gy < 0 || gx >= m.w || gy >= m.h) return false;
+    for (const poly of M.blocks) if (inPoly(poly, p)) return false;
+    const i = gy * m.w + gx; return (m.bytes[i >> 3] >> (7 - (i & 7)) & 1) === 1;
+  }
   for (const poly of M.blocks) if (inPoly(poly, p)) return false;      // 路中间的障碍（井、树）
   for (const poly of M.walk) if (inPoly(poly, p)) return true;
   return false;
@@ -271,6 +277,8 @@ fox.imgB.hidden = true; fox.el.insertBefore(fox.imgB, fox.tag); fox.dir = 'f';
 function loadMap(id, at) {
   const def = D.maps[id];
   M = { id, def, W: def.iw * def.scale, H: def.ih * def.scale, npcs: {}, list: [] };
+  const mk = window.MASKS && window.MASKS[id];
+  if (mk) { const bin = atob(mk.bits), bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); M.mask = { cell: mk.cell, w: mk.w, h: mk.h, bytes }; CELL = 8; } else CELL = 16;
   M.walk = def.walk.map(poly => poly.map(p => I(p[0], p[1])));
   M.blocks = (def.blocks || []).map(b => { const c = I(b.at[0], b.at[1]), w = b.r * def.scale * (def.k || 1), o = []; for (let k = 0; k < 8; k++) o.push({ x: c.x + Math.cos(k * Math.PI / 4) * w, y: c.y + Math.sin(k * Math.PI / 4) * w * 0.6 }); return o; });
   (def.roads || []).forEach(r => {              // 道路：每段一个矩形，每个拐点一个八边形

@@ -70,3 +70,10 @@ python3 build.py
   - 城外地图的底图放大了 2 倍显示，比城里略糊。
   - 角色只有一张站立图，行走和攻击靠位移、颠动和闪白表现，没有逐帧动画。
   - 存档在浏览器本地（localStorage），换设备或清缓存会丢。
+
+## 碰撞图
+`js/masks.js` 是自动生成的碰撞位图（恒山村、汉中郡），不要手改。改路面或障碍时编辑 `tools/collision.py` 里的多边形，再运行：
+
+    python3 tools/collision.py && python3 build.py
+
+预览叠图会写到 `/tmp/collision_<地图名>.png`（用环境变量 `PREVIEW_DIR` 改目录），用来对照底图检查。

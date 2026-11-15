@@ -128,7 +128,7 @@ window.DATA = {
       blocks: [],
       glows: [[1110,330],[1570,520],[1790,960],[1710,520]],
       npcs: [{ id: 'elder', at: [1040, 545] }, { id: 'axiu', at: [1190, 845] }],
-      portals: [{ to: 'town', name: '下山·汉中郡', at: [1790, 1380], arrive: [420, 770], needStep: 4, lockMsg: '村长还有话要交代，先别急着下山' }],
+      portals: [{ to: 'town', name: '下山·汉中郡', at: [1790, 1380], arrive: [450, 790], needStep: 4, lockMsg: '村长还有话要交代，先别急着下山' }],
       foes: [{ stage: 'dummy', at: [440, 1225] }, { stage: 'boar', at: [1560, 480] }]
     },
     town: {
@@ -148,7 +148,7 @@ window.DATA = {
       glows: [[660,225],[1215,280],[1750,200],[1620,610],[240,540],[1500,990]],
       npcs: [{ id: 'towerman', at: [850, 535] }, { id: 'waiter', at: [1360, 330] }, { id: 'smith', at: [1290, 745] },
              { id: 'vendor', at: [350, 745] }, { id: 'arenaman', at: [660, 705] }, { id: 'trader', at: [1690, 925] }, { id: 'girl', at: [940, 625] }],
-      portals: [{ to: 'wild', name: '出城·竹林', at: [120, 865], arrive: [150, 453] }, { to: 'village', name: '回恒山村', at: [570, 160], arrive: [1700, 1340] }]
+      portals: [{ to: 'wild', name: '出城·竹林', at: [300, 800], arrive: [150, 453] }, { to: 'village', name: '回恒山村', at: [570, 160], arrive: [1700, 1340] }]
     },
     wild: {
       name: '城外·竹林', world: [698, 1265], note: '山贼出没', home: 'town', img: 'bg_wild', mini: 'mini_wild', iw: 1672, ih: 941, scale: 2, k: 1.6328, start: [150, 453],
@@ -164,7 +164,7 @@ window.DATA = {
         { r: 32, pts: [[855,172],[918,142]] }
       ],
       glows: [[440,165],[75,445],[250,440],[140,490],[165,410],[808,262],[898,298],[872,78],[960,85]],
-      portals: [{ to: 'town', name: '回汉中郡', at: [40, 515], arrive: [200, 820] }],
+      portals: [{ to: 'town', name: '回汉中郡', at: [40, 515], arrive: [300, 800] }],
       foes: [{ stage: 'path', at: [352, 352] }, { stage: 'wolves', at: [150, 140] }, { stage: 'outpost', at: [850, 288] }, { stage: 'boss', at: [926, 116] }]
     }
   },
