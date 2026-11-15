@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "out": "art-src/daoist-m/walkf_ty.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 0,
+      "elapsed": 0.0,
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: 'art-src/novice/port_nm.png'"
+    },
+    {
+      "attempt": 2,
+      "status": 0,
+      "elapsed": 0.0,
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: 'art-src/novice/port_nm.png'"
+    },
+    {
+      "attempt": 3,
+      "status": 0,
+      "elapsed": 0.0,
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: 'art-src/novice/port_nm.png'"
+    },
+    {
+      "attempt": 4,
+      "status": 200,
+      "elapsed": 117.0,
+      "error": null
+    }
+  ]
+}
