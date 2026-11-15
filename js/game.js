@@ -843,7 +843,7 @@ function openTrain(who) {
     let btn;
     if (maxed) btn = '<span class="hint">已满级</span>';
     else if (S.lv < ct.lvReq) btn = '<span class="hint">需 ' + ct.lvReq + ' 级</span>';
-    else btn = '<button type="button" class="tbtn' + (S.coin < ct.coin ? '' : ' red') + '" data-act="train:' + who + ':' + id + '"' + (S.coin < ct.coin ? ' disabled' : '') + '>' + (cur ? '升到 ' + (cur + 1) + ' 级' : '学习') + '<small>银两 ' + fmt(ct.coin) + '</small></button>';
+    else btn = '<button type="button" class="tbtn' + (S.coin < ct.coin ? '' : ' red') + '" data-act="train:' + who + ':' + id + '"' + (S.coin < ct.coin ? ' disabled' : '') + '>' + (cur ? '升到 ' + (cur + 1) + ' 级' : '学习') + '<br><small>银两 ' + fmt(ct.coin) + '</small></button>';
     h += '<div class="row"><div><h5>' + x.name + (cur ? ' <small>Lv.' + cur + '</small>' : ' <small>未学习</small>') + '</h5><p>' + x.desc + '</p></div>' + btn + '</div>';
   });
   if (who === 'menzhu') h += '<div class="row"><div><h5>' + curCls().heart.name + ' <small>被动</small></h5><p>' + curCls().heart.desc + '。随人物等级成长，不需要修炼。</p></div></div>';

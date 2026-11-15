@@ -771,6 +771,108 @@
      "always"
     ]
    ]
+  },
+  "dao_dz": {
+   "name": "道家弟子",
+   "gender": "f",
+   "role": "近战 · 箜篌",
+   "weapon": "箜篌",
+   "joinSect": [
+    "dao_ty",
+    "dao_qm"
+   ],
+   "desc": "已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。",
+   "stats": {
+    "攻击": 3,
+    "防御": 3,
+    "速度": 3,
+    "法术": 3,
+    "气血": 3
+   },
+   "sect": "道家",
+   "hidden": true,
+   "magicAtk": true,
+   "skills": [
+    "dangmo_fs",
+    "lingmai_fs"
+   ],
+   "mod": {
+    "atk": 0.8,
+    "matk": 1.15,
+    "def": 1,
+    "mdef": 1.1,
+    "hp": 1.05,
+    "mp": 1.1
+   },
+   "heart": {
+    "name": "道家心法",
+    "desc": "每级提升法攻 2 点、法防 2 点（原作：智力、精神）",
+    "perLv": {
+     "matk": 2,
+     "mdef": 2
+    }
+   },
+   "auto": [
+    [
+     "lingmai_fs",
+     "selfHurt"
+    ],
+    [
+     "dangmo_fs",
+     "always"
+    ]
+   ]
+  },
+  "dao_dz_m": {
+   "name": "道家弟子",
+   "gender": "m",
+   "role": "近战 · 箜篌",
+   "weapon": "箜篌",
+   "joinSect": [
+    "dao_ty_m",
+    "dao_qm_m"
+   ],
+   "desc": "已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。",
+   "stats": {
+    "攻击": 3,
+    "防御": 3,
+    "速度": 3,
+    "法术": 3,
+    "气血": 3
+   },
+   "sect": "道家",
+   "hidden": true,
+   "magicAtk": true,
+   "skills": [
+    "dangmo_fs",
+    "lingmai_fs"
+   ],
+   "mod": {
+    "atk": 0.8,
+    "matk": 1.15,
+    "def": 1,
+    "mdef": 1.1,
+    "hp": 1.05,
+    "mp": 1.1
+   },
+   "heart": {
+    "name": "道家心法",
+    "desc": "每级提升法攻 2 点、法防 2 点（原作：智力、精神）",
+    "perLv": {
+     "matk": 2,
+     "mdef": 2
+    }
+   },
+   "auto": [
+    [
+     "lingmai_fs",
+     "selfHurt"
+    ],
+    [
+     "dangmo_fs",
+     "always"
+    ]
+   ]
   }
  },
  "items": {
@@ -1660,6 +1762,24 @@
    "magic": true,
    "lv": 1,
    "desc": "拨动古琴，以魔音重创一名敌人。"
+  },
+  "dangmo_fs": {
+   "name": "荡魔曲",
+   "mp": 40,
+   "power": 1,
+   "target": "one",
+   "magic": true,
+   "lv": 1,
+   "desc": "拨动箜篌，以曲音震伤一名敌人。"
+  },
+  "lingmai_fs": {
+   "name": "灵脉曲",
+   "mp": 50,
+   "heal": 0.1,
+   "target": "ally",
+   "cleanse": true,
+   "lv": 1,
+   "desc": "解除一名友方的减速、魔化等状态（原作只解除状态，演示里附带少量回血）。"
   },
   "lingmai_qm": {
    "name": "灵脉曲",
@@ -2806,12 +2926,14 @@
    "sprite": "kk_npc57",
    "head": "head_kk_npc57",
    "act": "joinSect",
-   "idle": "道法自然，无为而无不为。太虚之林乃本门驻地，少侠与道有缘，便可在此拜入道家。"
+   "idle": "道法自然，无为而无不为。太虚之林乃本门驻地。十级以上、与道有缘者，可在此拜入道家，再去堂主处择天音或琴魔一堂。"
   },
   "dao_qinmo": {
    "name": "琴魔堂主",
    "title": "【道家·琴魔】",
    "color": "#bfe8ff",
+   "act": "pickHall",
+   "hall": "qm",
    "sprite": "kk_npc45",
    "head": "head_kk_npc45",
    "idle": "琴魔一脉，以魔音入敌心。琴声不是用来讨好谁的，是用来镇住心里那头兽的。"
@@ -2820,6 +2942,8 @@
    "name": "天音堂主",
    "title": "【道家·天音】",
    "color": "#bfe8ff",
+   "act": "pickHall",
+   "hall": "ty",
    "sprite": "kk_npc47",
    "head": "head_kk_npc47",
    "idle": "天音一脉，琵琶一曲可疗伤、护体、唤回将逝之人。会救人，才算真本事。"
@@ -4405,22 +4529,22 @@
     {
      "id": "dao_menzhu",
      "at": [
-      1200,
-      800
+      330,
+      250
      ]
     },
     {
      "id": "dao_qinmo",
      "at": [
-      1660,
-      400
+      1690,
+      390
      ]
     },
     {
      "id": "dao_tianyin",
      "at": [
-      420,
-      1370
+      390,
+      1390
      ]
     }
    ],
@@ -5999,5 +6123,15 @@
     "cloud_boots"
    ]
   }
+ },
+ "train": {
+  "maxLv": 5,
+  "learnCoin": 150,
+  "upCoin": 100,
+  "upLv": 2,
+  "base": [
+   "dangmo_fs",
+   "lingmai_fs"
+  ]
  }
 }
