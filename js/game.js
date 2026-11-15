@@ -1314,7 +1314,7 @@ function makeUnit(side, row, def, pos) {
   el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px'; el.style.zIndex = Math.round(pos.y);
   $('units').appendChild(el);
   const st = def.stats;
-  const u = { side, row, name: def.name, el, pos, h, hp: st.hp, maxHp: st.maxHp, mp: st.mp || 0, maxMp: st.maxMp || 0, atk: st.atk, def: st.def, matk: st.matk != null ? st.matk : st.atk, mdef: st.mdef != null ? st.mdef : st.def, crit: st.crit != null ? st.crit : 10, dodge: st.dodge || 0, spd: st.spd,
+  const u = { side, row, sprite: def.sprite, name: def.name, el, pos, h, hp: st.hp, maxHp: st.maxHp, mp: st.mp || 0, maxMp: st.maxMp || 0, atk: st.atk, def: st.def, matk: st.matk != null ? st.matk : st.atk, mdef: st.mdef != null ? st.mdef : st.def, crit: st.crit != null ? st.crit : 10, dodge: st.dodge || 0, spd: st.spd,
     alive: true, defending: false, ai: def.ai || 'attack', aggro: def.aggro || 1, data: def.data || null, magicAtk: !!def.magicAtk, st: {} };
   if (side === 'enemy') el.addEventListener('click', () => { if (B.picking && u.alive) { const f = B.picking; B.picking = null; f(u); } });
   B.units.push(u); drawUnit(u); return u;
@@ -1338,7 +1338,18 @@ function fxAt(cls, u, ms, dy, style) {
   const e = document.createElement('div'); e.className = 'sfx ' + cls; e.style.left = u.pos.x + 'px'; e.style.top = (u.pos.y - (dy == null ? u.h * 0.45 : dy)) + 'px';
   if (style) e.style.cssText += style; $('units').appendChild(e); setTimeout(() => e.remove(), ms || 900);
 }
-async function castPose(u) { u.el.style.setProperty('--d', u.side === 'ally' ? -1 : 1); u.el.classList.add('cast'); await sleep(720); u.el.classList.remove('cast'); }   // 施法动作：拨弦的起伏摆动 + 光晕
+async function castPose(u) {   // 施法动作：有逐帧施法图（bc_*，图像生成）就播帧动画，没有就退回整图摆动
+  const bc = u.sprite && u.sprite.startsWith('b_') ? 'bc_' + u.sprite.slice(2) : null;
+  if (bc && AS.size[bc] && u.el.querySelector('img')) {
+    const img = u.el.querySelector('img'), sz = AS.size[bc], k = u.h / 126, w = sz[0] * k, h = sz[1] * k, d = document.createElement('div');
+    d.className = 'castanim'; d.style.cssText = 'left:' + (-w / 2) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG(bc) + ')' + (u.side === 'ally' ? '' : ';scale:-1 1');
+    u.el.insertBefore(d, img); img.style.visibility = 'hidden';
+    const seq = [[0, 130], [1, 170], [2, 260], [3, 200]];
+    for (const [f, ms] of seq) { d.style.backgroundPosition = (f * 100 / 3) + '% 0'; await sleep(ms); }
+    d.remove(); img.style.visibility = ''; return;
+  }
+  u.el.style.setProperty('--d', u.side === 'ally' ? -1 : 1); u.el.classList.add('cast'); await sleep(720); u.el.classList.remove('cast');
+}
 function castFx(u, id) {                       // 出手者一侧：乐声起势
   const k = SKILL_FX[id]; if (!k) return;
   const ck = CAST_FX[id];

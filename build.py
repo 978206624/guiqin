@@ -195,6 +195,33 @@ for k,n in [('f','dao_dz'),('m','dao_dz_m')]:
     cut_row(f'{DB}/back_{k}.png',['b_'+n],{'b_'+n:126})
     c=keyed(f'{DB}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
     c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=52,method=6); dao_head(c,n)
+
+# 施法帧动画（art-src/cast-anim，图像生成：背影施法 4 帧）→ bc_<id>：4 格等宽精灵表，脚底对齐、按首帧身高缩放到与 b_ 立绘同尺寸
+def cast_anim(src,name,stand_h=126):
+    import numpy as np
+    im=keyed(src); a=im.getchannel('A').point(lambda v:255 if v>40 else 0); cols=(np.array(a)>0).sum(0)>2
+    runs=[]; s0=None
+    for x,v in enumerate(cols):
+        if v and s0 is None: s0=x
+        if not v and s0 is not None:
+            if x-s0>30: runs.append((s0,x))
+            s0=None
+    if s0 is not None: runs.append((s0,len(cols)))
+    assert len(runs)==4,(src,runs)
+    fr=[]
+    for x0,x1 in runs:
+        c=im.crop((x0,0,x1,im.height)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
+        al=np.array(c.getchannel('A'))>40; low=al[int(c.height*0.6):]; xs=np.nonzero(low.any(0))[0]
+        fr.append((c,(xs.min()+xs.max())/2))               # 下半身中心的 x（站位锚点）
+    k=stand_h*2/fr[0][0].height
+    fr=[(c.resize((round(c.width*k),round(c.height*k)),Image.LANCZOS),ax*k) for c,ax in fr]
+    left=max(ax for c,ax in fr); right=max(c.width-ax for c,ax in fr); cw=int(left+right)+8; ch=max(c.height for c,_ in fr)+4
+    sheet=Image.new('RGBA',(cw*4,ch),(0,0,0,0))
+    for i,(c,ax) in enumerate(fr): sheet.alpha_composite(c,(i*cw+int(left-ax)+4,ch-c.height))
+    sheet.save(f'{AD}/{name}.webp',quality=90,method=6); size[name]=[cw/2,ch/2]
+CA=G+'/cast-anim'
+for n in ['dao_dz','dao_dz_m','dao_qm','dao_qm_m','dao_ty','dao_ty_m']:
+    if os.path.exists(f'{CA}/{n}.png'): cast_anim(f'{CA}/{n}.png','bc_'+n)
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)

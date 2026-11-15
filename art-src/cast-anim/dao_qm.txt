@@ -1,0 +1,6 @@
+The input image is ONE game battle sprite: a Chinese wuxia character seen FROM BEHIND in a three-quarter back view facing the upper-left. TASK: output a single horizontal strip of exactly FOUR full-body frames of this SAME character (identical face/hair, outfit, colors, ribbons, proportions, art style, and the same camera angle: from behind, facing the upper-left) performing a spell-casting motion with the weapon harp, evenly spaced left to right with wide empty gaps between them, all the same size, all standing on the same baseline, each fully separated by green space:
+frame 1 = anticipation: weight shifts back slightly, both hands gather near the waist, body slightly crouched;
+frame 2 = wind-up: one arm raised up and back, torso twisting, hair and ribbons lifted;
+frame 3 = release: the arm thrusts forward toward the upper-left, body leaning and stepping into it, hair and ribbons streaming back, the most dynamic pose;
+frame 4 = follow-through: arm still extended but relaxing, body settling back toward the standing pose, ribbons drifting down.
+Keep any harp / instrument she carries exactly as in the reference. Flat solid pure green (#00FF00) chroma key background, no ground, no shadows, no text, no effects, no glow.
