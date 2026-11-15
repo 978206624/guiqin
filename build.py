@@ -113,7 +113,7 @@ def redden(src,dst):
     out=Image.fromarray(a.astype('uint8'),'HSV').convert('RGB').convert('RGBA'); out.putalpha(im.getchannel('A')); out.save(f'{AD}/item_{dst}.webp',quality=92)
 redden('jade_sword','crimson_sword'); redden('scale_armor','phoenix_armor')
 # 主角行走帧：4 帧一行，统一缩放，脚底对齐、头部水平对齐，拼成一张横向精灵表
-def walk_sheet(src, name, stand_h):
+def walk_sheet(src, name, stand_h, flip=False):      # flip：逐帧水平翻转（引擎要求正面图朝右下；生成的正面图朝左下，所以要翻，帧顺序不变）
     import numpy as np
     im=keyed(src); a=im.getchannel('A').point(lambda v:255 if v>40 else 0); cols=(np.array(a)>0).sum(0)>2
     runs=[]; s0=None
@@ -127,6 +127,7 @@ def walk_sheet(src, name, stand_h):
     fr=[]
     for x0,x1 in runs:
         c=im.crop((x0,0,x1,im.height)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
+        if flip: c=c.transpose(Image.FLIP_LEFT_RIGHT)
         al=np.array(c.getchannel('A'))>40; top=al[:int(c.height*0.22)]; xs=np.nonzero(top.any(0))[0]
         fr.append((c,(xs.min()+xs.max())/2))          # 头部中心的 x
     k=stand_h*2/((fr[1][0].height+fr[3][0].height)/2)   # 以两张“并脚”帧的身高为准
@@ -163,8 +164,8 @@ portraits(G+'/male.png',['m_sword','m_spear','m_mage']); portraits(G+'/female.pn
 
 # 道家女主（用户提供形象）：天音（琵琶，行走时背在身后）/ 琴魔（古琴）。行走正/背面 4 帧表、战斗背影（back.png 左天音右琴魔）、立绘与头像
 DA=G+'/daoist'
-walk_sheet(DA+'/walkf_ty.png','walk_f_dao_ty',118); walk_sheet(DA+'/walkb_ty.png','walk_b_dao_ty',118)
-walk_sheet(DA+'/walkf_qm.png','walk_f_dao_qm',118); walk_sheet(DA+'/walkb_qm.png','walk_b_dao_qm',118)
+walk_sheet(DA+'/walkf_ty.png','walk_f_dao_ty',118,flip=True); walk_sheet(DA+'/walkb_ty.png','walk_b_dao_ty',118)
+walk_sheet(DA+'/walkf_qm.png','walk_f_dao_qm',118,flip=True); walk_sheet(DA+'/walkb_qm.png','walk_b_dao_qm',118)
 cut_row(DA+'/back.png',['b_dao_ty','b_dao_qm'],dict(b_dao_ty=126,b_dao_qm=126))
 def dao_head(c,name):
     sz=int(c.height*0.34); l=int(max(0,min(c.width-sz,c.width*0.5-sz/2))); t=int(c.height*0.02)
@@ -175,7 +176,7 @@ for n,src in [('dao_ty',DA+'/port_ty.png' if os.path.exists(DA+'/port_ty.png') e
 # 新手男 / 女：参考 kunkunxunqin 创角预览里的赤绳少年 / 青带少女，用本游戏的手绘画风重画（art-src/novice-kk/）
 NK=G+'/novice-kk'
 for k,n in [('nf','novice_f'),('nm','novice_m')]:
-    walk_sheet(f'{NK}/walkf_{k}.png','walk_f_'+n,118); walk_sheet(f'{NK}/walkb_{k}.png','walk_b_'+n,118)
+    walk_sheet(f'{NK}/walkf_{k}.png','walk_f_'+n,118,flip=True); walk_sheet(f'{NK}/walkb_{k}.png','walk_b_'+n,118)
     cut_row(f'{NK}/back_{k}.png',['b_'+n],{'b_'+n:126})
     c=keyed(f'{NK}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
     c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=64,method=6); dao_head(c,n)
@@ -183,7 +184,7 @@ for k,n in [('nf','novice_f'),('nm','novice_m')]:
 DM=G+'/daoist-m'
 for k in ['ty','qm']:
     n='dao_'+k+'_m'
-    walk_sheet(f'{DM}/walkf_{k}.png','walk_f_'+n,118); walk_sheet(f'{DM}/walkb_{k}.png','walk_b_'+n,118)
+    walk_sheet(f'{DM}/walkf_{k}.png','walk_f_'+n,118,flip=True); walk_sheet(f'{DM}/walkb_{k}.png','walk_b_'+n,118)
     c=keyed(f'{DM}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
     c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=64,method=6); dao_head(c,n)
 cut_row(DM+'/back.png',['b_dao_ty_m','b_dao_qm_m'],dict(b_dao_ty_m=126,b_dao_qm_m=126))
