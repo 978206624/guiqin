@@ -7,6 +7,21 @@ window.DATA = {
   base: { hp: 800, mp: 300, atk: 80, def: 30, spd: 90 },
   grow: { hp: 120, mp: 40, atk: 14, def: 6, spd: 2 },
   pet:  { hp: 0.6, atk: 0.7, def: 0.6, spd: 1.2 },
+  // 宠物图鉴：灵狐是出生自带的，其余为展示用（获得途径之后接玩法）
+  petQuality: { 1: { name: '普通', color: '#c3c9d1', stars: 2 }, 2: { name: '精良', color: '#7ee08a', stars: 3 }, 3: { name: '稀有', color: '#6fb6ff', stars: 4 }, 4: { name: '传说', color: '#ffc857', stars: 5 } },
+  bondTiers: [{ at: 0, name: '初识' }, { at: 15, name: '熟悉' }, { at: 40, name: '亲近' }, { at: 80, name: '默契' }, { at: 140, name: '心意相通' }],   // at = 一起打赢的战斗数；每升一档，宠物气血/攻击 +3%
+  petDex: {
+    fox:      { name: '灵狐', sprite: 'b_fox',     q: 2, kind: '灵兽 · 近战', desc: '九尾灵狐的幼崽，通人性，会在主人身边寸步不离。', skills: ['bite', 'foxfire'], own: true },
+    deer:     { name: '小鹿', sprite: 'b_deer',    q: 2, kind: '灵兽 · 辅助', desc: '林间的白鹿，蹄声轻柔，据说能听见草木的心跳。', how: '医者职业任务奖励' },
+    rabbit:   { name: '玉兔', sprite: 'b_rabbit',  q: 1, kind: '灵兽 · 敏捷', desc: '月宫来的玉兔，行动极快，总能抢在对手前面出手。', how: '竹林采集活动抽取' },
+    hawk:     { name: '苍鹰', sprite: 'b_hawk',    q: 3, kind: '飞禽 · 迅捷', desc: '盘旋云端的猛禽，爪下从无活口。', how: '竞技场赛季奖励' },
+    tiger:    { name: '虎崽', sprite: 'b_tiger',   q: 3, kind: '走兽 · 近战', desc: '山君之子，咆哮声虽稚嫩，咬合力却不小。', how: '玄兵塔十层奖励' },
+    tortoise: { name: '灵龟', sprite: 'f_tortoise', q: 2, kind: '灵兽 · 防御', desc: '背负山河纹的龟，防御极高，不急不躁。', how: '寄卖行商店兑换' },
+    crane:    { name: '仙鹤', sprite: 'f_crane',   q: 3, kind: '飞禽 · 迅捷', desc: '松间白鹤，舞姿清绝，鸣声可传十里。', how: '帮派任务奖励' },
+    panther:  { name: '墨豹', sprite: 'f_panther', q: 3, kind: '走兽 · 近战', desc: '夜里才出没的黑豹，爪牙锋利。', how: '城外夜间副本掉落' },
+    panda:    { name: '竹熊', sprite: 'f_panda',   q: 2, kind: '走兽 · 防御', desc: '竹林深处的憨态大熊，皮糙肉厚。', how: '城外竹林稀有掉落' },
+    dragon:   { name: '赤螭', sprite: 'f_dragon',  q: 4, kind: '神兽 · 法术', desc: '传说中的赤色小龙，吐息如火，是万中无一的灵宠。', how: '节日活动限定' }
+  },
   expNeed: { base: 150, perLevel: 90 },        // 升到下一级所需经验 = base + perLevel * 当前等级
   start: { lv: 1, coin: 100, items: { hp_potion: 3 }, equip: { weapon: null, armor: 'cloth_armor', charm: null }, map: 'village' },
 

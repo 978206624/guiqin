@@ -51,9 +51,13 @@ function stats() {
   }
   return st;
 }
+function bondInfo() {
+  const n = S.bond || 0, T = D.bondTiers; let i = 0; while (i + 1 < T.length && n >= T[i + 1].at) i++;
+  return { n, i, name: T[i].name, from: T[i].at, to: i + 1 < T.length ? T[i + 1].at : null, bonus: i * 0.03 };
+}
 function petStats() {
-  const b = D.base, g = D.grow, L = S.lv, p = D.pet;
-  return { maxHp: Math.round((b.hp + g.hp * L) * p.hp), atk: Math.round((b.atk + g.atk * L) * p.atk), def: Math.round((b.def + g.def * L) * p.def), spd: Math.round((b.spd + g.spd * L) * p.spd) };
+  const b = D.base, g = D.grow, L = S.lv, p = D.pet, k = 1 + bondInfo().bonus;
+  return { maxHp: Math.round((b.hp + g.hp * L) * p.hp * k), atk: Math.round((b.atk + g.atk * L) * p.atk * k), def: Math.round((b.def + g.def * L) * p.def), spd: Math.round((b.spd + g.spd * L) * p.spd) };
 }
 const expNeed = () => D.expNeed.base + D.expNeed.perLevel * S.lv;
 function clampVitals() {
@@ -68,6 +72,7 @@ function grant(r) {
   if (r.coin) S.coin += r.coin;
   if (r.items) for (const id in r.items) addItem(id, r.items[id]);
   if (r.exp) {
+    S.bond = (S.bond || 0) + 1;   // 每打赢一场，灵狐的亲密度 +1
     S.exp += r.exp;
     while (S.exp >= expNeed()) { S.exp -= expNeed(); S.lv++; ups++; }
     if (ups) { S.hp = null; S.mp = null; if (S.lv % 5 === 0) window.CHAT.notice('恭喜玩家「' + ROLE.name + '」等级突破 ' + S.lv + ' 级！'); }
@@ -188,10 +193,40 @@ function openSkills() {
   });
   openModal('技能', h + '<p style="color:var(--muted);margin:14px 0 0">技能在战斗中使用。</p>');
 }
+let petTab = 'attr', petSel = 'fox';
+function petPower(p) { return Math.round(p.maxHp / 10 + p.atk * 2 + p.def * 1.5 + p.spd); }
+function stars(n, color) { return '<span class="stars" style="color:' + color + '">' + '★'.repeat(n) + '<i>' + '★'.repeat(5 - n) + '</i></span>'; }
 function openPet() {
-  const p = petStats();
-  openModal('宠物', '<div class="who"><img alt="" src="' + IMG('fox') + '" style="height:130px"><div><h5>灵狐</h5><p>等级 ' + S.lv + '（随主人成长）</p><p>战斗中自动出手，有几率喷出狐火。</p></div></div>' +
-    '<div class="stats"><div>气血<b>' + p.maxHp + '</b></div><div>攻击<b>' + p.atk + '</b></div><div>防御<b>' + p.def + '</b></div><div>速度<b>' + p.spd + '</b></div></div>');
+  const dex = D.petDex.fox, q = D.petQuality[dex.q], p = petStats(), bd = bondInfo(), b = D.base, g = D.grow, L = S.lv, m = D.pet, kb = 1 + bd.bonus;
+  let h = '<div class="pethero"><div class="pglow"></div><img alt="" src="' + IMG(dex.sprite) + '"><div class="pinfo"><h5>' + dex.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
+    '<p>' + stars(q.stars, q.color) + '　' + dex.kind + '</p><p>等级 <b class="gold">' + L + '</b>（随主人成长）　战力 <b class="gold">' + fmt(petPower(p)) + '</b></p>' +
+    '<p class="small">亲密度 · <b style="color:#ffd9a0">' + bd.name + '</b>　' + bd.n + (bd.to ? ' / ' + bd.to : '') + '</p><div class="rbar exp bond"><i style="width:' + (bd.to ? Math.min(100, (bd.n - bd.from) / (bd.to - bd.from) * 100) : 100) + '%"></i></div></div></div>' +
+    '<div class="rtabs">' + [['attr', '属性'], ['skill', '技能'], ['dex', '图鉴']].map(t => '<button type="button" class="rtab' + (petTab === t[0] ? ' on' : '') + '" data-act="petTab:' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
+  if (petTab === 'attr') {
+    const row = (name, total, base, grow, note) => '<div class="arow"><span>' + name + '</span><b>' + total + '</b><small>' + note + '</small></div>';
+    h += '<div class="alist">' +
+      row('气血', p.maxHp, 0, 0, '(基础 ' + Math.round(b.hp * m.hp) + ' + 成长 ' + Math.round(g.hp * L * m.hp) + ')' + (bd.i ? ' <em>× 亲密 ' + (kb).toFixed(2) + '</em>' : '')) +
+      row('攻击', p.atk, 0, 0, '(基础 ' + Math.round(b.atk * m.atk) + ' + 成长 ' + Math.round(g.atk * L * m.atk) + ')' + (bd.i ? ' <em>× 亲密 ' + (kb).toFixed(2) + '</em>' : '')) +
+      row('防御', p.def, 0, 0, '(基础 ' + Math.round(b.def * m.def) + ' + 成长 ' + Math.round(g.def * L * m.def) + ')') +
+      row('速度', p.spd, 0, 0, '(基础 ' + Math.round(b.spd * m.spd) + ' + 成长 ' + Math.round(g.spd * L * m.spd) + ')') +
+      '</div><div class="bondrow">' + D.bondTiers.map((t, i) => '<div class="' + (i <= bd.i ? 'on' : '') + '"><b>' + t.name + '</b><small>' + (i ? '≥ ' + t.at + ' 战 · +' + i * 3 + '%' : '初始') + '</small></div>').join('') + '</div>' +
+      '<p class="hint">灵狐的属性取主人裸属性的一部分，随等级成长；每打赢一场战斗亲密度 +1，亲密度升档后气血和攻击提高。</p>';
+  } else if (petTab === 'skill') {
+    const sk = id => { const x = D.skills[id]; return x; };
+    h += '<div class="pskills">' +
+      '<div class="pskill"><div class="pico">咬</div><div><h6>撕咬<small>普通招式</small></h6><p>扑上去撕咬一名敌人，造成 ' + Math.round(p.atk * 1.0) + ' 点基础伤害。出手时有 65% 的几率使用。</p></div></div>' +
+      '<div class="pskill"><div class="pico fire">火</div><div><h6>狐火<small>主动 · 35% 触发</small></h6><p>喷出一团幽蓝狐火，对一名敌人造成 ' + Math.round(p.atk * 1.6) + ' 点伤害（约 1.6 倍攻击），并优先攻击气血最低的敌人。</p></div></div>' +
+      '<div class="pskill"><div class="pico bond">灵</div><div><h6>灵犀<small>被动</small></h6><p>与主人越亲近越强：当前「' + bd.name + '」档，气血、攻击 ' + (bd.i ? '+' + bd.i * 3 + '%' : '尚无加成') + '。' + (bd.to ? '再打赢 ' + (bd.to - bd.n) + ' 场升到「' + D.bondTiers[bd.i + 1].name + '」。' : '已满级。') + '</p></div></div>' +
+      '</div><p class="hint">宠物在战斗中自动出手，不需要手动指挥。</p>';
+  } else {
+    const ids = Object.keys(D.petDex), own = id => !!D.petDex[id].own, sel = D.petDex[petSel] || D.petDex.fox, sq = D.petQuality[sel.q];
+    h += '<div class="petgrid">' + ids.map(id => { const x = D.petDex[id], c = D.petQuality[x.q].color;
+      return '<button type="button" class="pcard' + (id === petSel ? ' sel' : '') + (own(id) ? '' : ' lock') + '" style="--qc:' + c + '" data-act="petSel:' + id + '"><img alt="" src="' + IMG(x.sprite) + '"><span>' + (own(id) ? x.name : '？？？') + '</span></button>'; }).join('') + '</div>' +
+      '<div class="pdetail"><div class="pdhead"><h6>' + (sel.own ? sel.name : sel.name) + ' <span class="qual" style="color:' + sq.color + ';border-color:' + sq.color + '">' + sq.name + '</span></h6>' + stars(sq.stars, sq.color) + '</div>' +
+      '<p>' + sel.kind + '</p><p>' + sel.desc + '</p><p class="how">' + (sel.own ? '<b>已拥有</b>　出生自带，一直跟随主人。' : '获得途径：' + sel.how + '（暂未开放）') + '</p></div>' +
+      '<p class="hint">已收集 ' + ids.filter(own).length + ' / ' + ids.length + '</p>';
+  }
+  openModal('宠物', h);
 }
 let shopId = null;
 function openShop(id) {
@@ -225,6 +260,8 @@ const ACTS = {
   wx(k) { wxLock = k; wxUpdate(true); openWeather(); },
   wxAuto() { wxLock = null; wxUpdate(true); openWeather(); },
   roleTab(t) { roleTab = t; openRole(); },
+  petTab(t) { petTab = t; openPet(); },
+  petSel(id) { petSel = id; petTab = 'dex'; openPet(); },
   unequip(slot) { if (!S.equip[slot]) return; const id = S.equip[slot]; S.equip[slot] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('卸下了' + D.items[id].name); openRole(); },
   openBag() { openBag(); },
   switchRole() { closeModal(); stop(); save(); window.FRONT.showRoles(); },
