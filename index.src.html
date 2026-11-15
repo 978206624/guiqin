@@ -74,7 +74,11 @@ body{background:var(--ink);color:var(--text);font-family:var(--body);display:fle
 .tbtn.red{background:linear-gradient(#a8362e,#5a1418)}
 
 /* 头像栏 */
-#hud{left:10px;top:18px;width:330px;height:104px;z-index:3}
+#hud{left:10px;top:18px;width:420px;height:104px;z-index:3}
+#hud .face{cursor:pointer}
+#hudPet{position:absolute;left:326px;top:30px;width:62px;height:62px;padding:0;border-radius:50%;border:0;background:linear-gradient(var(--gold-hi),var(--gold) 45%,var(--gold-lo));box-shadow:0 3px 8px rgba(0,0,0,.6);cursor:pointer}
+#hudPet img{position:absolute;left:4px;top:4px;width:54px;height:54px;border-radius:50%;object-fit:cover;object-position:50% 30%;background:#2d4a6a}
+#hudPet i{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:#2f5d9a;border:2px solid var(--gold);font-style:normal;font-size:12px;line-height:18px;color:#fff;text-align:center}
 #hud .plate{position:absolute;left:46px;top:6px;width:280px;height:92px;background:linear-gradient(var(--panel),rgba(12,8,22,.74));border:1px solid rgba(226,176,74,.5);clip-path:polygon(0 0,93% 0,100% 24%,93% 100%,0 100%)}
 #hud .face{position:absolute;left:0;top:2px;width:96px;height:96px;border-radius:50%;background:linear-gradient(var(--gold-hi),var(--gold) 45%,var(--gold-lo));box-shadow:0 3px 8px rgba(0,0,0,.6)}
 #hud .face img{position:absolute;left:6px;top:6px;width:84px;height:84px;border-radius:50%;object-fit:cover;background:#3a4f7a}
@@ -112,10 +116,9 @@ body{background:var(--ink);color:var(--text);font-family:var(--body);display:fle
 .q.cur p{color:var(--jade);text-decoration:underline}
 
 /* 聊天 / 底栏 */
-#chat{left:10px;top:1034px;width:446px;height:122px;font-size:15px;line-height:24px;padding:8px 12px;box-sizing:border-box;overflow:hidden}
+#chat{left:10px;top:1146px;width:446px;height:122px;font-size:15px;line-height:24px;padding:8px 12px;box-sizing:border-box;overflow:hidden}
 #chat div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #chat .in{margin-top:5px;height:26px;border-radius:13px;background:rgba(255,255,255,.12);color:var(--muted);font-size:13px;line-height:26px;padding:0 16px}
-#dock{left:0;top:1166px;width:720px;height:114px;background:rgba(18,12,32,.9);border-top:3px solid var(--gold)}
 #exp{left:0;top:1272px;width:720px;height:8px;background:#0a0612;z-index:3}
 #exp i{display:block;height:5px;margin-top:1.5px;border-radius:3px;background:linear-gradient(90deg,#8fe06a,#f6e66a);transition:width .6s}
 
@@ -415,6 +418,7 @@ svg.em{width:1.25em;height:1.25em;vertical-align:-.28em;margin:0 1px}
     <div class="bar" id="hp"><i></i><b></b></div>
     <div class="bar" id="mp"><i></i><b></b></div>
     <div class="pow">战力<b id="hudPow"></b></div>
+    <button type="button" id="hudPet" aria-label="宠物"><img id="hudPetImg" alt=""><i>宠</i></button>
   </div>
 
   <div class="townui">
@@ -443,8 +447,6 @@ svg.em{width:1.25em;height:1.25em;vertical-align:-.28em;margin:0 1px}
       <div id="chatMenu" hidden></div>
     </div>
     <div id="btns"></div>
-    <div class="ui" id="dock"></div>
-    <div id="dockBtns"></div>
   </div>
 
   <div class="fightui">

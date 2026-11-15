@@ -26,7 +26,7 @@ function layout() {
 }
 addEventListener('resize', layout); layout();
 $('bgBattle').src = IMG('bg_battle');
-$('hudFace').src = IMG('head_player');
+$('hudFace').src = IMG('head_player'); $('hudPetImg').src = IMG('b_fox');
 
 // ============================================================ 存档与属性
 let SAVE_KEY = 'guiqin-save:guest';      // 每个角色一份存档，进游戏时换成 guiqin-save:<角色 id>
@@ -158,7 +158,7 @@ function openRole() {
   let h = '<div class="who"><img alt="" src="' + IMG('cls_' + ROLE.cls) + '"><div><h5>' + ROLE.name + '</h5><p>' + cls.name + ' · ' + cls.role + ' · ' + (cls.gender === 'm' ? '男' : '女') + '</p>' +
     '<p>等级 <b class="gold">' + S.lv + '</b>　战力 <b class="gold">' + fmt(powerOf(st)) + '</b></p>' +
     '<p class="small">经验 ' + S.exp + ' / ' + need + '</p><div class="rbar exp"><i style="width:' + Math.min(100, S.exp / need * 100) + '%"></i></div></div></div>' +
-    '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') + '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') + '" data-act="roleTab:equip">装备</button></div>';
+    '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') + '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') + '" data-act="roleTab:equip">装备</button><button type="button" class="rtab' + (roleTab === 'skill' ? ' on' : '') + '" data-act="roleTab:skill">技能</button></div>';
   if (roleTab === 'attr') {
     // 每项属性拆成 基础 + 等级成长 + 装备，装备加成用绿色标出来
     const gear = { maxHp: 0, atk: 0, def: 0, spd: 0 };
@@ -173,6 +173,8 @@ function openRole() {
       '<div class="arow"><span>暴击</span><b>10%</b><small>暴击时伤害 ×1.5</small></div>' +
       '<div class="arow"><span>银两</span><b>' + fmt(S.coin) + '</b><small></small></div></div>' +
       '<p class="hint">升级时五项属性按固定成长自动提升；装备和饰品提供额外加成。</p>';
+  } else if (roleTab === 'skill') {
+    h += skillsHTML();
   } else {
     h += '<div class="elist">';
     for (const slot in slotName) {
@@ -185,13 +187,13 @@ function openRole() {
   h += '<p class="center" style="margin:16px 0 0"><button type="button" class="tbtn" data-act="switchRole">切换角色</button>　<button type="button" class="tbtn red" data-act="reset">重新开始</button></p>';
   openModal('角色', h);
 }
-function openSkills() {
+function skillsHTML() {
   let h = '';
   D.playerSkills.forEach(id => {
-    const s = D.skills[id], ok = S.lv >= (s.lv || 1);
-    h += '<div class="row" style="' + (ok ? '' : 'opacity:.5') + '"><div><h5>' + s.name + '</h5><p>' + s.desc + '</p></div><span>' + (ok ? '法力 ' + s.mp : s.lv + ' 级解锁') + '</span></div>';
+    const x = D.skills[id], ok = S.lv >= (x.lv || 1);
+    h += '<div class="row" style="' + (ok ? '' : 'opacity:.5') + '"><div><h5>' + x.name + '</h5><p>' + x.desc + '</p></div><span>' + (ok ? '法力 ' + x.mp : x.lv + ' 级解锁') + '</span></div>';
   });
-  openModal('技能', h + '<p style="color:var(--muted);margin:14px 0 0">技能在战斗中使用。</p>');
+  return h + '<p class="hint" style="margin-top:14px">技能在战斗中使用。</p>';
 }
 let petTab = 'attr', petSel = 'fox';
 function petPower(p) { return Math.round(p.maxHp / 10 + p.atk * 2 + p.def * 1.5 + p.spd); }
@@ -474,16 +476,16 @@ function addBtn(parent, icon, label, x, y, size, key, dot) {
   b.addEventListener('click', e => { e.stopPropagation(); onBtn(key, label, b); });
   parent.appendChild(b); return b;
 }
-[['act', '活动', 0], ['gift', '福利', 1], ['mall', '商城', 0], ['rank', '竞技', 0]].forEach((r, i) => addBtn($('btns'), r[0], r[1], 676, 246 + i * 76, 54, r[0], r[2]));
-const autoBtn = addBtn($('btns'), 'auto', '', 652, 1090, 86, 'auto');
-addBtn($('btns'), 'ride', '', 562, 1118, 56, 'ride'); addBtn($('btns'), 'potion', '', 594, 1048, 56, 'potion');
-[['role', '角色'], ['bag', '背包'], ['skill', '技能'], ['pet', '宠物'], ['guild', '帮派'], ['friend', '好友']].forEach((r, i) => addBtn($('dockBtns'), r[0], r[1], 62 + i * 119, 1206, 66, r[0]));
+[['act', '活动', 0], ['gift', '福利', 1], ['mall', '商城', 0], ['rank', '竞技', 0], ['bag', '背包', 0], ['guild', '帮派', 0], ['friend', '好友', 0]].forEach((r, i) => addBtn($('btns'), r[0], r[1], 676, 246 + i * 76, 54, r[0], r[2]));
+const autoBtn = addBtn($('btns'), 'auto', '', 652, 1186, 86, 'auto');
+addBtn($('btns'), 'ride', '', 562, 1214, 56, 'ride'); addBtn($('btns'), 'potion', '', 594, 1144, 56, 'potion');
+// 点头像开角色面板，点宠物头像开宠物面板
+$('hudFace').parentNode.addEventListener('click', e => { e.stopPropagation(); if (!B.active) openRole(); });
+$('hudPet').addEventListener('click', e => { e.stopPropagation(); if (!B.active) openPet(); });
 
 let wander = false, wanderWait = 0;
 function onBtn(key, label, b) {
-  if (key === 'role') openRole();
-  else if (key === 'bag') openBag();
-  else if (key === 'skill') openSkills();
+  if (key === 'bag') openBag();
   else if (key === 'pet') openPet();
   else if (key === 'mall') openShop('vendor');
   else if (key === 'guild') window.CHAT.open('guild');
@@ -498,7 +500,7 @@ function onBtn(key, label, b) {
   else if (key === 'act') toast('中秋灯会将在戌时三刻开始');
   else toast('「' + (label || '坐骑') + '」暂未开放');
 }
-['hud', 'coin', 'chat', 'dock'].forEach(id => $(id).addEventListener('click', e => e.stopPropagation()));
+['hud', 'coin', 'chat'].forEach(id => $(id).addEventListener('click', e => e.stopPropagation()));
 
 // ---------- 世界地图：点小地图打开，去过的地方可以直接传送 ----------
 function openWorld() {
