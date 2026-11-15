@@ -204,6 +204,14 @@ button.row[disabled]{opacity:.45;cursor:default}
 #smapList button{font:inherit;font-size:17px;padding:7px 12px;border-radius:999px;border:1px solid rgba(226,176,74,.5);background:rgba(255,255,255,.06);color:#fff3c4;cursor:pointer}
 #smapList button.q{border-color:#ff8a7a;color:#ffd0c8}#smapList small{opacity:.7;margin-right:4px}
 #smapBtns{position:absolute;left:0;right:0;bottom:44px;display:flex;gap:18px;justify-content:center}#smapBtns .tbtn{padding:10px 34px}
+#wx{position:absolute;left:0;top:0;width:720px;height:1280px;pointer-events:none}
+#wxBtn{left:520px;top:148px;width:40px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#fbf0cc,#dcc48a);border:1.5px solid var(--gold-lo);border-radius:4px;box-shadow:0 3px 8px rgba(0,0,0,.5);cursor:pointer}
+#wxBtn svg{width:26px;height:26px}
+.wxnow{display:flex;gap:18px;align-items:center;margin-bottom:14px}.wxnow svg{width:88px;height:88px;flex:none}
+.wxnow h5{margin:0;font-family:var(--display);font-weight:400;font-size:36px;color:#fff3c4}.wxnow p{margin:4px 0 0;color:var(--muted)}.wxnow small{color:var(--muted);font-size:15px}
+.wxgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.wxgrid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;font:inherit;font-size:18px;color:#fff3c4;border:1px solid rgba(226,176,74,.35);border-radius:10px;background:rgba(255,255,255,.05);cursor:pointer}
+.wxgrid button.on{border-color:var(--gold);background:linear-gradient(#3b2a5c,#1d1433)}.wxgrid svg{width:40px;height:40px}
 #wmap{inset:0;z-index:6;background:var(--ink)}
 #wmap .bgimg{object-fit:cover}
 #wmap h2{position:absolute;left:0;right:0;top:34px;margin:0;text-align:center;font-family:var(--display);font-weight:400;font-size:52px;color:#4a2a10;text-shadow:0 0 8px #fbf0cc,0 0 8px #fbf0cc,0 0 2px #fbf0cc}
@@ -350,6 +358,7 @@ button.row[disabled]{opacity:.45;cursor:default}
     <img class="bgimg" id="bgBattle" alt="城外竹林中的一片空地">
     <div class="layer" id="units"></div>
   </div>
+  <canvas id="wx" width="720" height="1280"></canvas>
   <div class="shade"></div>
 
   <div class="ui" id="hud">
@@ -364,6 +373,7 @@ button.row[disabled]{opacity:.45;cursor:default}
   <div class="townui">
     <div class="ui" id="mini"><div class="map" id="miniMap"><div id="miniDots"></div><div class="me" id="me"></div></div><div class="n">北</div></div>
     <div class="ui" id="place"></div>
+    <button type="button" class="ui" id="wxBtn" aria-label="天气"></button>
     <div class="ui" id="coin"></div>
     <div class="ui panel" id="quest" role="button" tabindex="0" aria-label="任务追踪，点击自动寻路">
       <h3><span class="on">任务</span><span>队伍</span></h3>

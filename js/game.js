@@ -223,6 +223,8 @@ const ACTS = {
   reset() { openModal('重新开始', '<p class="center">会清掉等级、背包和任务进度，从头再来。</p><p class="center"><button type="button" class="tbtn red" data-act="resetYes">确定清档</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>'); },
   resetYes() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} S = newGame(); bagSel = null; loadMap(S.map); closeModal(); refresh(); toast('已重新开始'); },
   arena() { $('modal').hidden = true; modalOnClose = null; if (B.active) { B.active = false; $('units').innerHTML = ''; } startArena(); },
+  wx(k) { wxLock = k; wxUpdate(true); openWeather(); },
+  wxAuto() { wxLock = null; wxUpdate(true); openWeather(); },
   roleTab(t) { roleTab = t; openRole(); },
   unequip(slot) { if (!S.equip[slot]) return; const id = S.equip[slot]; S.equip[slot] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('卸下了' + D.items[id].name); openRole(); },
   openBag() { openBag(); },
@@ -337,7 +339,7 @@ function loadMap(id, at) {
     const a = makeActor('foe', 'foe_' + st.id, D.enemies[lead].sprite, st.name, I(f.at[0], f.at[1]), { color: '#ff9a8a', title: '建议 ' + st.rec + ' 级', titleColor: '#ffd56a', face: f.face || 1 });
     a.stage = st; M.list.push(a);
   });
-  buildGrid(); drawMiniDots();
+  buildGrid(); drawMiniDots(); wxSnap();
   const p = at && inside(at) ? at : I(def.start[0], def.start[1]);
   player.pos = { x: p.x, y: p.y }; player.face = 1;
   const fp = { x: p.x + 46, y: p.y + 18 }; fox.pos = inside(fp) ? fp : { x: p.x, y: p.y };
@@ -701,6 +703,111 @@ const petals = []; if (!reduce) for (let i = 0; i < 16; i++) { const d = documen
 
 // ---------- 主循环 ----------
 const ring = $('ring'), me = $('me'); let last = performance.now();
+
+// ---------- 天气 ----------
+// 每张地图有自己的天气（kind + 到期时间），到点按权重随机换一个。画面全在一张 720×1280 的 canvas 上：
+// 各种效果各有一个 0~1 的“强度”，朝目标值缓缓靠拢，所以换天气是渐变的。演示面板可以把天气固定住。
+const WXD = D.weather, wxCv = $('wx'), wxCtx = wxCv.getContext('2d');
+const CLOUD = 'M7 18a4 4 0 0 1 .5-7.97A5.5 5.5 0 0 1 18 11a3.5 3.5 0 0 1-.5 7z';
+const wxSvg = (inner) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + inner + '</svg>';
+const WXICON = {
+  clear:  wxSvg('<circle cx="12" cy="12" r="5" fill="#f7b928" stroke="#b9750d"/><g stroke="#e59a12" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></g>'),
+  cloudy: wxSvg('<path d="' + CLOUD + '" fill="#dfe5f0" stroke="#7d8aa3" stroke-width="1.2" stroke-linejoin="round"/>'),
+  fog:    wxSvg('<path d="M7 14a4 4 0 0 1 .5-6.97A5.5 5.5 0 0 1 18 8a3.5 3.5 0 0 1-.5 6z" fill="#e6eaf1" stroke="#8d98ad" stroke-width="1.2"/><g stroke="#8d98ad" stroke-width="1.8" stroke-linecap="round"><path d="M4 17.5h16M6 21h12"/></g>'),
+  rain:   wxSvg('<path d="M7 15a4 4 0 0 1 .5-6.97A5.5 5.5 0 0 1 18 9a3.5 3.5 0 0 1-.5 6z" fill="#c4cfe2" stroke="#6d7b97" stroke-width="1.2"/><g stroke="#3f8fe0" stroke-width="1.8" stroke-linecap="round"><path d="M8 17.5l-1 3M12.5 17.5l-1 3M17 17.5l-1 3"/></g>'),
+  storm:  wxSvg('<path d="M7 15a4 4 0 0 1 .5-6.97A5.5 5.5 0 0 1 18 9a3.5 3.5 0 0 1-.5 6z" fill="#8f9ab3" stroke="#4d5a78" stroke-width="1.2"/><path d="M12.8 13l-3 4.6h2.6l-1.4 4.4 4.4-5.6h-2.7l1.3-3.4z" fill="#ffd23f" stroke="#c7900a" stroke-width=".8" stroke-linejoin="round"/>'),
+  snow:   wxSvg('<path d="M7 15a4 4 0 0 1 .5-6.97A5.5 5.5 0 0 1 18 9a3.5 3.5 0 0 1-.5 6z" fill="#e8eef9" stroke="#8d9bb8" stroke-width="1.2"/><g fill="#7fb4ee"><circle cx="8" cy="18.5" r="1.4"/><circle cx="12.5" cy="20.5" r="1.4"/><circle cx="17" cy="18.5" r="1.4"/></g>')
+};
+const WXKINDS = ['clear', 'cloudy', 'fog', 'rain', 'storm', 'snow'];
+const WXTARGET = {            // 各效果强度的目标值
+  clear:  { rain: 0, storm: 0, snow: 0, fog: 0,   cloud: 0,  dark: 0 },
+  cloudy: { rain: 0, storm: 0, snow: 0, fog: 0,   cloud: .9, dark: .35 },
+  fog:    { rain: 0, storm: 0, snow: 0, fog: 1,   cloud: .3, dark: .12 },
+  rain:   { rain: .7, storm: 0, snow: 0, fog: .25, cloud: 1, dark: .55 },
+  storm:  { rain: 1, storm: 1, snow: 0, fog: .2,  cloud: 1, dark: 1 },
+  snow:   { rain: 0, storm: 0, snow: 1, fog: .3,  cloud: .6, dark: .2 }
+};
+const wxLv = { rain: 0, storm: 0, snow: 0, fog: 0, cloud: 0, dark: 0 };
+const wxSt = {}; let wxLock = null, wxShown = null, wxFlash = 0, wxFlashAt = 4, wxT = 0;
+const rainP = Array.from({ length: 420 }, () => ({ x: Math.random() * 820, y: Math.random() * 1280, v: .8 + Math.random() * .5, l: 20 + Math.random() * 28 }));
+const snowP = Array.from({ length: 130 }, () => ({ x: Math.random() * 720, y: Math.random() * 1280, v: 30 + Math.random() * 50, r: 1.4 + Math.random() * 2.6, ph: Math.random() * 10 }));
+const fogP = Array.from({ length: 7 }, (_, i) => ({ x: i * 130, y: 160 + (i % 4) * 280 + Math.random() * 120, r: 260 + Math.random() * 160, v: 10 + Math.random() * 14, ph: Math.random() * 10 }));
+function wxPick(mapId, not) {
+  const w = Object.assign({}, WXD.byMap[mapId] || { clear: 1 }); if (not && Object.keys(w).length > 1) delete w[not];
+  let sum = 0; for (const k in w) sum += w[k]; let r = Math.random() * sum;
+  for (const k in w) { r -= w[k]; if (r <= 0) return k; } return 'clear';
+}
+const wxRoll = (mapId, not) => ({ kind: wxPick(mapId, not), until: Date.now() + (WXD.span[0] + Math.random() * (WXD.span[1] - WXD.span[0])) * 1000 });
+const wxKind = () => wxLock || (wxSt[M.id] && wxSt[M.id].kind) || 'clear';
+function wxUpdate(announce) {          // 到期就换；换了就刷新图标并提示
+  if (!M) return;
+  if (!wxSt[M.id]) wxSt[M.id] = wxRoll(M.id);
+  else if (!wxLock && Date.now() > wxSt[M.id].until) wxSt[M.id] = wxRoll(M.id, wxSt[M.id].kind);
+  const k = wxKind();
+  if (k !== wxShown) {
+    const first = wxShown === null; wxShown = k;
+    $('wxBtn').innerHTML = WXICON[k]; $('wxBtn').title = WXD[k].name;
+    if (announce && !first) toast('天气转为 ' + WXD[k].name);
+  }
+}
+function wxSnap() { wxShown = null; wxUpdate(false); Object.assign(wxLv, WXTARGET[wxKind()]); }   // 进新地图：不渐变，直接是那里的天气
+function wxDraw(dt) {
+  wxT += dt; const g = wxCtx, tg = WXTARGET[wxKind()], e = 1 - Math.exp(-1.1 * dt);
+  for (const k in wxLv) wxLv[k] += (tg[k] - wxLv[k]) * e;
+  g.clearRect(0, 0, 720, 1280);
+  const wet = Math.min(1, wxLv.rain + wxLv.snow * .8 + wxLv.fog * .5);
+  $('petals').style.opacity = (1 - wet).toFixed(2);
+  if (wxLv.dark > .01) { g.fillStyle = 'rgba(24,34,60,' + (wxLv.dark * .5).toFixed(3) + ')'; g.fillRect(0, 0, 720, 1280); }
+  if (reduce) return;
+  if (wxLv.cloud > .02) {              // 云影：几块缓缓飘过的暗斑
+    for (let i = 0; i < 4; i++) {
+      const x = ((wxT * (14 + i * 5) + i * 260) % 1100) - 190, y = 180 + i * 290, r = 230 + i * 30, gr = g.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, 'rgba(20,28,45,' + (wxLv.cloud * .2).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(20,28,45,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+  }
+  if (wxLv.fog > .02) {
+    for (const f of fogP) {
+      const x = ((f.x + wxT * f.v) % 1000) - 140, y = f.y + Math.sin(wxT * .25 + f.ph) * 30, gr = g.createRadialGradient(x, y, 0, x, y, f.r);
+      gr.addColorStop(0, 'rgba(232,238,244,' + (wxLv.fog * .34).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(232,238,244,0)'); g.fillStyle = gr; g.fillRect(x - f.r, y - f.r, f.r * 2, f.r * 2);
+    }
+    g.fillStyle = 'rgba(226,232,238,' + (wxLv.fog * .1).toFixed(3) + ')'; g.fillRect(0, 0, 720, 1280);
+  }
+  if (wxLv.rain > .02) {               // 雨丝：雷雨更密更斜
+    const n = Math.floor(rainP.length * Math.min(1, wxLv.rain)), slant = .16 + wxLv.storm * .16;
+    g.lineWidth = 1.7; g.strokeStyle = 'rgba(214,228,250,' + (.36 + wxLv.rain * .24).toFixed(2) + ')'; g.beginPath();
+    for (let i = 0; i < n; i++) {
+      const p = rainP[i]; p.y += 1050 * p.v * dt * (1 + wxLv.storm * .3); p.x -= 1050 * p.v * dt * slant * (1 + wxLv.storm * .3);
+      if (p.y > 1300 || p.x < -40) { p.y = -40; p.x = Math.random() * 820; }
+      g.moveTo(p.x, p.y); g.lineTo(p.x + p.l * slant, p.y - p.l);
+    }
+    g.stroke();
+  }
+  if (wxLv.snow > .02) {
+    const n = Math.floor(snowP.length * wxLv.snow); g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath();
+    for (let i = 0; i < n; i++) {
+      const p = snowP[i]; p.y += p.v * dt; p.x += Math.sin(wxT * 1.1 + p.ph) * 22 * dt - 8 * dt;
+      if (p.y > 1300) { p.y = -10; p.x = Math.random() * 720; } if (p.x < -10) p.x = 730;
+      g.moveTo(p.x + p.r, p.y); g.arc(p.x, p.y, p.r, 0, 6.2832);
+    }
+    g.fill();
+  }
+  if (wxLv.storm > .5) {               // 闪电：隔几秒闪一两下
+    wxFlashAt -= dt; if (wxFlashAt <= 0) { wxFlash = 1; wxFlashAt = 4 + Math.random() * 7; if (Math.random() < .5) setTimeout(() => { wxFlash = .8; }, 170); }
+  }
+  if (wxFlash > .01) { g.fillStyle = 'rgba(236,242,255,' + (wxFlash * .62).toFixed(3) + ')'; g.fillRect(0, 0, 720, 1280); wxFlash *= Math.exp(-7 * dt); }
+}
+function openWeather() {
+  if (B.active) return;
+  const k = wxKind(), d = WXD[k], st = wxSt[M.id];
+  let eta = '天气会一直保持';
+  if (!wxLock && st) { const m = Math.max(1, Math.round((st.until - Date.now()) / 60000)); eta = '约 ' + m + ' 分钟后转天气'; }
+  openModal('天气', '<div class="wxnow">' + WXICON[k].replace('<svg ', '<svg class="big" ') + '<div><h5>' + M.def.name + ' · ' + d.name + '</h5><p>' + d.desc + '</p><small>' + eta + '</small></div></div>' +
+    '<p style="margin:10px 0 4px;color:var(--muted)">演示：直接切换这张地图的天气</p><div class="wxgrid">' +
+    WXKINDS.map(x => '<button type="button" class="' + (x === k && wxLock ? 'on' : '') + '" data-act="wx:' + x + '">' + WXICON[x] + WXD[x].name + '</button>').join('') + '</div>' +
+    '<p class="center" style="margin:14px 0 0"><button type="button" class="tbtn' + (wxLock ? '' : ' on') + '" data-act="wxAuto">' + (wxLock ? '恢复自动天气' : '自动天气中') + '</button></p>');
+}
+$('wxBtn').addEventListener('click', e => { e.stopPropagation(); openWeather(); });
+
 function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000), t = now / 1000; last = now;
   if (!B.active && M) {
@@ -721,6 +828,7 @@ function frame(now) {
     if (M.def.petals) for (const p of petals) { p.x += (p.vx + Math.sin(t * 1.3 + p.ph) * 30) * dt; p.y += p.vy * dt; if (p.y > 1040 || p.x < -20) { p.x = 100 + Math.random() * 740; p.y = -20 + Math.random() * 200; }
       p.el.style.transform = 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px) rotate(' + (Math.sin(t * 2 + p.ph) * 60).toFixed(0) + 'deg)'; }
   }
+  wxUpdate(true); wxDraw(dt);
   requestAnimationFrame(frame);
 }
 

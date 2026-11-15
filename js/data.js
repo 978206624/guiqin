@@ -90,6 +90,21 @@ window.DATA = {
       say: '山贼散了？太好了，今晚的灯会终于可以安心办了。少侠，江湖路远，后会有期。', reward: { exp: 400, coin: 500, items: { ore: 2 } } }
   ],
 
+  // 天气：各地图按权重随机，每隔 span 秒转一次。演示用，不影响战斗数值。
+  weather: {
+    clear:  { name: '晴',   desc: '天朗气清，适合赶路。' },
+    cloudy: { name: '多云', desc: '云层压得很低，光线有些暗。' },
+    fog:    { name: '薄雾', desc: '雾气弥漫，远处的屋檐若隐若现。' },
+    rain:   { name: '小雨', desc: '细雨绵绵，石板路上泛着水光。' },
+    storm:  { name: '雷雨', desc: '电闪雷鸣，雨下得又急又大。' },
+    snow:   { name: '飘雪', desc: '雪花悠悠落下，四下一片安静。' },
+    span: [90, 200],
+    byMap: {
+      village: { clear: 4, cloudy: 3, fog: 3, rain: 2, snow: 1 },
+      town:    { clear: 5, cloudy: 2, rain: 2, storm: 1 },
+      wild:    { clear: 3, cloudy: 2, fog: 3, rain: 3, storm: 1 }
+    }
+  },
   npcs: {
     elder:  { name: '村长',   title: '【恒山村】', idle: '山下不比村里，凡事多留个心眼。累了就回来歇歇。' },
     axiu:   { name: '阿秀',   color: '#a8e6ff', idle: '我刚采了草药，熬了一锅汤，少侠喝一碗再走吧。', rest: true, restMsg: '喝了一碗草药汤，气血法力回满' },
