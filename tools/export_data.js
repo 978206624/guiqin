@@ -4,9 +4,10 @@
 const fs=require('fs'),path=require('path'),vm=require('vm');
 const R=path.join(__dirname,'..');
 const sb={window:{}};sb.window.window=sb.window;vm.createContext(sb);
-for(const f of ['js/data.js','js/masks.js']) vm.runInContext(fs.readFileSync(path.join(R,f),'utf8'),sb);
+for(const f of ['js/data.js','js/story.js','js/masks.js']) vm.runInContext(fs.readFileSync(path.join(R,f),'utf8'),sb);
 fs.mkdirSync(R+'/data/collision',{recursive:true});
 fs.writeFileSync(R+'/data/data.json',JSON.stringify(sb.window.DATA,null,1));
+fs.writeFileSync(R+'/data/story.json',JSON.stringify(sb.window.STORY,null,1));
 const M=sb.window.MASKS;
 for(const k in M) fs.writeFileSync(`${R}/data/collision/${k}.json`,JSON.stringify(M[k]));
 // 资源清单

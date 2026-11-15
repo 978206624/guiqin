@@ -134,7 +134,19 @@ window.DATA = {
     boar:  { name: '野猪',     sprite: 'boar',  pet: true, h: 78,  hp: 360,  atk: 82,  def: 14, spd: 82,  exp: 180, coin: 15,  drops: [['hp_potion', 0.4]] },
     grunt: { name: '山贼喽啰', sprite: 'grunt', h: 108, hp: 780,  atk: 155, def: 32, spd: 70,  exp: 120, coin: 45,  drops: [['hp_potion', 0.35], ['ore', 0.15]] },
     wolf:  { name: '野狼',     sprite: 'wolf',  pet: true, h: 72,  hp: 580,  atk: 180, def: 15, spd: 118, exp: 110, coin: 20,  drops: [['wolf_fang', 0.6]] },
-    boss:  { name: '山贼头目', sprite: 'boss',  h: 150, hp: 4000, atk: 255, def: 70, spd: 85,  exp: 900, coin: 600, drops: [['ore', 1], ['mp_potion', 1]], boss: true }
+    boss:  { name: '山贼头目', sprite: 'boss',  h: 150, hp: 4000, atk: 255, def: 70, spd: 85,  exp: 900, coin: 600, drops: [['ore', 1], ['mp_potion', 1]], boss: true },
+    // ---- 主线剧情专用 ----
+    zhw:     { name: '展护卫',   sprite: 'kk_npc_zhw', h: 118, hp: 520,  atk: 62,  def: 14, spd: 78,  exp: 60,  coin: 0,  drops: [], boss: true },
+    xinmo:   { name: '心魔',     sprite: 'f_panther',  h: 92,  hp: 760,  atk: 78,  def: 18, spd: 90,  exp: 90,  coin: 0,  drops: [['hp_potion', 1]], boss: true },
+    mystery: { name: '神秘强者', sprite: 'f_tao',      h: 132, hp: 1200, atk: 118, def: 28, spd: 86,  exp: 120, coin: 30, drops: [['hp_potion', 1]], boss: true },
+    worm:    { name: '食尸虫',   sprite: 'f_tortoise', h: 62,  hp: 380,  atk: 84,  def: 16, spd: 70,  exp: 25,  coin: 10, drops: [['hp_potion', 0.2]], pet: true },
+    xieyue:  { name: '邪月',     sprite: 'boss',       h: 150, hp: 1900, atk: 150, def: 38, spd: 84,  exp: 160, coin: 50, drops: [['hp_potion', 1], ['mp_potion', 1]], boss: true },
+    tiger:   { name: '利爪幼虎', sprite: 'f_panther',  h: 70,  hp: 520,  atk: 126, def: 22, spd: 108, exp: 30,  coin: 12, drops: [['wolf_fang', 0.3]], pet: true },
+    hanxin:  { name: '韩信',     sprite: 'f_spear',    h: 136, hp: 2300, atk: 176, def: 46, spd: 98,  exp: 180, coin: 60, drops: [['hp_potion', 1]], boss: true },
+    snake:   { name: '双头毒蛇', sprite: 'f_dragon',   h: 80,  hp: 640,  atk: 150, def: 26, spd: 100, exp: 35,  coin: 14, drops: [['hp_potion', 0.25]], pet: true },
+    shadow:  { name: '暗影魔将', sprite: 'grunt',      h: 128, hp: 3100, atk: 204, def: 54, spd: 96,  exp: 200, coin: 70, drops: [['ore', 1]], boss: true },
+    mengyuan:{ name: '梦渊尸魔', sprite: 'boss',       h: 156, hp: 3600, atk: 226, def: 60, spd: 88,  exp: 220, coin: 80, drops: [['ore', 1], ['mp_potion', 1]], boss: true },
+    tianxing:{ name: '天星子的幻影', sprite: 'f_tao',  h: 136, hp: 4000, atk: 240, def: 64, spd: 104, exp: 250, coin: 90, drops: [['ore', 2], ['mp_potion', 1]], boss: true }
   },
 
   stages: [
@@ -150,33 +162,27 @@ window.DATA = {
     { id: 'pinewolf', name: '石间狼群', rec: 10, enemies: ['wolf', 'wolf', 'wolf'],   desc: '在石松林里巡游的狼群，爪子磨得发亮。', need: 'pinegang' },
     { id: 'denwolf',  name: '狼窝外围', rec: 11, enemies: ['wolf', 'wolf', 'wolf'],   desc: '守在洞口的狼，嘴边还带着血。', need: 'pinewolf' },
     { id: 'wolfboss', name: '驯狼匪首', rec: 12, enemies: ['wolf', 'boss', 'wolf'],   desc: '把狼群当成打手的山贼头子，每三回合会使出横扫千军。', need: 'denwolf' },
+    // ---- 主线剧情关卡（story:true：只在对应任务进行到那一步时出现在地图上）----
+    { id: 's_zhw',     story: true, name: '展护卫',   rec: 1, enemies: ['zhw'],                      desc: '展护卫要看看你的身手。点到为止，别伤了自己人。' },
+    { id: 's_xinmo',   story: true, name: '心魔',     rec: 2, enemies: ['xinmo'],                    desc: '药气翻涌，梦里追你的声音显出了形。' },
+    { id: 's_mystery', story: true, name: '神秘强者', rec: 3, enemies: ['mystery'],                  desc: '赵村的梦境里，有人带着暗红的篆纹拦住了你。' },
+    { id: 's_worm',    story: true, name: '坟边虫群', rec: 4, enemies: ['worm', 'worm', 'worm'],      desc: '守在赵村坟地边的食尸虫，是被人引来的。' },
+    { id: 's_xieyue',  story: true, name: '邪月',     rec: 5, enemies: ['xieyue'],                   desc: '邪月逼村民滴血续誓，你得先挡住它。' },
+    { id: 's_tiger',   story: true, name: '村口幼虎', rec: 6, enemies: ['tiger', 'tiger', 'tiger'],   desc: '野地里聚到村口的利爪幼虎。' },
+    { id: 's_hanxin',  story: true, name: '韩信',     rec: 7, enemies: ['hanxin'],                   desc: '韩信认出你身上的暗印余息，误以为你是同伙。' },
+    { id: 's_snake',   story: true, name: '双头毒蛇', rec: 8, enemies: ['snake', 'snake', 'snake'],   desc: '汉中城外的双头毒蛇，皮能做衣。' },
+    { id: 's_shadow',  story: true, name: '暗影魔将', rec: 9, enemies: ['shadow'],                   desc: '截信的暗影魔将，不让信送到收信人手里。' },
+    { id: 's_mengyuan',story: true, name: '梦渊尸魔', rec: 9, enemies: ['mengyuan'],                 desc: '白素梦里的东西跑出来了。' },
+    { id: 's_tianxing',story: true, name: '天星子的幻影', rec: 10, enemies: ['tianxing'],             desc: '梦里的天星子许你名字与过去，只要你替他推开那扇门。' },
     { id: 'path',    name: '竹林小径', rec: 5, enemies: ['grunt', 'grunt'],          desc: '两个拦路的山贼喽啰。' },
     { id: 'wolves',  name: '狼群出没', rec: 6, enemies: ['wolf', 'wolf', 'wolf'],    desc: '三头饿狼，速度很快。', need: 'path' },
     { id: 'outpost', name: '山寨前哨', rec: 7, enemies: ['grunt', 'wolf', 'grunt'],  desc: '山贼和他们养的狼。',   need: 'wolves' },
-    { id: 'boss',    name: '山贼头目', rec: 8, enemies: ['grunt', 'boss', 'grunt'],  desc: '头目每三回合会使出横扫千军。', need: 'path', needStep: 9 }
+    { id: 'boss',    name: '山贼头目', rec: 8, enemies: ['grunt', 'boss', 'grunt'],  desc: '头目每三回合会使出横扫千军。', need: 'path' }
   ],
 
   // 主线：talk = 找人对话；win = 打赢指定关卡
-  quests: [
-    { type: 'talk', npc: 'elder', title: '初出茅庐', goal: '和村长说话',
-      say: '孩子，你在恒山学艺也有些年头了，是时候下山闯荡了。走之前，先去山脚的石板路上拿木桩活动活动筋骨。', reward: { exp: 240, items: { hp_potion: 2 } } },
-    { type: 'win', stage: 'dummy', title: '热身', goal: '去山脚石板路打倒木桩' },
-    { type: 'win', stage: 'boar', title: '菜地之患', goal: '赶走山道上拱菜的野猪' },
-    { type: 'talk', npc: 'elder', title: '下山', goal: '回去告诉村长',
-      say: '好，有模有样了。拿着这封信从村口的木平台下山去汉中郡，到聚贤楼找店小二。记住，点右上角的小地图能打开舆图，点任意地点可以直接传送。', reward: { exp: 700, coin: 150 } },
-    { type: 'talk', npc: 'waiter', title: '侠客初成', goal: '到汉中郡聚贤楼找店小二',
-      say: '少侠是恒山村来的吧？村长的信掌柜的收到了。王铁匠那儿给您留了一把剑，您亲自去取吧。', reward: { exp: 80 } },
-    { type: 'talk', npc: 'smith', title: '取剑', goal: '去铁匠铺找王铁匠',
-      say: '剑已经淬好了，削铁如泥，记得在背包里装备上。对了，替我把这盏花灯捎给亭子边的逍遥子姑娘。', reward: { exp: 80, items: { iron_sword: 1, lantern: 1 } } },
-    { type: 'talk', npc: 'girl', title: '花灯传情', goal: '把花灯交给逍遥子',
-      say: '呀，好漂亮的花灯！这枚香囊送你。不过……桥那边的竹林最近有山贼拦路，少侠能去看看吗？', reward: { exp: 100, items: { sachet: 1, hp_potion: 2 } }, take: { lantern: 1 } },
-    { type: 'win', stage: 'path', title: '竹林除害', goal: '出城，击败竹林小径上的山贼' },
-    { type: 'talk', npc: 'waiter', title: '回报消息', goal: '回聚贤楼告诉店小二',
-      say: '少侠好身手！不过喽啰好打，他们的头目还在山寨里。掌柜的出三百两，请少侠除了这个祸害。', reward: { exp: 150, coin: 300 } },
-    { type: 'win', stage: 'boss', title: '擒贼擒王', goal: '出城击败山贼头目（建议 8 级）' },
-    { type: 'talk', npc: 'girl', title: '灯会如常', goal: '把好消息告诉逍遥子',
-      say: '山贼散了？太好了，今晚的灯会终于可以安心办了。少侠，江湖路远，后会有期。', reward: { exp: 400, coin: 500, items: { ore: 2 } } }
-  ],
+  // 主线剧情来自 js/story.js（由 tools/story_import.py 从 kunkunxunqin 的剧本生成），载入时由 game.js 摊平成 D.quests
+  quests: [],
 
   // 天气：各地图按权重随机，每隔 span 秒转一次。演示用，不影响战斗数值。
   weather: {
@@ -285,8 +291,11 @@ window.DATA = {
       '【活动】限时双倍经验开启，打山贼最划算。'
     ]
   },
+  // 只出现在对白里的角色：对白里的名字 → 头像（没有头像就不显示头像框）
+  speakers: { '除魔军士卒': 'head_m_sword', '陨神残念': null, '邪月': null, '心魔': null, '暗影魔将': null, '梦渊尸魔': null, '天星子的身影': null },
+
   npcs: {
-    elder:  { name: '村长',   title: '【恒山村】', idle: '山下不比村里，凡事多留个心眼。累了就回来歇歇。' },
+    elder:  { name: '村长',   title: '【恒山村】', sprite: 'kk_npc14', head: 'head_kk_npc14', idle: '山下不比村里，凡事多留个心眼。累了就回来歇歇。' },
     axiu:   { name: '阿秀',   color: '#a8e6ff', idle: '我刚采了草药，熬了一锅汤，少侠喝一碗再走吧。', rest: true, restMsg: '喝了一碗草药汤，气血法力回满' },
     waiter: { name: '店小二', idle: '客官辛苦，喝壶热茶歇歇脚吧。', rest: true, restMsg: '喝了一壶热茶，气血法力回满' },
     smith:  { name: '王铁匠', idle: '打铁还需自身硬。兵器铠甲要锻造升星，还是想在孔里镶宝石，都交给老夫。', shop: 'smith' },
@@ -297,6 +306,19 @@ window.DATA = {
     taixu_dao:   { name: '太虚真人', title: '【道家】', color: '#bfe8ff', sprite: 'f_tao', head: 'head_m_mage', idle: '道法自然，无为而无不为。太虚之林乃本门驻地，少侠来此，先静心听竹吧。' },
     taixu_mo:    { name: '墨巨子',   title: '【墨家】', color: '#ffd9a0', sprite: 'f_spear', head: 'head_m_spear', idle: '兼爱非攻，机关为用。太虚之峰的每一道机括，都是墨家弟子亲手所造。' },
     taixu_yin:   { name: '邹长老',   title: '【阴阳家】', color: '#ffc6e8', sprite: 'f_healer', head: 'head_f_heal', idle: '阴阳消长，五行流转。太虚之谷里的每一块卦石，都藏着天地的玄机。' },
+    zhanhw:   { name: '展护卫',   title: '【恒山村】', color: '#ffd9a0', sprite: 'kk_npc_zhw',  head: 'head_kk_npc_zhw', idle: '拳脚功夫不是一天练成的。去清溪谷之前，多打几场熟悉手感。' },
+    bianque:  { name: '扁老鹊',   title: '【村医】',   color: '#b8f0c0', sprite: 'kk_npc_cyblq',   head: 'head_kk_npc_cyblq',  idle: '身子还虚的话，随时来我这儿讨碗药。心里的事，也别一个人扛着。' },
+    qingxizi: { name: '清溪子',   title: '【清溪谷】', color: '#bfe8ff', sprite: 'kk_npc13',    head: 'head_kk_npc13',  idle: '溪水听得久了，人心也就静了。你慢慢逛，别踩坏了溪石。' },
+    jy_mo:    { name: '墨家接引师', title: '【墨家】', color: '#ffd9a0', sprite: 'kk_npc33',  head: 'head_kk_npc33', idle: '机关用在哪，要看掌机关的人。多看，少信一句定论。' },
+    jy_dao:   { name: '道家接引师', title: '【道家】', color: '#bfe8ff', sprite: 'kk_npc13', head: 'head_kk_npc13',  idle: '问来处无妨，别让答案牵着鼻子走。' },
+    jy_yin:   { name: '阴阳接引师', title: '【阴阳家】', color: '#ffc6e8', sprite: 'kk_npc07', head: 'head_kk_npc07', idle: '同一道篆线，正看是阻，反看是引。' },
+    zc_elder: { name: '赵村村长', title: '【赵村】',   color: '#ffe08a', sprite: 'kk_npc_qxz',    head: 'head_kk_npc_qxz',   idle: '虫清了，乡亲们才敢来上香。日子总算能往下过。' },
+    xiaohs:   { name: '萧恨水',   title: '【除魔军】', color: '#ff9a8a', sprite: 'kk_npc_xhs',  head: 'head_kk_npc_xhs', idle: '梦里的事不要全信，也不要全不信。多留个心眼。' },
+    hanxin:   { name: '韩信',     title: '【云雾谷】', color: '#ffd56a', sprite: 'kk_npc_hx',  head: 'head_kk_npc_hx', idle: '谷里雾大，别走散。有消息我会让人通知你。' },
+    equipman: { name: '装备商人', title: '【汉中】',   color: '#ffffff', sprite: 'kk_npc15',   head: 'head_kk_npc15',  idle: '好兵器自己会说话，客官要不要掂一掂？' },
+    baisu:    { name: '白素',     title: '【汉中】',   color: '#ffa8d0', sprite: 'kk_npc_bs',     head: 'head_kk_npc_bs',    idle: '汉中人来人往，信与消息，比银子金贵。' },
+    xiaohs2:  { name: '萧恨水',   title: '【除魔军】', color: '#ff9a8a', sprite: 'kk_npc_xhs',  head: 'head_kk_npc_xhs', idle: '这城里的信不好送，你多加小心。' },
+    spot_cj1000: { name: '神韵', title: '【采集】', color: '#9ff0ff', spot: true, idle: '溪石间的微光已经散去了。' },
     vendor: { name: '货郎',   color: '#ffffff', idle: '金创药、回气丹，行走江湖少不了——少侠来点儿？', shop: 'vendor' }
   },
 
@@ -327,7 +349,7 @@ window.DATA = {
       blocks: [],
       glows: [[1110,330],[1570,520],[1790,960],[1710,520]],
       npcs: [{ id: 'elder', at: [1040, 545] }, { id: 'axiu', at: [1190, 845] }],
-      portals: [{ to: 'outskirts', name: '下山·恒山村郊', at: [1790, 1380], arrive: [140, 1360], needStep: 4, lockMsg: '村长还有话要交代，先别急着下山' }],
+      portals: [{ to: 'outskirts', name: '下山·恒山村郊', at: [1790, 1380], arrive: [140, 1360], needQuest: '1001', lockMsg: '村长还有话要交代，先别急着下山' }],
       foes: [{ stage: 'dummy', at: [440, 1225] }, { stage: 'boar', at: [1560, 480] }]
     },
     outskirts: {
@@ -342,6 +364,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[520,860],[1470,330]],
+      npcs: [{ id: 'zhanhw', at: [480, 1040] }, { id: 'bianque', at: [860, 830] }],
       portals: [{ to: 'village', name: '回恒山村', at: [40, 1430], arrive: [1700, 1340] }, { to: 'town', name: '去汉中郡', at: [1960, 110], arrive: [450, 790] }, { to: 'creek', name: '入清溪谷', at: [1480, 320], arrive: [1100, 1450] }],
       foes: [{ stage: 'hog', at: [560, 1060] }, { stage: 'roam', at: [1330, 505] }]
     },
@@ -356,6 +379,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[1100,760],[1650,480],[700,1030]],
+      npcs: [{ id: 'qingxizi', at: [880, 830] }, { id: 'jy_dao', at: [1240, 670] }, { id: 'jy_yin', at: [1560, 590] }, { id: 'jy_mo', at: [700, 960] }],
       portals: [{ to: 'outskirts', name: '回恒山村郊', at: [1100, 1470], arrive: [1440, 390] }, { to: 'mist', name: '入云雾谷', at: [1800, 50], arrive: [770, 1440] }],
       foes: [{ stage: 'creekwolf', at: [800, 1110] }, { stage: 'creekgang', at: [1600, 490] }]
     },

@@ -168,12 +168,22 @@ b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.wid
 b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=True)
 
 from PIL import ImageFilter
-for n,q in [('bg_town',54),('bg_village',78),('bg_wild',78),('world',62),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',72),('bg_wolfvalley',78)]:
+for n,q in [('bg_town',52),('bg_village',78),('bg_wild',78),('world',62),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',72),('bg_wolfvalley',78)]:
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue
     im=Image.open(p).convert('RGB')
     pass
     im.save(f'{AD}/{n}.webp',quality=q,method=6); os.remove(p)
+# kunkunxunqin 项目的 NPC 静态图（art-src/kunkun-npc/<资源名>.png，1000×600 画布里一个小人）：裁掉空白 → kk_<名> 立绘（显示高度见表，2 倍存储）+ head_kk_<名> 头像
+# 当前接入第一章用到的；后续章节的（npc_qxz 赵村村长 / npc_xhs 萧恨水 / npc_hx 韩信 / npc15 装备商人 / npc_bs 白素）原图已在 art-src/kunkun-npc，用到时加进来（单文件版有 16MB 上限）
+KK_NPC = dict(npc14=104, npc_zhw=118, npc_cyblq=132, npc13=104, npc07=104, npc33=104)
+for n,hh in KK_NPC.items():
+    sp=f'{G}/kunkun-npc/{n}.png'
+    if not os.path.exists(sp): continue
+    im=Image.open(sp).convert('RGBA'); bb=im.getbbox(); c=im.crop(bb); h=hh*2; w=round(c.width*h/c.height)
+    c.resize((w,h),Image.LANCZOS).save(f'{AD}/kk_{n}.webp',quality=94,method=6); size['kk_'+n]=[w/2,h/2]
+    top=c.crop((0,0,c.width,round(c.height*0.45))); s=max(top.width,top.height); sq=Image.new('RGBA',(s,s),(0,0,0,0)); sq.paste(top,((s-top.width)//2,0))
+    sq.resize((160,160),Image.LANCZOS).save(f'{AD}/head_kk_{n}.webp',quality=92)
 files=sorted(f for f in os.listdir(AD))
 keys={f.rsplit('.',1)[0]:f for f in files}
 def uri(p):
@@ -183,14 +193,14 @@ rel='// 素材清单（相对路径版）。单文件版里这一段会被换成
 open(R+'/js/assets.js','w').write(rel)
 inl='window.ASSETS = '+json.dumps(dict(img={k:uri(f'{AD}/{f}') for k,f in keys.items()},size=size))+';'
 src=open(R+'/index.src.html').read()
-single=src.replace('<!--SCRIPTS-->','<script>\n'+inl+'\n</script>\n<script>\n'+open(R+'/js/masks.js').read()+'\n</script>\n<script>\n'+open(R+'/js/water.js').read()+'\n</script>\n<script>\n'+open(R+'/js/data.js').read()+'\n</script>\n<script>\n'+open(R+'/js/chat.js').read()+'\n</script>\n<script>\n'+open(R+'/js/game.js').read()+'\n</script>\n<script>\n'+open(R+'/js/front.js').read()+'\n</script>')
+single=src.replace('<!--SCRIPTS-->','<script>\n'+inl+'\n</script>\n<script>\n'+open(R+'/js/masks.js').read()+'\n</script>\n<script>\n'+open(R+'/js/water.js').read()+'\n</script>\n<script>\n'+open(R+'/js/data.js').read()+'\n</script>\n<script>\n'+open(R+'/js/story.js').read()+'\n</script>\n<script>\n'+open(R+'/js/chat.js').read()+'\n</script>\n<script>\n'+open(R+'/js/game.js').read()+'\n</script>\n<script>\n'+open(R+'/js/front.js').read()+'\n</script>')
 open(DIST+'/guiqin.html','w').write(single)
 if os.environ.get('GUIQIN_PUBLISH_COPY'): open(os.environ['GUIQIN_PUBLISH_COPY'],'w').write(single)      # 可选：同时复制到别处（比如要发布的位置）
-multi='<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<style>body{margin:0}[hidden]{display:none!important}</style>\n'+src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/masks.js"></script>\n<script src="js/water.js"></script>\n<script src="js/data.js"></script>\n<script src="js/chat.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')+'\n</body>\n</html>\n'
+multi='<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<style>body{margin:0}[hidden]{display:none!important}</style>\n'+src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/masks.js"></script>\n<script src="js/water.js"></script>\n<script src="js/data.js"></script>\n<script src="js/story.js"></script>\n<script src="js/chat.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')+'\n</body>\n</html>\n'
 multi=multi.replace('<div id="fit">','</head>\n<body>\n<div id="fit">',1)
 open(R+'/index.html','w').write(multi)
 z=zipfile.ZipFile(DIST+'/guiqin_source.zip','w',zipfile.ZIP_DEFLATED)
-for p in ['index.html','js/assets.js','js/masks.js','js/water.js','js/data.js','js/chat.js','js/game.js','js/front.js']:
+for p in ['index.html','js/assets.js','js/masks.js','js/water.js','js/data.js','js/story.js','js/chat.js','js/game.js','js/front.js']:
     if os.path.exists(f'{R}/{p}'): z.write(f'{R}/{p}','guiqin/'+p)
 for f in files: z.write(f'{AD}/{f}','guiqin/assets/'+f)
 z.close()

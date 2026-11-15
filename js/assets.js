@@ -54,6 +54,12 @@ window.ASSETS = {
   "head_f_heal": "assets/head_f_heal.webp",
   "head_f_sword": "assets/head_f_sword.webp",
   "head_girl": "assets/head_girl.webp",
+  "head_kk_npc07": "assets/head_kk_npc07.webp",
+  "head_kk_npc13": "assets/head_kk_npc13.webp",
+  "head_kk_npc14": "assets/head_kk_npc14.webp",
+  "head_kk_npc33": "assets/head_kk_npc33.webp",
+  "head_kk_npc_cyblq": "assets/head_kk_npc_cyblq.webp",
+  "head_kk_npc_zhw": "assets/head_kk_npc_zhw.webp",
   "head_m_mage": "assets/head_m_mage.webp",
   "head_m_spear": "assets/head_m_spear.webp",
   "head_m_sword": "assets/head_m_sword.webp",
@@ -129,6 +135,12 @@ window.ASSETS = {
   "item_steel_sword": "assets/item_steel_sword.webp",
   "item_wolf_fang": "assets/item_wolf_fang.webp",
   "item_wood_beads": "assets/item_wood_beads.webp",
+  "kk_npc07": "assets/kk_npc07.webp",
+  "kk_npc13": "assets/kk_npc13.webp",
+  "kk_npc14": "assets/kk_npc14.webp",
+  "kk_npc33": "assets/kk_npc33.webp",
+  "kk_npc_cyblq": "assets/kk_npc_cyblq.webp",
+  "kk_npc_zhw": "assets/kk_npc_zhw.webp",
   "login": "assets/login.webp",
   "mini_creek": "assets/mini_creek.jpg",
   "mini_mist": "assets/mini_mist.jpg",
@@ -296,6 +308,30 @@ window.ASSETS = {
    66.5,
    120.0,
    45.688926458157226
+  ],
+  "kk_npc14": [
+   58.0,
+   104.0
+  ],
+  "kk_npc_zhw": [
+   78.0,
+   118.0
+  ],
+  "kk_npc_cyblq": [
+   107.0,
+   132.0
+  ],
+  "kk_npc13": [
+   48.0,
+   104.0
+  ],
+  "kk_npc07": [
+   47.0,
+   104.0
+  ],
+  "kk_npc33": [
+   49.5,
+   104.0
   ]
  }
 };

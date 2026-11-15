@@ -33,10 +33,11 @@ let SAVE_KEY = 'guiqin-save:guest';      // 每个角色一份存档，进游戏
 let ROLE = { id: 'guest', name: '云中客', cls: 'm_sword' };
 function newGame() {
   const s = JSON.parse(JSON.stringify(D.start));
-  return { lv: s.lv, exp: 0, hp: null, mp: null, coin: s.coin, items: s.items, equip: s.equip, step: 0, cleared: [], gift: false, map: s.map, pos: null, visited: [] };
+  return { lv: s.lv, exp: 0, hp: null, mp: null, coin: s.coin, items: s.items, equip: s.equip, step: 0, cnt: 0, sv: 2, cleared: [], gift: false, map: s.map, pos: null, visited: [] };
 }
 function load() {
-  try { const t = localStorage.getItem(SAVE_KEY); if (t) { const s = JSON.parse(t); if (s && typeof s.lv === 'number') { const e = s.equip || (s.equip = {}); if ('armor' in e) { e.chest = e.chest || e.armor; delete e.armor; } if ('charm' in e) { e.pouch = e.pouch || e.charm; delete e.charm; } for (const k of Object.keys(e)) if (!D.slots[k]) delete e[k]; return s; } } } catch (e) {}
+  try { const t = localStorage.getItem(SAVE_KEY); if (t) { const s = JSON.parse(t); if (s && typeof s.lv === 'number') { if (s.sv !== 2) { s.step = 0; s.cnt = 0; s.sv = 2; }      // 换了新主线：旧存档的任务进度从头来，等级装备保留
+        const e = s.equip || (s.equip = {}); if ('armor' in e) { e.chest = e.chest || e.armor; delete e.armor; } if ('charm' in e) { e.pouch = e.pouch || e.charm; delete e.charm; } for (const k of Object.keys(e)) if (!D.slots[k]) delete e[k]; return s; } } } catch (e) {}
   return null;
 }
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
@@ -460,7 +461,7 @@ function makePortal(p) {
   drawTag(a); return a;
 }
 function drawTag(a, auto) {
-  if (a.kind === 'portal') { a.tag.innerHTML = (a.mark ? '<span class="mk">!</span>' : '') + '<span>' + a.name + ' ▶</span>'; return; }
+  if (a.kind === 'portal' || a.kind === 'spot') { a.tag.innerHTML = (a.mark ? '<span class="mk">!</span>' : '') + '<span>' + a.name + (a.kind === 'spot' ? ' ✦' : ' ▶') + '</span>'; return; }
   a.tag.innerHTML = (a.mark ? '<span class="mk">!</span>' : '') + (auto ? '<span class="auto">自动寻路中…</span>' : '') +
     (a.title ? '<small style="color:' + a.titleColor + '">' + a.title + '</small>' : '') + '<span style="color:' + a.color + '">' + a.name + '</span>';
 }
@@ -733,7 +734,7 @@ $('smapWorld').addEventListener('click', e => { e.stopPropagation(); $('smap').h
 // ---------- 对话 ----------
 let typing = null, dialogFull = '', dialogAfter = null;
 function openDialog(n, text, after) {
-  $('dFace').src = IMG((D.npcs[n.id] && D.npcs[n.id].head) || 'head_' + n.id); $('dName').textContent = n.name; $('dialog').hidden = false;
+  $('dFace').style.visibility = 'visible'; $('dFace').src = IMG((D.npcs[n.id] && D.npcs[n.id].head) || 'head_' + n.id); $('dName').textContent = n.name; $('dialog').hidden = false;
   const p = $('dText'); p.textContent = ''; let i = 0; clearInterval(typing);
   if (reduce) p.textContent = text; else typing = setInterval(() => { p.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(typing); }, 26);
   dialogFull = text; dialogAfter = after || null;
@@ -745,15 +746,60 @@ function closeDialog() {
 }
 $('dialog').addEventListener('click', e => { e.stopPropagation(); closeDialog(); });
 
+// ---------- 主线剧情：STORY.quests 摊平成“节拍”序列，S.step 就是节拍序号 ----------
+// 节拍类型：talk 找人对话 / spot 采集点 / fight 首领战 / kill 清怪计数（S.cnt）。每个任务第一拍带接取对白，最后一拍带完成对白和奖励。
+(function flattenStory() {
+  const out = [], first = {};
+  (window.STORY ? window.STORY.quests : []).forEach(q => q.beats.forEach((b, i) => {
+    const beat = Object.assign({}, b, { qid: q.id, title: q.title, chapter: q.chapter, summary: q.summary });
+    if (i === 0) { beat.first = true; beat.accept = q.accept; first[q.id] = out.length; }
+    if (i === q.beats.length - 1) { beat.last = true; beat.outro = q.complete; beat.reward = q.reward; }
+    out.push(beat);
+  }));
+  D.quests = out; D.questFirst = first;
+  Object.values(D.maps).forEach(m => (m.portals || []).forEach(p => { if (p.needQuest) p.needStep = first[p.needQuest]; }));
+  // 剧情里的采集点：当成一个只在对应任务时出现的“人物”
+  out.forEach(b => { if (b.type === 'spot' && !D.npcs[b.npc]) D.npcs[b.npc] = { name: b.spot, spot: true, color: '#9ff0ff', idle: '' }; });
+})();
+const faceOf = who => {
+  if (who === '你') return 'head_player';
+  const id = Object.keys(D.npcs).find(k => D.npcs[k].name === who && !D.npcs[k].spot);
+  if (id) return D.npcs[id].head || 'head_' + id;
+  return D.speakers && D.speakers[who] ? D.speakers[who] : null;
+};
+function speak(who, text, after) {
+  const f = faceOf(who), im = $('dFace');
+  if (f) { im.src = IMG(f); im.style.visibility = 'visible'; } else im.style.visibility = 'hidden';
+  $('dName').textContent = who === '你' ? ROLE.name : (who || '');
+  $('dialog').hidden = false;
+  const p = $('dText'); p.textContent = ''; let i = 0; clearInterval(typing);
+  if (reduce) p.textContent = text; else typing = setInterval(() => { p.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(typing); }, 26);
+  dialogFull = text; dialogAfter = after || null;
+}
+// pages = [[说话人, 内容], …]；说话人为空是旁白
+function showPages(pages, done) {
+  let i = 0;
+  const next = () => { if (i >= pages.length) { if (done) done(); return; } const pg = pages[i++]; speak(pg[0], pg[1], next); };
+  next();
+}
+// 完成当前这一拍：进入下一拍；任务最后一拍发奖励并播完成对白（下一个任务不是“找人”时，顺带播它的接取对白）
+function finishBeat(q, extra) {
+  S.step++; S.cnt = 0;
+  let ups = 0, pages = [];
+  if (q.last) {
+    const r = Object.assign({}, q.reward || {}); if (extra) { r.exp = (r.exp || 0) + (extra.exp || 0); r.coin = (r.coin || 0) + (extra.coin || 0); r.items = Object.assign({}, r.items, extra.items); }
+    ups = grant(r); sys('完成「' + q.title + '」：' + rewardText(r));
+    pages = (q.outro || []).slice();
+    const nx = D.quests[S.step]; if (nx && nx.first && nx.type !== 'talk' && nx.type !== 'spot') pages = pages.concat(nx.accept);
+  }
+  toast(ups ? '升到 ' + S.lv + ' 级！气血法力已回满' : (D.quests[S.step] ? '任务更新：' + D.quests[S.step].goal : '第一章已完成，后续剧情敬请期待'));
+  save(); refresh();
+  if (pages.length) showPages(pages);
+}
 function talk(n) {
   const q = D.quests[S.step];
-  if (q && q.type === 'talk' && q.npc === n.id) {
-    openDialog(n, q.say, () => {
-      if (q.take) for (const id in q.take) addItem(id, -q.take[id]);
-      S.step++; const ups = grant(q.reward || {});
-      sys('完成「' + q.title + '」' + (q.reward ? '：' + rewardText(q.reward) : ''));
-      toast(ups ? '升到 ' + S.lv + ' 级！气血法力已回满' : (D.quests[S.step] ? '任务更新：' + D.quests[S.step].goal : '主线任务全部完成！'));
-    });
+  if (q && (q.type === 'talk' || q.type === 'spot') && q.npc === n.id) {
+    showPages((q.first ? q.accept : []).concat(q.pages), () => finishBeat(q));
     return;
   }
   const info = D.npcs[n.id];
@@ -766,6 +812,8 @@ function talk(n) {
 }
 // 地图上的敌人：走过去后弹出确认
 function openFoe(a) {
+  const q0 = D.quests[S.step];
+  if (a.stage.story && q0 && q0.stage === a.stage.id && q0.pre && q0.pre.length && S.preSeen !== S.step) { S.preSeen = S.step; save(); showPages(q0.pre, () => openFoe(a)); return; }
   const st = a.stage, names = st.enemies.map(e => D.enemies[e].name).join('、');
   const needSt = st.need && !S.cleared.includes(st.need) ? D.stages.find(s => s.id === st.need) : null;
   let h;
@@ -795,14 +843,31 @@ function hopTo(target) {
 function questTarget() {
   const q = D.quests[S.step]; if (!q || !M) return null;
   if (q.type === 'talk') return M.npcs[q.npc] || hopTo(mapOfNpc(q.npc));
-  return M.list.find(a => a.kind === 'foe' && a.stage.id === q.stage) || hopTo(mapOfStage(q.stage));
+  return M.list.find(a => a.sb === S.step) || hopTo(q.map);
+}
+// 剧情首领 / 采集点：只在对应任务进行到那一拍时出现在地图上
+function syncStory() {
+  const q = D.quests[S.step];
+  Object.values(M.npcs).forEach(n => { n.el.style.display = q && q.type === 'fight' && q.map === M.id && D.stages.find(s => s.id === q.stage).name === n.name ? 'none' : ''; });   // 剧情首领和同名 NPC 是同一个人：战斗前后只显示一个
+  const stale = M.list.filter(a => a.sb !== undefined && !(q && a.sb === S.step));
+  stale.forEach(a => { a.el.remove(); delete M.npcs[a.id]; }); if (stale.length) M.list = M.list.filter(a => !stale.includes(a));
+  if (!q || q.map !== M.id || M.list.some(a => a.sb === S.step)) return;
+  if (q.type === 'fight' || q.type === 'kill') {
+    const st = D.stages.find(s => s.id === q.stage), lead = D.enemies[st.enemies[0]];
+    const a = makeActor('foe', 'foe_' + st.id, lead.sprite, st.name, I(q.at[0], q.at[1]), { color: '#ff9a8a', title: '建议 ' + st.rec + ' 级', titleColor: '#ffd56a' });
+    a.stage = st; a.sb = S.step; M.list.push(a);
+  } else if (q.type === 'spot') {
+    const a = makePortal({ to: '', name: q.spot, at: q.at }); a.kind = 'spot'; a.id = q.npc; a.name = q.spot; a.color = '#9ff0ff'; a.sb = S.step; a.el.classList.add('spot');
+    drawTag(a); M.list.push(a); M.npcs[a.id] = a;
+  }
 }
 function showQuest() {
   if (!M) return;
+  syncStory();
   const q = D.quests[S.step], tgt = questTarget();
   let ch = false; M.list.forEach(a => { const m = a === tgt; if (a.mark !== m) { a.mark = m; drawTag(a); ch = true; } }); if (ch) drawMiniDots();
-  $('qTitle').textContent = q ? q.title : '江湖路远'; $('qGoal').textContent = q ? q.goal : '主线已完成，去竹林继续历练吧';
-  $('qSide').textContent = '已打通 ' + S.cleared.length + ' / ' + D.stages.length + ' 处';
+  $('qTitle').textContent = q ? q.title : '江湖路远'; $('qGoal').textContent = q ? q.goal + (q.type === 'kill' ? '（' + Math.min(S.cnt || 0, q.n) + '/' + q.n + '）' : '') : '第一章已完成，去各处历练升级吧';
+  $('qSide').textContent = q ? q.chapter : '待续';
 }
 function questGo() {
   wander = false; autoBtn.classList.remove('on');
@@ -829,7 +894,7 @@ function moveTo(dest, isAuto, quiet) {
 function goTalk(n) {
   talkNpc = n;
   const side = player.pos.x >= n.pos.x ? 1 : -1;
-  const cands = n.kind === 'portal' ? [{ x: n.pos.x, y: n.pos.y }] :
+  const cands = n.kind === 'portal' || n.kind === 'spot' ? [{ x: n.pos.x, y: n.pos.y }] :
     [{ x: n.pos.x + 54 * side, y: n.pos.y + 16 }, { x: n.pos.x - 54 * side, y: n.pos.y + 16 }, { x: n.pos.x, y: n.pos.y + 40 }, { x: n.pos.x + 34 * side, y: n.pos.y + 44 }];
   const c = cands.find(inside) || n.pos;
   if (Math.hypot(c.x - player.pos.x, c.y - player.pos.y) < 8) return arrive();
@@ -899,7 +964,7 @@ $('town').addEventListener('click', e => {
   if (!$('dialog').hidden) { closeDialog(); return; }
   const r = stage.getBoundingClientRect(); const p = { x: (e.clientX - r.left) / scale + cam.x, y: (e.clientY - r.top) / scale + cam.y };
   let hit = null;
-  for (const n of M.list) if (Math.abs(p.x - n.pos.x) < 54 && p.y < n.pos.y + 20 && p.y > n.pos.y - (n.kind === 'portal' ? n.h : n.h * 1.35) - 40) hit = n;
+  for (const n of M.list) if (Math.abs(p.x - n.pos.x) < 54 && p.y < n.pos.y + 20 && p.y > n.pos.y - (n.kind === 'portal' || n.kind === 'spot' ? n.h : n.h * 1.35) - 40) hit = n;
   wander = false; autoBtn.classList.remove('on');
   if (hit) goTalk(hit); else { talkNpc = null; moveTo(p, false); }
 });
@@ -1126,7 +1191,7 @@ function frame(now) {
       if (wanderWait <= 0) { wanderWait = .6 + Math.random() * .8; const p = { x: player.pos.x + rnd(-320, 320), y: player.pos.y + rnd(-260, 260) }; if (inside(p)) moveTo(p, true); }
     }
     stepPlayer(dt); stepFox(dt);
-    placePlayer(); place(fox, t); for (const a of M.list) if (a.kind !== 'portal') place(a, t);
+    placePlayer(); place(fox, t); for (const a of M.list) if (a.kind !== 'portal' && a.kind !== 'spot') place(a, t);
     ring.style.transform = 'translate(' + player.pos.x.toFixed(1) + 'px,' + player.pos.y.toFixed(1) + 'px)';
     // 镜头：平滑跟随，不超出地图边缘
     const ct = camTarget(), k = reduce ? 1 : 1 - Math.exp(-7 * dt);
@@ -1401,14 +1466,19 @@ function finish() {
     const r = { exp: 0, coin: 0, items: {} };
     st.enemies.forEach(id => { const e = D.enemies[id]; r.exp += e.exp; r.coin += e.coin; e.drops.forEach(d => { if (Math.random() < d[1]) r.items[d[0]] = (r.items[d[0]] || 0) + 1; }); });
     if (!S.cleared.includes(st.id)) S.cleared.push(st.id);
-    const q = D.quests[S.step]; let questDone = false;
-    if (q && q.type === 'win' && q.stage === st.id) { S.step++; questDone = true; }
+    const q = D.quests[S.step]; let questDone = false, killLine = '';
+    if (q && (q.type === 'fight' || q.type === 'kill') && q.stage === st.id) {
+      let done = true;
+      if (q.type === 'kill') { S.cnt = (S.cnt || 0) + st.enemies.length; done = S.cnt >= q.n; if (!done) killLine = q.goal + ' ' + S.cnt + '/' + q.n; }
+      if (done) { S.step++; S.cnt = 0; B.after = q; if (q.last) { questDone = true; const rw = q.reward || {}; r.exp += rw.exp || 0; r.coin += rw.coin || 0; for (const id in (rw.items || {})) r.items[id] = (r.items[id] || 0) + rw.items[id]; } }
+    }
     const lv0 = S.lv; B.active = false; const ups = grant(r); B.active = true;
     title = '战斗胜利';
     h = '<div class="gain center">经验 <b>+' + r.exp + '</b>　银两 <b>+' + r.coin + '</b>';
     const drops = Object.keys(r.items);
     if (drops.length) h += '<br>获得 ' + drops.map(id => '<b>' + D.items[id].name + ' ×' + r.items[id] + '</b>').join('、');
     if (ups) h += '<br><b>升级！</b>' + lv0 + ' 级 → ' + S.lv + ' 级，气血法力回满';
+    if (killLine) h += '<br><span style="color:var(--jade)">' + killLine + '</span>';
     if (questDone) h += '<br><span style="color:var(--jade)">任务完成：' + q.title + '</span>';
     h += '</div>';
     sys('击败' + st.name + '的敌人：' + rewardText(r));
@@ -1431,7 +1501,13 @@ function leaveBattle() {
   }
   B.foe = null;
   last = performance.now(); save(); refresh();
-  const q = D.quests[S.step]; if (!arena && q && B.over === 'win') toast('任务更新：' + q.goal);
+  const bq = B.after; B.after = null;
+  if (!arena && bq && bq.last) {                 // 这场战斗打完了一个任务：播完成对白，下一个任务不是“找人”就接着播它的接取对白
+    let pages = (bq.outro || []).slice(); const nx = D.quests[S.step];
+    if (nx && nx.first && nx.type !== 'talk' && nx.type !== 'spot') pages = pages.concat(nx.accept);
+    if (pages.length) showPages(pages);
+  }
+  const q = D.quests[S.step]; if (!arena && B.over === 'win') toast(q ? '任务更新：' + q.goal : '第一章已完成，后续剧情敬请期待');
 }
 
 // ============================================================ 启动
