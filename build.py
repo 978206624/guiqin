@@ -87,6 +87,13 @@ if os.path.exists(f'{G}/gems.png'):
     for i,n in enumerate(['atk','matk','hp','def','mdef','mp','dodge','spd','crit']):
         c=gi.crop(((i%3)*W3//3,(i//3)*H3//3,(i%3+1)*W3//3,(i//3+1)*H3//3)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>60 else 0).getbbox())
         c.resize((128,128),Image.LANCZOS).save(f'{AD}/item_gem_{n}.webp',quality=92)
+
+# 锻造宝石图标：一行 5 个，绿幕底
+if os.path.exists(f'{G}/forgegems.png'):
+    gi=keyed(f'{G}/forgegems.png'); W5,H5=gi.size
+    for i in range(5):
+        c=gi.crop((i*W5//5,0,(i+1)*W5//5,H5)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>60 else 0).getbbox())
+        c.resize((128,128),Image.LANCZOS).save(f'{AD}/item_forge_{i+1}.webp',quality=92)
 # 红装图标：把橙装图标里的青绿色部分改成赤红，金边和深色底保持不变
 import numpy as np
 def redden(src,dst):

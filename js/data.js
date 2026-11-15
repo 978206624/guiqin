@@ -42,8 +42,8 @@ window.DATA = {
   forge: {
     max: 15, perStar: 0.06,                                          // 每星 +6% 装备自带属性，满星 +90%
     coin: [50, 80, 120, 180, 260, 380, 540, 760, 1050, 1450, 2000, 2700, 3600, 4800, 6400],   // 升到第 n+1 星的银两
-    ore:  [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 10, 12],           // 玄铁矿
     rate: [1, 1, 0.95, 0.9, 0.85, 0.75, 0.65, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2],   // 成功率
+    gemBonus: [0.10, 0.20, 0.35, 0.50, 1],                            // 锻造宝石加的成功率；第 5 种（圣锻皇宝石）必成
     dropFrom: 10,                                                     // 已有 ≥10 星时失败会掉 1 星
     qMul: { 1: 1, 2: 1.2, 3: 1.5, 4: 2, 5: 2.6 },                    // 品质越高越贵
     sockets: [0, 5, 10, 15]                                           // 第 1/2/3/4 个孔需要的星级
@@ -53,7 +53,7 @@ window.DATA = {
   slots: { weapon: '武器', treasure: '法宝', neck: '颈部', wrist: '手腕', finger: '手指', pouch: '药囊', amulet: '护符', head: '头部', chest: '胸部', waist: '腰部', legs: '腿部', feet: '脚部' },
   slotLeft: ['head', 'neck', 'chest', 'waist', 'legs', 'feet'], slotRight: ['weapon', 'treasure', 'wrist', 'finger', 'pouch', 'amulet'],
   expNeed: { base: 150, perLevel: 90 },        // 升到下一级所需经验 = base + perLevel * 当前等级
-  start: { lv: 1, coin: 100, items: { hp_potion: 3 }, equip: { chest: 'cloth_armor' }, map: 'village' },
+  start: { lv: 1, coin: 100, items: { hp_potion: 3, forge_1: 5, forge_2: 2 }, equip: { chest: 'cloth_armor' }, map: 'village' },
 
   // 可选职业：男女各三种。stats 是创建界面上的五维条（1-5），只用于展示
   classes: {
@@ -100,6 +100,12 @@ window.DATA = {
     jade_sword:    { name: '碧玉剑',     icon: 'jade_sword',    q: 4, type: 'equip', slot: 'weapon',   price: 2200, atk: 150,         desc: '剑身如碧玉，夜里泛着绿光。物攻 +150' },
     crimson_sword: { name: '赤霄剑',     icon: 'crimson_sword', q: 5, type: 'equip', slot: 'weapon',   price: 6000, atk: 260,         desc: '传说中斩白蛇的赤色神剑，剑出如火。物攻 +260' },
     phoenix_armor: { name: '朱雀战甲',   icon: 'phoenix_armor', q: 5, type: 'equip', slot: 'chest',    price: 6000, def: 190, hp: 800, desc: '朱雀羽炼成的战甲，烈焰不侵。物防 +190，生命 +800' },
+    // —— 锻造宝石：锻造时必须消耗一颗，品质越高成功率加得越多，圣锻皇宝石必定成功 ——
+    forge_1: { name: '初级锻造宝石', icon: 'forge_1', q: 1, type: 'mat', forge: 1, price: 200,   desc: '锻造时消耗一颗，成功率 +10%。' },
+    forge_2: { name: '锻造宝石',     icon: 'forge_2', q: 2, type: 'mat', forge: 2, price: 800,   desc: '锻造时消耗一颗，成功率 +20%。' },
+    forge_3: { name: '精锻宝石',     icon: 'forge_3', q: 3, type: 'mat', forge: 3, price: 3000,  desc: '锻造时消耗一颗，成功率 +35%。' },
+    forge_4: { name: '锻皇宝石',     icon: 'forge_4', q: 4, type: 'mat', forge: 4, price: 10000, desc: '锻造时消耗一颗，成功率 +50%。' },
+    forge_5: { name: '圣锻皇宝石',   icon: 'forge_5', q: 5, type: 'mat', forge: 5, price: 40000, desc: '锻造时消耗一颗，必定锻造成功。' },
     ore:           { name: '玄铁矿',   icon: 'ore', q: 2,           type: 'mat',    price: 120, desc: '打造兵器的材料，可以卖给商人。' },
     wolf_fang:     { name: '狼牙',     icon: 'wolf_fang', q: 1,     type: 'mat',    price: 40,  desc: '野狼的牙，可以卖给商人。' },
     lantern:       { name: '花灯',     icon: 'lantern', q: 2,       type: 'mat',    price: 0,   desc: '王铁匠托你捎给逍遥子的花灯。' }
@@ -270,7 +276,7 @@ window.DATA = {
     arenaman: { name: '擂台官', title: '【竞技场】', color: '#ff9a8a', sprite: 'f_blade', head: 'head_m_spear', idle: '擂台已经备好，五对五，人宠齐上。要不要上去练练手？', act: 'arena' },
     towerman: { name: '守塔人', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'f_tao', head: 'head_m_mage', idle: '玄兵塔共九层，一层比一层凶险。塔门暂时还不能开，等你再强一些。' },
     trader:   { name: '掌柜',   title: '【寄卖行】', color: '#ffe08a', sprite: 'f_healer', head: 'head_vendor', shop: 'trader', idle: '百宝摊上的项链、戒指、法宝、护符，都是各路好货，少侠随便看。' },
-    vendor: { name: '货郎',   color: '#ffffff', idle: '金创药、回气丹，还有锻造用的玄铁矿，行走江湖少不了——少侠来点儿？', shop: 'vendor' }
+    vendor: { name: '货郎',   color: '#ffffff', idle: '金创药、回气丹，行走江湖少不了——少侠来点儿？', shop: 'vendor' }
   },
 
   // 地图。坐标都写在“底图原图像素 / k”的单位里：舞台像素 = 坐标 * k * scale。
@@ -362,8 +368,8 @@ window.DATA = {
   },
 
   shops: {
-    vendor: { name: '货郎的担子', sell: ['hp_potion', 'mp_potion', 'ore'] },
-    trader: { name: '百宝摊', sell: ['iron_sword', 'steel_saber', 'steel_sword', 'leather_cap', 'iron_helm', 'leather_armor', 'iron_armor', 'linen_legs', 'iron_greaves', 'leather_bracer', 'steel_bracer', 'linen_belt', 'cloth_boots', 'gem_atk_1', 'gem_matk_1', 'gem_hp_1', 'gem_def_1', 'gem_mdef_1', 'gem_mp_1', 'gem_dodge_1', 'gem_spd_1', 'gem_crit_1', 'jade_sword', 'scale_armor', 'crimson_sword', 'phoenix_armor', 'wood_beads', 'jade_pendant', 'copper_ring', 'silver_ring', 'bronze_bell', 'bagua_mirror', 'peace_charm', 'jade_charm', 'herb_pouch', 'brocade_pouch', 'jade_belt', 'cloud_boots'] }
+    vendor: { name: '货郎的担子', sell: ['hp_potion', 'mp_potion'] },
+    trader: { name: '百宝摊', sell: ['forge_1', 'forge_2', 'forge_3', 'forge_4', 'forge_5', 'iron_sword', 'steel_saber', 'steel_sword', 'leather_cap', 'iron_helm', 'leather_armor', 'iron_armor', 'linen_legs', 'iron_greaves', 'leather_bracer', 'steel_bracer', 'linen_belt', 'cloth_boots', 'gem_atk_1', 'gem_matk_1', 'gem_hp_1', 'gem_def_1', 'gem_mdef_1', 'gem_mp_1', 'gem_dodge_1', 'gem_spd_1', 'gem_crit_1', 'jade_sword', 'scale_armor', 'crimson_sword', 'phoenix_armor', 'wood_beads', 'jade_pendant', 'copper_ring', 'silver_ring', 'bronze_bell', 'bagua_mirror', 'peace_charm', 'jade_charm', 'herb_pouch', 'brocade_pouch', 'jade_belt', 'cloud_boots'] }
   }
 };
 // 宝石物品由 D.gems 生成：gem_<类型>_<阶>，品质颜色跟着阶数走（1 白 … 5 红）

@@ -213,7 +213,7 @@ function equipView() {
   }
   return h + '<p class="center" style="margin:12px 0 0"><button type="button" class="tbtn" data-act="openBag">打开完整背包（整理 / 出售）</button></p>';
 }
-let forgeSlot = null, gemPick = null;
+let forgeSlot = null, gemPick = null, forgeGem = null;
 const forgeable = () => D.slotLeft.concat(D.slotRight).filter(sl => S.equip[sl]);
 function starsRow(n) { let h = ''; for (let i = 1; i <= D.forge.max; i++) h += '<i class="fs' + (i <= n ? ' on' : '') + (i % 5 === 0 ? ' m' : '') + '">★</i>'; return h; }
 function forgeView(mode) {
@@ -227,14 +227,18 @@ function forgeView(mode) {
   h += '<div class="fcard"><div class="itile" style="--qc:' + q.color + '">' + itemImg(id) + '</div><div class="ibody"><h5 style="color:' + q.color + '">' + it.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
     '<p class="meta">' + D.slots[forgeSlot] + '　' + (s0 ? '★' + s0 + '　' : '') + '星级和宝石都跟着部位走，换装不丢</p><p class="bonus">' + base + '</p></div></div>';
   if (mode === 'forge') h += '<div class="fstars">' + starsRow(s0) + '</div><p class="fsub">' + s0 + ' / ' + F.max + ' 星　基础属性 +' + Math.round(s0 * F.perStar * 100) + '%' + (mx ? '　<b>已满星</b>' : '') + '</p>';
-  if (mode === 'forge') {
-  if (!mx) {
-    const mul = F.qMul[it.q || 1] || 1, coin = Math.round(F.coin[s0] * mul), ore = F.ore[s0], have = S.items.ore || 0, rate = F.rate[s0], drop = s0 >= F.dropFrom;
-    const ok = S.coin >= coin && have >= ore;
-    h += '<div class="fcost"><div><small>锻造到 ' + (s0 + 1) + ' 星</small></div><div class="' + (S.coin >= coin ? '' : 'lack') + '">银两 ' + fmt(coin) + ' <small>（有 ' + fmt(S.coin) + '）</small></div><div class="' + (have >= ore ? '' : 'lack') + '">玄铁矿 ×' + ore + ' <small>（有 ' + have + '）</small></div>' +
-      '<div>成功率 <b class="' + (rate >= .7 ? 'okc' : rate >= .4 ? 'midc' : 'badc') + '">' + Math.round(rate * 100) + '%</b> <small>' + (drop ? '失败掉 1 星' : '失败不掉星') + '</small></div></div>' +
+  if (mode === 'forge' && !mx) {
+    const mul = F.qMul[it.q || 1] || 1, coin = Math.round(F.coin[s0] * mul), base = F.rate[s0], drop = s0 >= F.dropFrom;
+    const fids = ['forge_1', 'forge_2', 'forge_3', 'forge_4', 'forge_5'];
+    if (!forgeGem || !S.items[forgeGem]) forgeGem = fids.find(i => S.items[i]) || forgeGem || 'forge_1';
+    const have = S.items[forgeGem] || 0, gi = D.items[forgeGem], rate = gi.forge >= 5 ? 1 : Math.min(1, base + F.gemBonus[gi.forge - 1]);
+    const ok = S.coin >= coin && have >= 1;
+    h += '<h4 class="fh">选一颗锻造宝石<small>　锻造必须消耗一颗，品质越高成功率越高</small></h4><div class="fgems">' + fids.map(i => { const n = S.items[i] || 0, g = D.items[i], q = itemQ(i);
+      return '<button type="button" class="fgem' + (i === forgeGem ? ' sel' : '') + (n ? '' : ' none') + qHi(i) + '" style="--qc:' + q.color + '" data-act="forgeGem:' + i + '" aria-label="' + g.name + '">' + itemImg(i) + '<b>' + n + '</b><small>' + (g.forge >= 5 ? '必成' : '+' + Math.round(F.gemBonus[g.forge - 1] * 100) + '%') + '</small></button>'; }).join('') + '</div>' +
+      '<div class="fcost"><div><small>锻造到 ' + (s0 + 1) + ' 星</small></div><div class="' + (S.coin >= coin ? '' : 'lack') + '">银两 ' + fmt(coin) + ' <small>（有 ' + fmt(S.coin) + '）</small></div><div class="' + (have >= 1 ? '' : 'lack') + '" style="color:' + itemQ(forgeGem).color + '">' + gi.name + ' ×1 <small>（有 ' + have + '）</small></div>' +
+      '<div>成功率 <b class="' + (rate >= .7 ? 'okc' : rate >= .4 ? 'midc' : 'badc') + '">' + Math.round(rate * 100) + '%</b> <small>' + (gi.forge >= 5 ? '必定成功' : '基础 ' + Math.round(base * 100) + '% + 宝石 ' + Math.round(F.gemBonus[gi.forge - 1] * 100) + '%') + '</small></div>' +
+      '<div class="fwide"><small>' + (gi.forge >= 5 ? '' : drop ? '失败掉 1 星，宝石和银两都会消耗' : '失败不掉星，宝石和银两仍会消耗') + '</small></div></div>' +
       '<p class="center" style="margin:10px 0 0"><button type="button" class="tbtn red forgebtn" data-act="forge:' + forgeSlot + '"' + (ok ? '' : ' disabled') + '>锻造</button></p>';
-  }
   }
   if (mode !== 'inlay') return h;
   // 宝石孔
@@ -260,10 +264,13 @@ function forgeDo(slot) {
   const F = D.forge, id = S.equip[slot], it = D.items[id]; if (!it) return;
   const gr = S.gear && S.gear[slot] || ((S.gear = S.gear || {})[slot] = { star: 0, gems: [] }), s0 = gr.star;
   if (s0 >= F.max) return;
-  const mul = F.qMul[it.q || 1] || 1, coin = Math.round(F.coin[s0] * mul), ore = F.ore[s0];
-  if (S.coin < coin || (S.items.ore || 0) < ore) { toast('材料不够'); return; }
-  S.coin -= coin; addItem('ore', -ore);
-  if (Math.random() < F.rate[s0]) { gr.star++; toast('锻造成功！' + it.name + ' ' + gr.star + ' 星');
+  const mul = F.qMul[it.q || 1] || 1, coin = Math.round(F.coin[s0] * mul), gid = forgeGem, gi = D.items[gid];
+  if (!gi) { toast('先选一颗锻造宝石'); return; }
+  if (S.coin < coin) { toast('银两不够'); return; }
+  if (!S.items[gid]) { toast('没有' + gi.name + '了'); return; }
+  S.coin -= coin; addItem(gid, -1);
+  const rate = gi.forge >= 5 ? 1 : Math.min(1, F.rate[s0] + F.gemBonus[gi.forge - 1]);
+  if (Math.random() < rate) { gr.star++; toast('锻造成功！' + it.name + ' ' + gr.star + ' 星');
     sys('「' + it.name + '」锻造到了 ' + gr.star + ' 星');
     if (gr.star >= 10) window.CHAT.notice('恭喜玩家「' + ROLE.name + '」将' + it.name + '锻造至 ' + gr.star + ' 星！');
   } else if (s0 >= F.dropFrom) { gr.star--; toast('锻造失败……' + it.name + ' 掉到了 ' + gr.star + ' 星'); }
@@ -386,6 +393,7 @@ const ACTS = {
   wxAuto() { wxLock = null; wxUpdate(true); openWeather(); },
   forgeSlot(sl) { forgeSlot = sl; gemPick = null; openSmith('forge'); },
   smithTab(t) { openSmith(t); },
+  forgeGem(id) { forgeGem = id; openSmith('forge'); },
   forge(sl) { forgeDo(sl); },
   gemPick(arg) { const [sl, i] = arg.split(':'); gemPick = { slot: sl, i: +i }; openSmith('forge'); },
   gemSet(id) { if (!gemPick || !S.items[id]) return; const gr = (S.gear = S.gear || {})[gemPick.slot] || (S.gear[gemPick.slot] = { star: 0, gems: [] }); gr.gems = gr.gems || []; gr.gems[gemPick.i] = id; addItem(id, -1); gemPick = null; clampVitals(); save(); refresh(); toast('镶嵌了' + D.items[id].name); openSmith('forge'); },
