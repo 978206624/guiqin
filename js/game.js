@@ -337,7 +337,7 @@ function loadMap(id, at) {
     const a = makeActor('foe', 'foe_' + st.id, D.enemies[lead].sprite, st.name, I(f.at[0], f.at[1]), { color: '#ff9a8a', title: '建议 ' + st.rec + ' 级', titleColor: '#ffd56a', face: f.face || 1 });
     a.stage = st; M.list.push(a);
   });
-  buildGrid();
+  buildGrid(); drawMiniDots();
   const p = at && inside(at) ? at : I(def.start[0], def.start[1]);
   player.pos = { x: p.x, y: p.y }; player.face = 1;
   const fp = { x: p.x + 46, y: p.y + 18 }; fox.pos = inside(fp) ? fp : { x: p.x, y: p.y };
@@ -350,7 +350,11 @@ function loadMap(id, at) {
   $('bgBattle').src = IMG(def.battleBg || 'bg_battle');
   camSnap(); showQuest();
 }
-const MINI = 0.09;                              // 小地图缩放
+const MINI = 0.09;
+const dotKind = a => (a.kind === 'portal' ? 'p' : a.kind === 'foe' ? 'f' : '') + (a.mark ? ' q' : '');
+function drawMiniDots() {
+  $('miniDots').innerHTML = M.list.map(a => '<i class="' + dotKind(a) + '" style="left:' + (a.pos.x * MINI).toFixed(1) + 'px;top:' + (a.pos.y * MINI).toFixed(1) + 'px"></i>').join('');
+}                              // 小地图缩放
 function camTarget() {
   return { x: Math.max(0, Math.min(M.W - 720, player.pos.x - 360)), y: Math.max(0, Math.min(M.H - 1280, player.pos.y - 700)) };
 }
@@ -476,7 +480,36 @@ $('wmap').addEventListener('click', e => {
   $('wmap').hidden = true; loadMap(id); save(); toast('传送到 ' + D.maps[id].name);
 });
 $('wmapClose').addEventListener('click', e => { e.stopPropagation(); $('wmap').hidden = true; });
-['mini', 'place'].forEach(id => $(id).addEventListener('click', e => { e.stopPropagation(); openWorld(); }));
+$('place').addEventListener('click', e => { e.stopPropagation(); openWorld(); });
+// 场景地图（点小地图打开）：当前这张地图的全貌，标出自己、人物、传送点、敌人；点地面走过去，点标记去找人
+function openScene() {
+  if (B.active) return;
+  stop(); wander = false; autoBtn.classList.remove('on');
+  const def = M.def; $('smapImg').src = IMG(def.img); $('smapTitle').textContent = def.name; $('smapSub').textContent = '场景地图 · ' + (def.note || '') + '　点地面走过去，点标记去找人';
+  const pct = (v, tot) => (v / tot * 100).toFixed(2) + '%';
+  const dots = M.list.map((a, i) => '<button type="button" class="sd ' + dotKind(a) + '" data-i="' + i + '" style="left:' + pct(a.pos.x, M.W) + ';top:' + pct(a.pos.y, M.H) + '"><i></i><span>' + a.name + '</span></button>').join('') +
+    '<div class="sd me" id="smapMe" style="left:' + pct(player.pos.x, M.W) + ';top:' + pct(player.pos.y, M.H) + '"><i></i></div>';
+  $('smapDots').innerHTML = dots;
+  const kindName = { npc: '人物', portal: '出口', foe: '敌人' };
+  $('smapList').innerHTML = M.list.map((a, i) => '<button type="button" class="' + (a.mark ? 'q' : '') + '" data-i="' + i + '"><small>' + kindName[a.kind] + '</small>' + a.name + (a.mark ? ' ！' : '') + '</button>').join('');
+  $('smap').hidden = false;
+  const bx = $('smapBox'), lst = $('smapList'), room = 1280 - 150 - 140, used = bx.offsetHeight + 20 + lst.offsetHeight, top = 150 + Math.max(0, (room - used) / 2 - 20);
+  bx.style.top = top + 'px'; lst.style.top = (top + bx.offsetHeight + 20) + 'px';
+}
+$('mini').addEventListener('click', e => { e.stopPropagation(); openScene(); });
+$('smap').addEventListener('click', e => {
+  e.stopPropagation();
+  const d = e.target.closest('[data-i]');
+  if (d) { const a = M.list[+d.dataset.i]; if (a) { $('smap').hidden = true; goTalk(a); } return; }
+  const box = e.target.closest('#smapBox');
+  if (box) {
+    const r = box.getBoundingClientRect();
+    const p = { x: (e.clientX - r.left) / r.width * M.W, y: (e.clientY - r.top) / r.height * M.H };
+    $('smap').hidden = true; if (!moveTo(p, false)) toast('走不过去');
+  }
+});
+$('smapClose').addEventListener('click', e => { e.stopPropagation(); $('smap').hidden = true; });
+$('smapWorld').addEventListener('click', e => { e.stopPropagation(); $('smap').hidden = true; openWorld(); });
 
 // ---------- 对话 ----------
 let typing = null, dialogFull = '', dialogAfter = null;
@@ -547,7 +580,7 @@ function questTarget() {
 function showQuest() {
   if (!M) return;
   const q = D.quests[S.step], tgt = questTarget();
-  M.list.forEach(a => { const m = a === tgt; if (a.mark !== m) { a.mark = m; drawTag(a); } });
+  let ch = false; M.list.forEach(a => { const m = a === tgt; if (a.mark !== m) { a.mark = m; drawTag(a); ch = true; } }); if (ch) drawMiniDots();
   $('qTitle').textContent = q ? q.title : '江湖路远'; $('qGoal').textContent = q ? q.goal : '主线已完成，去竹林继续历练吧';
   $('qSide').textContent = '已打通 ' + S.cleared.length + ' / ' + D.stages.length + ' 处';
 }
@@ -683,6 +716,7 @@ function frame(now) {
     const ct = camTarget(), k = reduce ? 1 : 1 - Math.exp(-7 * dt);
     cam.x += (ct.x - cam.x) * k; cam.y += (ct.y - cam.y) * k;
     world.style.transform = 'translate3d(' + (-cam.x).toFixed(1) + 'px,' + (-cam.y).toFixed(1) + 'px,0)';
+    $('miniDots').style.transform = 'translate(' + (51.5 - player.pos.x * MINI).toFixed(1) + 'px,' + (51.5 - player.pos.y * MINI).toFixed(1) + 'px)';
     $('miniMap').style.backgroundPosition = (51.5 - player.pos.x * MINI).toFixed(1) + 'px ' + (51.5 - player.pos.y * MINI).toFixed(1) + 'px';
     if (M.def.petals) for (const p of petals) { p.x += (p.vx + Math.sin(t * 1.3 + p.ph) * 30) * dt; p.y += p.vy * dt; if (p.y > 1040 || p.x < -20) { p.x = 100 + Math.random() * 740; p.y = -20 + Math.random() * 200; }
       p.el.style.transform = 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px) rotate(' + (Math.sin(t * 2 + p.ph) * 60).toFixed(0) + 'deg)'; }
