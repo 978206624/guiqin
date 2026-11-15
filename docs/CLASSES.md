@@ -2,7 +2,7 @@
 
 ## 创角与入派
 创角页只有两个角色：**新手（男）** 和 **新手（女）**，造型参考 kunkunxunqin 创角预览里的「赤绳少年」「青带少女」（参考图 `art-src/ref/kunkun_novice_*.png`，原资源见 kunkunxunqin 仓库 `design/role-create-20261008`），用本游戏的手绘画风重画（美术 `art-src/novice-kk/`，提示词 `art-src/prompts/k*_nf|nm.txt`，脚本 `tools/gen_novice_kk.sh`）。更早的几版新手图留在 `art-src/novice/`，不参与构建。
-新手达到 10 级后，去太虚之林找道家门主对话，弹出「拜入门派」选天音 / 琴魔（不足 10 级会提示）；升到 10 级时系统频道会提醒。职业和形象（行走图、战斗背影、立绘、头像）随之切换（`game.js` 的 `offerSect` / `changeClass`，职业表里 `joinSect` 字段）。男女新手走同一流程。
+两步入派：①新手 10 级后找太虚之林的道家门主「拜入道家」（`ROLE.sect='dao'`，存进角色表，形象不变）；②再去琴魔堂主 / 天音堂主处确认分堂（选定不可改），职业和形象（行走图、战斗背影、立绘、头像）此时才切换（`game.js` 的 `joinDaoTalk` / `pickHallTalk` / `changeClass`）。原作入门 15 级、分堂 30 级，演示只做到 10 级所以都按 10 级。男女新手同一流程。
 
 ## 道家女主
 

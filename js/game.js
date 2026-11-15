@@ -800,7 +800,7 @@ function changeClass(id) {         // 拜入门派：换职业、形象、头像
   ROLE.cls = id; const c = D.classes[id];
   setPlayerLook(id); player.title = '【' + clsName(c) + '】'; drawTag(player);
   $('hudSect').textContent = clsName(c); $('hudFace').src = IMG(AS.img['head_' + id] ? 'head_' + id : 'head_player');
-  S.hp = stats().maxHp; S.mp = stats().maxMp; sys('你拜入' + c.sect + '，成为「' + c.name + '」。'); toast('拜入' + c.sect + '·' + c.name);
+  S.hp = stats().maxHp; S.mp = stats().maxMp; sys('你选定' + c.name + '分堂，成为「' + c.name + '」。'); toast('拜入' + c.sect + '·' + c.name);
   if (window.GAME.onRoleChange) window.GAME.onRoleChange(); save(); refresh();
 }
 function offerSect() {
@@ -808,10 +808,26 @@ function offerSect() {
   openModal('拜入门派', '<p class="center">道家门主说：你与道家有缘。选一个分堂吧。</p>' + (curCls().joinSect).map(id => { const c = D.classes[id];
     return '<div class="q"><img alt="" src="' + IMG('head_' + id) + '" style="width:56px;height:56px;border-radius:50%;float:left;margin-right:10px"><b>' + c.name + '</b>（' + c.weapon + '）<br><small>' + c.desc + '</small><br><button type="button" class="tbtn red" data-act="sect:' + id + '">拜入' + c.name + '</button></div>'; }).join(''));
 }
+// 门派两步：10 级找门主入道家（ROLE.sect），再去对应堂主处选分堂（职业形象此时才变）。原作入门 15 级、分堂 30 级，演示只做到 10 级所以都按 10 级
+const SECT_LV = 10;
+function joinDaoTalk() {
+  const c = curCls();
+  if (!c.joinSect) { toast('你已是道家弟子'); return; }
+  if (ROLE.sect === 'dao') { toast('你已入道家，去找琴魔堂主或天音堂主选分堂'); return; }
+  if (S.lv < SECT_LV) { toast('需达到 ' + SECT_LV + ' 级方可入门（现在 ' + S.lv + ' 级）'); return; }
+  openModal('拜入道家', '<p class="center">道家门主说：道法自然。入我门下，再去琴魔、天音两位堂主处择一堂修行。</p><p class="center"><button type="button" class="tbtn red" data-act="joinDao">拜入道家</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
+}
+ACTS.joinDao = () => { closeModal(); ROLE.sect = 'dao'; player.title = '【道家】'; drawTag(player); $('hudSect').textContent = '道家'; sys('你拜入道家，请去太虚之林找琴魔堂主或天音堂主选择分堂。'); toast('拜入道家'); if (window.GAME.onRoleChange) window.GAME.onRoleChange(); save(); refresh(); };
+function pickHallTalk(hall) {          // hall: 'qm' | 'ty'
+  const c = curCls(), name = hall === 'qm' ? '琴魔' : '天音';
+  if (!c.joinSect) { toast(c.sect === '道家' && c.name.indexOf(name) < 0 ? '你已入另一堂，分堂不可改选' : '你已是' + name + '堂弟子'); return; }
+  if (ROLE.sect !== 'dao') { toast('先去找道家门主入门（' + SECT_LV + ' 级）'); return; }
+  const id = c.joinSect.find(x => x.indexOf('dao_' + hall) === 0), d = D.classes[id];
+  openModal('选择分堂', '<div class="q"><img alt="" src="' + IMG('head_' + id) + '" style="width:56px;height:56px;border-radius:50%;float:left;margin-right:10px"><b>' + d.name + '</b>（' + d.weapon + '）<br><small>' + d.desc + '</small></div><p class="center">分堂选定后不能改选。</p><p class="center"><button type="button" class="tbtn red" data-act="sect:' + id + '">拜入' + name + '</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
+}
 ACTS.sect = id => { closeModal(); changeClass(id); };
 // 完成当前这一拍：进入下一拍；任务最后一拍发奖励并播完成对白（下一个任务不是“找人”时，顺带播它的接取对白）
 function finishBeat(q, extra) {
-  const SECT_LV = 10;   // 10 级才可拜入门派，去太虚之林找道家门主
   const wasLow = S.lv < SECT_LV;
   S.step++; S.cnt = 0;
   let ups = 0, pages = [];
@@ -822,7 +838,7 @@ function finishBeat(q, extra) {
     const nx = D.quests[S.step]; if (nx && nx.first && nx.type !== 'talk' && nx.type !== 'spot') pages = pages.concat(nx.accept);
   }
   toast(ups ? '升到 ' + S.lv + ' 级！气血法力已回满' : (D.quests[S.step] ? '任务更新：' + D.quests[S.step].goal : '第一章已完成，后续剧情敬请期待'));
-  if (wasLow && S.lv >= SECT_LV && curCls().joinSect) sys('你已达 ' + SECT_LV + ' 级，可前往太虚之林，向道家门主拜入门派。');
+  if (wasLow && S.lv >= SECT_LV && curCls().joinSect) sys('你已达 ' + SECT_LV + ' 级，可前往太虚之林，找道家门主入门，再去堂主处选分堂。');
   save(); refresh();
   if (pages.length) showPages(pages);
 }
@@ -836,7 +852,8 @@ function talk(n) {
   openDialog(n, info.idle, () => {
     if (info.shop === 'smith') openSmith('forge');
     else if (info.shop) openShop(info.shop);
-    else if (info.act === 'joinSect') { if (!curCls().joinSect) toast('你已是道家弟子'); else if (S.lv >= 10) offerSect(); else toast('需达到 10 级方可拜入门派（现在 ' + S.lv + ' 级）'); }
+    else if (info.act === 'joinSect') joinDaoTalk();
+    else if (info.act === 'pickHall') pickHallTalk(info.hall);
     else if (info.act === 'arena') openModal('竞技场', '<p class="center">五对五模拟对战（不影响存档）。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">上擂台</button>　<button type="button" class="tbtn" data-act="close">再看看</button></p>');
     else if (info.rest) { const st = stats(); if (S.hp < st.maxHp || S.mp < st.maxMp) { S.hp = st.maxHp; S.mp = st.maxMp; save(); refresh(); toast(info.restMsg || '歇了一会儿，气血法力回满'); } }
   });
@@ -1622,8 +1639,9 @@ function enterGame(role, serverName) {
   S = load() || newGame(); bagSel = null;
   const c = D.classes[role.cls];
   setPlayerLook(role.cls);
-  player.name = role.name; player.title = '【' + clsName(c) + '】'; drawTag(player);
-  $('hudName').textContent = role.name; $('hudSect').textContent = clsName(c); $('hudFace').src = IMG(AS.img['head_' + role.cls] ? 'head_' + role.cls : 'head_player');
+  const sectTxt = c.joinSect && role.sect === 'dao' ? '道家' : clsName(c);
+  player.name = role.name; player.title = '【' + sectTxt + '】'; drawTag(player);
+  $('hudName').textContent = role.name; $('hudSect').textContent = sectTxt; $('hudFace').src = IMG(AS.img['head_' + role.cls] ? 'head_' + role.cls : 'head_player');
   $('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!S.gift; });
   window.CHAT.reset(serverName, role.name);
   loadMap(D.maps[S.map] ? S.map : D.start.map, S.pos); refresh(); save(); last = performance.now();
