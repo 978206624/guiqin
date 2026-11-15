@@ -67,6 +67,9 @@ o=Image.open(G+'/creek.jpg').convert('RGB'); o.save(f'{AD}/bg_creek.jpg',quality
 o=Image.open(G+'/mist.jpg').convert('RGB'); o.save(f'{AD}/bg_mist.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_mist.jpg',quality=80)
 o=Image.open(G+'/pine.jpg').convert('RGB'); o.save(f'{AD}/bg_pine.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_pine.jpg',quality=80)
 o=Image.open(G+'/wolfvalley.jpg').convert('RGB'); o.save(f'{AD}/bg_wolfvalley.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_wolfvalley.jpg',quality=80)
+o=Image.open(G+'/tx_forest.png').convert('RGB'); o.save(f'{AD}/bg_taixuforest.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_taixuforest.jpg',quality=80)
+o=Image.open(G+'/tx_peak.png').convert('RGB'); o.save(f'{AD}/bg_taixupeak.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_taixupeak.jpg',quality=80)
+o=Image.open(G+'/tx_valley.png').convert('RGB'); o.save(f'{AD}/bg_taixuvalley.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_taixuvalley.jpg',quality=80)
 b2=Image.open(G+'/battle2.png').convert('RGB'); cw2=round(b2.height*9/16); x2=(b2.width-cw2)//2
 b2.crop((x2,0,x2+cw2,b2.height)).save(f'{AD}/bg_battle2.jpg',quality=88,optimize=True)
 
@@ -164,7 +167,7 @@ b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.wid
 b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=True)
 
 from PIL import ImageFilter
-for n,q in [('bg_town',66),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',78),('bg_wolfvalley',78)]:
+for n,q in [('bg_town',54),('bg_village',78),('bg_wild',78),('world',78),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',78),('bg_creek',78),('bg_mist',78),('bg_pine',78),('bg_wolfvalley',78)]:
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue
     im=Image.open(p).convert('RGB')
