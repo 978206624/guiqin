@@ -140,6 +140,8 @@ window.DATA = {
   stages: [
     { id: 'dummy',   name: '山脚木桩', rec: 1, enemies: ['dummy'],               desc: '一动不动的稻草人，拿来练手正好。' },
     { id: 'boar',    name: '山道野猪', rec: 2, enemies: ['boar', 'boar'],          desc: '两头在山道边拱土的野猪。', need: 'dummy' },
+    { id: 'hog',     name: '荒径野猪', rec: 3, enemies: ['boar', 'boar', 'boar'],    desc: '三头在村郊荒径上横冲直撞的野猪。', need: 'boar' },
+    { id: 'roam',    name: '林间游狼', rec: 4, enemies: ['wolf', 'wolf'],            desc: '两头在林子边游荡的饿狼。', need: 'hog' },
     { id: 'path',    name: '竹林小径', rec: 5, enemies: ['grunt', 'grunt'],          desc: '两个拦路的山贼喽啰。' },
     { id: 'wolves',  name: '狼群出没', rec: 6, enemies: ['wolf', 'wolf', 'wolf'],    desc: '三头饿狼，速度很快。', need: 'path' },
     { id: 'outpost', name: '山寨前哨', rec: 7, enemies: ['grunt', 'wolf', 'grunt'],  desc: '山贼和他们养的狼。',   need: 'wolves' },
@@ -180,6 +182,7 @@ window.DATA = {
     byMap: {
       village: { clear: 4, cloudy: 3, fog: 3, rain: 2, snow: 1 },
       town:    { clear: 5, cloudy: 2, rain: 2, storm: 1 },
+      outskirts: { clear: 4, cloudy: 2, fog: 2, rain: 2 },
       wild:    { clear: 3, cloudy: 2, fog: 3, rain: 3, storm: 1 }
     }
   },
@@ -306,8 +309,23 @@ window.DATA = {
       blocks: [],
       glows: [[1110,330],[1570,520],[1790,960],[1710,520]],
       npcs: [{ id: 'elder', at: [1040, 545] }, { id: 'axiu', at: [1190, 845] }],
-      portals: [{ to: 'town', name: '下山·汉中郡', at: [1790, 1380], arrive: [450, 790], needStep: 4, lockMsg: '村长还有话要交代，先别急着下山' }],
+      portals: [{ to: 'outskirts', name: '下山·恒山村郊', at: [1790, 1380], arrive: [140, 1360], needStep: 4, lockMsg: '村长还有话要交代，先别急着下山' }],
       foes: [{ stage: 'dummy', at: [440, 1225] }, { stage: 'boar', at: [1560, 480] }]
+    },
+    outskirts: {
+      name: '恒山村郊', world: [330, 540], note: '山野荒径', home: 'village', img: 'bg_outskirts', mini: 'mini_outskirts', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [140, 1360],
+      alt: '村外的荒野：土路穿过草地和树林，溪水上有踏脚石，路边有篝火圈、树桩、倒木和路牌',
+      walk: [],
+      roads: [
+        { r: 95, pts: [[10,1440],[200,1310],[380,1170],[560,1075],[760,1020],[860,930],[900,830]] },
+        { r: 90, pts: [[900,830],[960,700],[1010,620],[1130,570],[1330,500],[1540,470],[1680,390],[1770,270],[1880,170],[1990,90]] },
+        { r: 70, pts: [[560,1075],[540,950],[520,860]] },                           // 篝火圈
+        { r: 70, pts: [[1330,500],[1420,400],[1470,330]] }                          // 路牌
+      ],
+      blocks: [],
+      glows: [[520,860],[1470,330]],
+      portals: [{ to: 'village', name: '回恒山村', at: [40, 1430], arrive: [1700, 1340] }, { to: 'town', name: '去汉中郡', at: [1960, 110], arrive: [450, 790] }],
+      foes: [{ stage: 'hog', at: [560, 1060] }, { stage: 'roam', at: [1330, 505] }]
     },
     town: {
       name: '汉中郡', world: [467, 765], note: '主城', home: 'town', img: 'bg_town', mini: 'mini_town', iw: 2576, ih: 1426, scale: 1.5, k: 1.288, start: [850, 575],
@@ -326,7 +344,7 @@ window.DATA = {
       glows: [[660,225],[1215,280],[1750,200],[1620,610],[240,540],[1500,990]],
       npcs: [{ id: 'towerman', at: [850, 535] }, { id: 'waiter', at: [1360, 330] }, { id: 'smith', at: [1290, 745] },
              { id: 'vendor', at: [350, 745] }, { id: 'arenaman', at: [660, 705] }, { id: 'trader', at: [1690, 925] }, { id: 'girl', at: [940, 625] }],
-      portals: [{ to: 'wild', name: '出城·竹林', at: [300, 800], arrive: [150, 453] }, { to: 'village', name: '回恒山村', at: [570, 160], arrive: [1700, 1340] }]
+      portals: [{ to: 'wild', name: '出城·竹林', at: [300, 800], arrive: [150, 453] }, { to: 'outskirts', name: '恒山村郊', at: [570, 160], arrive: [1860, 190] }]
     },
     wild: {
       name: '城外·竹林', world: [698, 1265], note: '山贼出没', home: 'town', img: 'bg_wild', mini: 'mini_wild', iw: 1672, ih: 941, scale: 2, k: 1.6328, start: [150, 453],

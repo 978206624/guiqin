@@ -62,6 +62,7 @@ def head(src_png, idx, n_total, name, cx):
 head(G+'/npc2.png',0,4,'elder',0.4); head(G+'/npc2.png',1,4,'axiu',0.5)
 v=Image.open(G+'/village2.png').convert('RGB'); v.save(f'{AD}/bg_village.jpg',quality=88,optimize=True); v.resize((512,384),Image.LANCZOS).save(f'{AD}/mini_village.jpg',quality=80)
 wm=Image.open(G+'/world.png').convert('RGB'); wm.save(f'{AD}/world.jpg',quality=86,optimize=True); size['world']=list(wm.size)
+o=Image.open(G+'/outskirts.jpg').convert('RGB'); o.save(f'{AD}/bg_outskirts.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_outskirts.jpg',quality=80)
 b2=Image.open(G+'/battle2.png').convert('RGB'); cw2=round(b2.height*9/16); x2=(b2.width-cw2)//2
 b2.crop((x2,0,x2+cw2,b2.height)).save(f'{AD}/bg_battle2.jpg',quality=88,optimize=True)
 
@@ -69,6 +70,7 @@ it=Image.open(G+'/items.png').convert('RGBA'); W,H=it.size
 for i,n in enumerate(['hp_potion','mp_potion','iron_sword','steel_sword','cloth_armor','leather_armor','ore','wolf_fang','sachet','coins','lantern','chest']):
     c=it.crop(((i%4)*W//4,(i//4)*H//3,(i%4+1)*W//4,(i//4+1)*H//3)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>60 else 0).getbbox())
     c.resize((128,128),Image.LANCZOS).save(f'{AD}/item_{n}.webp',quality=92)
+
 
 # 装备图标（十二部位新增）：两张 4x3 图标表，绿幕底，逐格抠出
 GEAR={'gear1':['wood_beads','copper_ring','leather_bracer','leather_cap','linen_belt','linen_legs','cloth_boots','bronze_bell','peace_charm','herb_pouch','iron_armor','steel_saber'],
