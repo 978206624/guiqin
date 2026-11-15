@@ -220,6 +220,14 @@ for k in ['wave','mist','soul','chain','ring','heal','notes','revive']:
         a=np.asarray(Image.open(sp).convert('RGB').resize((1024,512),Image.LANCZOS)).astype(np.float32)/255; al=a.max(2); al=np.clip((al-0.02)/0.98,0,1)
         rgb=np.where(al[...,None]>0.003,a/np.maximum(al[...,None],0.003),0).clip(0,1)
         Image.fromarray((np.dstack([rgb,al])*255).astype('uint8'),'RGBA').save(f'{AD}/fx_{k}.webp',quality=85,method=6)
+# 原作形象特效（art-src/fx/cast/<名>.png：2×2 四帧、黑底）→ fxc_<名>.webp（黑底转透明）
+for k in ['wave','mist','soul','chain','heal','notes','revive']:
+    sp=f'{G}/fx/cast/{k}.png'
+    if os.path.exists(sp):
+        import numpy as np
+        a=np.asarray(Image.open(sp).convert('RGB').resize((1536,1024),Image.LANCZOS)).astype(np.float32)/255; al=np.clip((a.max(2)-0.03)/0.97,0,1)
+        rgb=np.where(al[...,None]>0.003,a/np.maximum(al[...,None],0.003),0).clip(0,1)
+        Image.fromarray((np.dstack([rgb,al])*255).astype('uint8'),'RGBA').save(f'{AD}/fxc_{k}.webp',quality=85,method=6)
 # kunkunxunqin 项目的 NPC 静态图（art-src/kunkun-npc/<资源名>.png，1000×600 画布里一个小人）：裁掉空白 → kk_<名> 立绘（显示高度见表，2 倍存储）+ head_kk_<名> 头像
 # 当前接入第一章用到的；后续章节的（npc_qxz 赵村村长 / npc_xhs 萧恨水 / npc_hx 韩信 / npc15 装备商人 / npc_bs 白素）原图已在 art-src/kunkun-npc，用到时加进来（单文件版有 16MB 上限）
 KK_NPC = dict(npc14=104, npc_zhw=118, npc_cyblq=132, npc13=104, npc07=104, npc33=104, npc57=150, npc45=150, npc47=156)   # npc57 道家门主 / npc45 琴魔堂主 / npc47 天音堂主

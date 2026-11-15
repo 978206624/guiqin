@@ -1341,6 +1341,8 @@ function fxAt(cls, u, ms, dy, style) {
 async function castPose(u) { u.el.classList.add('cast'); await sleep(560); u.el.classList.remove('cast'); }   // 施法动作：拨弦的起伏摆动 + 光晕
 function castFx(u, id) {                       // 出手者一侧：乐声起势
   const k = SKILL_FX[id]; if (!k) return;
+  const ck = CAST_FX[id];
+  if (ck && AS.img['fxc_' + ck] && (ck === 'wave' || ck === 'mist' || ck === 'soul' || ck === 'chain')) { castSheet(ck, u, { behind: ck !== 'chain', face: u.side === 'ally' ? -1 : 1, dx: u.side === 'ally' ? -70 : 70, w: ck === 'chain' ? 260 : 360 }); }
   ['wave', 'wave b', 'wave c'].forEach(c => fxAt(c, u, 800, 6));
 }
 // 高清光效：4×2 = 8 帧的精灵表（art-src/fx，图像生成重画），黑底，用 screen 混合叠在战场上；缺图时退回下面的代码绘制版
@@ -1351,8 +1353,20 @@ function sheetFx(k, u, scale) {
   let i = 0; const step = () => { e.style.backgroundPosition = ((i % 4) * 100 / 3) + '% ' + (i >= 4 ? 100 : 0) + '%'; if (++i >= 8) { clearInterval(tm); setTimeout(() => e.remove(), 90); } };
   const tm = setInterval(step, 95); step();
 }
+// 原作形象特效（art-src/fx/cast，参考原作帧、去掉人物）：2×2 共 4 帧、黑底转透明。魔影放在施法者身后朝向敌人，仙影出现在被治疗者身上
+const CAST_FX = { dangmo_qm: 'wave', dangmo_ty: 'wave', dangmo_fs: 'wave', mohun: 'mist', duohun: 'soul', fuling: 'chain', yangsheng: 'heal', tianlai: 'notes', fanhun: 'revive' };
+function castSheet(k, u, opts) {
+  opts = opts || {}; const w = (opts.w || 330), h = w * 2 / 3, e = document.createElement('div'); e.className = 'sfx hd c4';
+  const face = opts.face ? ' scaleX(' + opts.face + ')' : '';
+  e.style.cssText = 'left:' + (u.pos.x + (opts.dx || 0)) + 'px;top:' + (u.pos.y - u.h * (opts.up == null ? 0.55 : opts.up)) + 'px;width:' + w + 'px;height:' + h + 'px;z-index:' + (opts.behind ? Math.round(u.pos.y) - 1 : 1998) + ';background-image:url(' + IMG('fxc_' + k) + ');transform:translate(-50%,-50%)' + face;
+  $('units').appendChild(e);
+  let i = 0; const step = () => { e.style.backgroundPosition = ((i % 2) * 100) + '% ' + (i >= 2 ? 100 : 0) + '%'; e.style.opacity = i === 3 ? 0.75 : 1; if (++i >= 4) { clearInterval(tm); e.style.transition = 'opacity .25s'; e.style.opacity = 0; setTimeout(() => e.remove(), 260); } };
+  const tm = setInterval(step, 190); step();
+}
 function skillHitFx(id, t) {                   // 目标一侧
   const k = SKILL_FX[id]; if (!k) return false;
+  const ck = CAST_FX[id];
+  if (ck && AS.img['fxc_' + ck] && (ck === 'heal' || ck === 'notes' || ck === 'revive')) { castSheet(ck, t, { w: 340, up: 0.7 }); return true; }
   if (AS.img['fx_' + k]) { sheetFx(k, t, k === 'revive' ? 1.15 : 1); return true; }
   if (k === 'wave') { fxAt('wave', t, 700); fxAt('wave b', t, 800); }
   else if (k === 'notes') { for (let i = 0; i < 4; i++) { fxAt('note', t, 1100, t.h * 0.3 + i * 4, '--dx:' + rnd(-26, 26) + 'px;animation-delay:' + (i * 0.1) + 's;opacity:0'); const el = $('units').lastChild; el.textContent = i % 2 ? '♫' : '♪'; } }
