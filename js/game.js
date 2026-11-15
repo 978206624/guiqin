@@ -649,7 +649,7 @@ function onBtn(key, label, b) {
 }
 ['hud', 'coin', 'chat'].forEach(id => $(id).addEventListener('click', e => e.stopPropagation()));
 
-// ---------- 世界地图：点小地图打开，去过的地方可以直接传送 ----------
+// ---------- 世界地图：点小地图打开，点任意地点可以直接传送 ----------
 function openWorld() {
   if (B.active) return;
   stop(); wander = false; autoBtn.classList.remove('on');
@@ -657,8 +657,8 @@ function openWorld() {
   const iw = AS.size.world[0], ih = AS.size.world[1], k = 1280 / ih, off = (iw * k - 720) / 2;   // 图片按高度铺满、左右裁掉
   $('wmapNodes').innerHTML = Object.keys(D.maps).map(id => {
     const d = D.maps[id], here = id === M.id, seen = (S.visited || []).includes(id);
-    return '<button type="button" class="wnode' + (here ? ' here' : '') + '" data-go="' + id + '"' + (seen ? '' : ' disabled') + ' style="left:' + (d.world[0] * k - off) + 'px;top:' + (d.world[1] * k) + 'px">' + d.name +
-      '<small>' + (here ? '你在这里' : seen ? d.note : '尚未去过') + '</small></button>';
+    return '<button type="button" class="wnode' + (here ? ' here' : '') + '" data-go="' + id + '" style="left:' + (d.world[0] * k - off) + 'px;top:' + (d.world[1] * k) + 'px">' + d.name +
+      '<small>' + (here ? '你在这里' : d.note) + '</small></button>';
   }).join('');
   $('wmap').hidden = false;
 }

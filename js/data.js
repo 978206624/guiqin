@@ -163,7 +163,7 @@ window.DATA = {
     { type: 'win', stage: 'dummy', title: '热身', goal: '去山脚石板路打倒木桩' },
     { type: 'win', stage: 'boar', title: '菜地之患', goal: '赶走山道上拱菜的野猪' },
     { type: 'talk', npc: 'elder', title: '下山', goal: '回去告诉村长',
-      say: '好，有模有样了。拿着这封信从村口的木平台下山去汉中郡，到聚贤楼找店小二。记住，点右上角的小地图能打开舆图，去过的地方可以直接传送。', reward: { exp: 700, coin: 150 } },
+      say: '好，有模有样了。拿着这封信从村口的木平台下山去汉中郡，到聚贤楼找店小二。记住，点右上角的小地图能打开舆图，点任意地点可以直接传送。', reward: { exp: 700, coin: 150 } },
     { type: 'talk', npc: 'waiter', title: '侠客初成', goal: '到汉中郡聚贤楼找店小二',
       say: '少侠是恒山村来的吧？村长的信掌柜的收到了。王铁匠那儿给您留了一把剑，您亲自去取吧。', reward: { exp: 80 } },
     { type: 'talk', npc: 'smith', title: '取剑', goal: '去铁匠铺找王铁匠',
@@ -340,7 +340,7 @@ window.DATA = {
       foes: [{ stage: 'hog', at: [560, 1060] }, { stage: 'roam', at: [1330, 505] }]
     },
     creek: {
-      name: '清溪谷', world: [420, 650], note: '碧水幽谷', home: 'village', img: 'bg_creek', mini: 'mini_creek', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [1100, 1450],
+      name: '清溪谷', world: [226, 830], note: '碧水幽谷', home: 'village', img: 'bg_creek', mini: 'mini_creek', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [1100, 1450],
       alt: '碧绿的溪谷：溪水带着几道小瀑布，木桥横跨溪流，红枫、竹林和荷塘相伴，石板路一路通向山上',
       walk: [],
       roads: [
@@ -354,7 +354,7 @@ window.DATA = {
       foes: [{ stage: 'creekwolf', at: [800, 1110] }, { stage: 'creekgang', at: [1600, 490] }]
     },
     mist: {
-      name: '云雾谷', world: [520, 520], note: '云雾缭绕', home: 'village', img: 'bg_mist', mini: 'mini_mist', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [770, 1440],
+      name: '云雾谷', world: [730, 270], note: '云雾缭绕', home: 'village', img: 'bg_mist', mini: 'mini_mist', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [770, 1440],
       alt: '深山谷底：碧绿的溪水沿着土路蜿蜒，两侧是爬满藤蔓的崖壁和细瀑布，云雾在谷中缓缓飘动',
       fog: { n: 34, lo: .3, hi: .85 },
       walk: [],
@@ -379,7 +379,7 @@ window.DATA = {
       foes: [{ stage: 'pinegang', at: [1000, 1170] }, { stage: 'pinewolf', at: [1180, 650] }]
     },
     wolfvalley: {
-      name: '恶狼谷', world: [900, 1010], note: '狼群盘踞', home: 'town', img: 'bg_wolfvalley', mini: 'mini_wolfvalley', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [90, 1310],
+      name: '恶狼谷', world: [740, 940], note: '狼群盘踞', home: 'town', img: 'bg_wolfvalley', mini: 'mini_wolfvalley', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [90, 1310],
       alt: '荒凉的山谷：土路上满是爪印，岩壁里有一个个狼洞，洞口散着兽骨，路边是枯树和荆棘',
       walk: [],
       roads: [
