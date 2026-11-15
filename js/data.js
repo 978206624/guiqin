@@ -4,8 +4,8 @@
 // ============================================================
 window.DATA = {
   // 主角属性 = base + grow * 等级；灵狐属性 = 主角裸属性 * pet 系数
-  base: { hp: 800, mp: 300, atk: 80, def: 30, spd: 90 },
-  grow: { hp: 120, mp: 40, atk: 14, def: 6, spd: 2 },
+  base: { hp: 800, mp: 300, atk: 80, matk: 70, def: 30, mdef: 25, spd: 90, crit: 10, dodge: 3 },
+  grow: { hp: 120, mp: 40, atk: 14, matk: 12, def: 6, mdef: 5, spd: 2, crit: 0, dodge: 0 },
   pet:  { hp: 0.6, atk: 0.7, def: 0.6, spd: 1.2 },
   // 宠物图鉴：灵狐是出生自带的，其余为展示用（获得途径之后接玩法）
   petQuality: { 1: { name: '普通', color: '#c3c9d1', stars: 2 }, 2: { name: '精良', color: '#7ee08a', stars: 3 }, 3: { name: '稀有', color: '#6fb6ff', stars: 4 }, 4: { name: '传说', color: '#ffc857', stars: 5 } },
@@ -22,9 +22,38 @@ window.DATA = {
     panda:    { name: '竹熊', sprite: 'f_panda',   q: 2, kind: '走兽 · 防御', desc: '竹林深处的憨态大熊，皮糙肉厚。', how: '城外竹林稀有掉落' },
     dragon:   { name: '赤螭', sprite: 'f_dragon',  q: 4, kind: '神兽 · 法术', desc: '传说中的赤色小龙，吐息如火，是万中无一的灵宠。', how: '节日活动限定' }
   },
+  // 物品品质：白装 / 蓝装 / 紫装 / 橙装 / 红装（q = 1..5）
+  quality: { 1: { name: '白装', short: '白', color: '#eef0f4' }, 2: { name: '蓝装', short: '蓝', color: '#4aa3ff' }, 3: { name: '紫装', short: '紫', color: '#b36bff' }, 4: { name: '橙装', short: '橙', color: '#ff9a2e' }, 5: { name: '红装', short: '红', color: '#ff4a4a' } },
+  // 属性名（暴击、闪避是百分比）
+  statName: { atk: '物攻', matk: '法攻', hp: '生命', def: '物防', mdef: '法防', mp: '魔法', dodge: '闪避', spd: '速度', crit: '暴击' },
+  // 宝石：九种，每种 1~5 阶，同种 3 合 1 升阶。vals 是各阶镶嵌后加的数值（闪避、暴击为百分点）
+  gems: {
+    atk:   { stone: '赤焰石', icon: 'gem_atk',   vals: [12, 30, 60, 110, 190] },
+    matk:  { stone: '紫霞石', icon: 'gem_matk',  vals: [12, 30, 60, 110, 190] },
+    hp:    { stone: '青木石', icon: 'gem_hp',    vals: [100, 250, 500, 900, 1500] },
+    def:   { stone: '玄琥石', icon: 'gem_def',   vals: [8, 20, 40, 75, 130] },
+    mdef:  { stone: '碧水石', icon: 'gem_mdef',  vals: [8, 20, 40, 75, 130] },
+    mp:    { stone: '苍澜石', icon: 'gem_mp',    vals: [60, 150, 300, 540, 900] },
+    dodge: { stone: '流云石', icon: 'gem_dodge', vals: [1, 2, 3.5, 5, 7] },
+    spd:   { stone: '金风石', icon: 'gem_spd',   vals: [4, 10, 20, 36, 60] },
+    crit:  { stone: '绯樱石', icon: 'gem_crit',  vals: [1, 2, 3.5, 5, 7] }
+  },
+  // 锻造：每个部位独立升星（星级跟着部位走，换装不丢），最高 15 星
+  forge: {
+    max: 15, perStar: 0.06,                                          // 每星 +6% 装备自带属性，满星 +90%
+    coin: [50, 80, 120, 180, 260, 380, 540, 760, 1050, 1450, 2000, 2700, 3600, 4800, 6400],   // 升到第 n+1 星的银两
+    ore:  [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 10, 12],           // 玄铁矿
+    rate: [1, 1, 0.95, 0.9, 0.85, 0.75, 0.65, 0.55, 0.5, 0.45, 0.4, 0.35, 0.3, 0.25, 0.2],   // 成功率
+    dropFrom: 10,                                                     // 已有 ≥10 星时失败会掉 1 星
+    qMul: { 1: 1, 2: 1.2, 3: 1.5, 4: 2, 5: 2.6 },                    // 品质越高越贵
+    sockets: [0, 5, 10, 15]                                           // 第 1/2/3/4 个孔需要的星级
+  },
   bagSize: 20,
+  // 装备部位（界面左右各 6 个，从上到下）
+  slots: { weapon: '武器', treasure: '法宝', neck: '颈部', wrist: '手腕', finger: '手指', pouch: '药囊', amulet: '护符', head: '头部', chest: '胸部', waist: '腰部', legs: '腿部', feet: '脚部' },
+  slotLeft: ['head', 'neck', 'chest', 'waist', 'legs', 'feet'], slotRight: ['weapon', 'treasure', 'wrist', 'finger', 'pouch', 'amulet'],
   expNeed: { base: 150, perLevel: 90 },        // 升到下一级所需经验 = base + perLevel * 当前等级
-  start: { lv: 1, coin: 100, items: { hp_potion: 3 }, equip: { weapon: null, armor: 'cloth_armor', charm: null }, map: 'village' },
+  start: { lv: 1, coin: 100, items: { hp_potion: 3 }, equip: { chest: 'cloth_armor' }, map: 'village' },
 
   // 可选职业：男女各三种。stats 是创建界面上的五维条（1-5），只用于展示
   classes: {
@@ -39,11 +68,38 @@ window.DATA = {
   items: {
     hp_potion:     { name: '金创药',   icon: 'hp_potion', q: 1,     type: 'potion', price: 50,  hp: 600, desc: '恢复 600 点气血。' },
     mp_potion:     { name: '回气丹',   icon: 'mp_potion', q: 1,     type: 'potion', price: 60,  mp: 300, desc: '恢复 300 点法力。' },
-    iron_sword:    { name: '精铁剑',   icon: 'iron_sword', q: 2,    type: 'equip',  slot: 'weapon', price: 300, atk: 40, desc: '王铁匠亲手淬火的好剑。攻击 +40' },
-    steel_sword:   { name: '玄铁剑',   icon: 'steel_sword', q: 3,   type: 'equip',  slot: 'weapon', price: 900, atk: 95, desc: '玄铁所铸，寒光逼人。攻击 +95' },
-    cloth_armor:   { name: '布衣',     icon: 'cloth_armor', q: 1,   type: 'equip',  slot: 'armor',  price: 80,  def: 15, desc: '寻常布衣。防御 +15' },
-    leather_armor: { name: '皮甲',     icon: 'leather_armor', q: 2, type: 'equip',  slot: 'armor',  price: 500, def: 50, hp: 200, desc: '鞣制皮甲。防御 +50，气血上限 +200' },
-    sachet:        { name: '百花香囊', icon: 'sachet', q: 3,        type: 'equip',  slot: 'charm',  price: 400, hp: 300, spd: 10, desc: '逍遥子所赠。气血上限 +300，速度 +10' },
+    iron_sword:    { name: '精铁剑',   icon: 'iron_sword', q: 2,    type: 'equip',  slot: 'weapon', price: 300, atk: 40, desc: '王铁匠亲手淬火的好剑。物攻 +40' },
+    steel_sword:   { name: '玄铁剑',   icon: 'steel_sword', q: 3,   type: 'equip',  slot: 'weapon', price: 900, atk: 95, desc: '玄铁所铸，寒光逼人。物攻 +95' },
+    cloth_armor:   { name: '布衣',     icon: 'cloth_armor', q: 1,   type: 'equip',  slot: 'chest',  price: 80,  def: 15, desc: '寻常布衣。物防 +15' },
+    leather_armor: { name: '皮甲',     icon: 'leather_armor', q: 2, type: 'equip',  slot: 'chest',  price: 500, def: 50, hp: 200, desc: '鞣制皮甲。物防 +50，生命 +200' },
+    sachet:        { name: '百花香囊', icon: 'sachet', q: 3,        type: 'equip',  slot: 'pouch',  price: 400, hp: 300, spd: 10, desc: '逍遥子所赠。生命 +300，速度 +10' },
+    // —— 新增装备：十二个部位 ——
+    wood_beads:    { name: '木珠项链',   icon: 'wood_beads',    q: 1, type: 'equip', slot: 'neck',     price: 120,  hp: 120, atk: 6,   desc: '山里人常戴的木珠串，据说能安神。生命 +120，物攻 +6' },
+    jade_pendant:  { name: '玉佩项链',   icon: 'jade_pendant',  q: 3, type: 'equip', slot: 'neck',     price: 700,  hp: 320, atk: 14,  desc: '温润的青玉雕成，贴身佩戴养气。生命 +320，物攻 +14' },
+    copper_ring:   { name: '铜指环',     icon: 'copper_ring',   q: 1, type: 'equip', slot: 'finger',   price: 100,  atk: 10,          desc: '寻常铜戒，握剑时更稳。物攻 +10' },
+    silver_ring:   { name: '银镶蓝宝戒', icon: 'silver_ring',   q: 2, type: 'equip', slot: 'finger',   price: 450,  atk: 22,          desc: '西域来的蓝宝石戒指。物攻 +22' },
+    leather_bracer:{ name: '皮护腕',     icon: 'leather_bracer',q: 1, type: 'equip', slot: 'wrist',    price: 110,  def: 8, atk: 4,   desc: '鞣制皮革缝成。物防 +8，物攻 +4' },
+    steel_bracer:  { name: '精钢护腕',   icon: 'steel_bracer',  q: 2, type: 'equip', slot: 'wrist',    price: 500,  def: 20, atk: 10,  desc: '精钢打造，镶金边。物防 +20，物攻 +10' },
+    leather_cap:   { name: '皮帽',       icon: 'leather_cap',   q: 1, type: 'equip', slot: 'head',     price: 100,  def: 10, hp: 60,  desc: '猎户常戴的皮帽。物防 +10，生命 +60' },
+    iron_helm:     { name: '铁盔',       icon: 'iron_helm',     q: 2, type: 'equip', slot: 'head',     price: 500,  def: 26, hp: 150, desc: '红缨铁盔，军中旧物。物防 +26，生命 +150' },
+    linen_belt:    { name: '麻布腰带',   icon: 'linen_belt',    q: 1, type: 'equip', slot: 'waist',    price: 90,   hp: 100, def: 5,  desc: '结实的麻布腰带。生命 +100，物防 +5' },
+    jade_belt:     { name: '白玉带',     icon: 'jade_belt',     q: 3, type: 'equip', slot: 'waist',    price: 650,  hp: 260, def: 14, desc: '金扣玉带，富贵人家才有。生命 +260，物防 +14' },
+    linen_legs:    { name: '麻布护腿',   icon: 'linen_legs',    q: 1, type: 'equip', slot: 'legs',     price: 100,  def: 12, hp: 50,  desc: '赶路时绑在腿上的护腿。物防 +12，生命 +50' },
+    iron_greaves:  { name: '铁护腿',     icon: 'iron_greaves',  q: 2, type: 'equip', slot: 'legs',     price: 520,  def: 30, hp: 120, desc: '铁片缀成的护腿。物防 +30，生命 +120' },
+    cloth_boots:   { name: '布靴',       icon: 'cloth_boots',   q: 1, type: 'equip', slot: 'feet',     price: 90,   spd: 6, def: 5,   desc: '草底布靴，走山路不累。速度 +6，物防 +5' },
+    cloud_boots:   { name: '云纹靴',     icon: 'cloud_boots',   q: 3, type: 'equip', slot: 'feet',     price: 650,  spd: 16, def: 12, desc: '绣着云纹的轻靴，步履生风。速度 +16，物防 +12' },
+    bronze_bell:   { name: '青铜铃',     icon: 'bronze_bell',   q: 2, type: 'equip', slot: 'treasure', price: 350,  matk: 18, spd: 4, desc: '古旧的青铜法铃，摇动时嗡嗡作响。法攻 +18，速度 +4' },
+    bagua_mirror:  { name: '八卦镜',     icon: 'bagua_mirror',  q: 3, type: 'equip', slot: 'treasure', price: 1100, matk: 42, spd: 8, desc: '方士炼制的法宝，照出邪祟。法攻 +42，速度 +8' },
+    peace_charm:   { name: '平安符',     icon: 'peace_charm',   q: 1, type: 'equip', slot: 'amulet',   price: 120,  mdef: 10, hp: 100, desc: '庙里求来的黄纸符。法防 +10，生命 +100' },
+    jade_charm:    { name: '玉符',       icon: 'jade_charm',    q: 3, type: 'equip', slot: 'amulet',   price: 700,  mdef: 24, hp: 260, desc: '刻着符文的青玉，隐隐发光。法防 +24，生命 +260' },
+    herb_pouch:    { name: '草药袋',     icon: 'herb_pouch',    q: 1, type: 'equip', slot: 'pouch',    price: 120,  hp: 150,         desc: '装着晒干草药的小袋。生命 +150' },
+    brocade_pouch: { name: '锦绣药囊',   icon: 'brocade_pouch', q: 3, type: 'equip', slot: 'pouch',    price: 900,  hp: 450, spd: 14, desc: '金线绣的药囊，香气清冽。生命 +450，速度 +14' },
+    iron_armor:    { name: '铁甲',       icon: 'iron_armor',    q: 3, type: 'equip', slot: 'chest',    price: 1100, def: 85, hp: 320, desc: '铆钉铁甲，沉甸甸的。物防 +85，生命 +320' },
+    scale_armor:   { name: '玄鳞甲',     icon: 'scale_armor',   q: 4, type: 'equip', slot: 'chest',    price: 2000, def: 120, hp: 480, desc: '传说取玄蛇鳞片所制。物防 +120，生命 +480' },
+    steel_saber:   { name: '百炼钢刀',   icon: 'steel_saber',   q: 2, type: 'equip', slot: 'weapon',   price: 650,  atk: 70,          desc: '百炼成钢的弯刀，红绸缠柄。物攻 +70' },
+    jade_sword:    { name: '碧玉剑',     icon: 'jade_sword',    q: 4, type: 'equip', slot: 'weapon',   price: 2200, atk: 150,         desc: '剑身如碧玉，夜里泛着绿光。物攻 +150' },
+    crimson_sword: { name: '赤霄剑',     icon: 'crimson_sword', q: 5, type: 'equip', slot: 'weapon',   price: 6000, atk: 260,         desc: '传说中斩白蛇的赤色神剑，剑出如火。物攻 +260' },
+    phoenix_armor: { name: '朱雀战甲',   icon: 'phoenix_armor', q: 5, type: 'equip', slot: 'chest',    price: 6000, def: 190, hp: 800, desc: '朱雀羽炼成的战甲，烈焰不侵。物防 +190，生命 +800' },
     ore:           { name: '玄铁矿',   icon: 'ore', q: 2,           type: 'mat',    price: 120, desc: '打造兵器的材料，可以卖给商人。' },
     wolf_fang:     { name: '狼牙',     icon: 'wolf_fang', q: 1,     type: 'mat',    price: 40,  desc: '野狼的牙，可以卖给商人。' },
     lantern:       { name: '花灯',     icon: 'lantern', q: 2,       type: 'mat',    price: 0,   desc: '王铁匠托你捎给逍遥子的花灯。' }
@@ -53,14 +109,14 @@ window.DATA = {
   skills: {
     attack: { name: '攻击',     mp: 0,   power: 1.0, target: 'one',  desc: '普通一击。' },
     pokong: { name: '天剑·破空', mp: 60,  power: 1.9, target: 'one',  desc: '凝气于剑，重创一名敌人。', lv: 1 },
-    zongheng:{ name: '剑气纵横', mp: 110, power: 1.15, target: 'all', desc: '剑气四散，攻击全体敌人。', lv: 6 },
+    zongheng:{ name: '剑气纵横', mp: 110, power: 1.15, target: 'all', magic: true, desc: '剑气四散，攻击全体敌人。', lv: 6 },
     ningshen:{ name: '凝神诀',   mp: 80,  heal: 0.35, target: 'self', desc: '调息凝神，回复 35% 气血。', lv: 7 },
     bite:   { name: '撕咬',     mp: 0,   power: 1.0, target: 'one' },
-    foxfire:{ name: '狐火',     mp: 0,   power: 1.6, target: 'one', fire: true },
+    foxfire:{ name: '狐火',     mp: 0,   power: 1.6, target: 'one', fire: true, magic: true },
     // 队友和对手用的招式（由 ai 类型自动选用）
     heal_ally:{ name: '回春术', mp: 0, heal: 0.22, target: 'ally' },
-    bolt:   { name: '飞花',     mp: 0,   power: 1.2, target: 'one' },
-    rain:   { name: '落英缤纷', mp: 0,   power: 0.7, target: 'all' },
+    bolt:   { name: '飞花',     mp: 0,   power: 1.2, target: 'one', magic: true },
+    rain:   { name: '落英缤纷', mp: 0,   power: 0.7, target: 'all', magic: true },
     snipe:  { name: '穿云一击', mp: 0,   power: 1.3, target: 'one' },
     smash:  { name: '伏魔击',   mp: 0,   power: 0.95, target: 'one' },
     sweep:  { name: '横扫千军', mp: 0,   power: 1.3, target: 'all' }
@@ -213,7 +269,7 @@ window.DATA = {
     girl:   { name: '逍遥子', title: '【百花谷】', color: '#dca8ff', titleColor: '#ffa8d0', idle: '今晚灯会的灯谜好难……你也是来猜谜的吗？' },
     arenaman: { name: '擂台官', title: '【竞技场】', color: '#ff9a8a', sprite: 'f_blade', head: 'head_m_spear', idle: '擂台已经备好，五对五，人宠齐上。要不要上去练练手？', act: 'arena' },
     towerman: { name: '守塔人', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'f_tao', head: 'head_m_mage', idle: '玄兵塔共九层，一层比一层凶险。塔门暂时还不能开，等你再强一些。' },
-    trader:   { name: '掌柜',   title: '【寄卖行】', color: '#ffe08a', sprite: 'f_healer', head: 'head_vendor', idle: '寄卖行专收各路好货，挂出去、买回来都行。……不过账房还在筹备，过些日子再来吧。' },
+    trader:   { name: '掌柜',   title: '【寄卖行】', color: '#ffe08a', sprite: 'f_healer', head: 'head_vendor', shop: 'trader', idle: '百宝摊上的项链、戒指、法宝、护符，都是各路好货，少侠随便看。' },
     vendor: { name: '货郎',   color: '#ffffff', idle: '金创药、回气丹，行走江湖少不了——少侠来点儿？', shop: 'vendor' }
   },
 
@@ -307,6 +363,15 @@ window.DATA = {
 
   shops: {
     vendor: { name: '货郎的担子', sell: ['hp_potion', 'mp_potion'] },
-    smith:  { name: '王记铁匠铺', sell: ['iron_sword', 'steel_sword', 'leather_armor'] }
+    smith:  { name: '王记铁匠铺', sell: ['ore', 'iron_sword', 'steel_saber', 'steel_sword', 'leather_cap', 'iron_helm', 'leather_armor', 'iron_armor', 'linen_legs', 'iron_greaves', 'leather_bracer', 'steel_bracer', 'linen_belt', 'cloth_boots'] },
+    trader: { name: '百宝摊',       sell: ['gem_atk_1', 'gem_matk_1', 'gem_hp_1', 'gem_def_1', 'gem_mdef_1', 'gem_mp_1', 'gem_dodge_1', 'gem_spd_1', 'gem_crit_1', 'jade_sword', 'scale_armor', 'crimson_sword', 'phoenix_armor', 'wood_beads', 'jade_pendant', 'copper_ring', 'silver_ring', 'bronze_bell', 'bagua_mirror', 'peace_charm', 'jade_charm', 'herb_pouch', 'brocade_pouch', 'jade_belt', 'cloud_boots'] }
   }
 };
+// 宝石物品由 D.gems 生成：gem_<类型>_<阶>，品质颜色跟着阶数走（1 白 … 5 红）
+(function () {
+  const D = window.DATA, price = [150, 450, 1350, 4000, 12000];
+  for (const t in D.gems) { const g = D.gems[t];
+    g.vals.forEach((v, i) => { D.items['gem_' + t + '_' + (i + 1)] = { name: g.stone + ' Lv.' + (i + 1), icon: g.icon, q: i + 1, type: 'gem', gem: t, lv: i + 1, price: price[i],
+      desc: '镶嵌在装备孔里，' + D.statName[t] + ' +' + v + (t === 'crit' || t === 'dodge' ? '%' : '') + '。三颗同阶同种可以合成下一阶。' }; });
+  }
+})();

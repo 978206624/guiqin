@@ -36,19 +36,31 @@ function newGame() {
   return { lv: s.lv, exp: 0, hp: null, mp: null, coin: s.coin, items: s.items, equip: s.equip, step: 0, cleared: [], gift: false, map: s.map, pos: null, visited: [] };
 }
 function load() {
-  try { const t = localStorage.getItem(SAVE_KEY); if (t) { const s = JSON.parse(t); if (s && typeof s.lv === 'number') return s; } } catch (e) {}
+  try { const t = localStorage.getItem(SAVE_KEY); if (t) { const s = JSON.parse(t); if (s && typeof s.lv === 'number') { const e = s.equip || (s.equip = {}); if ('armor' in e) { e.chest = e.chest || e.armor; delete e.armor; } if ('charm' in e) { e.pouch = e.pouch || e.charm; delete e.charm; } for (const k of Object.keys(e)) if (!D.slots[k]) delete e[k]; return s; } } } catch (e) {}
   return null;
 }
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
 let S = load() || newGame();
 
+// 属性：物攻 atk / 法攻 matk / 生命 maxHp / 物防 def / 法防 mdef / 魔法 maxMp / 闪避 dodge% / 速度 spd / 暴击 crit%
+const STATKEY = { atk: 'atk', matk: 'matk', hp: 'maxHp', def: 'def', mdef: 'mdef', mp: 'maxMp', dodge: 'dodge', spd: 'spd', crit: 'crit' };
+const PCT = { dodge: 1, crit: 1 };
+const fmtStat = (k, v) => PCT[k] ? (Math.round(v * 10) / 10) + '%' : fmt(v);
+function getGear(slot) { return (S.gear && S.gear[slot]) || { star: 0, gems: [] }; }
+const socketCount = star => D.forge.sockets.filter(n => star >= n).length;
+// 某个部位的加成：装备自带属性 ×(1+星级加成)，再加宝石
+function slotBonus(slot) {
+  const out = {}, it = D.items[S.equip[slot]]; if (!it) return out;
+  const gr = getGear(slot), mul = 1 + gr.star * D.forge.perStar;
+  for (const k in STATKEY) { if (it[k]) out[k] = (out[k] || 0) + (PCT[k] ? it[k] : Math.round(it[k] * mul)); }
+  (gr.gems || []).forEach(gid => { const g = gid && D.items[gid]; if (g) out[g.gem] = (out[g.gem] || 0) + D.gems[g.gem].vals[g.lv - 1]; });
+  return out;
+}
+function gearSum() { const t = {}; for (const slot in S.equip) { const o = slotBonus(slot); for (const k in o) t[k] = (t[k] || 0) + o[k]; } return t; }
 function stats() {
   const b = D.base, g = D.grow, L = S.lv;
-  const st = { maxHp: b.hp + g.hp * L, maxMp: b.mp + g.mp * L, atk: b.atk + g.atk * L, def: b.def + g.def * L, spd: b.spd + g.spd * L };
-  for (const slot in S.equip) {
-    const it = D.items[S.equip[slot]]; if (!it) continue;
-    st.atk += it.atk || 0; st.def += it.def || 0; st.maxHp += it.hp || 0; st.spd += it.spd || 0;
-  }
+  const st = { maxHp: b.hp + g.hp * L, maxMp: b.mp + g.mp * L, atk: b.atk + g.atk * L, matk: b.matk + g.matk * L, def: b.def + g.def * L, mdef: b.mdef + g.mdef * L, spd: b.spd + g.spd * L, crit: b.crit, dodge: b.dodge };
+  const gs = gearSum(); for (const k in gs) st[STATKEY[k]] += gs[k];
   return st;
 }
 function bondInfo() {
@@ -57,7 +69,7 @@ function bondInfo() {
 }
 function petStats() {
   const b = D.base, g = D.grow, L = S.lv, p = D.pet, k = 1 + bondInfo().bonus;
-  return { maxHp: Math.round((b.hp + g.hp * L) * p.hp * k), atk: Math.round((b.atk + g.atk * L) * p.atk * k), def: Math.round((b.def + g.def * L) * p.def), spd: Math.round((b.spd + g.spd * L) * p.spd) };
+  return { maxHp: Math.round((b.hp + g.hp * L) * p.hp * k), atk: Math.round((b.atk + g.atk * L) * p.atk * k), matk: Math.round((b.matk + g.matk * L) * p.atk * k), def: Math.round((b.def + g.def * L) * p.def), mdef: Math.round((b.mdef + g.mdef * L) * p.def), crit: 10, dodge: 3, spd: Math.round((b.spd + g.spd * L) * p.spd) };
 }
 const expNeed = () => D.expNeed.base + D.expNeed.perLevel * S.lv;
 function clampVitals() {
@@ -114,22 +126,22 @@ $('modal').addEventListener('click', e => { e.stopPropagation(); if (e.target ==
 // 弹窗里的所有按钮都用 data-act="动作:参数"
 $('mBody').addEventListener('click', e => {
   const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
-  const [act, arg] = el.dataset.act.split(':');
+  const _i = el.dataset.act.indexOf(':'), act = _i < 0 ? el.dataset.act : el.dataset.act.slice(0, _i), arg = _i < 0 ? undefined : el.dataset.act.slice(_i + 1);
   ACTS[act] && ACTS[act](arg);
 });
 const itemImg = id => '<img alt="" src="' + IMG('item_' + D.items[id].icon) + '">';
 function itemBonus(it) {
-  const p = []; if (it.atk) p.push('攻击 +' + it.atk); if (it.def) p.push('防御 +' + it.def); if (it.hp && it.type === 'equip') p.push('气血 +' + it.hp); if (it.spd) p.push('速度 +' + it.spd);
-  return p.join('　');
+  return Object.keys(STATKEY).filter(k => it[k]).map(k => D.statName[k] + ' +' + it[k] + (PCT[k] ? '%' : '')).join('　');
 }
 
 let bagSel = null;
 let bagTab = 'all', lastPanel = 'bag', eqSel = null;
-const BAGCAT = { all: '全部', potion: '药品', equip: '装备', mat: '材料' }, TYPENAME = { potion: '药品', equip: '装备', mat: '材料' }, SLOTNAME = { weapon: '兵器', armor: '衣甲', charm: '饰品' };
-const itemQ = id => D.petQuality[(D.items[id] && D.items[id].q) || 1];
-function bagDelta(it) {   // 对比当前同部位装备
+const BAGCAT = { all: '全部', potion: '药品', equip: '装备', gem: '宝石', mat: '材料' }, TYPENAME = { potion: '药品', equip: '装备', gem: '宝石', mat: '材料' }, SLOTNAME = D.slots;
+const itemQ = id => D.quality[(D.items[id] && D.items[id].q) || 1];
+const qHi = id => ((D.items[id] && D.items[id].q) || 1) >= 4 ? ' hi' : '';
+function bagDelta(it) {   // 对比当前同部位装备（只比装备自带属性）
   const cur = D.items[S.equip[it.slot]] || {}, out = [];
-  [['atk', '攻击'], ['def', '防御'], ['hp', '气血'], ['spd', '速度']].forEach(([k, n]) => { const dv = (it[k] || 0) - (cur[k] || 0); if (dv) out.push('<em class="' + (dv > 0 ? 'up' : 'dn') + '">' + n + (dv > 0 ? ' ▲' : ' ▼') + Math.abs(dv) + '</em>'); });
+  Object.keys(STATKEY).forEach(k => { const dv = (it[k] || 0) - (cur[k] || 0); if (dv) out.push('<em class="' + (dv > 0 ? 'up' : 'dn') + '">' + D.statName[k] + (dv > 0 ? ' ▲' : ' ▼') + Math.abs(dv) + '</em>'); });
   return out.join(' ');
 }
 function openBag() {
@@ -140,7 +152,7 @@ function openBag() {
   let h = '<div class="bagtop"><div class="rtabs">' + Object.keys(BAGCAT).map(k => '<button type="button" class="rtab' + (bagTab === k ? ' on' : '') + '" data-act="bagTab:' + k + '">' + BAGCAT[k] + '</button>').join('') + '</div>' +
     '<div class="bagcap"><span>' + all.length + ' / ' + cap + '</span><button type="button" class="tbtn" data-act="bagSort">整理</button></div></div><div class="grid">';
   ids.forEach(id => { const it = D.items[id], c = itemQ(id).color, eq = it.type === 'equip';
-    h += '<button type="button" class="tile q' + (id === bagSel ? ' sel' : '') + '" style="--qc:' + c + '" data-act="sel:' + id + '" aria-label="' + it.name + '">' + itemImg(id) + (S.items[id] > 1 || !eq ? '<b>' + S.items[id] + '</b>' : '') + (eq && it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>'; });
+    h += '<button type="button" class="tile q' + qHi(id) + (id === bagSel ? ' sel' : '') + '" style="--qc:' + c + '" data-act="sel:' + id + '" aria-label="' + it.name + '">' + itemImg(id) + (S.items[id] > 1 || !eq ? '<b>' + S.items[id] + '</b>' : '') + (eq && it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>'; });
   for (let i = ids.length; i < (bagTab === 'all' ? cap : Math.max(10, Math.ceil(ids.length / 5) * 5)); i++) h += '<div class="tile empty"></div>';
   h += '</div>';
   if (bagSel) {
@@ -169,62 +181,115 @@ function usePotion(id) {
   return true;
 }
 let roleTab = 'attr';
-const powerOf = st => Math.round(st.atk * 6 + st.def * 5 + st.maxHp / 2 + st.spd * 3);
+const powerOf = st => Math.round(st.atk * 6 + (st.matk || 0) * 4 + st.def * 5 + (st.mdef || 0) * 3 + st.maxHp / 2 + (st.maxMp || 0) / 4 + st.spd * 3 + (st.crit || 0) * 12 + (st.dodge || 0) * 12);
 function reopen() { if (lastPanel === 'role') openRole(); else openBag(); }
 // 装备页：上面人物预览 + 装备栏，下面背包格子，点格子看详情、对比、穿戴
 function equipView() {
   const st = stats(), IT = D.items, ids = Object.keys(S.items);
   if (!eqSel || (eqSel.t === 'bag' && !S.items[eqSel.v]) || (eqSel.t === 'slot' && !S.equip[eqSel.v] && false)) eqSel = null;
   if (!eqSel) { const first = ids.find(i => IT[i].type === 'equip') || ids[0]; eqSel = first ? { t: 'bag', v: first } : null; }
-  const slotTile = (sl, pos) => { const id = S.equip[sl], q = id ? itemQ(id).color : 'rgba(226,176,74,.3)', on = eqSel && eqSel.t === 'slot' && eqSel.v === sl;
-    return '<button type="button" class="dslot ' + pos + (id ? '' : ' empty') + (on ? ' sel' : '') + '" style="--qc:' + q + '" data-act="eqSlot:' + sl + '">' + (id ? itemImg(id) : '') + '<span>' + (id ? IT[id].name : SLOTNAME[sl]) + '</span></button>'; };
-  let h = '<div class="doll"><div class="dglow"></div><div class="dname"><b>' + ROLE.name + '</b><small>Lv.' + S.lv + ' · ' + D.classes[ROLE.cls].name + '</small></div><div class="dpow">战力<b>' + fmt(powerOf(st)) + '</b></div>' +
-    '<img alt="" src="' + IMG('cls_' + ROLE.cls) + '">' + slotTile('weapon', 'l1') + slotTile('armor', 'l2') + slotTile('charm', 'r1') +
+  const slotTile = sl => { const id = S.equip[sl], q = id ? itemQ(id).color : 'rgba(226,176,74,.3)', on = eqSel && eqSel.t === 'slot' && eqSel.v === sl;
+    return '<button type="button" class="dslot' + (id ? qHi(id) : ' empty') + (on ? ' sel' : '') + '" style="--qc:' + q + '" data-act="eqSlot:' + sl + '" aria-label="' + SLOTNAME[sl] + '">' + (id ? itemImg(id) : '') + (getGear(sl).star ? '<i class="sstar">★' + getGear(sl).star + '</i>' : '') + '<span>' + SLOTNAME[sl] + '</span></button>'; };
+  let h = '<div class="doll"><div class="dglow"></div><div class="dcol dl">' + D.slotLeft.map(slotTile).join('') + '</div><div class="dcol dr">' + D.slotRight.map(slotTile).join('') + '</div>' +
+    '<div class="dname"><b>' + ROLE.name + '</b><small>Lv.' + S.lv + ' · ' + D.classes[ROLE.cls].name + '</small></div><div class="dpow">战力 <b>' + fmt(powerOf(st)) + '</b></div>' +
+    '<img alt="" src="' + IMG('cls_' + ROLE.cls) + '">' +
     '<div class="dstats"><div>攻击<b>' + Math.round(st.atk) + '</b></div><div>防御<b>' + Math.round(st.def) + '</b></div><div>速度<b>' + Math.round(st.spd) + '</b></div><div>气血<b>' + Math.round(st.maxHp) + '</b></div></div></div>';
   h += '<div class="grid eqgrid">';
   ids.forEach(id => { const it = IT[id], on = eqSel && eqSel.t === 'bag' && eqSel.v === id;
-    h += '<button type="button" class="tile q' + (on ? ' sel' : '') + (it.type === 'equip' ? '' : ' dim') + '" style="--qc:' + itemQ(id).color + '" data-act="eqBag:' + id + '" aria-label="' + it.name + '">' + itemImg(id) + (it.type !== 'equip' || S.items[id] > 1 ? '<b>' + S.items[id] + '</b>' : '') + (it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>'; });
+    h += '<button type="button" class="tile q' + qHi(id) + (on ? ' sel' : '') + (it.type === 'equip' ? '' : ' dim') + '" style="--qc:' + itemQ(id).color + '" data-act="eqBag:' + id + '" aria-label="' + it.name + '">' + itemImg(id) + (it.type !== 'equip' || S.items[id] > 1 ? '<b>' + S.items[id] + '</b>' : '') + (it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>'; });
   for (let i = ids.length; i < Math.max(10, Math.ceil(ids.length / 5) * 5); i++) h += '<div class="tile empty"></div>';
   h += '</div>';
   if (eqSel) {
     const id = eqSel.t === 'slot' ? S.equip[eqSel.v] : eqSel.v, it = id && IT[id];
-    if (!it) h += '<div class="idetail"><div class="ibody"><p>' + SLOTNAME[eqSel.v] + '栏是空的。点下面背包里的' + SLOTNAME[eqSel.v] + '就能穿上。</p></div></div>';
+    if (!it) h += '<div class="idetail"><div class="ibody"><p>「' + SLOTNAME[eqSel.v] + '」还空着。点下面背包里带「' + SLOTNAME[eqSel.v] + '」标记的装备就能穿上，铁匠铺和百宝摊也有卖。</p></div></div>';
     else { const q = itemQ(id); let btn = '';
-      if (eqSel.t === 'slot') btn = '<button type="button" class="tbtn" data-act="unequip:' + eqSel.v + '">卸下</button>';
+      if (eqSel.t === 'slot') btn = '<button type="button" class="tbtn red" data-act="forgeGo:' + eqSel.v + '">锻造</button><button type="button" class="tbtn" data-act="unequip:' + eqSel.v + '">卸下</button>';
       else if (it.type === 'equip') btn = '<button type="button" class="tbtn red" data-act="equip:' + id + '">装备</button>';
       else if (it.type === 'potion') btn = '<button type="button" class="tbtn red" data-act="use:' + id + '">使用</button>';
       h += '<div class="idetail"><div class="itile" style="--qc:' + q.color + '">' + itemImg(id) + '</div><div class="ibody"><h5>' + it.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
         '<p class="meta">' + TYPENAME[it.type] + (it.slot ? ' · ' + SLOTNAME[it.slot] : '') + (eqSel.t === 'slot' ? '　已装备' : '　持有 ' + S.items[id]) + '</p>' +
-        (it.type === 'equip' ? '<p class="bonus">' + itemBonus(it) + '</p>' + (eqSel.t === 'bag' ? '<p class="cmp">' + (S.equip[it.slot] ? '对比当前「' + IT[S.equip[it.slot]].name + '」：' + (bagDelta(it) || '无差别') : '该部位空着，装上就是净提升') + '</p>' : '') : '') +
+        (it.type === 'equip' ? '<p class="bonus">' + itemBonus(it) + (eqSel.t === 'slot' && getGear(eqSel.v).star ? '　<span class="gold2">★' + getGear(eqSel.v).star + ' 锻造 +' + Math.round(getGear(eqSel.v).star * D.forge.perStar * 100) + '%</span>' : '') + '</p>' + (eqSel.t === 'bag' ? '<p class="cmp">' + (S.equip[it.slot] ? '对比当前「' + IT[S.equip[it.slot]].name + '」：' + (bagDelta(it) || '无差别') : '该部位空着，装上就是净提升') + '</p>' : '') : '') +
         '<p>' + it.desc + '</p></div><div class="ibtn1">' + btn + '</div></div>'; }
   }
   return h + '<p class="center" style="margin:12px 0 0"><button type="button" class="tbtn" data-act="openBag">打开完整背包（整理 / 出售）</button></p>';
 }
+let forgeSlot = null, gemPick = null;
+const forgeable = () => D.slotLeft.concat(D.slotRight).filter(sl => S.equip[sl]);
+function starsRow(n) { let h = ''; for (let i = 1; i <= D.forge.max; i++) h += '<i class="fs' + (i <= n ? ' on' : '') + (i % 5 === 0 ? ' m' : '') + '">★</i>'; return h; }
+function forgeView() {
+  const IT = D.items, F = D.forge, list = forgeable();
+  if (!forgeSlot || !S.equip[forgeSlot]) forgeSlot = list[0] || null;
+  let h = '<div class="fstrip">' + D.slotLeft.concat(D.slotRight).map(sl => { const id = S.equip[sl], gr = getGear(sl);
+    return '<button type="button" class="fchip' + (sl === forgeSlot ? ' sel' : '') + (id ? qHi(id) : ' empty') + '" style="--qc:' + (id ? itemQ(id).color : 'rgba(226,176,74,.3)') + '" data-act="forgeSlot:' + sl + '" aria-label="' + D.slots[sl] + '">' + (id ? itemImg(id) : '') + '<span>' + D.slots[sl] + '</span>' + (gr.star ? '<i>★' + gr.star + '</i>' : '') + '</button>'; }).join('') + '</div>';
+  if (!forgeSlot) return h + '<div class="idetail"><div class="ibody"><p>还没有穿任何装备。先到「装备」页穿上一件，再回来锻造。</p></div></div>';
+  const id = S.equip[forgeSlot], it = IT[id], q = itemQ(id), gr = getGear(forgeSlot), s0 = gr.star, mx = s0 >= F.max;
+  const base = Object.keys(STATKEY).filter(k => it[k]).map(k => D.statName[k] + ' ' + fmtStat(k, it[k]) + (PCT[k] || !s0 ? '' : ' → <b>' + fmtStat(k, Math.round(it[k] * (1 + s0 * F.perStar))) + '</b>')).join('　');
+  h += '<div class="fcard"><div class="itile" style="--qc:' + q.color + '">' + itemImg(id) + '</div><div class="ibody"><h5 style="color:' + q.color + '">' + it.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
+    '<p class="meta">' + D.slots[forgeSlot] + '　星级跟着「' + D.slots[forgeSlot] + '」走，换装不丢</p><p class="bonus">' + base + '</p></div></div>' +
+    '<div class="fstars">' + starsRow(s0) + '</div><p class="fsub">' + s0 + ' / ' + F.max + ' 星　基础属性 +' + Math.round(s0 * F.perStar * 100) + '%' + (mx ? '　<b>已满星</b>' : '') + '</p>';
+  if (!mx) {
+    const mul = F.qMul[it.q || 1] || 1, coin = Math.round(F.coin[s0] * mul), ore = F.ore[s0], have = S.items.ore || 0, rate = F.rate[s0], drop = s0 >= F.dropFrom;
+    const ok = S.coin >= coin && have >= ore;
+    h += '<div class="fcost"><div><small>锻造到 ' + (s0 + 1) + ' 星</small></div><div class="' + (S.coin >= coin ? '' : 'lack') + '">银两 ' + fmt(coin) + ' <small>（有 ' + fmt(S.coin) + '）</small></div><div class="' + (have >= ore ? '' : 'lack') + '">玄铁矿 ×' + ore + ' <small>（有 ' + have + '）</small></div>' +
+      '<div>成功率 <b class="' + (rate >= .7 ? 'okc' : rate >= .4 ? 'midc' : 'badc') + '">' + Math.round(rate * 100) + '%</b> <small>' + (drop ? '失败掉 1 星' : '失败不掉星') + '</small></div></div>' +
+      '<p class="center" style="margin:10px 0 0"><button type="button" class="tbtn red forgebtn" data-act="forge:' + forgeSlot + '"' + (ok ? '' : ' disabled') + '>锻造</button></p>';
+  }
+  // 宝石孔
+  const nSock = socketCount(s0);
+  h += '<h4 class="fh">宝石孔　<small>5 / 10 / 15 星各解锁一个孔</small></h4><div class="sockets">';
+  for (let i = 0; i < F.sockets.length; i++) {
+    if (i >= nSock) { h += '<div class="sock lock"><span>🔒</span><small>' + F.sockets[i] + '星</small></div>'; continue; }
+    const gid = gr.gems && gr.gems[i], g = gid && IT[gid];
+    h += g ? '<button type="button" class="sock on' + qHi(gid) + '" style="--qc:' + itemQ(gid).color + '" data-act="gemOff:' + forgeSlot + ':' + i + '">' + itemImg(gid) + '<small>' + D.statName[g.gem] + ' +' + D.gems[g.gem].vals[g.lv - 1] + (PCT[g.gem] ? '%' : '') + '</small></button>'
+      : '<button type="button" class="sock' + (gemPick && gemPick.slot === forgeSlot && gemPick.i === i ? ' sel' : '') + '" data-act="gemPick:' + forgeSlot + ':' + i + '"><span>＋</span><small>空孔</small></button>';
+  }
+  h += '</div>';
+  if (gemPick && gemPick.slot === forgeSlot) {
+    const gems = Object.keys(S.items).filter(i => IT[i].type === 'gem');
+    h += '<p class="fsub">选一颗宝石镶进第 ' + (gemPick.i + 1) + ' 个孔：</p>' + (gems.length ? '<div class="grid gemgrid">' + gems.map(i => '<button type="button" class="tile q' + qHi(i) + '" style="--qc:' + itemQ(i).color + '" data-act="gemSet:' + i + '" aria-label="' + IT[i].name + '">' + itemImg(i) + '<b>' + S.items[i] + '</b><u>' + D.statName[IT[i].gem] + '</u></button>').join('') + '</div>' : '<p class="hint">背包里没有宝石。百宝摊（寄卖行掌柜）有卖一阶宝石。</p>');
+  } else h += '<p class="hint">点空孔选宝石镶嵌；点已镶的宝石可以摘下放回背包。</p>';
+  // 合成
+  const merge = Object.keys(S.items).filter(i => IT[i].type === 'gem' && IT[i].lv < 5 && S.items[i] >= 3);
+  h += '<h4 class="fh">宝石合成　<small>三颗同种同阶 → 一颗高一阶</small></h4>' + (merge.length ? merge.map(i => '<div class="row mrow">' + itemImg(i) + '<div><h5 style="color:' + itemQ(i).color + '">' + IT[i].name + ' ×' + S.items[i] + '</h5><p>→ ' + IT[i.replace(/_\d$/, '_' + (IT[i].lv + 1))].name + '</p></div><button type="button" class="tbtn" data-act="gemMerge:' + i + '">3 合 1</button></div>').join('') : '<p class="hint">还没有凑够三颗的宝石。</p>');
+  return h;
+}
+function forgeDo(slot) {
+  const F = D.forge, id = S.equip[slot], it = D.items[id]; if (!it) return;
+  const gr = S.gear && S.gear[slot] || ((S.gear = S.gear || {})[slot] = { star: 0, gems: [] }), s0 = gr.star;
+  if (s0 >= F.max) return;
+  const mul = F.qMul[it.q || 1] || 1, coin = Math.round(F.coin[s0] * mul), ore = F.ore[s0];
+  if (S.coin < coin || (S.items.ore || 0) < ore) { toast('材料不够'); return; }
+  S.coin -= coin; addItem('ore', -ore);
+  if (Math.random() < F.rate[s0]) { gr.star++; toast('锻造成功！' + it.name + ' ' + gr.star + ' 星');
+    sys('「' + it.name + '」锻造到了 ' + gr.star + ' 星');
+    if (gr.star >= 10) window.CHAT.notice('恭喜玩家「' + ROLE.name + '」将' + it.name + '锻造至 ' + gr.star + ' 星！');
+  } else if (s0 >= F.dropFrom) { gr.star--; toast('锻造失败……' + it.name + ' 掉到了 ' + gr.star + ' 星'); }
+  else toast('锻造失败，星级没有变化');
+  clampVitals(); save(); refresh(); openRole();
+}
 function openRole() {
   lastPanel = 'role';
   const st = stats(), cls = D.classes[ROLE.cls], need = expNeed();
-  const slotName = { weapon: '兵器', armor: '衣甲', charm: '饰品' };
   const bar = (cur, max, cls2) => '<div class="rbar ' + cls2 + '"><i style="width:' + Math.max(0, Math.min(100, cur / max * 100)) + '%"></i><span>' + Math.round(cur) + ' / ' + max + '</span></div>';
   let h = '<div class="who"><img alt="" src="' + IMG('cls_' + ROLE.cls) + '"><div><h5>' + ROLE.name + '</h5><p>' + cls.name + ' · ' + cls.role + ' · ' + (cls.gender === 'm' ? '男' : '女') + '</p>' +
     '<p>等级 <b class="gold">' + S.lv + '</b>　战力 <b class="gold">' + fmt(powerOf(st)) + '</b></p>' +
     '<p class="small">经验 ' + S.exp + ' / ' + need + '</p><div class="rbar exp"><i style="width:' + Math.min(100, S.exp / need * 100) + '%"></i></div></div></div>' +
-    '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') + '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') + '" data-act="roleTab:equip">装备</button><button type="button" class="rtab' + (roleTab === 'skill' ? ' on' : '') + '" data-act="roleTab:skill">技能</button></div>';
+    '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') + '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') + '" data-act="roleTab:equip">装备</button><button type="button" class="rtab' + (roleTab === 'forge' ? ' on' : '') + '" data-act="roleTab:forge">锻造</button><button type="button" class="rtab' + (roleTab === 'skill' ? ' on' : '') + '" data-act="roleTab:skill">技能</button></div>';
   if (roleTab === 'attr') {
-    // 每项属性拆成 基础 + 等级成长 + 装备，装备加成用绿色标出来
-    const gear = { maxHp: 0, atk: 0, def: 0, spd: 0 };
-    for (const slot in S.equip) { const it = D.items[S.equip[slot]]; if (!it) continue; gear.atk += it.atk || 0; gear.def += it.def || 0; gear.maxHp += it.hp || 0; gear.spd += it.spd || 0; }
-    const base = D.base, grow = D.grow, L = S.lv;
-    const line = (name, total, b, g2, e) => '<div class="arow"><span>' + name + '</span><b>' + total + '</b><small>基础 ' + b + ' + 成长 ' + g2 + (e ? ' <em>+ 装备 ' + e + '</em>' : '') + '</small></div>';
-    h += '<div class="vit"><div><small>气血</small>' + bar(S.hp, st.maxHp, 'hp') + '</div><div><small>法力</small>' + bar(S.mp, st.maxMp, 'mp') + '</div></div>' +
-      '<div class="alist">' +
-      line('攻击', st.atk, base.atk, grow.atk * L, gear.atk) + line('防御', st.def, base.def, grow.def * L, gear.def) +
-      line('速度', st.spd, base.spd, grow.spd * L, gear.spd) + line('气血上限', st.maxHp, base.hp, grow.hp * L, gear.maxHp) +
-      line('法力上限', st.maxMp, base.mp, grow.mp * L, 0) +
-      '<div class="arow"><span>暴击</span><b>10%</b><small>暴击时伤害 ×1.5</small></div>' +
+    // 每项属性拆成 基础 + 等级成长 + 装备（含星级和宝石），装备加成用绿色标出来
+    const gear = gearSum(), base = D.base, grow = D.grow, L = S.lv;
+    const line = (k, tip) => { const sk = STATKEY[k], tot = st[sk], e = gear[k] || 0;
+      return '<div class="arow"><span>' + D.statName[k] + '</span><b>' + fmtStat(k, tot) + '</b><small>' + (tip || '基础 ' + fmtStat(k, base[k]) + (grow[k] ? ' + 成长 ' + fmtStat(k, grow[k] * L) : '')) + (e ? ' <em>+ 装备 ' + fmtStat(k, e) + '</em>' : '') + '</small></div>'; };
+    h += '<div class="vit"><div><small>生命</small>' + bar(S.hp, st.maxHp, 'hp') + '</div><div><small>魔法</small>' + bar(S.mp, st.maxMp, 'mp') + '</div></div>' +
+      '<div class="alist">' + ['atk', 'matk', 'def', 'mdef', 'hp', 'mp', 'spd'].map(k => line(k)).join('') +
+      line('crit', '暴击时伤害 ×1.5') + line('dodge', '被攻击时有几率完全躲开') +
       '<div class="arow"><span>银两</span><b>' + fmt(S.coin) + '</b><small></small></div></div>' +
-      '<p class="hint">升级时五项属性按固定成长自动提升；装备和饰品提供额外加成。</p>';
+      '<p class="hint">物攻用于普通招式，法攻用于剑气纵横、狐火这类法术招式；物防、法防分别抵挡对应伤害。升级固定成长，装备、星级和宝石提供额外加成。</p>';
   } else if (roleTab === 'skill') {
     h += skillsHTML();
+  } else if (roleTab === 'forge') {
+    h = h.slice(h.indexOf('<div class="rtabs">')) + forgeView();
+    openModal('角色', h); return;
   } else {
     h = h.slice(h.indexOf('<div class="rtabs">')) + equipView();
     openModal('角色', h); return;
@@ -281,7 +346,7 @@ function openShop(id) {
   let h = '<p class="center" style="margin:0;color:var(--amber)">银两 ' + fmt(S.coin) + '</p>';
   shop.sell.forEach(iid => {
     const it = D.items[iid];
-    h += '<button type="button" class="row" data-act="buy:' + iid + '"' + (S.coin < it.price ? ' disabled' : '') + '>' + itemImg(iid) + '<div><h5>' + it.name + (S.items[iid] ? '　<small style="color:var(--muted)">已有 ' + S.items[iid] + '</small>' : '') + '</h5><p>' + it.desc + '</p></div><span>' + it.price + ' 两</span></button>';
+    h += '<button type="button" class="row" data-act="buy:' + iid + '"' + (S.coin < it.price ? ' disabled' : '') + '>' + itemImg(iid) + '<div><h5 style="color:' + itemQ(iid).color + '">' + it.name + (S.items[iid] ? '　<small style="color:var(--muted)">已有 ' + S.items[iid] + '</small>' : '') + '</h5><p>' + it.desc + '</p></div><span>' + it.price + ' 两</span></button>';
   });
   const sellable = Object.keys(S.items).filter(i => D.items[i].type === 'mat' && D.items[i].price > 0);
   if (sellable.length) {
@@ -308,13 +373,20 @@ const ACTS = {
   arena() { $('modal').hidden = true; modalOnClose = null; if (B.active) { B.active = false; $('units').innerHTML = ''; } startArena(); },
   wx(k) { wxLock = k; wxUpdate(true); openWeather(); },
   wxAuto() { wxLock = null; wxUpdate(true); openWeather(); },
-  roleTab(t) { roleTab = t; openRole(); },
+  forgeSlot(sl) { forgeSlot = sl; gemPick = null; openRole(); },
+  forgeGo(sl) { forgeSlot = sl; gemPick = null; roleTab = 'forge'; openRole(); },
+  forge(sl) { forgeDo(sl); },
+  gemPick(arg) { const [sl, i] = arg.split(':'); gemPick = { slot: sl, i: +i }; openRole(); },
+  gemSet(id) { if (!gemPick || !S.items[id]) return; const gr = (S.gear = S.gear || {})[gemPick.slot] || (S.gear[gemPick.slot] = { star: 0, gems: [] }); gr.gems = gr.gems || []; gr.gems[gemPick.i] = id; addItem(id, -1); gemPick = null; clampVitals(); save(); refresh(); toast('镶嵌了' + D.items[id].name); openRole(); },
+  gemOff(arg) { const [sl, i] = arg.split(':'); const gr = getGear(sl), id = gr.gems && gr.gems[+i]; if (!id) return; S.gear[sl].gems[+i] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('摘下了' + D.items[id].name); openRole(); },
+  gemMerge(id) { if ((S.items[id] || 0) < 3) return; const nx = id.replace(/_\d$/, '_' + (D.items[id].lv + 1)); addItem(id, -3); addItem(nx, 1); save(); toast('合成了' + D.items[nx].name); openRole(); },
+  roleTab(t) { roleTab = t; gemPick = null; openRole(); },
   petTab(t) { petTab = t; openPet(); },
   petSel(id) { petSel = id; petTab = 'dex'; openPet(); },
   unequip(slot) { if (!S.equip[slot]) return; const id = S.equip[slot]; S.equip[slot] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('卸下了' + D.items[id].name); eqSel = { t: 'bag', v: id }; openRole(); },
   openBag() { openBag(); },
   bagTab(t) { bagTab = t; openBag(); },
-  bagSort() { const order = { equip: 0, potion: 1, mat: 2 }, ids = Object.keys(S.items).sort((a, b) => order[D.items[a].type] - order[D.items[b].type] || (D.items[b].q || 1) - (D.items[a].q || 1)), o = {}; ids.forEach(i => o[i] = S.items[i]); S.items = o; save(); toast('已整理背包'); openBag(); },
+  bagSort() { const order = { equip: 0, gem: 1, potion: 2, mat: 3 }, ids = Object.keys(S.items).sort((a, b) => order[D.items[a].type] - order[D.items[b].type] || (D.items[b].q || 1) - (D.items[a].q || 1)), o = {}; ids.forEach(i => o[i] = S.items[i]); S.items = o; save(); toast('已整理背包'); openBag(); },
   bagSell(id) { const it = D.items[id]; if (!S.items[id] || !(it.price > 0)) return; if (it.type === 'equip' && S.items[id] === 1 && Object.values(S.equip).includes(id)) return; addItem(id, -1); S.coin += it.price; save(); refresh(); toast('卖出' + it.name + '，银两 +' + it.price); openBag(); },
   switchRole() { closeModal(); stop(); save(); window.FRONT.showRoles(); },
   close() { closeModal(); },
@@ -1039,7 +1111,7 @@ function makeUnit(side, row, def, pos) {
   el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px'; el.style.zIndex = Math.round(pos.y);
   $('units').appendChild(el);
   const st = def.stats;
-  const u = { side, row, name: def.name, el, pos, h, hp: st.hp, maxHp: st.maxHp, mp: st.mp || 0, maxMp: st.maxMp || 0, atk: st.atk, def: st.def, spd: st.spd,
+  const u = { side, row, name: def.name, el, pos, h, hp: st.hp, maxHp: st.maxHp, mp: st.mp || 0, maxMp: st.maxMp || 0, atk: st.atk, def: st.def, matk: st.matk != null ? st.matk : st.atk, mdef: st.mdef != null ? st.mdef : st.def, crit: st.crit != null ? st.crit : 10, dodge: st.dodge || 0, spd: st.spd,
     alive: true, defending: false, ai: def.ai || 'attack', aggro: def.aggro || 1, data: def.data || null };
   if (side === 'enemy') el.addEventListener('click', () => { if (B.picking && u.alive) { const f = B.picking; B.picking = null; f(u); } });
   B.units.push(u); drawUnit(u); return u;
@@ -1088,8 +1160,8 @@ function startBattle(st) {
       stats: { hp: e.hp, maxHp: e.hp, atk: e.atk, def: e.def, spd: e.spd } });
   });
   beginBattle('pve', st.name, {
-    ally: { persons: [{ name: ROLE.name, sprite: 'b_player', h: 126, me: true, stats: { hp: Math.max(1, S.hp), maxHp: ps.maxHp, mp: S.mp, maxMp: ps.maxMp, atk: ps.atk, def: ps.def, spd: ps.spd } }],
-            pets: [{ name: '灵狐', sprite: 'b_fox', h: 62, ai: 'fox', stats: { hp: fs.maxHp, maxHp: fs.maxHp, atk: fs.atk, def: fs.def, spd: fs.spd } }] },
+    ally: { persons: [{ name: ROLE.name, sprite: 'b_player', h: 126, me: true, stats: { hp: Math.max(1, S.hp), maxHp: ps.maxHp, mp: S.mp, maxMp: ps.maxMp, atk: ps.atk, matk: ps.matk, def: ps.def, mdef: ps.mdef, crit: ps.crit, dodge: ps.dodge, spd: ps.spd } }],
+            pets: [{ name: '灵狐', sprite: 'b_fox', h: 62, ai: 'fox', stats: { hp: fs.maxHp, maxHp: fs.maxHp, atk: fs.atk, matk: fs.matk, def: fs.def, mdef: fs.mdef, crit: fs.crit, dodge: fs.dodge, spd: fs.spd } }] },
     enemy: foes
   }, [st.name, '我方']);
 }
@@ -1242,8 +1314,9 @@ async function perform(u, act) {
   u.el.style.transform = 'translate(' + ((t0.pos.x - u.pos.x) * k) + 'px,' + ((t0.pos.y - u.pos.y) * k) + 'px)';
   await sleep(170);
   for (const t of targets) {
-    const crit = Math.random() < 0.1;
-    let dmg = u.atk * s.power * rnd(0.9, 1.1) * (crit ? 1.5 : 1) - t.def * 0.6;
+    if (Math.random() * 100 < (t.dodge || 0)) { floatText(t, '闪避', ''); if (targets.length > 1) await sleep(60); continue; }
+    const crit = Math.random() * 100 < (u.crit != null ? u.crit : 10);
+    let dmg = (s.magic ? u.matk : u.atk) * s.power * rnd(0.9, 1.1) * (crit ? 1.5 : 1) - (s.magic ? t.mdef : t.def) * 0.6;
     if (t.defending) dmg *= 0.5;
     dmg = Math.max(1, Math.round(dmg));
     t.hp = Math.max(0, t.hp - dmg);

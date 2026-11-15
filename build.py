@@ -69,6 +69,32 @@ it=Image.open(G+'/items.png').convert('RGBA'); W,H=it.size
 for i,n in enumerate(['hp_potion','mp_potion','iron_sword','steel_sword','cloth_armor','leather_armor','ore','wolf_fang','sachet','coins','lantern','chest']):
     c=it.crop(((i%4)*W//4,(i//4)*H//3,(i%4+1)*W//4,(i//4+1)*H//3)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>60 else 0).getbbox())
     c.resize((128,128),Image.LANCZOS).save(f'{AD}/item_{n}.webp',quality=92)
+
+# 装备图标（十二部位新增）：两张 4x3 图标表，绿幕底，逐格抠出
+GEAR={'gear1':['wood_beads','copper_ring','leather_bracer','leather_cap','linen_belt','linen_legs','cloth_boots','bronze_bell','peace_charm','herb_pouch','iron_armor','steel_saber'],
+      'gear2':['jade_pendant','silver_ring','steel_bracer','iron_helm','jade_belt','iron_greaves','cloud_boots','bagua_mirror','jade_charm','brocade_pouch','scale_armor','jade_sword']}
+for sheet,names in GEAR.items():
+    if not os.path.exists(f'{G}/{sheet}.png'): continue
+    gi=keyed(f'{G}/{sheet}.png'); W2,H2=gi.size
+    for i,n in enumerate(names):
+        c=gi.crop(((i%4)*W2//4,(i//4)*H2//3,(i%4+1)*W2//4,(i//4+1)*H2//3)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>60 else 0).getbbox())
+        c.resize((128,128),Image.LANCZOS).save(f'{AD}/item_{n}.webp',quality=92)
+
+
+# 宝石图标：一张 3x3 图标表，绿幕底
+if os.path.exists(f'{G}/gems.png'):
+    gi=keyed(f'{G}/gems.png'); W3,H3=gi.size
+    for i,n in enumerate(['atk','matk','hp','def','mdef','mp','dodge','spd','crit']):
+        c=gi.crop(((i%3)*W3//3,(i//3)*H3//3,(i%3+1)*W3//3,(i//3+1)*H3//3)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>60 else 0).getbbox())
+        c.resize((128,128),Image.LANCZOS).save(f'{AD}/item_gem_{n}.webp',quality=92)
+# 红装图标：把橙装图标里的青绿色部分改成赤红，金边和深色底保持不变
+import numpy as np
+def redden(src,dst):
+    im=Image.open(f'{AD}/item_{src}.webp').convert('RGBA'); a=np.array(im.convert('RGB').convert('HSV')).astype(float)
+    hue=a[...,0]*360/255; m=(hue>70)&(hue<210)&(a[...,1]>60)
+    a[...,0]=np.where(m,(352%360)*255/360,a[...,0]); a[...,1]=np.where(m,np.minimum(255,a[...,1]*1.1),a[...,1])
+    out=Image.fromarray(a.astype('uint8'),'HSV').convert('RGB').convert('RGBA'); out.putalpha(im.getchannel('A')); out.save(f'{AD}/item_{dst}.webp',quality=92)
+redden('jade_sword','crimson_sword'); redden('scale_armor','phoenix_armor')
 # 主角行走帧：4 帧一行，统一缩放，脚底对齐、头部水平对齐，拼成一张横向精灵表
 def walk_sheet(src, name, stand_h):
     import numpy as np
