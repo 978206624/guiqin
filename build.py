@@ -62,11 +62,11 @@ def head(src_png, idx, n_total, name, cx):
 head(G+'/npc2.png',0,4,'elder',0.4); head(G+'/npc2.png',1,4,'axiu',0.5)
 v=Image.open(G+'/village2.png').convert('RGB'); v.save(f'{AD}/bg_village.jpg',quality=88,optimize=True); v.resize((512,384),Image.LANCZOS).save(f'{AD}/mini_village.jpg',quality=80)
 wm=Image.open(G+'/world.png').convert('RGB'); wm.save(f'{AD}/world.jpg',quality=86,optimize=True); size['world']=list(wm.size)
-o=Image.open(G+'/outskirts.jpg').convert('RGB'); o.save(f'{AD}/bg_outskirts.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_outskirts.jpg',quality=80)
-o=Image.open(G+'/creek.jpg').convert('RGB'); o.save(f'{AD}/bg_creek.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_creek.jpg',quality=80)
-o=Image.open(G+'/mist.jpg').convert('RGB'); o.save(f'{AD}/bg_mist.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_mist.jpg',quality=80)
-o=Image.open(G+'/pine.jpg').convert('RGB'); o.save(f'{AD}/bg_pine.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_pine.jpg',quality=80)
-o=Image.open(G+'/wolfvalley.jpg').convert('RGB'); o.save(f'{AD}/bg_wolfvalley.jpg',quality=86,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_wolfvalley.jpg',quality=80)
+o=Image.open(G+'/outskirts.jpg').convert('RGB'); o.save(f'{AD}/bg_outskirts.jpg',quality=78,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_outskirts.jpg',quality=80)
+o=Image.open(G+'/creek.jpg').convert('RGB'); o.save(f'{AD}/bg_creek.jpg',quality=78,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_creek.jpg',quality=80)
+o=Image.open(G+'/mist.jpg').convert('RGB'); o.save(f'{AD}/bg_mist.jpg',quality=78,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_mist.jpg',quality=80)
+o=Image.open(G+'/pine.jpg').convert('RGB'); o.save(f'{AD}/bg_pine.jpg',quality=78,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_pine.jpg',quality=80)
+o=Image.open(G+'/wolfvalley.jpg').convert('RGB'); o.save(f'{AD}/bg_wolfvalley.jpg',quality=78,optimize=True); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_wolfvalley.jpg',quality=80)
 b2=Image.open(G+'/battle2.png').convert('RGB'); cw2=round(b2.height*9/16); x2=(b2.width-cw2)//2
 b2.crop((x2,0,x2+cw2,b2.height)).save(f'{AD}/bg_battle2.jpg',quality=88,optimize=True)
 
@@ -157,7 +157,7 @@ def portraits(src, names):
         hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{n}.webp',quality=90)
 portraits(G+'/male.png',['m_sword','m_spear','m_mage']); portraits(G+'/female.png',['f_sword','f_heal','f_bow'])
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
-t=Image.open(G+'/town3.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=86,optimize=True); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
+t=Image.open(G+'/town3.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=74,optimize=True); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)
 if os.path.exists(f'{AD}/mini.jpg'): os.remove(f'{AD}/mini.jpg')
 b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.width-cw)//2
