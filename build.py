@@ -1,9 +1,7 @@
-# 构建：python3 build.py
-# 切图（art-src → assets/）；生成 js/assets.js 和 index.html；在 dist/ 输出单文件版 guiqin.html 和源码 zip
-# 依赖：Python 3、Pillow、numpy
+# 构建：切图 → assets/；生成 js/assets.js（相对路径版）；输出单文件版 wuxia_town.html 和可移植的源码 zip
 import base64, json, os, shutil, zipfile
 from PIL import Image
-R=os.path.dirname(os.path.abspath(__file__)); G=R+'/art-src'; AD=R+'/assets'; os.makedirs(R+'/dist',exist_ok=True)
+G='/home/claude/gen'; R='/home/claude/game'; AD=R+'/assets'
 os.makedirs(AD, exist_ok=True)
 size={}
 def keyed(src):
@@ -37,10 +35,10 @@ def cut_row(src, names, heights):
         h=heights[n]*2; w=round(c.width*h/c.height); c.resize((w,h),Image.LANCZOS).save(f'{AD}/{n}.webp',quality=92,method=6)
         size[n]=[w/2,h/2]
 # 城镇角色与头像、图标、底图沿用上一轮切好的
-for f in os.listdir(G+'/cut'):
+for f in os.listdir(G+'/a'):
     if f.startswith('_'): continue
     dst={'bg.jpg':'bg_town.jpg'}.get(f, f.replace('i_','icon_') if f.startswith('i_') else f)
-    shutil.copy(f'{G}/cut/{f}', f'{AD}/{dst}')
+    shutil.copy(f'{G}/a/{f}', f'{AD}/{dst}')
 for n in ['player','fox','waiter','smith','girl','vendor']:
     w,h=Image.open(f'{AD}/{n}.webp').size; size[n]=[w/2,h/2]
 cut_row(G+'/enemies.png',['grunt','wolf','boss'],dict(grunt=108,wolf=72,boss=150))
@@ -135,13 +133,13 @@ rel='// 素材清单（相对路径版）。单文件版里这一段会被换成
 open(R+'/js/assets.js','w').write(rel)
 inl='window.ASSETS = '+json.dumps(dict(img={k:uri(f'{AD}/{f}') for k,f in keys.items()},size=size))+';'
 src=open(R+'/index.src.html').read()
-single=src.replace('<!--SCRIPTS-->','<script>\n'+inl+'\n</script>\n<script>\n'+open(R+'/js/masks.js').read()+'\n</script>\n<script>\n'+open(R+'/js/data.js').read()+'\n</script>\n<script>\n'+open(R+'/js/chat.js').read()+'\n</script>\n<script>\n'+open(R+'/js/game.js').read()+'\n</script>\n<script>\n'+open(R+'/js/front.js').read()+'\n</script>')
-open(R+'/dist/guiqin.html','w').write(single)
-multi='<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<style>body{margin:0}[hidden]{display:none!important}</style>\n'+src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/masks.js"></script>\n<script src="js/data.js"></script>\n<script src="js/chat.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')+'\n</body>\n</html>\n'
+single=src.replace('<!--SCRIPTS-->','<script>\n'+inl+'\n</script>\n<script>\n'+open(R+'/js/masks.js').read()+'\n</script>\n<script>\n'+open(R+'/js/water.js').read()+'\n</script>\n<script>\n'+open(R+'/js/data.js').read()+'\n</script>\n<script>\n'+open(R+'/js/chat.js').read()+'\n</script>\n<script>\n'+open(R+'/js/game.js').read()+'\n</script>\n<script>\n'+open(R+'/js/front.js').read()+'\n</script>')
+open('/home/claude/wuxia_town.html','w').write(single)
+multi='<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<style>body{margin:0}[hidden]{display:none!important}</style>\n'+src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/masks.js"></script>\n<script src="js/water.js"></script>\n<script src="js/data.js"></script>\n<script src="js/chat.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')+'\n</body>\n</html>\n'
 multi=multi.replace('<div id="fit">','</head>\n<body>\n<div id="fit">',1)
 open(R+'/index.html','w').write(multi)
-z=zipfile.ZipFile(R+'/dist/guiqin_source.zip','w',zipfile.ZIP_DEFLATED)
-for p in ['index.html','js/assets.js','js/masks.js','js/data.js','js/chat.js','js/game.js','js/front.js','README.txt']:
+z=zipfile.ZipFile('/home/claude/guiqin_source.zip','w',zipfile.ZIP_DEFLATED)
+for p in ['index.html','js/assets.js','js/masks.js','js/water.js','js/data.js','js/chat.js','js/game.js','js/front.js','README.txt']:
     if os.path.exists(f'{R}/{p}'): z.write(f'{R}/{p}','guiqin/'+p)
 for f in files: z.write(f'{AD}/{f}','guiqin/assets/'+f)
 z.close()
