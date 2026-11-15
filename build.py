@@ -248,6 +248,9 @@ if os.environ.get('GUIQIN_PUBLISH_COPY'): open(os.environ['GUIQIN_PUBLISH_COPY']
 multi='<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<style>body{margin:0}[hidden]{display:none!important}</style>\n'+src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/masks.js"></script>\n<script src="js/water.js"></script>\n<script src="js/data.js"></script>\n<script src="js/story.js"></script>\n<script src="js/chat.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')+'\n</body>\n</html>\n'
 multi=multi.replace('<div id="fit">','</head>\n<body>\n<div id="fit">',1)
 open(R+'/index.html','w').write(multi)
+# 发布用：不带 doctype / head 的页面片段（Artifact 会自己包一层），脚本和图片作为旁边的文件
+pub=src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/masks.js"></script>\n<script src="js/water.js"></script>\n<script src="js/data.js"></script>\n<script src="js/story.js"></script>\n<script src="js/chat.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')
+open(DIST+'/pub_index.html','w').write(pub)
 z=zipfile.ZipFile(DIST+'/guiqin_source.zip','w',zipfile.ZIP_DEFLATED)
 for p in ['index.html','js/assets.js','js/masks.js','js/water.js','js/data.js','js/story.js','js/chat.js','js/game.js','js/front.js']:
     if os.path.exists(f'{R}/{p}'): z.write(f'{R}/{p}','guiqin/'+p)
