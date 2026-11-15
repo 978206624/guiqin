@@ -1,0 +1,35 @@
+{
+  "ok": false,
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 0,
+      "elapsed": 0.0,
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: 'art-src/novice/port_nm.png'"
+    },
+    {
+      "attempt": 2,
+      "status": 0,
+      "elapsed": 0.0,
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: 'art-src/novice/port_nm.png'"
+    },
+    {
+      "attempt": 3,
+      "status": 0,
+      "elapsed": 0.0,
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: 'art-src/novice/port_nm.png'"
+    },
+    {
+      "attempt": 4,
+      "status": 0,
+      "elapsed": 0.0,
+      "error": "FileNotFoundError: [Errno 2] No such file or directory: 'art-src/novice/port_nm.png'"
+    },
+    {
+      "attempt": 5,
+      "status": 504,
+      "elapsed": 190.4,
+      "error": "{'code': 'upstream_connect_timeout', 'message': 'Upstream preparation exceeded the opening time limit', 'type': 'server_error'}"
+    }
+  ]
+}
