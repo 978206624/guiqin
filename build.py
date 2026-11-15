@@ -179,6 +179,14 @@ for k,n in [('nf','novice_f'),('nm','novice_m')]:
     cut_row(f'{NV}/back_{k}.png',['b_'+n],{'b_'+n:126})
     c=keyed(f'{NV}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
     c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
+# 道家男角色（天音 / 琴魔）：人物参考新手男，风格参考女主
+DM=G+'/daoist-m'
+for k in ['ty','qm']:
+    n='dao_'+k+'_m'
+    walk_sheet(f'{DM}/walkf_{k}.png','walk_f_'+n,118); walk_sheet(f'{DM}/walkb_{k}.png','walk_b_'+n,118)
+    c=keyed(f'{DM}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
+    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
+cut_row(DM+'/back.png',['b_dao_ty_m','b_dao_qm_m'],dict(b_dao_ty_m=126,b_dao_qm_m=126))
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)

@@ -60,7 +60,7 @@ window.DATA = {
     // ---- 新手：创角页只有这两个（男女各一）。女角色在剧情里拜入道家后，才变成天音 / 琴魔的形象（game.js joinSect）----
     novice_f: { name: '新手', gender: 'f', role: '近战 · 拳脚', weapon: '无', joinSect: ['dao_ty', 'dao_qm'],
       desc: '刚下山的少女，布衣素裙，什么门派都还没入。到了清溪边，遇到各家接引师，再决定要走哪条路。', stats: { 攻击: 3, 防御: 3, 速度: 3, 法术: 3, 气血: 3 } },
-    novice_m: { name: '新手', gender: 'm', role: '近战 · 棍', weapon: '木棍',
+    novice_m: { name: '新手', gender: 'm', role: '近战 · 棍', weapon: '木棍', joinSect: ['dao_ty_m', 'dao_qm_m'],
       desc: '刚出山的少年，麻衣木棍，样样都会一点。路还很长，先把清溪的事了了。', stats: { 攻击: 3, 防御: 3, 速度: 3, 法术: 3, 气血: 3 } },
     // ---- 道家（女）两个分堂：技能参考 kunkunxunqin（data_skill_defs 的 qm / ty），数值按本游戏的回合制重新折算 ----
     dao_ty: { name: '天音', sect: '道家', gender: 'f', role: '辅助 · 琵琶', weapon: '琵琶', magicAtk: true,
@@ -582,4 +582,10 @@ window.DATA = {
     g.vals.forEach((v, i) => { D.items['gem_' + t + '_' + (i + 1)] = { name: g.stone + ' Lv.' + (i + 1), icon: g.icon, q: i + 1, type: 'gem', gem: t, lv: i + 1, price: price[i],
       desc: '镶嵌在装备孔里，' + D.statName[t] + ' +' + v + (t === 'crit' || t === 'dodge' ? '%' : '') + '。三颗同阶同种可以合成下一阶。' }; });
   }
+})();
+
+// 道家男角色：和女角色同样的两个分堂、同一套技能与心法，只是形象（美术键 *_dao_ty_m / *_dao_qm_m）不同
+(function () { const C = window.DATA.classes;
+  C.dao_ty_m = Object.assign({}, C.dao_ty, { gender: 'm', hidden: true });
+  C.dao_qm_m = Object.assign({}, C.dao_qm, { gender: 'm', hidden: true });
 })();
