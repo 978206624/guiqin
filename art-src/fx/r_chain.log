@@ -1,0 +1,3 @@
+{"attempt": 1, "status": 408, "elapsed": 136.4, "error": "{'code': 'request_body_timeout', 'message': 'Timed out reading image upload', 'type': 'invalid_request_error'}"}
+{"attempt": 2, "status": 200, "elapsed": 116.4, "error": null}
+SAVED r_chain.png

@@ -1,0 +1,4 @@
+{"attempt": 1, "status": 408, "elapsed": 96.1, "error": "{'code': 'request_body_timeout', 'message': 'Timed out reading image upload', 'type': 'invalid_request_error'}"}
+{"attempt": 2, "status": 0, "elapsed": 12.3, "error": "URLError: <urlopen error [Errno 104] Connection reset by peer>"}
+{"attempt": 3, "status": 200, "elapsed": 237.4, "error": null}
+SAVED r_notes.png
