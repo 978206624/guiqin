@@ -2,7 +2,7 @@
 import base64, io, os, sys
 import numpy as np
 from PIL import Image, ImageFilter
-SRC = os.environ.get('VILLAGE_SRC', '/home/claude/guiqin/art-src/village2.png')
+SRC = os.environ.get('VILLAGE_SRC', os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'art-src', 'village2.png'))
 OUT = os.path.join(os.path.dirname(__file__), '..', 'js', 'water.js')
 N = 1500; im = Image.open(SRC).convert('RGB').resize((N, N * 3 // 4), Image.LANCZOS)
 a = np.asarray(im).astype(int); r, g, b = a[..., 0], a[..., 1], a[..., 2]

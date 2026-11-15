@@ -3,7 +3,7 @@
 竖屏武侠手游的前端小样（HTML / CSS / JS，无框架、无后端）。
 
 - 登录 → 选区 → 创建 / 选择角色（男女各三种职业，每区三个栏位）
-- 三张可滚动的大地图：恒山村（新手村）、汉中郡、城外竹林；点小地图打开世界地图传送
+- 十一张可滚动大地图：恒山村、恒山村郊、清溪谷、云雾谷、石松林、恶狼谷、汉中郡、城外竹林，加道/墨/阴阳三家门派驻地（太虚之林/峰/谷，只能经天下舆图到达）；天下舆图可手指拖动，点地点传送
 - 点击或按住拖动行走，A* 寻路，主角有四方向行走帧
 - 回合制战斗：敌方左上、我方右下，每边最多 5 个人物 + 5 只宠物；“竞技”按钮是 5v5 演示对战
 - 主线任务、升级、背包装备、商店，进度存在浏览器本地
@@ -12,7 +12,7 @@
 
 ## 运行
 
-直接用浏览器打开 `index.html`。
+直接用浏览器打开 `index.html`（多文件版），或 `dist/guiqin.html`（单文件版，构建产物，不入库）。
 
 ## 重新构建
 
@@ -23,10 +23,10 @@ pip install pillow numpy
 python3 build.py
 ```
 
-会重新切图到 `assets/`，生成 `js/assets.js` 和 `index.html`，并在 `dist/` 输出单文件版 `guiqin.html`。
+会重新切图到 `assets/`，生成 `js/assets.js` 和 `index.html`，并在 `dist/` 输出单文件版 `guiqin.html` 和源码 zip。构建只用仓库内相对路径，任何机器 clone 下来都能直接跑。
 只改 `js/data.js`、`js/game.js`、`js/front.js` 的话不用构建，刷新页面即可。
 
-`art-src/` 是生成的原图，`art-src/prompts/` 是对应的提示词，`art-src/cut/` 是最早一批已经切好的素材。
+`art-src/` 是生成的原图，`art-src/prompts/` 是对应的提示词，`art-src/sprites-cut/` 是最早一批已经切好的素材。
 
 ## 源码说明
 
@@ -52,8 +52,8 @@ python3 build.py
   - 地图系统：data.js 的 maps 里每张地图有底图、放大倍数 scale、可行走区域（walk 多边形 + roads 道路）、
     NPC、传送点 portals 和地图上的敌人 foes。坐标写在“底图原图像素 / k”的单位里，舞台像素 = 坐标 * k * scale。
     加新地图只需要加一张底图和一段 maps 配置，不用改逻辑。
-  - 世界地图：点小地图打开（game.js 的 openWorld）。每张地图在 maps 里用 world 写它在舆图图片上的位置，
-    去过的地图（存档里的 visited）可以直接传送。传送点可以用 needStep 按主线进度上锁。
+  - 世界地图：点小地图打开（game.js 的 openWorld）。每张地图在 maps 里用 world:[x,y] 写它在 2300×2300 舆图上的位置（门派地图另加 sect:true），
+    所有地点可直接传送，无访问限制；舆图可拖动。传送点可以用 needStep 按主线进度上锁。
   - 战斗站位：敌方左上、我方右下，每边后排 5 个人物位、前排 5 个宠物位（game.js 的 ROWS / slotPos）。
     我方用背影立绘（b_ 开头），竞技场对手用正面立绘（f_ 开头），野外敌人的图会水平翻转。
   - 竞技场（“竞技”按钮）：data.js 的 arena 配了两支 5 人 + 5 宠的队伍，按同一等级对打，不影响存档。
@@ -77,3 +77,19 @@ python3 build.py
     python3 tools/collision.py && python3 build.py
 
 预览叠图会写到 `/tmp/collision_<地图名>.png`（用环境变量 `PREVIEW_DIR` 改目录），用来对照底图检查。
+
+
+## 项目目录（资源永不丢失）
+
+```
+art-src/            所有原始美术：AI 生成的整图、用户提供的地图、sprites-cut 早期切好的素材
+art-src/prompts/    生成每张图用的提示词
+assets/             构建产物：切好的游戏资源（webp/jpg），已提交
+data/               语言无关导出：data.json（全部数值/地图/NPC/关卡/任务）、collision/*.json、assets_manifest.json
+tools/              collision.py 碰撞图、water.py 水面、export_data.js 导出、gen/ 生图脚本
+tests/smoke.js      Playwright 冒烟测试
+docs/UNITY_PORTING.md  移植 Unity 指南     docs/ASSETS.md  素材来源与流程
+```
+
+导出数据：`node tools/export_data.js`（改过 js/data.js 或重新生成碰撞后运行）。
+冒烟测试：`node tests/smoke.js [html路径]`（默认 `dist/guiqin.html`）。

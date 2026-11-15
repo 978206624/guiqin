@@ -1,0 +1,5221 @@
+{
+ "base": {
+  "hp": 800,
+  "mp": 300,
+  "atk": 80,
+  "matk": 70,
+  "def": 30,
+  "mdef": 25,
+  "spd": 90,
+  "crit": 10,
+  "dodge": 3
+ },
+ "grow": {
+  "hp": 120,
+  "mp": 40,
+  "atk": 14,
+  "matk": 12,
+  "def": 6,
+  "mdef": 5,
+  "spd": 2,
+  "crit": 0,
+  "dodge": 0
+ },
+ "pet": {
+  "hp": 0.6,
+  "atk": 0.7,
+  "def": 0.6,
+  "spd": 1.2
+ },
+ "petQuality": {
+  "1": {
+   "name": "普通",
+   "color": "#c3c9d1",
+   "stars": 2
+  },
+  "2": {
+   "name": "精良",
+   "color": "#7ee08a",
+   "stars": 3
+  },
+  "3": {
+   "name": "稀有",
+   "color": "#6fb6ff",
+   "stars": 4
+  },
+  "4": {
+   "name": "传说",
+   "color": "#ffc857",
+   "stars": 5
+  }
+ },
+ "bondTiers": [
+  {
+   "at": 0,
+   "name": "初识"
+  },
+  {
+   "at": 15,
+   "name": "熟悉"
+  },
+  {
+   "at": 40,
+   "name": "亲近"
+  },
+  {
+   "at": 80,
+   "name": "默契"
+  },
+  {
+   "at": 140,
+   "name": "心意相通"
+  }
+ ],
+ "petDex": {
+  "fox": {
+   "name": "灵狐",
+   "sprite": "b_fox",
+   "q": 2,
+   "kind": "灵兽 · 近战",
+   "desc": "九尾灵狐的幼崽，通人性，会在主人身边寸步不离。",
+   "skills": [
+    "bite",
+    "foxfire"
+   ],
+   "own": true
+  },
+  "deer": {
+   "name": "小鹿",
+   "sprite": "b_deer",
+   "q": 2,
+   "kind": "灵兽 · 辅助",
+   "desc": "林间的白鹿，蹄声轻柔，据说能听见草木的心跳。",
+   "how": "医者职业任务奖励"
+  },
+  "rabbit": {
+   "name": "玉兔",
+   "sprite": "b_rabbit",
+   "q": 1,
+   "kind": "灵兽 · 敏捷",
+   "desc": "月宫来的玉兔，行动极快，总能抢在对手前面出手。",
+   "how": "竹林采集活动抽取"
+  },
+  "hawk": {
+   "name": "苍鹰",
+   "sprite": "b_hawk",
+   "q": 3,
+   "kind": "飞禽 · 迅捷",
+   "desc": "盘旋云端的猛禽，爪下从无活口。",
+   "how": "竞技场赛季奖励"
+  },
+  "tiger": {
+   "name": "虎崽",
+   "sprite": "b_tiger",
+   "q": 3,
+   "kind": "走兽 · 近战",
+   "desc": "山君之子，咆哮声虽稚嫩，咬合力却不小。",
+   "how": "玄兵塔十层奖励"
+  },
+  "tortoise": {
+   "name": "灵龟",
+   "sprite": "f_tortoise",
+   "q": 2,
+   "kind": "灵兽 · 防御",
+   "desc": "背负山河纹的龟，防御极高，不急不躁。",
+   "how": "寄卖行商店兑换"
+  },
+  "crane": {
+   "name": "仙鹤",
+   "sprite": "f_crane",
+   "q": 3,
+   "kind": "飞禽 · 迅捷",
+   "desc": "松间白鹤，舞姿清绝，鸣声可传十里。",
+   "how": "帮派任务奖励"
+  },
+  "panther": {
+   "name": "墨豹",
+   "sprite": "f_panther",
+   "q": 3,
+   "kind": "走兽 · 近战",
+   "desc": "夜里才出没的黑豹，爪牙锋利。",
+   "how": "城外夜间副本掉落"
+  },
+  "panda": {
+   "name": "竹熊",
+   "sprite": "f_panda",
+   "q": 2,
+   "kind": "走兽 · 防御",
+   "desc": "竹林深处的憨态大熊，皮糙肉厚。",
+   "how": "城外竹林稀有掉落"
+  },
+  "dragon": {
+   "name": "赤螭",
+   "sprite": "f_dragon",
+   "q": 4,
+   "kind": "神兽 · 法术",
+   "desc": "传说中的赤色小龙，吐息如火，是万中无一的灵宠。",
+   "how": "节日活动限定"
+  }
+ },
+ "quality": {
+  "1": {
+   "name": "白装",
+   "short": "白",
+   "color": "#eef0f4"
+  },
+  "2": {
+   "name": "蓝装",
+   "short": "蓝",
+   "color": "#4aa3ff"
+  },
+  "3": {
+   "name": "紫装",
+   "short": "紫",
+   "color": "#b36bff"
+  },
+  "4": {
+   "name": "橙装",
+   "short": "橙",
+   "color": "#ff9a2e"
+  },
+  "5": {
+   "name": "红装",
+   "short": "红",
+   "color": "#ff4a4a"
+  }
+ },
+ "statName": {
+  "atk": "物攻",
+  "matk": "法攻",
+  "hp": "生命",
+  "def": "物防",
+  "mdef": "法防",
+  "mp": "魔法",
+  "dodge": "闪避",
+  "spd": "速度",
+  "crit": "暴击"
+ },
+ "gems": {
+  "atk": {
+   "stone": "赤焰石",
+   "icon": "gem_atk",
+   "vals": [
+    12,
+    30,
+    60,
+    110,
+    190
+   ]
+  },
+  "matk": {
+   "stone": "紫霞石",
+   "icon": "gem_matk",
+   "vals": [
+    12,
+    30,
+    60,
+    110,
+    190
+   ]
+  },
+  "hp": {
+   "stone": "青木石",
+   "icon": "gem_hp",
+   "vals": [
+    100,
+    250,
+    500,
+    900,
+    1500
+   ]
+  },
+  "def": {
+   "stone": "玄琥石",
+   "icon": "gem_def",
+   "vals": [
+    8,
+    20,
+    40,
+    75,
+    130
+   ]
+  },
+  "mdef": {
+   "stone": "碧水石",
+   "icon": "gem_mdef",
+   "vals": [
+    8,
+    20,
+    40,
+    75,
+    130
+   ]
+  },
+  "mp": {
+   "stone": "苍澜石",
+   "icon": "gem_mp",
+   "vals": [
+    60,
+    150,
+    300,
+    540,
+    900
+   ]
+  },
+  "dodge": {
+   "stone": "流云石",
+   "icon": "gem_dodge",
+   "vals": [
+    1,
+    2,
+    3.5,
+    5,
+    7
+   ]
+  },
+  "spd": {
+   "stone": "金风石",
+   "icon": "gem_spd",
+   "vals": [
+    4,
+    10,
+    20,
+    36,
+    60
+   ]
+  },
+  "crit": {
+   "stone": "绯樱石",
+   "icon": "gem_crit",
+   "vals": [
+    1,
+    2,
+    3.5,
+    5,
+    7
+   ]
+  }
+ },
+ "forge": {
+  "max": 15,
+  "perStar": 0.06,
+  "coin": [
+   50,
+   80,
+   120,
+   180,
+   260,
+   380,
+   540,
+   760,
+   1050,
+   1450,
+   2000,
+   2700,
+   3600,
+   4800,
+   6400
+  ],
+  "rate": [
+   1,
+   1,
+   0.95,
+   0.9,
+   0.85,
+   0.75,
+   0.65,
+   0.55,
+   0.5,
+   0.45,
+   0.4,
+   0.35,
+   0.3,
+   0.25,
+   0.2
+  ],
+  "gemBonus": [
+   0.1,
+   0.2,
+   0.35,
+   0.5,
+   1
+  ],
+  "dropFrom": 10,
+  "qMul": {
+   "1": 1,
+   "2": 1.2,
+   "3": 1.5,
+   "4": 2,
+   "5": 2.6
+  },
+  "sockets": [
+   0,
+   5,
+   10,
+   15
+  ]
+ },
+ "bagSize": 20,
+ "slots": {
+  "weapon": "武器",
+  "treasure": "法宝",
+  "neck": "颈部",
+  "wrist": "手腕",
+  "finger": "手指",
+  "pouch": "药囊",
+  "amulet": "护符",
+  "head": "头部",
+  "chest": "胸部",
+  "waist": "腰部",
+  "legs": "腿部",
+  "feet": "脚部"
+ },
+ "slotLeft": [
+  "head",
+  "neck",
+  "chest",
+  "waist",
+  "legs",
+  "feet"
+ ],
+ "slotRight": [
+  "weapon",
+  "treasure",
+  "wrist",
+  "finger",
+  "pouch",
+  "amulet"
+ ],
+ "expNeed": {
+  "base": 150,
+  "perLevel": 90
+ },
+ "start": {
+  "lv": 1,
+  "coin": 100,
+  "items": {
+   "hp_potion": 3,
+   "forge_1": 5,
+   "forge_2": 2
+  },
+  "equip": {
+   "chest": "cloth_armor"
+  },
+  "map": "village"
+ },
+ "classes": {
+  "m_sword": {
+   "name": "游侠",
+   "gender": "m",
+   "role": "近战 · 剑",
+   "desc": "仗剑行走江湖的侠客，攻守均衡，出手干净利落。",
+   "stats": {
+    "攻击": 4,
+    "防御": 3,
+    "速度": 4,
+    "法术": 2,
+    "气血": 3
+   }
+  },
+  "m_spear": {
+   "name": "锐士",
+   "gender": "m",
+   "role": "近战 · 戟",
+   "desc": "大秦锐士，披坚执锐。气血和防御最高，适合顶在最前面。",
+   "stats": {
+    "攻击": 3,
+    "防御": 5,
+    "速度": 2,
+    "法术": 1,
+    "气血": 5
+   }
+  },
+  "m_mage": {
+   "name": "方士",
+   "gender": "m",
+   "role": "远程 · 法术",
+   "desc": "通晓阴阳五行的方士，以符箓和铜镜施法，擅长群体攻击。",
+   "stats": {
+    "攻击": 2,
+    "防御": 2,
+    "速度": 3,
+    "法术": 5,
+    "气血": 2
+   }
+  },
+  "f_sword": {
+   "name": "剑姬",
+   "gender": "f",
+   "role": "近战 · 剑",
+   "desc": "剑舞一脉的传人，身法最快，连击和暴击是她的拿手好戏。",
+   "stats": {
+    "攻击": 4,
+    "防御": 2,
+    "速度": 5,
+    "法术": 2,
+    "气血": 3
+   }
+  },
+  "f_heal": {
+   "name": "医者",
+   "gender": "f",
+   "role": "辅助 · 治疗",
+   "desc": "悬壶济世的游方医者，能为队友疗伤解毒，队伍里少不了她。",
+   "stats": {
+    "攻击": 1,
+    "防御": 3,
+    "速度": 3,
+    "法术": 4,
+    "气血": 4
+   }
+  },
+  "f_bow": {
+   "name": "羽林",
+   "gender": "f",
+   "role": "远程 · 弓",
+   "desc": "百步穿杨的神射手，专挑残血的敌人下手，单体伤害最高。",
+   "stats": {
+    "攻击": 5,
+    "防御": 2,
+    "速度": 4,
+    "法术": 1,
+    "气血": 2
+   }
+  }
+ },
+ "items": {
+  "hp_potion": {
+   "name": "金创药",
+   "icon": "hp_potion",
+   "q": 1,
+   "type": "potion",
+   "price": 50,
+   "hp": 600,
+   "desc": "恢复 600 点气血。"
+  },
+  "mp_potion": {
+   "name": "回气丹",
+   "icon": "mp_potion",
+   "q": 1,
+   "type": "potion",
+   "price": 60,
+   "mp": 300,
+   "desc": "恢复 300 点法力。"
+  },
+  "iron_sword": {
+   "name": "精铁剑",
+   "icon": "iron_sword",
+   "q": 2,
+   "type": "equip",
+   "slot": "weapon",
+   "price": 300,
+   "atk": 40,
+   "desc": "王铁匠亲手淬火的好剑。物攻 +40"
+  },
+  "steel_sword": {
+   "name": "玄铁剑",
+   "icon": "steel_sword",
+   "q": 3,
+   "type": "equip",
+   "slot": "weapon",
+   "price": 900,
+   "atk": 95,
+   "desc": "玄铁所铸，寒光逼人。物攻 +95"
+  },
+  "cloth_armor": {
+   "name": "布衣",
+   "icon": "cloth_armor",
+   "q": 1,
+   "type": "equip",
+   "slot": "chest",
+   "price": 80,
+   "def": 15,
+   "desc": "寻常布衣。物防 +15"
+  },
+  "leather_armor": {
+   "name": "皮甲",
+   "icon": "leather_armor",
+   "q": 2,
+   "type": "equip",
+   "slot": "chest",
+   "price": 500,
+   "def": 50,
+   "hp": 200,
+   "desc": "鞣制皮甲。物防 +50，生命 +200"
+  },
+  "sachet": {
+   "name": "百花香囊",
+   "icon": "sachet",
+   "q": 3,
+   "type": "equip",
+   "slot": "pouch",
+   "price": 400,
+   "hp": 300,
+   "spd": 10,
+   "desc": "逍遥子所赠。生命 +300，速度 +10"
+  },
+  "wood_beads": {
+   "name": "木珠项链",
+   "icon": "wood_beads",
+   "q": 1,
+   "type": "equip",
+   "slot": "neck",
+   "price": 120,
+   "hp": 120,
+   "atk": 6,
+   "desc": "山里人常戴的木珠串，据说能安神。生命 +120，物攻 +6"
+  },
+  "jade_pendant": {
+   "name": "玉佩项链",
+   "icon": "jade_pendant",
+   "q": 3,
+   "type": "equip",
+   "slot": "neck",
+   "price": 700,
+   "hp": 320,
+   "atk": 14,
+   "desc": "温润的青玉雕成，贴身佩戴养气。生命 +320，物攻 +14"
+  },
+  "copper_ring": {
+   "name": "铜指环",
+   "icon": "copper_ring",
+   "q": 1,
+   "type": "equip",
+   "slot": "finger",
+   "price": 100,
+   "atk": 10,
+   "desc": "寻常铜戒，握剑时更稳。物攻 +10"
+  },
+  "silver_ring": {
+   "name": "银镶蓝宝戒",
+   "icon": "silver_ring",
+   "q": 2,
+   "type": "equip",
+   "slot": "finger",
+   "price": 450,
+   "atk": 22,
+   "desc": "西域来的蓝宝石戒指。物攻 +22"
+  },
+  "leather_bracer": {
+   "name": "皮护腕",
+   "icon": "leather_bracer",
+   "q": 1,
+   "type": "equip",
+   "slot": "wrist",
+   "price": 110,
+   "def": 8,
+   "atk": 4,
+   "desc": "鞣制皮革缝成。物防 +8，物攻 +4"
+  },
+  "steel_bracer": {
+   "name": "精钢护腕",
+   "icon": "steel_bracer",
+   "q": 2,
+   "type": "equip",
+   "slot": "wrist",
+   "price": 500,
+   "def": 20,
+   "atk": 10,
+   "desc": "精钢打造，镶金边。物防 +20，物攻 +10"
+  },
+  "leather_cap": {
+   "name": "皮帽",
+   "icon": "leather_cap",
+   "q": 1,
+   "type": "equip",
+   "slot": "head",
+   "price": 100,
+   "def": 10,
+   "hp": 60,
+   "desc": "猎户常戴的皮帽。物防 +10，生命 +60"
+  },
+  "iron_helm": {
+   "name": "铁盔",
+   "icon": "iron_helm",
+   "q": 2,
+   "type": "equip",
+   "slot": "head",
+   "price": 500,
+   "def": 26,
+   "hp": 150,
+   "desc": "红缨铁盔，军中旧物。物防 +26，生命 +150"
+  },
+  "linen_belt": {
+   "name": "麻布腰带",
+   "icon": "linen_belt",
+   "q": 1,
+   "type": "equip",
+   "slot": "waist",
+   "price": 90,
+   "hp": 100,
+   "def": 5,
+   "desc": "结实的麻布腰带。生命 +100，物防 +5"
+  },
+  "jade_belt": {
+   "name": "白玉带",
+   "icon": "jade_belt",
+   "q": 3,
+   "type": "equip",
+   "slot": "waist",
+   "price": 650,
+   "hp": 260,
+   "def": 14,
+   "desc": "金扣玉带，富贵人家才有。生命 +260，物防 +14"
+  },
+  "linen_legs": {
+   "name": "麻布护腿",
+   "icon": "linen_legs",
+   "q": 1,
+   "type": "equip",
+   "slot": "legs",
+   "price": 100,
+   "def": 12,
+   "hp": 50,
+   "desc": "赶路时绑在腿上的护腿。物防 +12，生命 +50"
+  },
+  "iron_greaves": {
+   "name": "铁护腿",
+   "icon": "iron_greaves",
+   "q": 2,
+   "type": "equip",
+   "slot": "legs",
+   "price": 520,
+   "def": 30,
+   "hp": 120,
+   "desc": "铁片缀成的护腿。物防 +30，生命 +120"
+  },
+  "cloth_boots": {
+   "name": "布靴",
+   "icon": "cloth_boots",
+   "q": 1,
+   "type": "equip",
+   "slot": "feet",
+   "price": 90,
+   "spd": 6,
+   "def": 5,
+   "desc": "草底布靴，走山路不累。速度 +6，物防 +5"
+  },
+  "cloud_boots": {
+   "name": "云纹靴",
+   "icon": "cloud_boots",
+   "q": 3,
+   "type": "equip",
+   "slot": "feet",
+   "price": 650,
+   "spd": 16,
+   "def": 12,
+   "desc": "绣着云纹的轻靴，步履生风。速度 +16，物防 +12"
+  },
+  "bronze_bell": {
+   "name": "青铜铃",
+   "icon": "bronze_bell",
+   "q": 2,
+   "type": "equip",
+   "slot": "treasure",
+   "price": 350,
+   "matk": 18,
+   "spd": 4,
+   "desc": "古旧的青铜法铃，摇动时嗡嗡作响。法攻 +18，速度 +4"
+  },
+  "bagua_mirror": {
+   "name": "八卦镜",
+   "icon": "bagua_mirror",
+   "q": 3,
+   "type": "equip",
+   "slot": "treasure",
+   "price": 1100,
+   "matk": 42,
+   "spd": 8,
+   "desc": "方士炼制的法宝，照出邪祟。法攻 +42，速度 +8"
+  },
+  "peace_charm": {
+   "name": "平安符",
+   "icon": "peace_charm",
+   "q": 1,
+   "type": "equip",
+   "slot": "amulet",
+   "price": 120,
+   "mdef": 10,
+   "hp": 100,
+   "desc": "庙里求来的黄纸符。法防 +10，生命 +100"
+  },
+  "jade_charm": {
+   "name": "玉符",
+   "icon": "jade_charm",
+   "q": 3,
+   "type": "equip",
+   "slot": "amulet",
+   "price": 700,
+   "mdef": 24,
+   "hp": 260,
+   "desc": "刻着符文的青玉，隐隐发光。法防 +24，生命 +260"
+  },
+  "herb_pouch": {
+   "name": "草药袋",
+   "icon": "herb_pouch",
+   "q": 1,
+   "type": "equip",
+   "slot": "pouch",
+   "price": 120,
+   "hp": 150,
+   "desc": "装着晒干草药的小袋。生命 +150"
+  },
+  "brocade_pouch": {
+   "name": "锦绣药囊",
+   "icon": "brocade_pouch",
+   "q": 3,
+   "type": "equip",
+   "slot": "pouch",
+   "price": 900,
+   "hp": 450,
+   "spd": 14,
+   "desc": "金线绣的药囊，香气清冽。生命 +450，速度 +14"
+  },
+  "iron_armor": {
+   "name": "铁甲",
+   "icon": "iron_armor",
+   "q": 3,
+   "type": "equip",
+   "slot": "chest",
+   "price": 1100,
+   "def": 85,
+   "hp": 320,
+   "desc": "铆钉铁甲，沉甸甸的。物防 +85，生命 +320"
+  },
+  "scale_armor": {
+   "name": "玄鳞甲",
+   "icon": "scale_armor",
+   "q": 4,
+   "type": "equip",
+   "slot": "chest",
+   "price": 2000,
+   "def": 120,
+   "hp": 480,
+   "desc": "传说取玄蛇鳞片所制。物防 +120，生命 +480"
+  },
+  "steel_saber": {
+   "name": "百炼钢刀",
+   "icon": "steel_saber",
+   "q": 2,
+   "type": "equip",
+   "slot": "weapon",
+   "price": 650,
+   "atk": 70,
+   "desc": "百炼成钢的弯刀，红绸缠柄。物攻 +70"
+  },
+  "jade_sword": {
+   "name": "碧玉剑",
+   "icon": "jade_sword",
+   "q": 4,
+   "type": "equip",
+   "slot": "weapon",
+   "price": 2200,
+   "atk": 150,
+   "desc": "剑身如碧玉，夜里泛着绿光。物攻 +150"
+  },
+  "crimson_sword": {
+   "name": "赤霄剑",
+   "icon": "crimson_sword",
+   "q": 5,
+   "type": "equip",
+   "slot": "weapon",
+   "price": 6000,
+   "atk": 260,
+   "desc": "传说中斩白蛇的赤色神剑，剑出如火。物攻 +260"
+  },
+  "phoenix_armor": {
+   "name": "朱雀战甲",
+   "icon": "phoenix_armor",
+   "q": 5,
+   "type": "equip",
+   "slot": "chest",
+   "price": 6000,
+   "def": 190,
+   "hp": 800,
+   "desc": "朱雀羽炼成的战甲，烈焰不侵。物防 +190，生命 +800"
+  },
+  "forge_1": {
+   "name": "初级锻造宝石",
+   "icon": "forge_1",
+   "q": 1,
+   "type": "mat",
+   "forge": 1,
+   "price": 200,
+   "desc": "锻造时消耗一颗，成功率 +10%。"
+  },
+  "forge_2": {
+   "name": "锻造宝石",
+   "icon": "forge_2",
+   "q": 2,
+   "type": "mat",
+   "forge": 2,
+   "price": 800,
+   "desc": "锻造时消耗一颗，成功率 +20%。"
+  },
+  "forge_3": {
+   "name": "精锻宝石",
+   "icon": "forge_3",
+   "q": 3,
+   "type": "mat",
+   "forge": 3,
+   "price": 3000,
+   "desc": "锻造时消耗一颗，成功率 +35%。"
+  },
+  "forge_4": {
+   "name": "锻皇宝石",
+   "icon": "forge_4",
+   "q": 4,
+   "type": "mat",
+   "forge": 4,
+   "price": 10000,
+   "desc": "锻造时消耗一颗，成功率 +50%。"
+  },
+  "forge_5": {
+   "name": "圣锻皇宝石",
+   "icon": "forge_5",
+   "q": 5,
+   "type": "mat",
+   "forge": 5,
+   "price": 40000,
+   "desc": "锻造时消耗一颗，必定锻造成功。"
+  },
+  "ore": {
+   "name": "玄铁矿",
+   "icon": "ore",
+   "q": 2,
+   "type": "mat",
+   "price": 120,
+   "desc": "打造兵器的材料，可以卖给商人。"
+  },
+  "wolf_fang": {
+   "name": "狼牙",
+   "icon": "wolf_fang",
+   "q": 1,
+   "type": "mat",
+   "price": 40,
+   "desc": "野狼的牙，可以卖给商人。"
+  },
+  "lantern": {
+   "name": "花灯",
+   "icon": "lantern",
+   "q": 2,
+   "type": "mat",
+   "price": 0,
+   "desc": "王铁匠托你捎给逍遥子的花灯。"
+  },
+  "gem_atk_1": {
+   "name": "赤焰石 Lv.1",
+   "icon": "gem_atk",
+   "q": 1,
+   "type": "gem",
+   "gem": "atk",
+   "lv": 1,
+   "price": 150,
+   "desc": "镶嵌在装备孔里，物攻 +12。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_atk_2": {
+   "name": "赤焰石 Lv.2",
+   "icon": "gem_atk",
+   "q": 2,
+   "type": "gem",
+   "gem": "atk",
+   "lv": 2,
+   "price": 450,
+   "desc": "镶嵌在装备孔里，物攻 +30。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_atk_3": {
+   "name": "赤焰石 Lv.3",
+   "icon": "gem_atk",
+   "q": 3,
+   "type": "gem",
+   "gem": "atk",
+   "lv": 3,
+   "price": 1350,
+   "desc": "镶嵌在装备孔里，物攻 +60。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_atk_4": {
+   "name": "赤焰石 Lv.4",
+   "icon": "gem_atk",
+   "q": 4,
+   "type": "gem",
+   "gem": "atk",
+   "lv": 4,
+   "price": 4000,
+   "desc": "镶嵌在装备孔里，物攻 +110。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_atk_5": {
+   "name": "赤焰石 Lv.5",
+   "icon": "gem_atk",
+   "q": 5,
+   "type": "gem",
+   "gem": "atk",
+   "lv": 5,
+   "price": 12000,
+   "desc": "镶嵌在装备孔里，物攻 +190。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_matk_1": {
+   "name": "紫霞石 Lv.1",
+   "icon": "gem_matk",
+   "q": 1,
+   "type": "gem",
+   "gem": "matk",
+   "lv": 1,
+   "price": 150,
+   "desc": "镶嵌在装备孔里，法攻 +12。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_matk_2": {
+   "name": "紫霞石 Lv.2",
+   "icon": "gem_matk",
+   "q": 2,
+   "type": "gem",
+   "gem": "matk",
+   "lv": 2,
+   "price": 450,
+   "desc": "镶嵌在装备孔里，法攻 +30。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_matk_3": {
+   "name": "紫霞石 Lv.3",
+   "icon": "gem_matk",
+   "q": 3,
+   "type": "gem",
+   "gem": "matk",
+   "lv": 3,
+   "price": 1350,
+   "desc": "镶嵌在装备孔里，法攻 +60。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_matk_4": {
+   "name": "紫霞石 Lv.4",
+   "icon": "gem_matk",
+   "q": 4,
+   "type": "gem",
+   "gem": "matk",
+   "lv": 4,
+   "price": 4000,
+   "desc": "镶嵌在装备孔里，法攻 +110。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_matk_5": {
+   "name": "紫霞石 Lv.5",
+   "icon": "gem_matk",
+   "q": 5,
+   "type": "gem",
+   "gem": "matk",
+   "lv": 5,
+   "price": 12000,
+   "desc": "镶嵌在装备孔里，法攻 +190。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_hp_1": {
+   "name": "青木石 Lv.1",
+   "icon": "gem_hp",
+   "q": 1,
+   "type": "gem",
+   "gem": "hp",
+   "lv": 1,
+   "price": 150,
+   "desc": "镶嵌在装备孔里，生命 +100。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_hp_2": {
+   "name": "青木石 Lv.2",
+   "icon": "gem_hp",
+   "q": 2,
+   "type": "gem",
+   "gem": "hp",
+   "lv": 2,
+   "price": 450,
+   "desc": "镶嵌在装备孔里，生命 +250。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_hp_3": {
+   "name": "青木石 Lv.3",
+   "icon": "gem_hp",
+   "q": 3,
+   "type": "gem",
+   "gem": "hp",
+   "lv": 3,
+   "price": 1350,
+   "desc": "镶嵌在装备孔里，生命 +500。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_hp_4": {
+   "name": "青木石 Lv.4",
+   "icon": "gem_hp",
+   "q": 4,
+   "type": "gem",
+   "gem": "hp",
+   "lv": 4,
+   "price": 4000,
+   "desc": "镶嵌在装备孔里，生命 +900。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_hp_5": {
+   "name": "青木石 Lv.5",
+   "icon": "gem_hp",
+   "q": 5,
+   "type": "gem",
+   "gem": "hp",
+   "lv": 5,
+   "price": 12000,
+   "desc": "镶嵌在装备孔里，生命 +1500。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_def_1": {
+   "name": "玄琥石 Lv.1",
+   "icon": "gem_def",
+   "q": 1,
+   "type": "gem",
+   "gem": "def",
+   "lv": 1,
+   "price": 150,
+   "desc": "镶嵌在装备孔里，物防 +8。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_def_2": {
+   "name": "玄琥石 Lv.2",
+   "icon": "gem_def",
+   "q": 2,
+   "type": "gem",
+   "gem": "def",
+   "lv": 2,
+   "price": 450,
+   "desc": "镶嵌在装备孔里，物防 +20。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_def_3": {
+   "name": "玄琥石 Lv.3",
+   "icon": "gem_def",
+   "q": 3,
+   "type": "gem",
+   "gem": "def",
+   "lv": 3,
+   "price": 1350,
+   "desc": "镶嵌在装备孔里，物防 +40。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_def_4": {
+   "name": "玄琥石 Lv.4",
+   "icon": "gem_def",
+   "q": 4,
+   "type": "gem",
+   "gem": "def",
+   "lv": 4,
+   "price": 4000,
+   "desc": "镶嵌在装备孔里，物防 +75。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_def_5": {
+   "name": "玄琥石 Lv.5",
+   "icon": "gem_def",
+   "q": 5,
+   "type": "gem",
+   "gem": "def",
+   "lv": 5,
+   "price": 12000,
+   "desc": "镶嵌在装备孔里，物防 +130。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mdef_1": {
+   "name": "碧水石 Lv.1",
+   "icon": "gem_mdef",
+   "q": 1,
+   "type": "gem",
+   "gem": "mdef",
+   "lv": 1,
+   "price": 150,
+   "desc": "镶嵌在装备孔里，法防 +8。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mdef_2": {
+   "name": "碧水石 Lv.2",
+   "icon": "gem_mdef",
+   "q": 2,
+   "type": "gem",
+   "gem": "mdef",
+   "lv": 2,
+   "price": 450,
+   "desc": "镶嵌在装备孔里，法防 +20。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mdef_3": {
+   "name": "碧水石 Lv.3",
+   "icon": "gem_mdef",
+   "q": 3,
+   "type": "gem",
+   "gem": "mdef",
+   "lv": 3,
+   "price": 1350,
+   "desc": "镶嵌在装备孔里，法防 +40。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mdef_4": {
+   "name": "碧水石 Lv.4",
+   "icon": "gem_mdef",
+   "q": 4,
+   "type": "gem",
+   "gem": "mdef",
+   "lv": 4,
+   "price": 4000,
+   "desc": "镶嵌在装备孔里，法防 +75。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mdef_5": {
+   "name": "碧水石 Lv.5",
+   "icon": "gem_mdef",
+   "q": 5,
+   "type": "gem",
+   "gem": "mdef",
+   "lv": 5,
+   "price": 12000,
+   "desc": "镶嵌在装备孔里，法防 +130。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mp_1": {
+   "name": "苍澜石 Lv.1",
+   "icon": "gem_mp",
+   "q": 1,
+   "type": "gem",
+   "gem": "mp",
+   "lv": 1,
+   "price": 150,
+   "desc": "镶嵌在装备孔里，魔法 +60。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mp_2": {
+   "name": "苍澜石 Lv.2",
+   "icon": "gem_mp",
+   "q": 2,
+   "type": "gem",
+   "gem": "mp",
+   "lv": 2,
+   "price": 450,
+   "desc": "镶嵌在装备孔里，魔法 +150。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mp_3": {
+   "name": "苍澜石 Lv.3",
+   "icon": "gem_mp",
+   "q": 3,
+   "type": "gem",
+   "gem": "mp",
+   "lv": 3,
+   "price": 1350,
+   "desc": "镶嵌在装备孔里，魔法 +300。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mp_4": {
+   "name": "苍澜石 Lv.4",
+   "icon": "gem_mp",
+   "q": 4,
+   "type": "gem",
+   "gem": "mp",
+   "lv": 4,
+   "price": 4000,
+   "desc": "镶嵌在装备孔里，魔法 +540。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_mp_5": {
+   "name": "苍澜石 Lv.5",
+   "icon": "gem_mp",
+   "q": 5,
+   "type": "gem",
+   "gem": "mp",
+   "lv": 5,
+   "price": 12000,
+   "desc": "镶嵌在装备孔里，魔法 +900。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_dodge_1": {
+   "name": "流云石 Lv.1",
+   "icon": "gem_dodge",
+   "q": 1,
+   "type": "gem",
+   "gem": "dodge",
+   "lv": 1,
+   "price": 150,
+   "desc": "镶嵌在装备孔里，闪避 +1%。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_dodge_2": {
+   "name": "流云石 Lv.2",
+   "icon": "gem_dodge",
+   "q": 2,
+   "type": "gem",
+   "gem": "dodge",
+   "lv": 2,
+   "price": 450,
+   "desc": "镶嵌在装备孔里，闪避 +2%。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_dodge_3": {
+   "name": "流云石 Lv.3",
+   "icon": "gem_dodge",
+   "q": 3,
+   "type": "gem",
+   "gem": "dodge",
+   "lv": 3,
+   "price": 1350,
+   "desc": "镶嵌在装备孔里，闪避 +3.5%。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_dodge_4": {
+   "name": "流云石 Lv.4",
+   "icon": "gem_dodge",
+   "q": 4,
+   "type": "gem",
+   "gem": "dodge",
+   "lv": 4,
+   "price": 4000,
+   "desc": "镶嵌在装备孔里，闪避 +5%。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_dodge_5": {
+   "name": "流云石 Lv.5",
+   "icon": "gem_dodge",
+   "q": 5,
+   "type": "gem",
+   "gem": "dodge",
+   "lv": 5,
+   "price": 12000,
+   "desc": "镶嵌在装备孔里，闪避 +7%。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_spd_1": {
+   "name": "金风石 Lv.1",
+   "icon": "gem_spd",
+   "q": 1,
+   "type": "gem",
+   "gem": "spd",
+   "lv": 1,
+   "price": 150,
+   "desc": "镶嵌在装备孔里，速度 +4。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_spd_2": {
+   "name": "金风石 Lv.2",
+   "icon": "gem_spd",
+   "q": 2,
+   "type": "gem",
+   "gem": "spd",
+   "lv": 2,
+   "price": 450,
+   "desc": "镶嵌在装备孔里，速度 +10。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_spd_3": {
+   "name": "金风石 Lv.3",
+   "icon": "gem_spd",
+   "q": 3,
+   "type": "gem",
+   "gem": "spd",
+   "lv": 3,
+   "price": 1350,
+   "desc": "镶嵌在装备孔里，速度 +20。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_spd_4": {
+   "name": "金风石 Lv.4",
+   "icon": "gem_spd",
+   "q": 4,
+   "type": "gem",
+   "gem": "spd",
+   "lv": 4,
+   "price": 4000,
+   "desc": "镶嵌在装备孔里，速度 +36。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_spd_5": {
+   "name": "金风石 Lv.5",
+   "icon": "gem_spd",
+   "q": 5,
+   "type": "gem",
+   "gem": "spd",
+   "lv": 5,
+   "price": 12000,
+   "desc": "镶嵌在装备孔里，速度 +60。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_crit_1": {
+   "name": "绯樱石 Lv.1",
+   "icon": "gem_crit",
+   "q": 1,
+   "type": "gem",
+   "gem": "crit",
+   "lv": 1,
+   "price": 150,
+   "desc": "镶嵌在装备孔里，暴击 +1%。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_crit_2": {
+   "name": "绯樱石 Lv.2",
+   "icon": "gem_crit",
+   "q": 2,
+   "type": "gem",
+   "gem": "crit",
+   "lv": 2,
+   "price": 450,
+   "desc": "镶嵌在装备孔里，暴击 +2%。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_crit_3": {
+   "name": "绯樱石 Lv.3",
+   "icon": "gem_crit",
+   "q": 3,
+   "type": "gem",
+   "gem": "crit",
+   "lv": 3,
+   "price": 1350,
+   "desc": "镶嵌在装备孔里，暴击 +3.5%。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_crit_4": {
+   "name": "绯樱石 Lv.4",
+   "icon": "gem_crit",
+   "q": 4,
+   "type": "gem",
+   "gem": "crit",
+   "lv": 4,
+   "price": 4000,
+   "desc": "镶嵌在装备孔里，暴击 +5%。三颗同阶同种可以合成下一阶。"
+  },
+  "gem_crit_5": {
+   "name": "绯樱石 Lv.5",
+   "icon": "gem_crit",
+   "q": 5,
+   "type": "gem",
+   "gem": "crit",
+   "lv": 5,
+   "price": 12000,
+   "desc": "镶嵌在装备孔里，暴击 +7%。三颗同阶同种可以合成下一阶。"
+  }
+ },
+ "skills": {
+  "attack": {
+   "name": "攻击",
+   "mp": 0,
+   "power": 1,
+   "target": "one",
+   "desc": "普通一击。"
+  },
+  "pokong": {
+   "name": "天剑·破空",
+   "mp": 60,
+   "power": 1.9,
+   "target": "one",
+   "desc": "凝气于剑，重创一名敌人。",
+   "lv": 1
+  },
+  "zongheng": {
+   "name": "剑气纵横",
+   "mp": 110,
+   "power": 1.15,
+   "target": "all",
+   "magic": true,
+   "desc": "剑气四散，攻击全体敌人。",
+   "lv": 6
+  },
+  "ningshen": {
+   "name": "凝神诀",
+   "mp": 80,
+   "heal": 0.35,
+   "target": "self",
+   "desc": "调息凝神，回复 35% 气血。",
+   "lv": 7
+  },
+  "bite": {
+   "name": "撕咬",
+   "mp": 0,
+   "power": 1,
+   "target": "one"
+  },
+  "foxfire": {
+   "name": "狐火",
+   "mp": 0,
+   "power": 1.6,
+   "target": "one",
+   "fire": true,
+   "magic": true
+  },
+  "heal_ally": {
+   "name": "回春术",
+   "mp": 0,
+   "heal": 0.22,
+   "target": "ally"
+  },
+  "bolt": {
+   "name": "飞花",
+   "mp": 0,
+   "power": 1.2,
+   "target": "one",
+   "magic": true
+  },
+  "rain": {
+   "name": "落英缤纷",
+   "mp": 0,
+   "power": 0.7,
+   "target": "all",
+   "magic": true
+  },
+  "snipe": {
+   "name": "穿云一击",
+   "mp": 0,
+   "power": 1.3,
+   "target": "one"
+  },
+  "smash": {
+   "name": "伏魔击",
+   "mp": 0,
+   "power": 0.95,
+   "target": "one"
+  },
+  "sweep": {
+   "name": "横扫千军",
+   "mp": 0,
+   "power": 1.3,
+   "target": "all"
+  }
+ },
+ "playerSkills": [
+  "pokong",
+  "zongheng",
+  "ningshen"
+ ],
+ "enemies": {
+  "dummy": {
+   "name": "木桩",
+   "sprite": "dummy",
+   "h": 110,
+   "hp": 420,
+   "atk": 28,
+   "def": 8,
+   "spd": 10,
+   "exp": 200,
+   "coin": 0,
+   "drops": []
+  },
+  "boar": {
+   "name": "野猪",
+   "sprite": "boar",
+   "pet": true,
+   "h": 78,
+   "hp": 360,
+   "atk": 82,
+   "def": 14,
+   "spd": 82,
+   "exp": 180,
+   "coin": 15,
+   "drops": [
+    [
+     "hp_potion",
+     0.4
+    ]
+   ]
+  },
+  "grunt": {
+   "name": "山贼喽啰",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 780,
+   "atk": 155,
+   "def": 32,
+   "spd": 70,
+   "exp": 120,
+   "coin": 45,
+   "drops": [
+    [
+     "hp_potion",
+     0.35
+    ],
+    [
+     "ore",
+     0.15
+    ]
+   ]
+  },
+  "wolf": {
+   "name": "野狼",
+   "sprite": "wolf",
+   "pet": true,
+   "h": 72,
+   "hp": 580,
+   "atk": 180,
+   "def": 15,
+   "spd": 118,
+   "exp": 110,
+   "coin": 20,
+   "drops": [
+    [
+     "wolf_fang",
+     0.6
+    ]
+   ]
+  },
+  "boss": {
+   "name": "山贼头目",
+   "sprite": "boss",
+   "h": 150,
+   "hp": 4000,
+   "atk": 255,
+   "def": 70,
+   "spd": 85,
+   "exp": 900,
+   "coin": 600,
+   "drops": [
+    [
+     "ore",
+     1
+    ],
+    [
+     "mp_potion",
+     1
+    ]
+   ],
+   "boss": true
+  }
+ },
+ "stages": [
+  {
+   "id": "dummy",
+   "name": "山脚木桩",
+   "rec": 1,
+   "enemies": [
+    "dummy"
+   ],
+   "desc": "一动不动的稻草人，拿来练手正好。"
+  },
+  {
+   "id": "boar",
+   "name": "山道野猪",
+   "rec": 2,
+   "enemies": [
+    "boar",
+    "boar"
+   ],
+   "desc": "两头在山道边拱土的野猪。",
+   "need": "dummy"
+  },
+  {
+   "id": "hog",
+   "name": "荒径野猪",
+   "rec": 3,
+   "enemies": [
+    "boar",
+    "boar",
+    "boar"
+   ],
+   "desc": "三头在村郊荒径上横冲直撞的野猪。",
+   "need": "boar"
+  },
+  {
+   "id": "roam",
+   "name": "林间游狼",
+   "rec": 4,
+   "enemies": [
+    "wolf",
+    "wolf"
+   ],
+   "desc": "两头在林子边游荡的饿狼。",
+   "need": "hog"
+  },
+  {
+   "id": "creekwolf",
+   "name": "溪畔狼群",
+   "rec": 5,
+   "enemies": [
+    "wolf",
+    "wolf",
+    "wolf"
+   ],
+   "desc": "循着水声下山来饮水的三头饿狼。",
+   "need": "roam"
+  },
+  {
+   "id": "creekgang",
+   "name": "溪边劫匪",
+   "rec": 6,
+   "enemies": [
+    "grunt",
+    "grunt",
+    "wolf"
+   ],
+   "desc": "躲在竹林里打劫行人的山贼。",
+   "need": "creekwolf"
+  },
+  {
+   "id": "mistwolf",
+   "name": "谷底狼群",
+   "rec": 7,
+   "enemies": [
+    "wolf",
+    "wolf",
+    "wolf"
+   ],
+   "desc": "栖在云雾谷里的狼群，毛色被雾气染得发白。",
+   "need": "creekgang"
+  },
+  {
+   "id": "mistgang",
+   "name": "雾谷悍匪",
+   "rec": 8,
+   "enemies": [
+    "grunt",
+    "wolf",
+    "grunt"
+   ],
+   "desc": "躲进云雾谷落脚的山贼，熟悉每一块石头。",
+   "need": "mistwolf"
+  },
+  {
+   "id": "pinegang",
+   "name": "松林伏兵",
+   "rec": 9,
+   "enemies": [
+    "grunt",
+    "grunt",
+    "grunt"
+   ],
+   "desc": "埋伏在石柱后面的三个山贼。",
+   "need": "boss"
+  },
+  {
+   "id": "pinewolf",
+   "name": "石间狼群",
+   "rec": 10,
+   "enemies": [
+    "wolf",
+    "wolf",
+    "wolf"
+   ],
+   "desc": "在石松林里巡游的狼群，爪子磨得发亮。",
+   "need": "pinegang"
+  },
+  {
+   "id": "denwolf",
+   "name": "狼窝外围",
+   "rec": 11,
+   "enemies": [
+    "wolf",
+    "wolf",
+    "wolf"
+   ],
+   "desc": "守在洞口的狼，嘴边还带着血。",
+   "need": "pinewolf"
+  },
+  {
+   "id": "wolfboss",
+   "name": "驯狼匪首",
+   "rec": 12,
+   "enemies": [
+    "wolf",
+    "boss",
+    "wolf"
+   ],
+   "desc": "把狼群当成打手的山贼头子，每三回合会使出横扫千军。",
+   "need": "denwolf"
+  },
+  {
+   "id": "path",
+   "name": "竹林小径",
+   "rec": 5,
+   "enemies": [
+    "grunt",
+    "grunt"
+   ],
+   "desc": "两个拦路的山贼喽啰。"
+  },
+  {
+   "id": "wolves",
+   "name": "狼群出没",
+   "rec": 6,
+   "enemies": [
+    "wolf",
+    "wolf",
+    "wolf"
+   ],
+   "desc": "三头饿狼，速度很快。",
+   "need": "path"
+  },
+  {
+   "id": "outpost",
+   "name": "山寨前哨",
+   "rec": 7,
+   "enemies": [
+    "grunt",
+    "wolf",
+    "grunt"
+   ],
+   "desc": "山贼和他们养的狼。",
+   "need": "wolves"
+  },
+  {
+   "id": "boss",
+   "name": "山贼头目",
+   "rec": 8,
+   "enemies": [
+    "grunt",
+    "boss",
+    "grunt"
+   ],
+   "desc": "头目每三回合会使出横扫千军。",
+   "need": "path",
+   "needStep": 9
+  }
+ ],
+ "quests": [
+  {
+   "type": "talk",
+   "npc": "elder",
+   "title": "初出茅庐",
+   "goal": "和村长说话",
+   "say": "孩子，你在恒山学艺也有些年头了，是时候下山闯荡了。走之前，先去山脚的石板路上拿木桩活动活动筋骨。",
+   "reward": {
+    "exp": 240,
+    "items": {
+     "hp_potion": 2
+    }
+   }
+  },
+  {
+   "type": "win",
+   "stage": "dummy",
+   "title": "热身",
+   "goal": "去山脚石板路打倒木桩"
+  },
+  {
+   "type": "win",
+   "stage": "boar",
+   "title": "菜地之患",
+   "goal": "赶走山道上拱菜的野猪"
+  },
+  {
+   "type": "talk",
+   "npc": "elder",
+   "title": "下山",
+   "goal": "回去告诉村长",
+   "say": "好，有模有样了。拿着这封信从村口的木平台下山去汉中郡，到聚贤楼找店小二。记住，点右上角的小地图能打开舆图，点任意地点可以直接传送。",
+   "reward": {
+    "exp": 700,
+    "coin": 150
+   }
+  },
+  {
+   "type": "talk",
+   "npc": "waiter",
+   "title": "侠客初成",
+   "goal": "到汉中郡聚贤楼找店小二",
+   "say": "少侠是恒山村来的吧？村长的信掌柜的收到了。王铁匠那儿给您留了一把剑，您亲自去取吧。",
+   "reward": {
+    "exp": 80
+   }
+  },
+  {
+   "type": "talk",
+   "npc": "smith",
+   "title": "取剑",
+   "goal": "去铁匠铺找王铁匠",
+   "say": "剑已经淬好了，削铁如泥，记得在背包里装备上。对了，替我把这盏花灯捎给亭子边的逍遥子姑娘。",
+   "reward": {
+    "exp": 80,
+    "items": {
+     "iron_sword": 1,
+     "lantern": 1
+    }
+   }
+  },
+  {
+   "type": "talk",
+   "npc": "girl",
+   "title": "花灯传情",
+   "goal": "把花灯交给逍遥子",
+   "say": "呀，好漂亮的花灯！这枚香囊送你。不过……桥那边的竹林最近有山贼拦路，少侠能去看看吗？",
+   "reward": {
+    "exp": 100,
+    "items": {
+     "sachet": 1,
+     "hp_potion": 2
+    }
+   },
+   "take": {
+    "lantern": 1
+   }
+  },
+  {
+   "type": "win",
+   "stage": "path",
+   "title": "竹林除害",
+   "goal": "出城，击败竹林小径上的山贼"
+  },
+  {
+   "type": "talk",
+   "npc": "waiter",
+   "title": "回报消息",
+   "goal": "回聚贤楼告诉店小二",
+   "say": "少侠好身手！不过喽啰好打，他们的头目还在山寨里。掌柜的出三百两，请少侠除了这个祸害。",
+   "reward": {
+    "exp": 150,
+    "coin": 300
+   }
+  },
+  {
+   "type": "win",
+   "stage": "boss",
+   "title": "擒贼擒王",
+   "goal": "出城击败山贼头目（建议 8 级）"
+  },
+  {
+   "type": "talk",
+   "npc": "girl",
+   "title": "灯会如常",
+   "goal": "把好消息告诉逍遥子",
+   "say": "山贼散了？太好了，今晚的灯会终于可以安心办了。少侠，江湖路远，后会有期。",
+   "reward": {
+    "exp": 400,
+    "coin": 500,
+    "items": {
+     "ore": 2
+    }
+   }
+  }
+ ],
+ "weather": {
+  "clear": {
+   "name": "晴",
+   "desc": "天朗气清，适合赶路。"
+  },
+  "cloudy": {
+   "name": "多云",
+   "desc": "云层压得很低，光线有些暗。"
+  },
+  "fog": {
+   "name": "薄雾",
+   "desc": "雾气弥漫，远处的屋檐若隐若现。"
+  },
+  "rain": {
+   "name": "小雨",
+   "desc": "细雨绵绵，石板路上泛着水光。"
+  },
+  "storm": {
+   "name": "雷雨",
+   "desc": "电闪雷鸣，雨下得又急又大。"
+  },
+  "snow": {
+   "name": "飘雪",
+   "desc": "雪花悠悠落下，四下一片安静。"
+  },
+  "span": [
+   90,
+   200
+  ],
+  "byMap": {
+   "village": {
+    "clear": 4,
+    "cloudy": 3,
+    "fog": 3,
+    "rain": 2,
+    "snow": 1
+   },
+   "town": {
+    "clear": 5,
+    "cloudy": 2,
+    "rain": 2,
+    "storm": 1
+   },
+   "pine": {
+    "clear": 4,
+    "cloudy": 3,
+    "rain": 2,
+    "fog": 1
+   },
+   "wolfvalley": {
+    "clear": 2,
+    "cloudy": 4,
+    "fog": 2,
+    "storm": 2
+   },
+   "taixuforest": {
+    "clear": 4,
+    "cloudy": 3,
+    "fog": 3,
+    "rain": 2
+   },
+   "taixupeak": {
+    "clear": 5,
+    "cloudy": 3,
+    "rain": 1
+   },
+   "taixuvalley": {
+    "clear": 2,
+    "cloudy": 3,
+    "fog": 4,
+    "rain": 2
+   },
+   "mist": {
+    "clear": 2,
+    "cloudy": 3,
+    "fog": 4,
+    "rain": 2
+   },
+   "creek": {
+    "clear": 4,
+    "cloudy": 2,
+    "fog": 3,
+    "rain": 3
+   },
+   "outskirts": {
+    "clear": 4,
+    "cloudy": 2,
+    "fog": 2,
+    "rain": 2
+   },
+   "wild": {
+    "clear": 3,
+    "cloudy": 2,
+    "fog": 3,
+    "rain": 3,
+    "storm": 1
+   }
+  }
+ },
+ "chat": {
+  "cooldown": 6,
+  "maxLen": 40,
+  "history": 200,
+  "bots": [
+   {
+    "name": "沈听雪",
+    "cls": "f_sword",
+    "lv": 32
+   },
+   {
+    "name": "陆长风",
+    "cls": "m_sword",
+    "lv": 28
+   },
+   {
+    "name": "凌霄阁主",
+    "cls": "m_mage",
+    "lv": 41
+   },
+   {
+    "name": "苏晚照",
+    "cls": "f_heal",
+    "lv": 25
+   },
+   {
+    "name": "燕归来",
+    "cls": "m_spear",
+    "lv": 36
+   },
+   {
+    "name": "顾清歌",
+    "cls": "f_bow",
+    "lv": 30
+   },
+   {
+    "name": "白无咎",
+    "cls": "m_mage",
+    "lv": 22
+   },
+   {
+    "name": "叶知微",
+    "cls": "f_heal",
+    "lv": 18
+   },
+   {
+    "name": "楚临渊",
+    "cls": "m_spear",
+    "lv": 39
+   },
+   {
+    "name": "温若水",
+    "cls": "f_sword",
+    "lv": 15
+   },
+   {
+    "name": "萧停云",
+    "cls": "m_sword",
+    "lv": 12
+   },
+   {
+    "name": "谢映月",
+    "cls": "f_bow",
+    "lv": 27
+   },
+   {
+    "name": "江照夜",
+    "cls": "m_sword",
+    "lv": 8
+   },
+   {
+    "name": "青锋",
+    "cls": "m_spear",
+    "lv": 44
+   }
+  ],
+  "lines": [
+   "汉中郡外竹林有山贼，组队的来～",
+   "玄兵塔第三层有人一起吗？缺个医者[惊]",
+   "擂台官那边今天人好多，等了三轮才上去",
+   "恒山村的野猪怎么打不过，求带",
+   "新人看这里：先找村长，再去山脚打木桩",
+   "收[精铁剑]，价格好商量，寄卖行直接挂",
+   "出售[百花香囊]，一口价，有意者私聊[笑]",
+   "锻造坊的王铁匠今天又在敲敲打打",
+   "这{weather}天气，赶路真舒服",
+   "{weather}天，窝在聚贤楼喝茶最合适了",
+   "有没有人一起刷山贼寨？头目掉的东西不错[酷]",
+   "求问：灵狐怎么养？",
+   "剑姬的连击是真的快，羡慕",
+   "刚升到新等级，气血又涨了不少",
+   "竞技场五对五，大家有推荐的阵容吗",
+   "帮派招人，在线活跃就行，不看战力",
+   "路过的大侠，能带带我吗",
+   "今晚有活动吗？看公告说有",
+   "店小二的茶是真的管用，喝完满血",
+   "谁知道逍遥子在哪？找了半天",
+   "哈哈哈，刚才被野狼追了一路[大笑]",
+   "收矿石，数量不限",
+   "有没有人组队去城外竹林，三缺一",
+   "汉中郡的樱花真好看，截图留念[心]",
+   "{name}也在这个区？欢迎欢迎",
+   "一个人逛街好无聊，有人聊天吗"
+  ],
+  "replies": {
+   "组|队|一起": [
+    "来来来，算我一个",
+    "我也想组，等等我",
+    "几级的？我去"
+   ],
+   "[?？]|怎么|如何|求": [
+    "去问问店小二，他什么都知道",
+    "这个我也在找，帮顶",
+    "看看任务栏，会自动寻路的"
+   ],
+   "你好|大家好|hi|Hi|哈喽": [
+    "你好呀，欢迎来到归秦",
+    "欢迎欢迎～",
+    "来了来了，大侠好"
+   ],
+   "收|卖|出售": [
+    "寄卖行看看？",
+    "什么价？",
+    "私聊你了"
+   ],
+   "新人|新手|萌新": [
+    "新人看右上角小地图，点一下能打开场景地图",
+    "恒山村好好打，木桩野猪都是白送经验"
+   ]
+  },
+  "guildName": "青云盟",
+  "guildMembers": [
+   "沈听雪",
+   "陆长风",
+   "苏晚照",
+   "顾清歌",
+   "叶知微",
+   "谢映月"
+  ],
+  "guildLines": [
+   "今晚八点帮战，都准时上线啊～[赞]",
+   "帮会仓库新到了一批药，要的自取",
+   "有人去玄兵塔吗？带我一个[笑]",
+   "刚打到一把[精铁剑]，要不要的？",
+   "大家早，今天也要元气满满[大笑]",
+   "新入帮的兄弟记得去找帮主领见面礼",
+   "竞技场我们帮今天赢了三场，不错[酷]",
+   "谁有多余的[金创药]，借我两瓶",
+   "下雨了，大家别在野外挂机[睡]"
+  ],
+  "partyLines": [
+   "前面有野猪，我去拉怪",
+   "血不多了，谁带药了？",
+   "等我一下，我去买点[金创药]",
+   "这个头目不好打，注意躲技能[惊]",
+   "我来奶你，放心冲[心]",
+   "刚才那一下太帅了[赞]",
+   "走吧，去下一个点",
+   "稍等，我在回血"
+  ],
+  "pmReplies": [
+   "在的，怎么了？",
+   "好呀[笑]",
+   "哈哈，行",
+   "你也在这个区啊",
+   "稍等，我打完这只怪",
+   "嗯嗯，我看看",
+   "没问题～",
+   "一起一起[大笑]"
+  ],
+  "pmGreets": [
+   "少侠，在吗？想跟你交个朋友[笑]",
+   "看你也是新人，要不要组队练级？",
+   "你好呀，我是{bot}，多多关照[心]"
+  ],
+  "partyDecline": [
+   "{bot} 正忙，拒绝了你的组队邀请",
+   "{bot} 已经在别的队伍里了"
+  ],
+  "fallback": [
+   "哈哈",
+   "+1",
+   "前排围观",
+   "有道理",
+   "确实",
+   "没毛病"
+  ],
+  "notices": [
+   "欢迎来到归秦！新服已开，愿各位少侠仗剑江湖。",
+   "【活动】竞技场五对五开放中，找汉中郡的擂台官即可报名。",
+   "【公告】玄兵塔即将开放，请少侠提前准备。",
+   "恭喜玩家「{bot}」在竞技场连胜十场！",
+   "恭喜玩家「{bot}」等级突破 40 级！",
+   "【维护】本区将于今晚 24:00 例行维护，预计 30 分钟，请提前下线。",
+   "【提示】遇到雷雨天气不要在野外久留，当心山贼趁乱出没。",
+   "恭喜玩家「{bot}」获得稀有装备「精铁剑」！",
+   "【活动】限时双倍经验开启，打山贼最划算。"
+  ]
+ },
+ "npcs": {
+  "elder": {
+   "name": "村长",
+   "title": "【恒山村】",
+   "idle": "山下不比村里，凡事多留个心眼。累了就回来歇歇。"
+  },
+  "axiu": {
+   "name": "阿秀",
+   "color": "#a8e6ff",
+   "idle": "我刚采了草药，熬了一锅汤，少侠喝一碗再走吧。",
+   "rest": true,
+   "restMsg": "喝了一碗草药汤，气血法力回满"
+  },
+  "waiter": {
+   "name": "店小二",
+   "idle": "客官辛苦，喝壶热茶歇歇脚吧。",
+   "rest": true,
+   "restMsg": "喝了一壶热茶，气血法力回满"
+  },
+  "smith": {
+   "name": "王铁匠",
+   "idle": "打铁还需自身硬。兵器铠甲要锻造升星，还是想在孔里镶宝石，都交给老夫。",
+   "shop": "smith"
+  },
+  "girl": {
+   "name": "逍遥子",
+   "title": "【百花谷】",
+   "color": "#dca8ff",
+   "titleColor": "#ffa8d0",
+   "idle": "今晚灯会的灯谜好难……你也是来猜谜的吗？"
+  },
+  "arenaman": {
+   "name": "擂台官",
+   "title": "【竞技场】",
+   "color": "#ff9a8a",
+   "sprite": "f_blade",
+   "head": "head_m_spear",
+   "idle": "擂台已经备好，五对五，人宠齐上。要不要上去练练手？",
+   "act": "arena"
+  },
+  "towerman": {
+   "name": "守塔人",
+   "title": "【玄兵塔】",
+   "color": "#c9b8ff",
+   "sprite": "f_tao",
+   "head": "head_m_mage",
+   "idle": "玄兵塔共九层，一层比一层凶险。塔门暂时还不能开，等你再强一些。"
+  },
+  "trader": {
+   "name": "掌柜",
+   "title": "【寄卖行】",
+   "color": "#ffe08a",
+   "sprite": "f_healer",
+   "head": "head_vendor",
+   "shop": "trader",
+   "idle": "百宝摊上的项链、戒指、法宝、护符，都是各路好货，少侠随便看。"
+  },
+  "taixu_dao": {
+   "name": "太虚真人",
+   "title": "【道家】",
+   "color": "#bfe8ff",
+   "sprite": "f_tao",
+   "head": "head_m_mage",
+   "idle": "道法自然，无为而无不为。太虚之林乃本门驻地，少侠来此，先静心听竹吧。"
+  },
+  "taixu_mo": {
+   "name": "墨巨子",
+   "title": "【墨家】",
+   "color": "#ffd9a0",
+   "sprite": "f_spear",
+   "head": "head_m_spear",
+   "idle": "兼爱非攻，机关为用。太虚之峰的每一道机括，都是墨家弟子亲手所造。"
+  },
+  "taixu_yin": {
+   "name": "邹长老",
+   "title": "【阴阳家】",
+   "color": "#ffc6e8",
+   "sprite": "f_healer",
+   "head": "head_f_heal",
+   "idle": "阴阳消长，五行流转。太虚之谷里的每一块卦石，都藏着天地的玄机。"
+  },
+  "vendor": {
+   "name": "货郎",
+   "color": "#ffffff",
+   "idle": "金创药、回气丹，行走江湖少不了——少侠来点儿？",
+   "shop": "vendor"
+  }
+ },
+ "maps": {
+  "village": {
+   "name": "恒山村",
+   "img": "bg_village",
+   "mini": "mini_village",
+   "iw": 2000,
+   "ih": 1500,
+   "scale": 1,
+   "k": 1,
+   "start": [
+    930,
+    690
+   ],
+   "alt": "溪水环绕的山村：茅草屋、拱桥、水车、凉亭和村长的瓦顶大屋，青石台阶一路通向山上",
+   "world": [
+    888,
+    710
+   ],
+   "note": "新手村",
+   "home": "village",
+   "battleBg": "bg_battle2",
+   "water": {
+    "dir": [
+     -1,
+     0.3
+    ],
+    "speed": 20,
+    "zones": [
+     {
+      "rect": [
+       790,
+       0,
+       1000,
+       300
+      ],
+      "dir": [
+       0.12,
+       1
+      ],
+      "speed": 55
+     }
+    ]
+   },
+   "walk": [
+    [
+     [
+      1480,
+      1160
+     ],
+     [
+      1760,
+      1140
+     ],
+     [
+      1850,
+      1300
+     ],
+     [
+      1830,
+      1480
+     ],
+     [
+      1500,
+      1480
+     ],
+     [
+      1400,
+      1330
+     ]
+    ]
+   ],
+   "roads": [
+    {
+     "r": 46,
+     "pts": [
+      [
+       260,
+       1450
+      ],
+      [
+       330,
+       1350
+      ],
+      [
+       430,
+       1235
+      ],
+      [
+       520,
+       1135
+      ],
+      [
+       620,
+       1045
+      ],
+      [
+       700,
+       960
+      ]
+     ]
+    },
+    {
+     "r": 30,
+     "pts": [
+      [
+       700,
+       945
+      ],
+      [
+       800,
+       885
+      ],
+      [
+       900,
+       862
+      ],
+      [
+       1010,
+       882
+      ],
+      [
+       1075,
+       892
+      ]
+     ]
+    },
+    {
+     "r": 42,
+     "pts": [
+      [
+       1075,
+       892
+      ],
+      [
+       1150,
+       830
+      ],
+      [
+       1230,
+       765
+      ],
+      [
+       1320,
+       690
+      ],
+      [
+       1420,
+       605
+      ],
+      [
+       1520,
+       525
+      ],
+      [
+       1600,
+       430
+      ],
+      [
+       1690,
+       335
+      ],
+      [
+       1700,
+       210
+      ],
+      [
+       1655,
+       120
+      ]
+     ]
+    },
+    {
+     "r": 40,
+     "pts": [
+      [
+       1075,
+       892
+      ],
+      [
+       1010,
+       800
+      ],
+      [
+       950,
+       725
+      ],
+      [
+       895,
+       645
+      ],
+      [
+       875,
+       590
+      ]
+     ]
+    },
+    {
+     "r": 34,
+     "pts": [
+      [
+       875,
+       575
+      ],
+      [
+       1000,
+       530
+      ],
+      [
+       1150,
+       505
+      ],
+      [
+       1310,
+       470
+      ]
+     ]
+    },
+    {
+     "r": 38,
+     "pts": [
+      [
+       1235,
+       800
+      ],
+      [
+       1300,
+       900
+      ],
+      [
+       1335,
+       1000
+      ],
+      [
+       1400,
+       1090
+      ],
+      [
+       1500,
+       1165
+      ],
+      [
+       1640,
+       1230
+      ],
+      [
+       1780,
+       1330
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     1110,
+     330
+    ],
+    [
+     1570,
+     520
+    ],
+    [
+     1790,
+     960
+    ],
+    [
+     1710,
+     520
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "elder",
+     "at": [
+      1040,
+      545
+     ]
+    },
+    {
+     "id": "axiu",
+     "at": [
+      1190,
+      845
+     ]
+    }
+   ],
+   "portals": [
+    {
+     "to": "outskirts",
+     "name": "下山·恒山村郊",
+     "at": [
+      1790,
+      1380
+     ],
+     "arrive": [
+      140,
+      1360
+     ],
+     "needStep": 4,
+     "lockMsg": "村长还有话要交代，先别急着下山"
+    }
+   ],
+   "foes": [
+    {
+     "stage": "dummy",
+     "at": [
+      440,
+      1225
+     ]
+    },
+    {
+     "stage": "boar",
+     "at": [
+      1560,
+      480
+     ]
+    }
+   ]
+  },
+  "outskirts": {
+   "name": "恒山村郊",
+   "world": [
+    968,
+    930
+   ],
+   "note": "山野荒径",
+   "home": "village",
+   "img": "bg_outskirts",
+   "mini": "mini_outskirts",
+   "iw": 2000,
+   "ih": 1493,
+   "scale": 1.2,
+   "k": 1,
+   "start": [
+    140,
+    1360
+   ],
+   "alt": "村外的荒野：土路穿过草地和树林，溪水上有踏脚石，路边有篝火圈、树桩、倒木和路牌",
+   "walk": [],
+   "roads": [
+    {
+     "r": 95,
+     "pts": [
+      [
+       10,
+       1440
+      ],
+      [
+       200,
+       1310
+      ],
+      [
+       380,
+       1170
+      ],
+      [
+       560,
+       1075
+      ],
+      [
+       760,
+       1020
+      ],
+      [
+       860,
+       930
+      ],
+      [
+       900,
+       830
+      ]
+     ]
+    },
+    {
+     "r": 90,
+     "pts": [
+      [
+       900,
+       830
+      ],
+      [
+       960,
+       700
+      ],
+      [
+       1010,
+       620
+      ],
+      [
+       1130,
+       570
+      ],
+      [
+       1330,
+       500
+      ],
+      [
+       1540,
+       470
+      ],
+      [
+       1680,
+       390
+      ],
+      [
+       1770,
+       270
+      ],
+      [
+       1880,
+       170
+      ],
+      [
+       1990,
+       90
+      ]
+     ]
+    },
+    {
+     "r": 70,
+     "pts": [
+      [
+       560,
+       1075
+      ],
+      [
+       540,
+       950
+      ],
+      [
+       520,
+       860
+      ]
+     ]
+    },
+    {
+     "r": 70,
+     "pts": [
+      [
+       1330,
+       500
+      ],
+      [
+       1420,
+       400
+      ],
+      [
+       1470,
+       330
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     520,
+     860
+    ],
+    [
+     1470,
+     330
+    ]
+   ],
+   "portals": [
+    {
+     "to": "village",
+     "name": "回恒山村",
+     "at": [
+      40,
+      1430
+     ],
+     "arrive": [
+      1700,
+      1340
+     ]
+    },
+    {
+     "to": "town",
+     "name": "去汉中郡",
+     "at": [
+      1960,
+      110
+     ],
+     "arrive": [
+      450,
+      790
+     ]
+    },
+    {
+     "to": "creek",
+     "name": "入清溪谷",
+     "at": [
+      1480,
+      320
+     ],
+     "arrive": [
+      1100,
+      1450
+     ]
+    }
+   ],
+   "foes": [
+    {
+     "stage": "hog",
+     "at": [
+      560,
+      1060
+     ]
+    },
+    {
+     "stage": "roam",
+     "at": [
+      1330,
+      505
+     ]
+    }
+   ]
+  },
+  "creek": {
+   "name": "清溪谷",
+   "world": [
+    470,
+    1040
+   ],
+   "note": "碧水幽谷",
+   "home": "village",
+   "img": "bg_creek",
+   "mini": "mini_creek",
+   "iw": 2000,
+   "ih": 1493,
+   "scale": 1.2,
+   "k": 1,
+   "start": [
+    1100,
+    1450
+   ],
+   "alt": "碧绿的溪谷：溪水带着几道小瀑布，木桥横跨溪流，红枫、竹林和荷塘相伴，石板路一路通向山上",
+   "walk": [],
+   "roads": [
+    {
+     "r": 85,
+     "pts": [
+      [
+       1100,
+       1480
+      ],
+      [
+       1190,
+       1370
+      ],
+      [
+       1050,
+       1270
+      ],
+      [
+       950,
+       1190
+      ],
+      [
+       800,
+       1120
+      ],
+      [
+       690,
+       1030
+      ],
+      [
+       740,
+       900
+      ],
+      [
+       880,
+       840
+      ],
+      [
+       1020,
+       790
+      ]
+     ]
+    },
+    {
+     "r": 60,
+     "pts": [
+      [
+       1020,
+       790
+      ],
+      [
+       1170,
+       760
+      ],
+      [
+       1290,
+       700
+      ]
+     ]
+    },
+    {
+     "r": 85,
+     "pts": [
+      [
+       1290,
+       700
+      ],
+      [
+       1420,
+       640
+      ],
+      [
+       1500,
+       540
+      ],
+      [
+       1600,
+       490
+      ],
+      [
+       1740,
+       450
+      ],
+      [
+       1860,
+       360
+      ],
+      [
+       1830,
+       250
+      ],
+      [
+       1760,
+       140
+      ],
+      [
+       1800,
+       40
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     1100,
+     760
+    ],
+    [
+     1650,
+     480
+    ],
+    [
+     700,
+     1030
+    ]
+   ],
+   "portals": [
+    {
+     "to": "outskirts",
+     "name": "回恒山村郊",
+     "at": [
+      1100,
+      1470
+     ],
+     "arrive": [
+      1440,
+      390
+     ]
+    },
+    {
+     "to": "mist",
+     "name": "入云雾谷",
+     "at": [
+      1800,
+      50
+     ],
+     "arrive": [
+      770,
+      1440
+     ]
+    }
+   ],
+   "foes": [
+    {
+     "stage": "creekwolf",
+     "at": [
+      800,
+      1110
+     ]
+    },
+    {
+     "stage": "creekgang",
+     "at": [
+      1600,
+      490
+     ]
+    }
+   ]
+  },
+  "mist": {
+   "name": "云雾谷",
+   "world": [
+    1760,
+    560
+   ],
+   "note": "云雾缭绕",
+   "home": "village",
+   "img": "bg_mist",
+   "mini": "mini_mist",
+   "iw": 2000,
+   "ih": 1493,
+   "scale": 1.2,
+   "k": 1,
+   "start": [
+    770,
+    1440
+   ],
+   "alt": "深山谷底：碧绿的溪水沿着土路蜿蜒，两侧是爬满藤蔓的崖壁和细瀑布，云雾在谷中缓缓飘动",
+   "fog": {
+    "n": 34,
+    "lo": 0.3,
+    "hi": 0.85
+   },
+   "walk": [],
+   "roads": [
+    {
+     "r": 90,
+     "pts": [
+      [
+       760,
+       1480
+      ],
+      [
+       900,
+       1380
+      ],
+      [
+       1030,
+       1310
+      ],
+      [
+       1130,
+       1240
+      ],
+      [
+       1250,
+       1140
+      ],
+      [
+       1330,
+       1040
+      ],
+      [
+       1390,
+       960
+      ],
+      [
+       1450,
+       870
+      ],
+      [
+       1470,
+       780
+      ],
+      [
+       1540,
+       690
+      ],
+      [
+       1530,
+       600
+      ],
+      [
+       1430,
+       560
+      ],
+      [
+       1300,
+       470
+      ],
+      [
+       1170,
+       420
+      ],
+      [
+       1050,
+       330
+      ],
+      [
+       1040,
+       240
+      ],
+      [
+       1200,
+       150
+      ],
+      [
+       1290,
+       60
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     1050,
+     330
+    ],
+    [
+     1450,
+     870
+    ]
+   ],
+   "portals": [
+    {
+     "to": "creek",
+     "name": "回清溪谷",
+     "at": [
+      760,
+      1470
+     ],
+     "arrive": [
+      1790,
+      130
+     ]
+    }
+   ],
+   "foes": [
+    {
+     "stage": "mistwolf",
+     "at": [
+      1130,
+      1240
+     ]
+    },
+    {
+     "stage": "mistgang",
+     "at": [
+      1170,
+      430
+     ]
+    }
+   ]
+  },
+  "pine": {
+   "name": "石松林",
+   "world": [
+    1560,
+    1480
+   ],
+   "note": "古松石柱",
+   "home": "town",
+   "img": "bg_pine",
+   "mini": "mini_pine",
+   "iw": 2000,
+   "ih": 1493,
+   "scale": 1.2,
+   "k": 1,
+   "start": [
+    800,
+    1440
+   ],
+   "alt": "石柱与古松交错的深林：松针铺成的小路在青苔石柱和盘曲的老松之间蜿蜒向上",
+   "walk": [],
+   "roads": [
+    {
+     "r": 100,
+     "pts": [
+      [
+       800,
+       1480
+      ],
+      [
+       900,
+       1400
+      ],
+      [
+       1100,
+       1290
+      ],
+      [
+       1020,
+       1180
+      ],
+      [
+       900,
+       1100
+      ],
+      [
+       860,
+       1030
+      ],
+      [
+       980,
+       900
+      ],
+      [
+       1100,
+       780
+      ],
+      [
+       1180,
+       740
+      ],
+      [
+       1300,
+       660
+      ],
+      [
+       1200,
+       540
+      ],
+      [
+       1100,
+       480
+      ],
+      [
+       1050,
+       400
+      ],
+      [
+       1180,
+       300
+      ],
+      [
+       1200,
+       200
+      ],
+      [
+       1130,
+       120
+      ],
+      [
+       1090,
+       20
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     900,
+     1100
+    ],
+    [
+     1200,
+     540
+    ]
+   ],
+   "portals": [
+    {
+     "to": "wild",
+     "name": "回城外竹林",
+     "at": [
+      800,
+      1470
+     ],
+     "arrive": [
+      440,
+      232
+     ]
+    },
+    {
+     "to": "wolfvalley",
+     "name": "入恶狼谷",
+     "at": [
+      1090,
+      30
+     ],
+     "arrive": [
+      90,
+      1310
+     ]
+    }
+   ],
+   "foes": [
+    {
+     "stage": "pinegang",
+     "at": [
+      1000,
+      1170
+     ]
+    },
+    {
+     "stage": "pinewolf",
+     "at": [
+      1180,
+      650
+     ]
+    }
+   ]
+  },
+  "wolfvalley": {
+   "name": "恶狼谷",
+   "world": [
+    1860,
+    1800
+   ],
+   "note": "狼群盘踞",
+   "home": "town",
+   "img": "bg_wolfvalley",
+   "mini": "mini_wolfvalley",
+   "iw": 2000,
+   "ih": 1493,
+   "scale": 1.2,
+   "k": 1,
+   "start": [
+    90,
+    1310
+   ],
+   "alt": "荒凉的山谷：土路上满是爪印，岩壁里有一个个狼洞，洞口散着兽骨，路边是枯树和荆棘",
+   "walk": [],
+   "roads": [
+    {
+     "r": 100,
+     "pts": [
+      [
+       40,
+       1340
+      ],
+      [
+       300,
+       1130
+      ],
+      [
+       540,
+       990
+      ],
+      [
+       760,
+       870
+      ],
+      [
+       900,
+       790
+      ],
+      [
+       1050,
+       690
+      ],
+      [
+       1150,
+       640
+      ],
+      [
+       1250,
+       540
+      ],
+      [
+       1420,
+       440
+      ],
+      [
+       1550,
+       390
+      ],
+      [
+       1500,
+       330
+      ],
+      [
+       1380,
+       290
+      ],
+      [
+       1250,
+       230
+      ],
+      [
+       1130,
+       160
+      ],
+      [
+       1090,
+       60
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     540,
+     990
+    ],
+    [
+     1420,
+     440
+    ]
+   ],
+   "portals": [
+    {
+     "to": "pine",
+     "name": "回石松林",
+     "at": [
+      40,
+      1345
+     ],
+     "arrive": [
+      1090,
+      110
+     ]
+    }
+   ],
+   "foes": [
+    {
+     "stage": "denwolf",
+     "at": [
+      760,
+      870
+     ]
+    },
+    {
+     "stage": "wolfboss",
+     "at": [
+      1380,
+      300
+     ]
+    }
+   ]
+  },
+  "taixuforest": {
+   "sect": true,
+   "name": "太虚之林",
+   "world": [
+    380,
+    1860
+   ],
+   "note": "道家驻地",
+   "home": "town",
+   "img": "bg_taixuforest",
+   "mini": "mini_taixuforest",
+   "iw": 2000,
+   "ih": 1616,
+   "scale": 1.35,
+   "k": 1,
+   "start": [
+    1200,
+    900
+   ],
+   "alt": "竹林深处的道家驻地：莲花形的八卦石台立在水潭之上，青苔石阶通向四周的石台",
+   "walk": [
+    [
+     [
+      80,
+      180
+     ],
+     [
+      250,
+      100
+     ],
+     [
+      480,
+      110
+     ],
+     [
+      580,
+      200
+     ],
+     [
+      540,
+      330
+     ],
+     [
+      380,
+      390
+     ],
+     [
+      200,
+      370
+     ],
+     [
+      60,
+      290
+     ]
+    ],
+    [
+     [
+      180,
+      1300
+     ],
+     [
+      330,
+      1210
+     ],
+     [
+      560,
+      1220
+     ],
+     [
+      660,
+      1330
+     ],
+     [
+      620,
+      1460
+     ],
+     [
+      450,
+      1540
+     ],
+     [
+      260,
+      1520
+     ],
+     [
+      150,
+      1420
+     ]
+    ],
+    [
+     [
+      700,
+      880
+     ],
+     [
+      800,
+      740
+     ],
+     [
+      1000,
+      640
+     ],
+     [
+      1180,
+      600
+     ],
+     [
+      1400,
+      640
+     ],
+     [
+      1560,
+      720
+     ],
+     [
+      1700,
+      840
+     ],
+     [
+      1720,
+      980
+     ],
+     [
+      1600,
+      1100
+     ],
+     [
+      1400,
+      1180
+     ],
+     [
+      1200,
+      1200
+     ],
+     [
+      1000,
+      1170
+     ],
+     [
+      800,
+      1080
+     ]
+    ],
+    [
+     [
+      1420,
+      360
+     ],
+     [
+      1500,
+      250
+     ],
+     [
+      1700,
+      200
+     ],
+     [
+      1900,
+      260
+     ],
+     [
+      1960,
+      400
+     ],
+     [
+      1900,
+      520
+     ],
+     [
+      1700,
+      570
+     ],
+     [
+      1500,
+      520
+     ]
+    ]
+   ],
+   "roads": [
+    {
+     "r": 70,
+     "pts": [
+      [
+       520,
+       330
+      ],
+      [
+       570,
+       430
+      ],
+      [
+       520,
+       560
+      ],
+      [
+       440,
+       680
+      ],
+      [
+       380,
+       790
+      ],
+      [
+       300,
+       900
+      ],
+      [
+       260,
+       1000
+      ],
+      [
+       300,
+       1100
+      ],
+      [
+       340,
+       1200
+      ]
+     ]
+    },
+    {
+     "r": 60,
+     "pts": [
+      [
+       380,
+       1000
+      ],
+      [
+       520,
+       1050
+      ],
+      [
+       700,
+       1060
+      ]
+     ]
+    },
+    {
+     "r": 70,
+     "pts": [
+      [
+       1480,
+       720
+      ],
+      [
+       1460,
+       620
+      ],
+      [
+       1500,
+       520
+      ]
+     ]
+    },
+    {
+     "r": 90,
+     "pts": [
+      [
+       640,
+       1040
+      ],
+      [
+       720,
+       1030
+      ],
+      [
+       820,
+       1010
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     1200,
+     900
+    ],
+    [
+     1560,
+     380
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "taixu_dao",
+     "at": [
+      1100,
+      820
+     ]
+    }
+   ],
+   "portals": [
+    {
+     "to": "town",
+     "name": "返回汉中郡",
+     "at": [
+      900,
+      1060
+     ],
+     "arrive": [
+      850,
+      575
+     ]
+    }
+   ]
+  },
+  "taixupeak": {
+   "sect": true,
+   "name": "太虚之峰",
+   "world": [
+    1960,
+    1060
+   ],
+   "note": "墨家驻地",
+   "home": "town",
+   "img": "bg_taixupeak",
+   "mini": "mini_taixupeak",
+   "iw": 2000,
+   "ih": 1616,
+   "scale": 1.35,
+   "k": 1,
+   "start": [
+    1000,
+    620
+   ],
+   "alt": "山崖上的墨家驻地：木拱桥、机关石台、齿轮平台和凉亭散布在碧松与瀑布之间",
+   "walk": [
+    [
+     [
+      900,
+      330
+     ],
+     [
+      1100,
+      280
+     ],
+     [
+      1300,
+      230
+     ],
+     [
+      1560,
+      220
+     ],
+     [
+      1680,
+      300
+     ],
+     [
+      1640,
+      380
+     ],
+     [
+      1400,
+      420
+     ],
+     [
+      1200,
+      470
+     ],
+     [
+      1000,
+      470
+     ]
+    ],
+    [
+     [
+      800,
+      520
+     ],
+     [
+      1050,
+      500
+     ],
+     [
+      1250,
+      560
+     ],
+     [
+      1230,
+      680
+     ],
+     [
+      1000,
+      700
+     ],
+     [
+      800,
+      660
+     ]
+    ],
+    [
+     [
+      200,
+      830
+     ],
+     [
+      420,
+      800
+     ],
+     [
+      600,
+      840
+     ],
+     [
+      620,
+      950
+     ],
+     [
+      500,
+      1010
+     ],
+     [
+      300,
+      1010
+     ],
+     [
+      200,
+      950
+     ]
+    ],
+    [
+     [
+      1100,
+      900
+     ],
+     [
+      1300,
+      880
+     ],
+     [
+      1380,
+      960
+     ],
+     [
+      1340,
+      1080
+     ],
+     [
+      1180,
+      1110
+     ],
+     [
+      1080,
+      1020
+     ]
+    ],
+    [
+     [
+      1700,
+      820
+     ],
+     [
+      1850,
+      770
+     ],
+     [
+      2000,
+      820
+     ],
+     [
+      2000,
+      980
+     ],
+     [
+      1850,
+      1000
+     ],
+     [
+      1720,
+      940
+     ]
+    ]
+   ],
+   "roads": [
+    {
+     "r": 80,
+     "pts": [
+      [
+       100,
+       1480
+      ],
+      [
+       400,
+       1440
+      ],
+      [
+       700,
+       1450
+      ],
+      [
+       1000,
+       1470
+      ],
+      [
+       1100,
+       1480
+      ]
+     ]
+    },
+    {
+     "r": 55,
+     "pts": [
+      [
+       1100,
+       1480
+      ],
+      [
+       1220,
+       1420
+      ],
+      [
+       1300,
+       1360
+      ]
+     ]
+    },
+    {
+     "r": 60,
+     "pts": [
+      [
+       1300,
+       1360
+      ],
+      [
+       1380,
+       1250
+      ],
+      [
+       1450,
+       1160
+      ],
+      [
+       1560,
+       1090
+      ],
+      [
+       1640,
+       1010
+      ],
+      [
+       1700,
+       930
+      ],
+      [
+       1800,
+       880
+      ]
+     ]
+    },
+    {
+     "r": 60,
+     "pts": [
+      [
+       1650,
+       880
+      ],
+      [
+       1560,
+       800
+      ],
+      [
+       1460,
+       740
+      ],
+      [
+       1360,
+       700
+      ],
+      [
+       1250,
+       640
+      ],
+      [
+       1100,
+       620
+      ],
+      [
+       950,
+       620
+      ]
+     ]
+    },
+    {
+     "r": 70,
+     "pts": [
+      [
+       1150,
+       600
+      ],
+      [
+       1150,
+       500
+      ],
+      [
+       1100,
+       430
+      ]
+     ]
+    },
+    {
+     "r": 55,
+     "pts": [
+      [
+       640,
+       830
+      ],
+      [
+       740,
+       780
+      ],
+      [
+       860,
+       730
+      ],
+      [
+       930,
+       700
+      ]
+     ]
+    },
+    {
+     "r": 70,
+     "pts": [
+      [
+       420,
+       980
+      ],
+      [
+       400,
+       1080
+      ],
+      [
+       450,
+       1180
+      ],
+      [
+       520,
+       1270
+      ],
+      [
+       600,
+       1340
+      ],
+      [
+       680,
+       1400
+      ],
+      [
+       740,
+       1440
+      ]
+     ]
+    },
+    {
+     "r": 60,
+     "pts": [
+      [
+       1340,
+       1000
+      ],
+      [
+       1420,
+       1060
+      ],
+      [
+       1450,
+       1140
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     1450,
+     320
+    ],
+    [
+     1220,
+     1000
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "taixu_mo",
+     "at": [
+      1460,
+      320
+     ]
+    }
+   ],
+   "portals": [
+    {
+     "to": "town",
+     "name": "返回汉中郡",
+     "at": [
+      1150,
+      500
+     ],
+     "arrive": [
+      850,
+      575
+     ]
+    }
+   ]
+  },
+  "taixuvalley": {
+   "sect": true,
+   "name": "太虚之谷",
+   "world": [
+    1150,
+    250
+   ],
+   "note": "阴阳家驻地",
+   "home": "town",
+   "img": "bg_taixuvalley",
+   "mini": "mini_taixuvalley",
+   "iw": 2000,
+   "ih": 1504,
+   "scale": 1.35,
+   "k": 1,
+   "start": [
+    1040,
+    950
+   ],
+   "alt": "幽谷中的阴阳家驻地：八卦石台、方尖碑和莲池环绕，两侧飞瀑垂落",
+   "walk": [
+    [
+     [
+      1040,
+      580
+     ],
+     [
+      1600,
+      860
+     ],
+     [
+      1040,
+      1140
+     ],
+     [
+      480,
+      850
+     ]
+    ],
+    [
+     [
+      260,
+      500
+     ],
+     [
+      420,
+      440
+     ],
+     [
+      700,
+      440
+     ],
+     [
+      820,
+      520
+     ],
+     [
+      760,
+      640
+     ],
+     [
+      520,
+      700
+     ],
+     [
+      330,
+      640
+     ]
+    ],
+    [
+     [
+      1360,
+      520
+     ],
+     [
+      1580,
+      430
+     ],
+     [
+      1760,
+      500
+     ],
+     [
+      1780,
+      640
+     ],
+     [
+      1560,
+      700
+     ],
+     [
+      1380,
+      640
+     ]
+    ]
+   ],
+   "roads": [
+    {
+     "r": 60,
+     "pts": [
+      [
+       620,
+       640
+      ],
+      [
+       760,
+       720
+      ],
+      [
+       880,
+       760
+      ]
+     ]
+    },
+    {
+     "r": 70,
+     "pts": [
+      [
+       1440,
+       780
+      ],
+      [
+       1470,
+       700
+      ]
+     ]
+    },
+    {
+     "r": 80,
+     "pts": [
+      [
+       1400,
+       1120
+      ],
+      [
+       1520,
+       1200
+      ],
+      [
+       1640,
+       1260
+      ]
+     ]
+    },
+    {
+     "r": 70,
+     "pts": [
+      [
+       80,
+       1470
+      ],
+      [
+       200,
+       1380
+      ],
+      [
+       340,
+       1300
+      ],
+      [
+       460,
+       1230
+      ],
+      [
+       560,
+       1180
+      ],
+      [
+       700,
+       1060
+      ]
+     ]
+    },
+    {
+     "r": 80,
+     "pts": [
+      [
+       700,
+       1060
+      ],
+      [
+       800,
+       1040
+      ],
+      [
+       900,
+       1010
+      ],
+      [
+       980,
+       980
+      ]
+     ]
+    },
+    {
+     "r": 90,
+     "pts": [
+      [
+       1400,
+       1120
+      ],
+      [
+       1320,
+       1060
+      ],
+      [
+       1240,
+       1000
+      ],
+      [
+       1180,
+       960
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     1040,
+     860
+    ],
+    [
+     1520,
+     540
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "taixu_yin",
+     "at": [
+      1040,
+      780
+     ]
+    }
+   ],
+   "portals": [
+    {
+     "to": "town",
+     "name": "返回汉中郡",
+     "at": [
+      1040,
+      1080
+     ],
+     "arrive": [
+      850,
+      575
+     ]
+    }
+   ]
+  },
+  "town": {
+   "name": "汉中郡",
+   "world": [
+    1105,
+    1145
+   ],
+   "note": "主城",
+   "home": "town",
+   "img": "bg_town",
+   "mini": "mini_town",
+   "iw": 5324,
+   "ih": 3042,
+   "scale": 1.0359,
+   "k": 1.8648,
+   "start": [
+    850,
+    575
+   ],
+   "alt": "青瓦红柱的繁华主城：中央是高耸的玄兵塔，周围有擂台、锻造坊、寄卖行、集市和荷塘石桥",
+   "walk": [],
+   "roads": [
+    {
+     "r": 52,
+     "pts": [
+      [
+       700,
+       575
+      ],
+      [
+       850,
+       555
+      ],
+      [
+       1000,
+       595
+      ]
+     ]
+    },
+    {
+     "r": 30,
+     "pts": [
+      [
+       850,
+       560
+      ],
+      [
+       850,
+       480
+      ]
+     ]
+    },
+    {
+     "r": 50,
+     "pts": [
+      [
+       1000,
+       595
+      ],
+      [
+       1120,
+       540
+      ],
+      [
+       1250,
+       480
+      ],
+      [
+       1380,
+       420
+      ],
+      [
+       1500,
+       335
+      ],
+      [
+       1620,
+       235
+      ],
+      [
+       1670,
+       190
+      ]
+     ]
+    },
+    {
+     "r": 50,
+     "pts": [
+      [
+       1000,
+       625
+      ],
+      [
+       1100,
+       690
+      ],
+      [
+       1200,
+       745
+      ],
+      [
+       1300,
+       790
+      ],
+      [
+       1420,
+       805
+      ],
+      [
+       1520,
+       830
+      ],
+      [
+       1620,
+       880
+      ],
+      [
+       1740,
+       935
+      ]
+     ]
+    },
+    {
+     "r": 45,
+     "pts": [
+      [
+       760,
+       580
+      ],
+      [
+       700,
+       640
+      ],
+      [
+       640,
+       690
+      ],
+      [
+       560,
+       730
+      ],
+      [
+       470,
+       765
+      ],
+      [
+       380,
+       775
+      ],
+      [
+       280,
+       795
+      ],
+      [
+       200,
+       825
+      ],
+      [
+       120,
+       865
+      ]
+     ]
+    },
+    {
+     "r": 40,
+     "pts": [
+      [
+       470,
+       765
+      ],
+      [
+       420,
+       720
+      ],
+      [
+       350,
+       735
+      ]
+     ]
+    },
+    {
+     "r": 36,
+     "pts": [
+      [
+       760,
+       580
+      ],
+      [
+       690,
+       520
+      ],
+      [
+       650,
+       450
+      ],
+      [
+       630,
+       370
+      ],
+      [
+       615,
+       290
+      ],
+      [
+       585,
+       215
+      ],
+      [
+       565,
+       155
+      ]
+     ]
+    },
+    {
+     "r": 40,
+     "pts": [
+      [
+       1739,
+       934
+      ],
+      [
+       1937,
+       856
+      ],
+      [
+       2059,
+       714
+      ]
+     ]
+    },
+    {
+     "r": 40,
+     "pts": [
+      [
+       1739,
+       934
+      ],
+      [
+       1733,
+       1019
+      ],
+      [
+       1733,
+       1111
+      ]
+     ]
+    }
+   ],
+   "blocks": [],
+   "glows": [
+    [
+     660,
+     225
+    ],
+    [
+     1215,
+     280
+    ],
+    [
+     1750,
+     200
+    ],
+    [
+     1620,
+     610
+    ],
+    [
+     240,
+     540
+    ],
+    [
+     1500,
+     990
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "towerman",
+     "at": [
+      850,
+      535
+     ]
+    },
+    {
+     "id": "waiter",
+     "at": [
+      1360,
+      330
+     ]
+    },
+    {
+     "id": "smith",
+     "at": [
+      1290,
+      745
+     ]
+    },
+    {
+     "id": "vendor",
+     "at": [
+      350,
+      745
+     ]
+    },
+    {
+     "id": "arenaman",
+     "at": [
+      660,
+      705
+     ]
+    },
+    {
+     "id": "trader",
+     "at": [
+      1690,
+      925
+     ]
+    },
+    {
+     "id": "girl",
+     "at": [
+      940,
+      625
+     ]
+    }
+   ],
+   "portals": [
+    {
+     "to": "wild",
+     "name": "出城·竹林",
+     "at": [
+      300,
+      800
+     ],
+     "arrive": [
+      150,
+      453
+     ]
+    },
+    {
+     "to": "outskirts",
+     "name": "恒山村郊",
+     "at": [
+      570,
+      160
+     ],
+     "arrive": [
+      1860,
+      190
+     ]
+    }
+   ]
+  },
+  "wild": {
+   "name": "城外·竹林",
+   "world": [
+    1336,
+    1690
+   ],
+   "note": "山贼出没",
+   "home": "town",
+   "img": "bg_wild",
+   "mini": "mini_wild",
+   "iw": 1672,
+   "ih": 941,
+   "scale": 2,
+   "k": 1.6328,
+   "start": [
+    150,
+    453
+   ],
+   "alt": "城外的竹林：土路从石桥一路通向山贼的寨门，岔路通往狼窝和石龛",
+   "walk": [],
+   "roads": [
+    {
+     "r": 21,
+     "pts": [
+      [
+       18,
+       533
+      ],
+      [
+       80,
+       478
+      ],
+      [
+       150,
+       453
+      ],
+      [
+       225,
+       455
+      ],
+      [
+       290,
+       425
+      ],
+      [
+       380,
+       385
+      ],
+      [
+       470,
+       348
+      ],
+      [
+       545,
+       308
+      ],
+      [
+       625,
+       282
+      ],
+      [
+       700,
+       250
+      ],
+      [
+       770,
+       205
+      ],
+      [
+       850,
+       180
+      ],
+      [
+       915,
+       150
+      ],
+      [
+       928,
+       108
+      ]
+     ]
+    },
+    {
+     "r": 15,
+     "pts": [
+      [
+       330,
+       350
+      ],
+      [
+       250,
+       315
+      ],
+      [
+       215,
+       265
+      ],
+      [
+       190,
+       205
+      ],
+      [
+       160,
+       150
+      ],
+      [
+       128,
+       120
+      ]
+     ]
+    },
+    {
+     "r": 12,
+     "pts": [
+      [
+       545,
+       308
+      ],
+      [
+       515,
+       278
+      ],
+      [
+       478,
+       262
+      ],
+      [
+       445,
+       232
+      ],
+      [
+       440,
+       208
+      ]
+     ]
+    },
+    {
+     "r": 17,
+     "pts": [
+      [
+       770,
+       215
+      ],
+      [
+       820,
+       262
+      ],
+      [
+       870,
+       285
+      ]
+     ]
+    },
+    {
+     "r": 38,
+     "pts": [
+      [
+       295,
+       350
+      ],
+      [
+       375,
+       360
+      ]
+     ]
+    },
+    {
+     "r": 30,
+     "pts": [
+      [
+       805,
+       272
+      ],
+      [
+       868,
+       290
+      ]
+     ]
+    },
+    {
+     "r": 32,
+     "pts": [
+      [
+       855,
+       172
+      ],
+      [
+       918,
+       142
+      ]
+     ]
+    }
+   ],
+   "glows": [
+    [
+     440,
+     165
+    ],
+    [
+     75,
+     445
+    ],
+    [
+     250,
+     440
+    ],
+    [
+     140,
+     490
+    ],
+    [
+     165,
+     410
+    ],
+    [
+     808,
+     262
+    ],
+    [
+     898,
+     298
+    ],
+    [
+     872,
+     78
+    ],
+    [
+     960,
+     85
+    ]
+   ],
+   "portals": [
+    {
+     "to": "town",
+     "name": "回汉中郡",
+     "at": [
+      40,
+      515
+     ],
+     "arrive": [
+      300,
+      800
+     ]
+    },
+    {
+     "to": "pine",
+     "name": "入石松林",
+     "at": [
+      440,
+      206
+     ],
+     "arrive": [
+      800,
+      1440
+     ]
+    }
+   ],
+   "foes": [
+    {
+     "stage": "path",
+     "at": [
+      352,
+      352
+     ]
+    },
+    {
+     "stage": "wolves",
+     "at": [
+      150,
+      140
+     ]
+    },
+    {
+     "stage": "outpost",
+     "at": [
+      850,
+      288
+     ]
+    },
+    {
+     "stage": "boss",
+     "at": [
+      926,
+      116
+     ]
+    }
+   ]
+  }
+ },
+ "arena": {
+  "lv": 30,
+  "allyName": "天剑宗",
+  "foeName": "天机阁",
+  "ally": [
+   {
+    "name": "阿秀",
+    "sprite": "b_axiu",
+    "ai": "heal",
+    "mult": {
+     "hp": 0.85,
+     "atk": 0.6,
+     "def": 0.75,
+     "spd": 1.05
+    },
+    "pet": {
+     "name": "小鹿",
+     "sprite": "b_deer",
+     "h": 76,
+     "mult": {
+      "hp": 0.5,
+      "atk": 0.5
+     }
+    }
+   },
+   {
+    "name": "逍遥子",
+    "sprite": "b_girl",
+    "ai": "mage",
+    "mult": {
+     "hp": 0.8,
+     "atk": 1.1,
+     "def": 0.65,
+     "spd": 1.1
+    },
+    "pet": {
+     "name": "玉兔",
+     "sprite": "b_rabbit",
+     "h": 56,
+     "mult": {
+      "hp": 0.45,
+      "atk": 0.6,
+      "spd": 1.3
+     }
+    }
+   },
+   {
+    "name": "云中客",
+    "sprite": "b_player",
+    "me": true,
+    "mult": {
+     "atk": 1.1
+    },
+    "pet": {
+     "name": "灵狐",
+     "sprite": "b_fox",
+     "h": 62,
+     "ai": "fox"
+    }
+   },
+   {
+    "name": "燕归",
+    "sprite": "b_yan",
+    "ai": "striker",
+    "mult": {
+     "hp": 0.85,
+     "atk": 1.2,
+     "def": 0.7,
+     "spd": 1.3
+    },
+    "pet": {
+     "name": "苍鹰",
+     "sprite": "b_hawk",
+     "h": 70,
+     "mult": {
+      "hp": 0.45,
+      "atk": 0.8,
+      "spd": 1.5
+     }
+    }
+   },
+   {
+    "name": "无尘",
+    "sprite": "b_wuchen",
+    "ai": "tank",
+    "aggro": 3,
+    "mult": {
+     "hp": 1.5,
+     "atk": 0.7,
+     "def": 1.5,
+     "spd": 0.8
+    },
+    "pet": {
+     "name": "虎崽",
+     "sprite": "b_tiger",
+     "h": 64,
+     "mult": {
+      "hp": 0.7,
+      "atk": 0.75
+     }
+    }
+   }
+  ],
+  "foe": [
+   {
+    "name": "素心",
+    "sprite": "f_healer",
+    "ai": "heal",
+    "mult": {
+     "hp": 0.85,
+     "atk": 0.6,
+     "def": 0.75,
+     "spd": 1.05
+    },
+    "pet": {
+     "name": "灵龟",
+     "sprite": "f_tortoise",
+     "h": 56,
+     "mult": {
+      "hp": 0.8,
+      "atk": 0.45,
+      "spd": 0.7
+     }
+    }
+   },
+   {
+    "name": "玄真",
+    "sprite": "f_tao",
+    "ai": "mage",
+    "mult": {
+     "hp": 0.8,
+     "atk": 1.1,
+     "def": 0.65,
+     "spd": 1.1
+    },
+    "pet": {
+     "name": "仙鹤",
+     "sprite": "f_crane",
+     "h": 82,
+     "mult": {
+      "hp": 0.45,
+      "atk": 0.65,
+      "spd": 1.4
+     }
+    }
+   },
+   {
+    "name": "红绡",
+    "sprite": "f_sword",
+    "ai": "striker",
+    "mult": {
+     "hp": 0.9,
+     "atk": 1.2,
+     "def": 0.75,
+     "spd": 1.25
+    },
+    "pet": {
+     "name": "墨豹",
+     "sprite": "f_panther",
+     "h": 58,
+     "mult": {
+      "hp": 0.55,
+      "atk": 0.8,
+      "spd": 1.3
+     }
+    }
+   },
+   {
+    "name": "铁狂",
+    "sprite": "f_blade",
+    "ai": "tank",
+    "aggro": 3,
+    "h": 136,
+    "mult": {
+     "hp": 1.5,
+     "atk": 0.8,
+     "def": 1.4,
+     "spd": 0.8
+    },
+    "pet": {
+     "name": "竹熊",
+     "sprite": "f_panda",
+     "h": 64,
+     "mult": {
+      "hp": 0.75,
+      "atk": 0.7
+     }
+    }
+   },
+   {
+    "name": "银霜",
+    "sprite": "f_spear",
+    "mult": {
+     "hp": 1,
+     "atk": 1.1,
+     "def": 0.9,
+     "spd": 1.1
+    },
+    "pet": {
+     "name": "赤螭",
+     "sprite": "f_dragon",
+     "h": 74,
+     "mult": {
+      "hp": 0.5,
+      "atk": 0.85,
+      "spd": 1.2
+     }
+    }
+   }
+  ]
+ },
+ "shops": {
+  "vendor": {
+   "name": "货郎的担子",
+   "sell": [
+    "hp_potion",
+    "mp_potion"
+   ]
+  },
+  "trader": {
+   "name": "百宝摊",
+   "sell": [
+    "forge_1",
+    "forge_2",
+    "forge_3",
+    "forge_4",
+    "forge_5",
+    "iron_sword",
+    "steel_saber",
+    "steel_sword",
+    "leather_cap",
+    "iron_helm",
+    "leather_armor",
+    "iron_armor",
+    "linen_legs",
+    "iron_greaves",
+    "leather_bracer",
+    "steel_bracer",
+    "linen_belt",
+    "cloth_boots",
+    "gem_atk_1",
+    "gem_matk_1",
+    "gem_hp_1",
+    "gem_def_1",
+    "gem_mdef_1",
+    "gem_mp_1",
+    "gem_dodge_1",
+    "gem_spd_1",
+    "gem_crit_1",
+    "jade_sword",
+    "scale_armor",
+    "crimson_sword",
+    "phoenix_armor",
+    "wood_beads",
+    "jade_pendant",
+    "copper_ring",
+    "silver_ring",
+    "bronze_bell",
+    "bagua_mirror",
+    "peace_charm",
+    "jade_charm",
+    "herb_pouch",
+    "brocade_pouch",
+    "jade_belt",
+    "cloud_boots"
+   ]
+  }
+ }
+}

@@ -1,0 +1,890 @@
+{
+ "axiu": {
+  "file": "assets/axiu.webp",
+  "bytes": 12192,
+  "w": 101,
+  "h": 200
+ },
+ "b_axiu": {
+  "file": "assets/b_axiu.webp",
+  "bytes": 16384,
+  "w": 107,
+  "h": 248
+ },
+ "b_deer": {
+  "file": "assets/b_deer.webp",
+  "bytes": 10868,
+  "w": 104,
+  "h": 160
+ },
+ "b_fox": {
+  "file": "assets/b_fox.webp",
+  "bytes": 8186,
+  "w": 103,
+  "h": 132
+ },
+ "b_girl": {
+  "file": "assets/b_girl.webp",
+  "bytes": 21724,
+  "w": 152,
+  "h": 256
+ },
+ "b_hawk": {
+  "file": "assets/b_hawk.webp",
+  "bytes": 17146,
+  "w": 219,
+  "h": 148
+ },
+ "b_player": {
+  "file": "assets/b_player.webp",
+  "bytes": 22596,
+  "w": 198,
+  "h": 260
+ },
+ "b_rabbit": {
+  "file": "assets/b_rabbit.webp",
+  "bytes": 6142,
+  "w": 81,
+  "h": 120
+ },
+ "b_tiger": {
+  "file": "assets/b_tiger.webp",
+  "bytes": 11062,
+  "w": 136,
+  "h": 136
+ },
+ "b_wuchen": {
+  "file": "assets/b_wuchen.webp",
+  "bytes": 23978,
+  "w": 208,
+  "h": 264
+ },
+ "b_yan": {
+  "file": "assets/b_yan.webp",
+  "bytes": 21614,
+  "w": 158,
+  "h": 264
+ },
+ "bg_battle": {
+  "file": "assets/bg_battle.webp",
+  "bytes": 149966,
+  "w": 814,
+  "h": 1448
+ },
+ "bg_battle2": {
+  "file": "assets/bg_battle2.webp",
+  "bytes": 158444,
+  "w": 814,
+  "h": 1448
+ },
+ "bg_creek": {
+  "file": "assets/bg_creek.webp",
+  "bytes": 460492,
+  "w": 2400,
+  "h": 1792
+ },
+ "bg_mist": {
+  "file": "assets/bg_mist.webp",
+  "bytes": 441200,
+  "w": 2400,
+  "h": 1792
+ },
+ "bg_outskirts": {
+  "file": "assets/bg_outskirts.webp",
+  "bytes": 427916,
+  "w": 2400,
+  "h": 1792
+ },
+ "bg_pine": {
+  "file": "assets/bg_pine.webp",
+  "bytes": 500678,
+  "w": 2400,
+  "h": 1792
+ },
+ "bg_taixuforest": {
+  "file": "assets/bg_taixuforest.webp",
+  "bytes": 252038,
+  "w": 2000,
+  "h": 1616
+ },
+ "bg_taixupeak": {
+  "file": "assets/bg_taixupeak.webp",
+  "bytes": 356752,
+  "w": 2000,
+  "h": 1616
+ },
+ "bg_taixuvalley": {
+  "file": "assets/bg_taixuvalley.webp",
+  "bytes": 264032,
+  "w": 2000,
+  "h": 1504
+ },
+ "bg_town": {
+  "file": "assets/bg_town.webp",
+  "bytes": 3584378,
+  "w": 5324,
+  "h": 3042
+ },
+ "bg_village": {
+  "file": "assets/bg_village.webp",
+  "bytes": 475734,
+  "w": 2000,
+  "h": 1500
+ },
+ "bg_wild": {
+  "file": "assets/bg_wild.webp",
+  "bytes": 341234,
+  "w": 1672,
+  "h": 941
+ },
+ "bg_wolfvalley": {
+  "file": "assets/bg_wolfvalley.webp",
+  "bytes": 405484,
+  "w": 2400,
+  "h": 1792
+ },
+ "boar": {
+  "file": "assets/boar.webp",
+  "bytes": 12944,
+  "w": 149,
+  "h": 156
+ },
+ "boss": {
+  "file": "assets/boss.webp",
+  "bytes": 40796,
+  "w": 257,
+  "h": 300
+ },
+ "cls_f_bow": {
+  "file": "assets/cls_f_bow.webp",
+  "bytes": 166348,
+  "w": 454,
+  "h": 878
+ },
+ "cls_f_heal": {
+  "file": "assets/cls_f_heal.webp",
+  "bytes": 132802,
+  "w": 365,
+  "h": 865
+ },
+ "cls_f_sword": {
+  "file": "assets/cls_f_sword.webp",
+  "bytes": 187072,
+  "w": 548,
+  "h": 866
+ },
+ "cls_m_mage": {
+  "file": "assets/cls_m_mage.webp",
+  "bytes": 140494,
+  "w": 551,
+  "h": 820
+ },
+ "cls_m_spear": {
+  "file": "assets/cls_m_spear.webp",
+  "bytes": 100476,
+  "w": 469,
+  "h": 849
+ },
+ "cls_m_sword": {
+  "file": "assets/cls_m_sword.webp",
+  "bytes": 91896,
+  "w": 471,
+  "h": 817
+ },
+ "dummy": {
+  "file": "assets/dummy.webp",
+  "bytes": 14386,
+  "w": 133,
+  "h": 220
+ },
+ "elder": {
+  "file": "assets/elder.webp",
+  "bytes": 16568,
+  "w": 119,
+  "h": 208
+ },
+ "f_blade": {
+  "file": "assets/f_blade.webp",
+  "bytes": 32236,
+  "w": 197,
+  "h": 280
+ },
+ "f_crane": {
+  "file": "assets/f_crane.webp",
+  "bytes": 21750,
+  "w": 188,
+  "h": 172
+ },
+ "f_dragon": {
+  "file": "assets/f_dragon.webp",
+  "bytes": 16636,
+  "w": 129,
+  "h": 156
+ },
+ "f_healer": {
+  "file": "assets/f_healer.webp",
+  "bytes": 27374,
+  "w": 159,
+  "h": 260
+ },
+ "f_panda": {
+  "file": "assets/f_panda.webp",
+  "bytes": 14082,
+  "w": 164,
+  "h": 136
+ },
+ "f_panther": {
+  "file": "assets/f_panther.webp",
+  "bytes": 10180,
+  "w": 126,
+  "h": 124
+ },
+ "f_spear": {
+  "file": "assets/f_spear.webp",
+  "bytes": 27178,
+  "w": 194,
+  "h": 268
+ },
+ "f_sword": {
+  "file": "assets/f_sword.webp",
+  "bytes": 24952,
+  "w": 156,
+  "h": 260
+ },
+ "f_tao": {
+  "file": "assets/f_tao.webp",
+  "bytes": 24724,
+  "w": 150,
+  "h": 268
+ },
+ "f_tortoise": {
+  "file": "assets/f_tortoise.webp",
+  "bytes": 10838,
+  "w": 130,
+  "h": 120
+ },
+ "fox": {
+  "file": "assets/fox.webp",
+  "bytes": 6382,
+  "w": 78,
+  "h": 100
+ },
+ "girl": {
+  "file": "assets/girl.webp",
+  "bytes": 14416,
+  "w": 96,
+  "h": 204
+ },
+ "grunt": {
+  "file": "assets/grunt.webp",
+  "bytes": 18796,
+  "w": 193,
+  "h": 216
+ },
+ "head_axiu": {
+  "file": "assets/head_axiu.webp",
+  "bytes": 15482,
+  "w": 160,
+  "h": 160
+ },
+ "head_elder": {
+  "file": "assets/head_elder.webp",
+  "bytes": 15584,
+  "w": 160,
+  "h": 160
+ },
+ "head_f_bow": {
+  "file": "assets/head_f_bow.webp",
+  "bytes": 7480,
+  "w": 160,
+  "h": 160
+ },
+ "head_f_heal": {
+  "file": "assets/head_f_heal.webp",
+  "bytes": 7896,
+  "w": 160,
+  "h": 160
+ },
+ "head_f_sword": {
+  "file": "assets/head_f_sword.webp",
+  "bytes": 8848,
+  "w": 160,
+  "h": 160
+ },
+ "head_girl": {
+  "file": "assets/head_girl.webp",
+  "bytes": 18028,
+  "w": 160,
+  "h": 160
+ },
+ "head_m_mage": {
+  "file": "assets/head_m_mage.webp",
+  "bytes": 8054,
+  "w": 160,
+  "h": 160
+ },
+ "head_m_spear": {
+  "file": "assets/head_m_spear.webp",
+  "bytes": 5106,
+  "w": 160,
+  "h": 160
+ },
+ "head_m_sword": {
+  "file": "assets/head_m_sword.webp",
+  "bytes": 7182,
+  "w": 160,
+  "h": 160
+ },
+ "head_player": {
+  "file": "assets/head_player.webp",
+  "bytes": 17844,
+  "w": 160,
+  "h": 160
+ },
+ "head_smith": {
+  "file": "assets/head_smith.webp",
+  "bytes": 14092,
+  "w": 160,
+  "h": 160
+ },
+ "head_vendor": {
+  "file": "assets/head_vendor.webp",
+  "bytes": 14142,
+  "w": 160,
+  "h": 160
+ },
+ "head_waiter": {
+  "file": "assets/head_waiter.webp",
+  "bytes": 12300,
+  "w": 160,
+  "h": 160
+ },
+ "icon_act": {
+  "file": "assets/icon_act.webp",
+  "bytes": 11970,
+  "w": 144,
+  "h": 144
+ },
+ "icon_auto": {
+  "file": "assets/icon_auto.webp",
+  "bytes": 11214,
+  "w": 144,
+  "h": 144
+ },
+ "icon_bag": {
+  "file": "assets/icon_bag.webp",
+  "bytes": 12276,
+  "w": 144,
+  "h": 144
+ },
+ "icon_friend": {
+  "file": "assets/icon_friend.webp",
+  "bytes": 12736,
+  "w": 144,
+  "h": 144
+ },
+ "icon_gear": {
+  "file": "assets/icon_gear.webp",
+  "bytes": 11710,
+  "w": 144,
+  "h": 144
+ },
+ "icon_gift": {
+  "file": "assets/icon_gift.webp",
+  "bytes": 11758,
+  "w": 144,
+  "h": 144
+ },
+ "icon_guild": {
+  "file": "assets/icon_guild.webp",
+  "bytes": 11644,
+  "w": 144,
+  "h": 144
+ },
+ "icon_mall": {
+  "file": "assets/icon_mall.webp",
+  "bytes": 10636,
+  "w": 144,
+  "h": 144
+ },
+ "icon_map": {
+  "file": "assets/icon_map.webp",
+  "bytes": 12252,
+  "w": 144,
+  "h": 144
+ },
+ "icon_pet": {
+  "file": "assets/icon_pet.webp",
+  "bytes": 11080,
+  "w": 144,
+  "h": 144
+ },
+ "icon_potion": {
+  "file": "assets/icon_potion.webp",
+  "bytes": 10968,
+  "w": 144,
+  "h": 144
+ },
+ "icon_quest": {
+  "file": "assets/icon_quest.webp",
+  "bytes": 11074,
+  "w": 144,
+  "h": 144
+ },
+ "icon_rank": {
+  "file": "assets/icon_rank.webp",
+  "bytes": 12320,
+  "w": 144,
+  "h": 144
+ },
+ "icon_ride": {
+  "file": "assets/icon_ride.webp",
+  "bytes": 11754,
+  "w": 144,
+  "h": 144
+ },
+ "icon_role": {
+  "file": "assets/icon_role.webp",
+  "bytes": 11906,
+  "w": 144,
+  "h": 144
+ },
+ "icon_skill": {
+  "file": "assets/icon_skill.webp",
+  "bytes": 12004,
+  "w": 144,
+  "h": 144
+ },
+ "item_bagua_mirror": {
+  "file": "assets/item_bagua_mirror.webp",
+  "bytes": 8208,
+  "w": 128,
+  "h": 128
+ },
+ "item_brocade_pouch": {
+  "file": "assets/item_brocade_pouch.webp",
+  "bytes": 7882,
+  "w": 128,
+  "h": 128
+ },
+ "item_bronze_bell": {
+  "file": "assets/item_bronze_bell.webp",
+  "bytes": 6358,
+  "w": 128,
+  "h": 128
+ },
+ "item_chest": {
+  "file": "assets/item_chest.webp",
+  "bytes": 7804,
+  "w": 128,
+  "h": 128
+ },
+ "item_cloth_armor": {
+  "file": "assets/item_cloth_armor.webp",
+  "bytes": 8592,
+  "w": 128,
+  "h": 128
+ },
+ "item_cloth_boots": {
+  "file": "assets/item_cloth_boots.webp",
+  "bytes": 6920,
+  "w": 128,
+  "h": 128
+ },
+ "item_cloud_boots": {
+  "file": "assets/item_cloud_boots.webp",
+  "bytes": 7608,
+  "w": 128,
+  "h": 128
+ },
+ "item_coins": {
+  "file": "assets/item_coins.webp",
+  "bytes": 7696,
+  "w": 128,
+  "h": 128
+ },
+ "item_copper_ring": {
+  "file": "assets/item_copper_ring.webp",
+  "bytes": 5114,
+  "w": 128,
+  "h": 128
+ },
+ "item_crimson_sword": {
+  "file": "assets/item_crimson_sword.webp",
+  "bytes": 6902,
+  "w": 128,
+  "h": 128
+ },
+ "item_forge_1": {
+  "file": "assets/item_forge_1.webp",
+  "bytes": 3676,
+  "w": 128,
+  "h": 128
+ },
+ "item_forge_2": {
+  "file": "assets/item_forge_2.webp",
+  "bytes": 5458,
+  "w": 128,
+  "h": 128
+ },
+ "item_forge_3": {
+  "file": "assets/item_forge_3.webp",
+  "bytes": 6496,
+  "w": 128,
+  "h": 128
+ },
+ "item_forge_4": {
+  "file": "assets/item_forge_4.webp",
+  "bytes": 8106,
+  "w": 128,
+  "h": 128
+ },
+ "item_forge_5": {
+  "file": "assets/item_forge_5.webp",
+  "bytes": 9190,
+  "w": 128,
+  "h": 128
+ },
+ "item_gem_atk": {
+  "file": "assets/item_gem_atk.webp",
+  "bytes": 6334,
+  "w": 128,
+  "h": 128
+ },
+ "item_gem_crit": {
+  "file": "assets/item_gem_crit.webp",
+  "bytes": 6420,
+  "w": 128,
+  "h": 128
+ },
+ "item_gem_def": {
+  "file": "assets/item_gem_def.webp",
+  "bytes": 7008,
+  "w": 128,
+  "h": 128
+ },
+ "item_gem_dodge": {
+  "file": "assets/item_gem_dodge.webp",
+  "bytes": 7288,
+  "w": 128,
+  "h": 128
+ },
+ "item_gem_hp": {
+  "file": "assets/item_gem_hp.webp",
+  "bytes": 10030,
+  "w": 128,
+  "h": 128
+ },
+ "item_gem_matk": {
+  "file": "assets/item_gem_matk.webp",
+  "bytes": 6820,
+  "w": 128,
+  "h": 128
+ },
+ "item_gem_mdef": {
+  "file": "assets/item_gem_mdef.webp",
+  "bytes": 6796,
+  "w": 128,
+  "h": 128
+ },
+ "item_gem_mp": {
+  "file": "assets/item_gem_mp.webp",
+  "bytes": 6440,
+  "w": 128,
+  "h": 128
+ },
+ "item_gem_spd": {
+  "file": "assets/item_gem_spd.webp",
+  "bytes": 7104,
+  "w": 128,
+  "h": 128
+ },
+ "item_herb_pouch": {
+  "file": "assets/item_herb_pouch.webp",
+  "bytes": 6798,
+  "w": 128,
+  "h": 128
+ },
+ "item_hp_potion": {
+  "file": "assets/item_hp_potion.webp",
+  "bytes": 7432,
+  "w": 128,
+  "h": 128
+ },
+ "item_iron_armor": {
+  "file": "assets/item_iron_armor.webp",
+  "bytes": 7834,
+  "w": 128,
+  "h": 128
+ },
+ "item_iron_greaves": {
+  "file": "assets/item_iron_greaves.webp",
+  "bytes": 7264,
+  "w": 128,
+  "h": 128
+ },
+ "item_iron_helm": {
+  "file": "assets/item_iron_helm.webp",
+  "bytes": 6364,
+  "w": 128,
+  "h": 128
+ },
+ "item_iron_sword": {
+  "file": "assets/item_iron_sword.webp",
+  "bytes": 5868,
+  "w": 128,
+  "h": 128
+ },
+ "item_jade_belt": {
+  "file": "assets/item_jade_belt.webp",
+  "bytes": 6832,
+  "w": 128,
+  "h": 128
+ },
+ "item_jade_charm": {
+  "file": "assets/item_jade_charm.webp",
+  "bytes": 11246,
+  "w": 128,
+  "h": 128
+ },
+ "item_jade_pendant": {
+  "file": "assets/item_jade_pendant.webp",
+  "bytes": 9480,
+  "w": 128,
+  "h": 128
+ },
+ "item_jade_sword": {
+  "file": "assets/item_jade_sword.webp",
+  "bytes": 6838,
+  "w": 128,
+  "h": 128
+ },
+ "item_lantern": {
+  "file": "assets/item_lantern.webp",
+  "bytes": 7276,
+  "w": 128,
+  "h": 128
+ },
+ "item_leather_armor": {
+  "file": "assets/item_leather_armor.webp",
+  "bytes": 9664,
+  "w": 128,
+  "h": 128
+ },
+ "item_leather_bracer": {
+  "file": "assets/item_leather_bracer.webp",
+  "bytes": 6110,
+  "w": 128,
+  "h": 128
+ },
+ "item_leather_cap": {
+  "file": "assets/item_leather_cap.webp",
+  "bytes": 5620,
+  "w": 128,
+  "h": 128
+ },
+ "item_linen_belt": {
+  "file": "assets/item_linen_belt.webp",
+  "bytes": 6496,
+  "w": 128,
+  "h": 128
+ },
+ "item_linen_legs": {
+  "file": "assets/item_linen_legs.webp",
+  "bytes": 7302,
+  "w": 128,
+  "h": 128
+ },
+ "item_mp_potion": {
+  "file": "assets/item_mp_potion.webp",
+  "bytes": 7984,
+  "w": 128,
+  "h": 128
+ },
+ "item_ore": {
+  "file": "assets/item_ore.webp",
+  "bytes": 8676,
+  "w": 128,
+  "h": 128
+ },
+ "item_peace_charm": {
+  "file": "assets/item_peace_charm.webp",
+  "bytes": 7084,
+  "w": 128,
+  "h": 128
+ },
+ "item_phoenix_armor": {
+  "file": "assets/item_phoenix_armor.webp",
+  "bytes": 8600,
+  "w": 128,
+  "h": 128
+ },
+ "item_sachet": {
+  "file": "assets/item_sachet.webp",
+  "bytes": 9332,
+  "w": 128,
+  "h": 128
+ },
+ "item_scale_armor": {
+  "file": "assets/item_scale_armor.webp",
+  "bytes": 8746,
+  "w": 128,
+  "h": 128
+ },
+ "item_silver_ring": {
+  "file": "assets/item_silver_ring.webp",
+  "bytes": 5666,
+  "w": 128,
+  "h": 128
+ },
+ "item_steel_bracer": {
+  "file": "assets/item_steel_bracer.webp",
+  "bytes": 7202,
+  "w": 128,
+  "h": 128
+ },
+ "item_steel_saber": {
+  "file": "assets/item_steel_saber.webp",
+  "bytes": 5018,
+  "w": 128,
+  "h": 128
+ },
+ "item_steel_sword": {
+  "file": "assets/item_steel_sword.webp",
+  "bytes": 7482,
+  "w": 128,
+  "h": 128
+ },
+ "item_wolf_fang": {
+  "file": "assets/item_wolf_fang.webp",
+  "bytes": 6966,
+  "w": 128,
+  "h": 128
+ },
+ "item_wood_beads": {
+  "file": "assets/item_wood_beads.webp",
+  "bytes": 5570,
+  "w": 128,
+  "h": 128
+ },
+ "login": {
+  "file": "assets/login.webp",
+  "bytes": 145638,
+  "w": 1024,
+  "h": 1536
+ },
+ "mini_creek": {
+  "file": "assets/mini_creek.jpg",
+  "bytes": 60435,
+  "w": 512,
+  "h": 382
+ },
+ "mini_mist": {
+  "file": "assets/mini_mist.jpg",
+  "bytes": 61873,
+  "w": 512,
+  "h": 382
+ },
+ "mini_outskirts": {
+  "file": "assets/mini_outskirts.jpg",
+  "bytes": 58942,
+  "w": 512,
+  "h": 382
+ },
+ "mini_pine": {
+  "file": "assets/mini_pine.jpg",
+  "bytes": 57198,
+  "w": 512,
+  "h": 382
+ },
+ "mini_taixuforest": {
+  "file": "assets/mini_taixuforest.jpg",
+  "bytes": 56354,
+  "w": 512,
+  "h": 414
+ },
+ "mini_taixupeak": {
+  "file": "assets/mini_taixupeak.jpg",
+  "bytes": 61715,
+  "w": 512,
+  "h": 414
+ },
+ "mini_taixuvalley": {
+  "file": "assets/mini_taixuvalley.jpg",
+  "bytes": 54455,
+  "w": 512,
+  "h": 385
+ },
+ "mini_town": {
+  "file": "assets/mini_town.jpg",
+  "bytes": 64974,
+  "w": 512,
+  "h": 293
+ },
+ "mini_village": {
+  "file": "assets/mini_village.jpg",
+  "bytes": 67391,
+  "w": 512,
+  "h": 384
+ },
+ "mini_wild": {
+  "file": "assets/mini_wild.jpg",
+  "bytes": 42477,
+  "w": 512,
+  "h": 288
+ },
+ "mini_wolfvalley": {
+  "file": "assets/mini_wolfvalley.jpg",
+  "bytes": 54260,
+  "w": 512,
+  "h": 382
+ },
+ "player": {
+  "file": "assets/player.webp",
+  "bytes": 15726,
+  "w": 110,
+  "h": 224
+ },
+ "smith": {
+  "file": "assets/smith.webp",
+  "bytes": 16176,
+  "w": 124,
+  "h": 224
+ },
+ "vendor": {
+  "file": "assets/vendor.webp",
+  "bytes": 12586,
+  "w": 108,
+  "h": 200
+ },
+ "waiter": {
+  "file": "assets/waiter.webp",
+  "bytes": 10960,
+  "w": 93,
+  "h": 204
+ },
+ "walk_b": {
+  "file": "assets/walk_b.webp",
+  "bytes": 72740,
+  "w": 532,
+  "h": 240
+ },
+ "walk_f": {
+  "file": "assets/walk_f.webp",
+  "bytes": 67946,
+  "w": 616,
+  "h": 247
+ },
+ "wolf": {
+  "file": "assets/wolf.webp",
+  "bytes": 15506,
+  "w": 179,
+  "h": 144
+ },
+ "world": {
+  "file": "assets/world.webp",
+  "bytes": 1095036,
+  "w": 2300,
+  "h": 2300
+ }
+}
