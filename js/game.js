@@ -124,21 +124,39 @@ function itemBonus(it) {
 }
 
 let bagSel = null;
+let bagTab = 'all';
+const BAGCAT = { all: '全部', potion: '药品', equip: '装备', mat: '材料' }, TYPENAME = { potion: '药品', equip: '装备', mat: '材料' }, SLOTNAME = { weapon: '兵器', armor: '衣甲', charm: '饰品' };
+const itemQ = id => D.petQuality[(D.items[id] && D.items[id].q) || 1];
+function bagDelta(it) {   // 对比当前同部位装备
+  const cur = D.items[S.equip[it.slot]] || {}, out = [];
+  [['atk', '攻击'], ['def', '防御'], ['hp', '气血'], ['spd', '速度']].forEach(([k, n]) => { const dv = (it[k] || 0) - (cur[k] || 0); if (dv) out.push('<em class="' + (dv > 0 ? 'up' : 'dn') + '">' + n + (dv > 0 ? ' ▲' : ' ▼') + Math.abs(dv) + '</em>'); });
+  return out.join(' ');
+}
 function openBag() {
-  const ids = Object.keys(S.items);
+  const all = Object.keys(S.items), ids = all.filter(id => bagTab === 'all' || D.items[id].type === bagTab);
   if (!ids.includes(bagSel)) bagSel = ids[0] || null;
-  let h = '<div class="grid">';
-  ids.forEach(id => { h += '<button type="button" class="tile' + (id === bagSel ? ' sel' : '') + '" data-act="sel:' + id + '" aria-label="' + D.items[id].name + '">' + itemImg(id) + '<b>' + S.items[id] + '</b></button>'; });
-  for (let i = ids.length; i < Math.max(10, Math.ceil(ids.length / 5) * 5); i++) h += '<div class="tile empty"></div>';
+  const cap = D.bagSize;
+  let h = '<div class="bagtop"><div class="rtabs">' + Object.keys(BAGCAT).map(k => '<button type="button" class="rtab' + (bagTab === k ? ' on' : '') + '" data-act="bagTab:' + k + '">' + BAGCAT[k] + '</button>').join('') + '</div>' +
+    '<div class="bagcap"><span>' + all.length + ' / ' + cap + '</span><button type="button" class="tbtn" data-act="bagSort">整理</button></div></div><div class="grid">';
+  ids.forEach(id => { const it = D.items[id], c = itemQ(id).color, eq = it.type === 'equip';
+    h += '<button type="button" class="tile q' + (id === bagSel ? ' sel' : '') + '" style="--qc:' + c + '" data-act="sel:' + id + '" aria-label="' + it.name + '">' + itemImg(id) + (S.items[id] > 1 || !eq ? '<b>' + S.items[id] + '</b>' : '') + (eq && it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>'; });
+  for (let i = ids.length; i < (bagTab === 'all' ? cap : Math.max(10, Math.ceil(ids.length / 5) * 5)); i++) h += '<div class="tile empty"></div>';
   h += '</div>';
   if (bagSel) {
-    const it = D.items[bagSel];
-    let btn = '';
-    if (it.type === 'potion') btn = '<button type="button" class="tbtn" data-act="use:' + bagSel + '">使用</button>';
-    if (it.type === 'equip') btn = '<button type="button" class="tbtn" data-act="equip:' + bagSel + '">装备</button>';
-    h += '<div class="detail"><div><h5>' + it.name + '</h5><p>' + it.desc + '</p></div>' + btn + '</div>';
-  } else h += '<div class="detail"><div><p>背包是空的。</p></div></div>';
-  h += '<p class="center" style="margin:12px 0 0;color:var(--amber)">银两 ' + fmt(S.coin) + '</p>';
+    const it = D.items[bagSel], q = itemQ(bagSel), n = S.items[bagSel];
+    let btns = '';
+    if (it.type === 'potion') btns += '<button type="button" class="tbtn red" data-act="use:' + bagSel + '">使用</button>';
+    if (it.type === 'equip') btns += '<button type="button" class="tbtn red" data-act="equip:' + bagSel + '">装备</button>';
+    if (it.price > 0 && it.type !== 'potion') btns += '<button type="button" class="tbtn" data-act="bagSell:' + bagSel + '">出售 ' + it.price + '</button>';
+    h += '<div class="idetail"><div class="itile" style="--qc:' + q.color + '">' + itemImg(bagSel) + '</div><div class="ibody"><h5>' + it.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
+      '<p class="meta">' + TYPENAME[it.type] + (it.slot ? ' · ' + SLOTNAME[it.slot] : '') + '　持有 ' + n + (it.price > 0 ? '　单价 ' + it.price + ' 两' : '　<b>任务物品</b>') + '</p>' +
+      (it.type === 'equip' ? '<p class="bonus">' + itemBonus(it) + '</p><p class="cmp">' + (S.equip[it.slot] ? '对比当前「' + D.items[S.equip[it.slot]].name + '」：' + (bagDelta(it) || '无差别') : '该部位空着，装上就是净提升') + '</p>' : '') +
+      '<p>' + it.desc + '</p></div></div><div class="ibtns">' + btns + '</div>';
+  } else h += '<div class="idetail"><div class="ibody"><p>' + (all.length ? '这个分类下没有物品。' : '背包是空的。') + '</p></div></div>';
+  // 已装备
+  h += '<div class="eqbar"><small>已装备</small>' + Object.keys(SLOTNAME).map(sl => { const id = S.equip[sl], it = id && D.items[id];
+    return '<div class="eqs' + (id ? '' : ' empty') + '" style="--qc:' + (id ? itemQ(id).color : 'rgba(226,176,74,.25)') + '">' + (id ? itemImg(id) : '') + '<span>' + (it ? it.name : SLOTNAME[sl]) + '</span></div>'; }).join('') +
+    '<b class="coinb">银两 ' + fmt(S.coin) + '</b></div>';
   openModal('背包', h);
 }
 function usePotion(id) {
@@ -266,6 +284,9 @@ const ACTS = {
   petSel(id) { petSel = id; petTab = 'dex'; openPet(); },
   unequip(slot) { if (!S.equip[slot]) return; const id = S.equip[slot]; S.equip[slot] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('卸下了' + D.items[id].name); openRole(); },
   openBag() { openBag(); },
+  bagTab(t) { bagTab = t; openBag(); },
+  bagSort() { const order = { equip: 0, potion: 1, mat: 2 }, ids = Object.keys(S.items).sort((a, b) => order[D.items[a].type] - order[D.items[b].type] || (D.items[b].q || 1) - (D.items[a].q || 1)), o = {}; ids.forEach(i => o[i] = S.items[i]); S.items = o; save(); toast('已整理背包'); openBag(); },
+  bagSell(id) { const it = D.items[id]; if (!S.items[id] || !(it.price > 0)) return; if (it.type === 'equip' && S.items[id] === 1 && Object.values(S.equip).includes(id)) return; addItem(id, -1); S.coin += it.price; save(); refresh(); toast('卖出' + it.name + '，银两 +' + it.price); openBag(); },
   switchRole() { closeModal(); stop(); save(); window.FRONT.showRoles(); },
   close() { closeModal(); },
   leave() { closeModal(); }

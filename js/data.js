@@ -22,6 +22,7 @@ window.DATA = {
     panda:    { name: '竹熊', sprite: 'f_panda',   q: 2, kind: '走兽 · 防御', desc: '竹林深处的憨态大熊，皮糙肉厚。', how: '城外竹林稀有掉落' },
     dragon:   { name: '赤螭', sprite: 'f_dragon',  q: 4, kind: '神兽 · 法术', desc: '传说中的赤色小龙，吐息如火，是万中无一的灵宠。', how: '节日活动限定' }
   },
+  bagSize: 20,
   expNeed: { base: 150, perLevel: 90 },        // 升到下一级所需经验 = base + perLevel * 当前等级
   start: { lv: 1, coin: 100, items: { hp_potion: 3 }, equip: { weapon: null, armor: 'cloth_armor', charm: null }, map: 'village' },
 
@@ -36,16 +37,16 @@ window.DATA = {
   },
 
   items: {
-    hp_potion:     { name: '金创药',   icon: 'hp_potion',     type: 'potion', price: 50,  hp: 600, desc: '恢复 600 点气血。' },
-    mp_potion:     { name: '回气丹',   icon: 'mp_potion',     type: 'potion', price: 60,  mp: 300, desc: '恢复 300 点法力。' },
-    iron_sword:    { name: '精铁剑',   icon: 'iron_sword',    type: 'equip',  slot: 'weapon', price: 300, atk: 40, desc: '王铁匠亲手淬火的好剑。攻击 +40' },
-    steel_sword:   { name: '玄铁剑',   icon: 'steel_sword',   type: 'equip',  slot: 'weapon', price: 900, atk: 95, desc: '玄铁所铸，寒光逼人。攻击 +95' },
-    cloth_armor:   { name: '布衣',     icon: 'cloth_armor',   type: 'equip',  slot: 'armor',  price: 80,  def: 15, desc: '寻常布衣。防御 +15' },
-    leather_armor: { name: '皮甲',     icon: 'leather_armor', type: 'equip',  slot: 'armor',  price: 500, def: 50, hp: 200, desc: '鞣制皮甲。防御 +50，气血上限 +200' },
-    sachet:        { name: '百花香囊', icon: 'sachet',        type: 'equip',  slot: 'charm',  price: 400, hp: 300, spd: 10, desc: '逍遥子所赠。气血上限 +300，速度 +10' },
-    ore:           { name: '玄铁矿',   icon: 'ore',           type: 'mat',    price: 120, desc: '打造兵器的材料，可以卖给商人。' },
-    wolf_fang:     { name: '狼牙',     icon: 'wolf_fang',     type: 'mat',    price: 40,  desc: '野狼的牙，可以卖给商人。' },
-    lantern:       { name: '花灯',     icon: 'lantern',       type: 'mat',    price: 0,   desc: '王铁匠托你捎给逍遥子的花灯。' }
+    hp_potion:     { name: '金创药',   icon: 'hp_potion', q: 1,     type: 'potion', price: 50,  hp: 600, desc: '恢复 600 点气血。' },
+    mp_potion:     { name: '回气丹',   icon: 'mp_potion', q: 1,     type: 'potion', price: 60,  mp: 300, desc: '恢复 300 点法力。' },
+    iron_sword:    { name: '精铁剑',   icon: 'iron_sword', q: 2,    type: 'equip',  slot: 'weapon', price: 300, atk: 40, desc: '王铁匠亲手淬火的好剑。攻击 +40' },
+    steel_sword:   { name: '玄铁剑',   icon: 'steel_sword', q: 3,   type: 'equip',  slot: 'weapon', price: 900, atk: 95, desc: '玄铁所铸，寒光逼人。攻击 +95' },
+    cloth_armor:   { name: '布衣',     icon: 'cloth_armor', q: 1,   type: 'equip',  slot: 'armor',  price: 80,  def: 15, desc: '寻常布衣。防御 +15' },
+    leather_armor: { name: '皮甲',     icon: 'leather_armor', q: 2, type: 'equip',  slot: 'armor',  price: 500, def: 50, hp: 200, desc: '鞣制皮甲。防御 +50，气血上限 +200' },
+    sachet:        { name: '百花香囊', icon: 'sachet', q: 3,        type: 'equip',  slot: 'charm',  price: 400, hp: 300, spd: 10, desc: '逍遥子所赠。气血上限 +300，速度 +10' },
+    ore:           { name: '玄铁矿',   icon: 'ore', q: 2,           type: 'mat',    price: 120, desc: '打造兵器的材料，可以卖给商人。' },
+    wolf_fang:     { name: '狼牙',     icon: 'wolf_fang', q: 1,     type: 'mat',    price: 40,  desc: '野狼的牙，可以卖给商人。' },
+    lantern:       { name: '花灯',     icon: 'lantern', q: 2,       type: 'mat',    price: 0,   desc: '王铁匠托你捎给逍遥子的花灯。' }
   },
 
   // power：伤害倍率；target：one 单体 / all 全体 / self 自己；heal：按气血上限比例回复
