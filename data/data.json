@@ -407,13 +407,13 @@
   "novice_f": {
    "name": "新手",
    "gender": "f",
-   "role": "近战 · 拳脚",
-   "weapon": "无",
+   "role": "近战 · 棍",
+   "weapon": "木棍",
    "joinSect": [
     "dao_ty",
     "dao_qm"
    ],
-   "desc": "刚下山的少女，布衣素裙，什么门派都还没入。到了清溪边，遇到各家接引师，再决定要走哪条路。",
+   "desc": "青带束起马尾的少女，提着一根枯木棍闯荡江湖，什么门派都还没入。到了清溪边，遇到各家接引师，再决定要走哪条路。",
    "stats": {
     "攻击": 3,
     "防御": 3,
@@ -427,7 +427,11 @@
    "gender": "m",
    "role": "近战 · 棍",
    "weapon": "木棍",
-   "desc": "刚出山的少年，麻衣木棍，样样都会一点。路还很长，先把清溪的事了了。",
+   "joinSect": [
+    "dao_ty_m",
+    "dao_qm_m"
+   ],
+   "desc": "红绳束髻的少年，提着一根枯木棍闯荡江湖，样样都会一点。路还很长，先把清溪的事了了。",
    "stats": {
     "攻击": 3,
     "防御": 3,
@@ -437,6 +441,7 @@
    }
   },
   "dao_ty": {
+   "hidden": true,
    "name": "天音",
    "sect": "道家",
    "gender": "f",
@@ -642,6 +647,130 @@
     "法术": 1,
     "气血": 2
    }
+  },
+  "dao_ty_m": {
+   "hidden": true,
+   "name": "天音",
+   "sect": "道家",
+   "gender": "m",
+   "role": "辅助 · 琵琶",
+   "weapon": "琵琶",
+   "magicAtk": true,
+   "desc": "道家天音分堂，怀抱琵琶，以曲音疗伤、护体、返魂。队伍里最可靠的后盾，自己也能用荡魔曲出手。",
+   "stats": {
+    "攻击": 1,
+    "防御": 3,
+    "速度": 3,
+    "法术": 4,
+    "气血": 4
+   },
+   "mod": {
+    "atk": 0.7,
+    "matk": 1.2,
+    "def": 1.05,
+    "mdef": 1.2,
+    "hp": 1.1,
+    "mp": 1.15
+   },
+   "heart": {
+    "name": "天音心法",
+    "desc": "每级提升法攻 3 点、法防 6 点（原作：智力 +12、精神 +36）",
+    "perLv": {
+     "matk": 3,
+     "mdef": 6
+    }
+   },
+   "skills": [
+    "dangmo_ty",
+    "lingmai_ty",
+    "yangsheng",
+    "tianlai",
+    "fanhun"
+   ],
+   "auto": [
+    [
+     "fanhun",
+     "dead"
+    ],
+    [
+     "lingmai_ty",
+     "selfHurt"
+    ],
+    [
+     "yangsheng",
+     "allyHurt"
+    ],
+    [
+     "tianlai",
+     "allyHurtMany"
+    ],
+    [
+     "dangmo_ty",
+     "always"
+    ]
+   ]
+  },
+  "dao_qm_m": {
+   "hidden": true,
+   "name": "琴魔",
+   "sect": "道家",
+   "gender": "m",
+   "role": "法攻 · 古琴",
+   "weapon": "古琴",
+   "magicAtk": true,
+   "desc": "道家琴魔分堂，抚古琴，以魔音入敌心：魔化、减速、夺魂。输出和控制兼顾，血线要靠自己看着。",
+   "stats": {
+    "攻击": 1,
+    "防御": 2,
+    "速度": 3,
+    "法术": 5,
+    "气血": 3
+   },
+   "mod": {
+    "atk": 0.7,
+    "matk": 1.4,
+    "def": 0.95,
+    "mdef": 1.1,
+    "hp": 1,
+    "mp": 1.2
+   },
+   "heart": {
+    "name": "琴魔心法",
+    "desc": "每级提升法攻 6 点、法防 2 点（原作：智力 +36、精神 +12）",
+    "perLv": {
+     "matk": 6,
+     "mdef": 2
+    }
+   },
+   "skills": [
+    "dangmo_qm",
+    "lingmai_qm",
+    "mohun",
+    "duohun",
+    "fuling"
+   ],
+   "auto": [
+    [
+     "lingmai_qm",
+     "selfHurt"
+    ],
+    [
+     "mohun",
+     "many"
+    ],
+    [
+     "duohun",
+     "marked"
+    ],
+    [
+     "fuling",
+     "fast"
+    ],
+    [
+     "dangmo_qm",
+     "always"
+    ]
+   ]
   }
  },
  "items": {
@@ -2670,13 +2799,30 @@
    "shop": "trader",
    "idle": "百宝摊上的项链、戒指、法宝、护符，都是各路好货，少侠随便看。"
   },
-  "taixu_dao": {
-   "name": "太虚真人",
+  "dao_menzhu": {
+   "name": "道家门主",
    "title": "【道家】",
    "color": "#bfe8ff",
-   "sprite": "f_tao",
-   "head": "head_m_mage",
-   "idle": "道法自然，无为而无不为。太虚之林乃本门驻地，少侠来此，先静心听竹吧。"
+   "sprite": "kk_npc57",
+   "head": "head_kk_npc57",
+   "act": "joinSect",
+   "idle": "道法自然，无为而无不为。太虚之林乃本门驻地，少侠与道有缘，便可在此拜入道家。"
+  },
+  "dao_qinmo": {
+   "name": "琴魔堂主",
+   "title": "【道家·琴魔】",
+   "color": "#bfe8ff",
+   "sprite": "kk_npc45",
+   "head": "head_kk_npc45",
+   "idle": "琴魔一脉，以魔音入敌心。琴声不是用来讨好谁的，是用来镇住心里那头兽的。"
+  },
+  "dao_tianyin": {
+   "name": "天音堂主",
+   "title": "【道家·天音】",
+   "color": "#bfe8ff",
+   "sprite": "kk_npc47",
+   "head": "head_kk_npc47",
+   "idle": "天音一脉，琵琶一曲可疗伤、护体、唤回将逝之人。会救人，才算真本事。"
   },
   "taixu_mo": {
    "name": "墨巨子",
@@ -4257,10 +4403,24 @@
    ],
    "npcs": [
     {
-     "id": "taixu_dao",
+     "id": "dao_menzhu",
      "at": [
-      1100,
-      820
+      1200,
+      800
+     ]
+    },
+    {
+     "id": "dao_qinmo",
+     "at": [
+      1660,
+      400
+     ]
+    },
+    {
+     "id": "dao_tianyin",
+     "at": [
+      420,
+      1370
      ]
     }
    ],

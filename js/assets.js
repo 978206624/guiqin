@@ -74,6 +74,9 @@ window.ASSETS = {
   "head_kk_npc13": "assets/head_kk_npc13.webp",
   "head_kk_npc14": "assets/head_kk_npc14.webp",
   "head_kk_npc33": "assets/head_kk_npc33.webp",
+  "head_kk_npc45": "assets/head_kk_npc45.webp",
+  "head_kk_npc47": "assets/head_kk_npc47.webp",
+  "head_kk_npc57": "assets/head_kk_npc57.webp",
   "head_kk_npc_cyblq": "assets/head_kk_npc_cyblq.webp",
   "head_kk_npc_zhw": "assets/head_kk_npc_zhw.webp",
   "head_m_mage": "assets/head_m_mage.webp",
@@ -157,6 +160,9 @@ window.ASSETS = {
   "kk_npc13": "assets/kk_npc13.webp",
   "kk_npc14": "assets/kk_npc14.webp",
   "kk_npc33": "assets/kk_npc33.webp",
+  "kk_npc45": "assets/kk_npc45.webp",
+  "kk_npc47": "assets/kk_npc47.webp",
+  "kk_npc57": "assets/kk_npc57.webp",
   "kk_npc_cyblq": "assets/kk_npc_cyblq.webp",
   "kk_npc_zhw": "assets/kk_npc_zhw.webp",
   "login": "assets/login.webp",
@@ -446,6 +452,18 @@ window.ASSETS = {
   "kk_npc33": [
    49.5,
    104.0
+  ],
+  "kk_npc57": [
+   108.0,
+   112.0
+  ],
+  "kk_npc45": [
+   89.5,
+   112.0
+  ],
+  "kk_npc47": [
+   106.5,
+   116.0
   ]
  }
 };

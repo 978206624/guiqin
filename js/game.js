@@ -834,6 +834,7 @@ function talk(n) {
   openDialog(n, info.idle, () => {
     if (info.shop === 'smith') openSmith('forge');
     else if (info.shop) openShop(info.shop);
+    else if (info.act === 'joinSect') { if (curCls().joinSect) offerSect(); else toast('你已是道家弟子'); }
     else if (info.act === 'arena') openModal('竞技场', '<p class="center">五对五模拟对战（不影响存档）。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">上擂台</button>　<button type="button" class="tbtn" data-act="close">再看看</button></p>');
     else if (info.rest) { const st = stats(); if (S.hp < st.maxHp || S.mp < st.maxMp) { S.hp = st.maxHp; S.mp = st.maxMp; save(); refresh(); toast(info.restMsg || '歇了一会儿，气血法力回满'); } }
   });

@@ -11,9 +11,17 @@
   "file": "assets/b_dao_qm.webp",
   "bytes": 31662
  },
+ "b_dao_qm_m": {
+  "file": "assets/b_dao_qm_m.webp",
+  "bytes": 22676
+ },
  "b_dao_ty": {
   "file": "assets/b_dao_ty.webp",
   "bytes": 31778
+ },
+ "b_dao_ty_m": {
+  "file": "assets/b_dao_ty_m.webp",
+  "bytes": 23084
  },
  "b_deer": {
   "file": "assets/b_deer.webp",
@@ -33,11 +41,11 @@
  },
  "b_novice_f": {
   "file": "assets/b_novice_f.webp",
-  "bytes": 23348
+  "bytes": 25782
  },
  "b_novice_m": {
   "file": "assets/b_novice_m.webp",
-  "bytes": 18176
+  "bytes": 25644
  },
  "b_player": {
   "file": "assets/b_player.webp",
@@ -97,7 +105,7 @@
  },
  "bg_town": {
   "file": "assets/bg_town.webp",
-  "bytes": 2852050
+  "bytes": 2699594
  },
  "bg_village": {
   "file": "assets/bg_village.webp",
@@ -121,43 +129,51 @@
  },
  "cls_dao_qm": {
   "file": "assets/cls_dao_qm.webp",
-  "bytes": 144492
+  "bytes": 116644
+ },
+ "cls_dao_qm_m": {
+  "file": "assets/cls_dao_qm_m.webp",
+  "bytes": 89334
  },
  "cls_dao_ty": {
   "file": "assets/cls_dao_ty.webp",
-  "bytes": 135804
+  "bytes": 112062
+ },
+ "cls_dao_ty_m": {
+  "file": "assets/cls_dao_ty_m.webp",
+  "bytes": 94616
  },
  "cls_f_bow": {
   "file": "assets/cls_f_bow.webp",
-  "bytes": 109488
+  "bytes": 97022
  },
  "cls_f_heal": {
   "file": "assets/cls_f_heal.webp",
-  "bytes": 82042
+  "bytes": 72454
  },
  "cls_f_sword": {
   "file": "assets/cls_f_sword.webp",
-  "bytes": 125358
+  "bytes": 112316
  },
  "cls_m_mage": {
   "file": "assets/cls_m_mage.webp",
-  "bytes": 74522
+  "bytes": 60720
  },
  "cls_m_spear": {
   "file": "assets/cls_m_spear.webp",
-  "bytes": 53066
+  "bytes": 43148
  },
  "cls_m_sword": {
   "file": "assets/cls_m_sword.webp",
-  "bytes": 48872
+  "bytes": 40110
  },
  "cls_novice_f": {
   "file": "assets/cls_novice_f.webp",
-  "bytes": 92006
+  "bytes": 99808
  },
  "cls_novice_m": {
   "file": "assets/cls_novice_m.webp",
-  "bytes": 86712
+  "bytes": 84152
  },
  "dummy": {
   "file": "assets/dummy.webp",
@@ -227,9 +243,17 @@
   "file": "assets/head_dao_qm.webp",
   "bytes": 12606
  },
+ "head_dao_qm_m": {
+  "file": "assets/head_dao_qm_m.webp",
+  "bytes": 11188
+ },
  "head_dao_ty": {
   "file": "assets/head_dao_ty.webp",
   "bytes": 11350
+ },
+ "head_dao_ty_m": {
+  "file": "assets/head_dao_ty_m.webp",
+  "bytes": 10594
  },
  "head_elder": {
   "file": "assets/head_elder.webp",
@@ -267,6 +291,18 @@
   "file": "assets/head_kk_npc33.webp",
   "bytes": 12872
  },
+ "head_kk_npc45": {
+  "file": "assets/head_kk_npc45.webp",
+  "bytes": 9976
+ },
+ "head_kk_npc47": {
+  "file": "assets/head_kk_npc47.webp",
+  "bytes": 8744
+ },
+ "head_kk_npc57": {
+  "file": "assets/head_kk_npc57.webp",
+  "bytes": 8662
+ },
  "head_kk_npc_cyblq": {
   "file": "assets/head_kk_npc_cyblq.webp",
   "bytes": 7460
@@ -289,11 +325,11 @@
  },
  "head_novice_f": {
   "file": "assets/head_novice_f.webp",
-  "bytes": 10466
+  "bytes": 7954
  },
  "head_novice_m": {
   "file": "assets/head_novice_m.webp",
-  "bytes": 8878
+  "bytes": 7400
  },
  "head_player": {
   "file": "assets/head_player.webp",
@@ -599,6 +635,18 @@
   "file": "assets/kk_npc33.webp",
   "bytes": 14762
  },
+ "kk_npc45": {
+  "file": "assets/kk_npc45.webp",
+  "bytes": 31006
+ },
+ "kk_npc47": {
+  "file": "assets/kk_npc47.webp",
+  "bytes": 26962
+ },
+ "kk_npc57": {
+  "file": "assets/kk_npc57.webp",
+  "bytes": 30874
+ },
  "kk_npc_cyblq": {
   "file": "assets/kk_npc_cyblq.webp",
   "bytes": 28720
@@ -679,17 +727,25 @@
   "file": "assets/walk_b_dao_qm.webp",
   "bytes": 96320
  },
+ "walk_b_dao_qm_m": {
+  "file": "assets/walk_b_dao_qm_m.webp",
+  "bytes": 66884
+ },
  "walk_b_dao_ty": {
   "file": "assets/walk_b_dao_ty.webp",
   "bytes": 101286
  },
+ "walk_b_dao_ty_m": {
+  "file": "assets/walk_b_dao_ty_m.webp",
+  "bytes": 69396
+ },
  "walk_b_novice_f": {
   "file": "assets/walk_b_novice_f.webp",
-  "bytes": 69454
+  "bytes": 82652
  },
  "walk_b_novice_m": {
   "file": "assets/walk_b_novice_m.webp",
-  "bytes": 55348
+  "bytes": 71212
  },
  "walk_f": {
   "file": "assets/walk_f.webp",
@@ -697,19 +753,27 @@
  },
  "walk_f_dao_qm": {
   "file": "assets/walk_f_dao_qm.webp",
-  "bytes": 113028
+  "bytes": 113250
+ },
+ "walk_f_dao_qm_m": {
+  "file": "assets/walk_f_dao_qm_m.webp",
+  "bytes": 70848
  },
  "walk_f_dao_ty": {
   "file": "assets/walk_f_dao_ty.webp",
-  "bytes": 111818
+  "bytes": 112098
+ },
+ "walk_f_dao_ty_m": {
+  "file": "assets/walk_f_dao_ty_m.webp",
+  "bytes": 74090
  },
  "walk_f_novice_f": {
   "file": "assets/walk_f_novice_f.webp",
-  "bytes": 65334
+  "bytes": 83626
  },
  "walk_f_novice_m": {
   "file": "assets/walk_f_novice_m.webp",
-  "bytes": 60830
+  "bytes": 74740
  },
  "wolf": {
   "file": "assets/wolf.webp",
