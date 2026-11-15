@@ -836,7 +836,8 @@ function waterSetup() {
     if (!M || M.id !== id) return;
     const sc = c => { const o = document.createElement('canvas'); o.width = W.w; o.height = W.h; return o; };
     const base = sc(); const bx = base.getContext('2d'); bx.drawImage(img, 0, 0);
-    const px = bx.getImageData(0, 0, W.w, W.h).data; WT.pts = []; WT.W = W.w; WT.H = W.h; WT.solid = new Uint8Array(W.w * W.h);
+    const id2 = bx.getImageData(0, 0, W.w, W.h), px = id2.data; for (let i = 0; i < W.w * W.h; i++) { px[i * 4 + 3] = px[i * 4] > 128 ? 255 : 0; } bx.putImageData(id2, 0, 0);   // 黑白图 → 白色=不透明、黑色=透明
+    WT.pts = []; WT.W = W.w; WT.H = W.h; WT.solid = new Uint8Array(W.w * W.h);
     for (let i = 0; i < W.w * W.h; i++) if (px[i * 4] > 128) { WT.solid[i] = 1; if (i % 37 === 0) WT.pts.push(i); }
     // 按区域拆分遮罩：每个区域有自己的流向和流速
     const list = (def.zones || []).concat([{ rest: true, dir: def.dir, speed: def.speed }]);
