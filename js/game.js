@@ -59,7 +59,7 @@ function slotBonus(slot) {
 }
 function gearSum() { const t = {}; for (const slot in S.equip) { const o = slotBonus(slot); for (const k in o) t[k] = (t[k] || 0) + o[k]; } return t; }
 const curCls = () => D.classes[ROLE.cls] || D.classes.novice_f;
-const clsName = c => (c.sect ? c.sect + '·' : '') + c.name;
+const clsName = c => c.name === '道家弟子' ? c.name : (c.sect ? c.sect + '·' : '') + c.name;
 // 职业倍率（按基础+成长算）和心法加成（每级固定值，对应原作的“心法”被动）
 const clsMul = k => (curCls().mod || {})[k] || 1;
 const heartBonus = k => { const h = curCls().heart; return h && h.perLv[k] ? h.perLv[k] * S.lv : 0; };
@@ -800,7 +800,7 @@ function changeClass(id) {         // 拜入门派：换职业、形象、头像
   ROLE.cls = id; const c = D.classes[id];
   setPlayerLook(id); player.title = '【' + clsName(c) + '】'; drawTag(player);
   $('hudSect').textContent = clsName(c); $('hudFace').src = IMG(AS.img['head_' + id] ? 'head_' + id : 'head_player');
-  S.hp = stats().maxHp; S.mp = stats().maxMp; sys('你选定' + c.name + '分堂，成为「' + c.name + '」。'); toast('拜入' + c.sect + '·' + c.name);
+  S.hp = stats().maxHp; S.mp = stats().maxMp; if (id.indexOf('dao_dz') === 0) { sys('你拜入道家，背起箜篌。请去太虚之林找琴魔堂主或天音堂主选择分堂。'); toast('拜入道家'); } else { sys('你选定' + c.name + '分堂，成为「' + c.name + '」。'); toast('拜入' + c.sect + '·' + c.name); }
   if (window.GAME.onRoleChange) window.GAME.onRoleChange(); save(); refresh();
 }
 function offerSect() {
@@ -817,7 +817,7 @@ function joinDaoTalk() {
   if (S.lv < SECT_LV) { toast('需达到 ' + SECT_LV + ' 级方可入门（现在 ' + S.lv + ' 级）'); return; }
   openModal('拜入道家', '<p class="center">道家门主说：道法自然。入我门下，再去琴魔、天音两位堂主处择一堂修行。</p><p class="center"><button type="button" class="tbtn red" data-act="joinDao">拜入道家</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
 }
-ACTS.joinDao = () => { closeModal(); ROLE.sect = 'dao'; player.title = '【道家】'; drawTag(player); $('hudSect').textContent = '道家'; sys('你拜入道家，请去太虚之林找琴魔堂主或天音堂主选择分堂。'); toast('拜入道家'); if (window.GAME.onRoleChange) window.GAME.onRoleChange(); save(); refresh(); };
+ACTS.joinDao = () => { closeModal(); ROLE.sect = 'dao'; changeClass(curCls().gender === 'm' ? 'dao_dz_m' : 'dao_dz'); };
 function pickHallTalk(hall) {          // hall: 'qm' | 'ty'
   const c = curCls(), name = hall === 'qm' ? '琴魔' : '天音';
   if (!c.joinSect) { toast(c.sect === '道家' && c.name.indexOf(name) < 0 ? '你已入另一堂，分堂不可改选' : '你已是' + name + '堂弟子'); return; }

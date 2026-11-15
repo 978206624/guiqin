@@ -591,4 +591,7 @@ window.DATA = {
 (function () { const C = window.DATA.classes;
   C.dao_ty_m = Object.assign({}, C.dao_ty, { gender: 'm', hidden: true });
   C.dao_qm_m = Object.assign({}, C.dao_qm, { gender: 'm', hidden: true });
+  // 拜入道家、尚未选分堂：新手的技能与数值不变，形象换成道家服饰、背负并手持箜篌（美术键 *_dao_dz / *_dao_dz_m）
+  C.dao_dz   = Object.assign({}, C.novice_f, { name: '道家弟子', sect: '道家', role: '近战 · 箜篌', weapon: '箜篌', hidden: true, desc: '已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。' });
+  C.dao_dz_m = Object.assign({}, C.novice_m, { name: '道家弟子', sect: '道家', role: '近战 · 箜篌', weapon: '箜篌', hidden: true, desc: '已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。' });
 })();
