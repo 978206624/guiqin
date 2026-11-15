@@ -4,7 +4,9 @@ window.ASSETS = {
   "axiu": "assets/axiu.webp",
   "b_axiu": "assets/b_axiu.webp",
   "b_dao_qm": "assets/b_dao_qm.webp",
+  "b_dao_qm_m": "assets/b_dao_qm_m.webp",
   "b_dao_ty": "assets/b_dao_ty.webp",
+  "b_dao_ty_m": "assets/b_dao_ty_m.webp",
   "b_deer": "assets/b_deer.webp",
   "b_fox": "assets/b_fox.webp",
   "b_girl": "assets/b_girl.webp",
@@ -32,7 +34,9 @@ window.ASSETS = {
   "boar": "assets/boar.webp",
   "boss": "assets/boss.webp",
   "cls_dao_qm": "assets/cls_dao_qm.webp",
+  "cls_dao_qm_m": "assets/cls_dao_qm_m.webp",
   "cls_dao_ty": "assets/cls_dao_ty.webp",
+  "cls_dao_ty_m": "assets/cls_dao_ty_m.webp",
   "cls_f_bow": "assets/cls_f_bow.webp",
   "cls_f_heal": "assets/cls_f_heal.webp",
   "cls_f_sword": "assets/cls_f_sword.webp",
@@ -58,7 +62,9 @@ window.ASSETS = {
   "grunt": "assets/grunt.webp",
   "head_axiu": "assets/head_axiu.webp",
   "head_dao_qm": "assets/head_dao_qm.webp",
+  "head_dao_qm_m": "assets/head_dao_qm_m.webp",
   "head_dao_ty": "assets/head_dao_ty.webp",
+  "head_dao_ty_m": "assets/head_dao_ty_m.webp",
   "head_elder": "assets/head_elder.webp",
   "head_f_bow": "assets/head_f_bow.webp",
   "head_f_heal": "assets/head_f_heal.webp",
@@ -171,12 +177,16 @@ window.ASSETS = {
   "waiter": "assets/waiter.webp",
   "walk_b": "assets/walk_b.webp",
   "walk_b_dao_qm": "assets/walk_b_dao_qm.webp",
+  "walk_b_dao_qm_m": "assets/walk_b_dao_qm_m.webp",
   "walk_b_dao_ty": "assets/walk_b_dao_ty.webp",
+  "walk_b_dao_ty_m": "assets/walk_b_dao_ty_m.webp",
   "walk_b_novice_f": "assets/walk_b_novice_f.webp",
   "walk_b_novice_m": "assets/walk_b_novice_m.webp",
   "walk_f": "assets/walk_f.webp",
   "walk_f_dao_qm": "assets/walk_f_dao_qm.webp",
+  "walk_f_dao_qm_m": "assets/walk_f_dao_qm_m.webp",
   "walk_f_dao_ty": "assets/walk_f_dao_ty.webp",
+  "walk_f_dao_ty_m": "assets/walk_f_dao_ty_m.webp",
   "walk_f_novice_f": "assets/walk_f_novice_f.webp",
   "walk_f_novice_m": "assets/walk_f_novice_m.webp",
   "wolf": "assets/wolf.webp",
@@ -372,17 +382,45 @@ window.ASSETS = {
    126.0
   ],
   "walk_f_novice_m": [
-   56.5,
+   65.5,
    120.0,
-   30.161054172767205
+   24.374508261211645
   ],
   "walk_b_novice_m": [
-   60.5,
-   124.5,
-   29.838660578386605
+   68.0,
+   123.0,
+   30.548387096774196
   ],
   "b_novice_m": [
-   64.5,
+   72.5,
+   126.0
+  ],
+  "walk_f_dao_ty_m": [
+   67.5,
+   121.5,
+   34.97190584662111
+  ],
+  "walk_b_dao_ty_m": [
+   66.5,
+   122.5,
+   36.781015820149875
+  ],
+  "walk_f_dao_qm_m": [
+   62.5,
+   123.0,
+   31.27342549923195
+  ],
+  "walk_b_dao_qm_m": [
+   68.5,
+   120.5,
+   31.071155317521043
+  ],
+  "b_dao_ty_m": [
+   69.5,
+   126.0
+  ],
+  "b_dao_qm_m": [
+   91.0,
    126.0
   ],
   "kk_npc14": [
