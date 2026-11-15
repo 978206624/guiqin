@@ -1338,7 +1338,7 @@ function fxAt(cls, u, ms, dy, style) {
   const e = document.createElement('div'); e.className = 'sfx ' + cls; e.style.left = u.pos.x + 'px'; e.style.top = (u.pos.y - (dy == null ? u.h * 0.45 : dy)) + 'px';
   if (style) e.style.cssText += style; $('units').appendChild(e); setTimeout(() => e.remove(), ms || 900);
 }
-async function castPose(u) { u.el.classList.add('cast'); await sleep(560); u.el.classList.remove('cast'); }   // 施法动作：拨弦的起伏摆动 + 光晕
+async function castPose(u) { u.el.style.setProperty('--d', u.side === 'ally' ? -1 : 1); u.el.classList.add('cast'); await sleep(720); u.el.classList.remove('cast'); }   // 施法动作：拨弦的起伏摆动 + 光晕
 function castFx(u, id) {                       // 出手者一侧：乐声起势
   const k = SKILL_FX[id]; if (!k) return;
   const ck = CAST_FX[id];
