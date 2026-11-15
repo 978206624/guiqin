@@ -25,6 +25,9 @@ body{background:var(--ink);color:var(--text);font-family:var(--body);display:fle
 #world{position:absolute;left:0;top:0;will-change:transform}
 #bgMap{position:absolute;left:0;top:0}
 #water{position:absolute;left:0;top:0;pointer-events:none}
+#fog{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:hidden}
+#fog i{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(240,246,255,.9),rgba(240,246,255,.5) 45%,rgba(240,246,255,0));will-change:transform,opacity;animation:fogdrift var(--d) ease-in-out infinite alternate}
+@keyframes fogdrift{0%{transform:translate3d(calc(var(--dx)*-1),calc(var(--dy)*-1),0) scale(.92);opacity:var(--o1)}100%{transform:translate3d(var(--dx),var(--dy),0) scale(1.08);opacity:var(--o2)}}
 .glow{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,190,100,.55),rgba(255,150,60,0));mix-blend-mode:screen;animation:flick 3s ease-in-out infinite;pointer-events:none}
 @keyframes flick{0%,100%{opacity:.25}35%{opacity:.8}60%{opacity:.4}80%{opacity:.7}}
 .shade{position:absolute;inset:0;pointer-events:none;background:
@@ -445,7 +448,7 @@ svg.em{width:1.25em;height:1.25em;vertical-align:-.28em;margin:0 1px}
   <!-- 城镇 -->
   <div class="layer" id="town">
     <div id="world"><img id="bgMap" alt="">
-      <div id="glows"></div>
+      <div id="glows"></div><div id="fog"></div>
       <div id="ring"><svg viewBox="-44 -22 88 44"><ellipse rx="40" ry="20" fill="rgba(143,230,255,.14)" stroke="#a8f0ff" stroke-width="2" stroke-dasharray="12 7"><animate attributeName="stroke-dashoffset" from="0" to="38" dur="1.4s" repeatCount="indefinite"/></ellipse></svg></div>
       <div id="mark"></div>
     </div>

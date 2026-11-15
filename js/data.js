@@ -144,6 +144,8 @@ window.DATA = {
     { id: 'roam',    name: '林间游狼', rec: 4, enemies: ['wolf', 'wolf'],            desc: '两头在林子边游荡的饿狼。', need: 'hog' },
     { id: 'creekwolf', name: '溪畔狼群', rec: 5, enemies: ['wolf', 'wolf', 'wolf'],  desc: '循着水声下山来饮水的三头饿狼。', need: 'roam' },
     { id: 'creekgang', name: '溪边劫匪', rec: 6, enemies: ['grunt', 'grunt', 'wolf'], desc: '躲在竹林里打劫行人的山贼。', need: 'creekwolf' },
+    { id: 'mistwolf', name: '谷底狼群', rec: 7, enemies: ['wolf', 'wolf', 'wolf'],  desc: '栖在云雾谷里的狼群，毛色被雾气染得发白。', need: 'creekgang' },
+    { id: 'mistgang', name: '雾谷悍匪', rec: 8, enemies: ['grunt', 'wolf', 'grunt'], desc: '躲进云雾谷落脚的山贼，熟悉每一块石头。', need: 'mistwolf' },
     { id: 'path',    name: '竹林小径', rec: 5, enemies: ['grunt', 'grunt'],          desc: '两个拦路的山贼喽啰。' },
     { id: 'wolves',  name: '狼群出没', rec: 6, enemies: ['wolf', 'wolf', 'wolf'],    desc: '三头饿狼，速度很快。', need: 'path' },
     { id: 'outpost', name: '山寨前哨', rec: 7, enemies: ['grunt', 'wolf', 'grunt'],  desc: '山贼和他们养的狼。',   need: 'wolves' },
@@ -184,6 +186,7 @@ window.DATA = {
     byMap: {
       village: { clear: 4, cloudy: 3, fog: 3, rain: 2, snow: 1 },
       town:    { clear: 5, cloudy: 2, rain: 2, storm: 1 },
+      mist: { clear: 2, cloudy: 3, fog: 4, rain: 2 },
       creek: { clear: 4, cloudy: 2, fog: 3, rain: 3 },
       outskirts: { clear: 4, cloudy: 2, fog: 2, rain: 2 },
       wild:    { clear: 3, cloudy: 2, fog: 3, rain: 3, storm: 1 }
@@ -341,8 +344,21 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[1100,760],[1650,480],[700,1030]],
-      portals: [{ to: 'outskirts', name: '回恒山村郊', at: [1100, 1470], arrive: [1440, 390] }],
+      portals: [{ to: 'outskirts', name: '回恒山村郊', at: [1100, 1470], arrive: [1440, 390] }, { to: 'mist', name: '入云雾谷', at: [1800, 50], arrive: [770, 1440] }],
       foes: [{ stage: 'creekwolf', at: [800, 1110] }, { stage: 'creekgang', at: [1600, 490] }]
+    },
+    mist: {
+      name: '云雾谷', world: [520, 520], note: '云雾缭绕', home: 'village', img: 'bg_mist', mini: 'mini_mist', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [770, 1440],
+      alt: '深山谷底：碧绿的溪水沿着土路蜿蜒，两侧是爬满藤蔓的崖壁和细瀑布，云雾在谷中缓缓飘动',
+      fog: { n: 34, lo: .3, hi: .85 },
+      walk: [],
+      roads: [
+        { r: 90, pts: [[760,1480],[900,1380],[1030,1310],[1130,1240],[1250,1140],[1330,1040],[1390,960],[1450,870],[1470,780],[1540,690],[1530,600],[1430,560],[1300,470],[1170,420],[1050,330],[1040,240],[1200,150],[1290,60]] }
+      ],
+      blocks: [],
+      glows: [[1050,330],[1450,870]],
+      portals: [{ to: 'creek', name: '回清溪谷', at: [760, 1470], arrive: [1790, 130] }],
+      foes: [{ stage: 'mistwolf', at: [1130, 1240] }, { stage: 'mistgang', at: [1170, 430] }]
     },
     town: {
       name: '汉中郡', world: [467, 765], note: '主城', home: 'town', img: 'bg_town', mini: 'mini_town', iw: 2576, ih: 1426, scale: 1.5, k: 1.288, start: [850, 575],

@@ -501,6 +501,12 @@ function loadMap(id, at) {
   world.querySelectorAll('.actor,.portal').forEach(e => e.remove());
   waterSetup();
   $('glows').innerHTML = '';
+  { const fg = $('fog'); fg.innerHTML = '';                      // 动态雾：一批缓慢漂移、忽浓忽淡的大雾团
+    if (def.fog) { const n = def.fog.n || 26, W = M.W, H = M.H; let seed = 7;
+      const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < n; i++) { const s = 380 + rnd() * 520, e = document.createElement('i');
+        e.style.cssText = 'width:' + s + 'px;height:' + s * (0.55 + rnd() * 0.3) + 'px;left:' + (rnd() * (W + s) - s * .5) + 'px;top:' + (rnd() * (H + s) - s * .5) + 'px;--dx:' + (60 + rnd() * 160) + 'px;--dy:' + (-30 + rnd() * 60) + 'px;--d:' + (14 + rnd() * 18) + 's;--o1:' + (def.fog.lo ?? .25) + ';--o2:' + (def.fog.hi ?? .8) + ';animation-delay:' + (-rnd() * 20) + 's';
+        fg.appendChild(e); } } }
   (def.glows || []).forEach((g, i) => {
     const d = document.createElement('div'); d.className = 'glow'; const p = I(g[0], g[1]);
     d.style.left = p.x + 'px'; d.style.top = p.y + 'px'; d.style.animationDelay = (-i * 0.47) + 's'; d.style.animationDuration = (2.4 + i % 4 * 0.5) + 's';
