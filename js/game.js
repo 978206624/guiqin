@@ -1338,6 +1338,7 @@ function fxAt(cls, u, ms, dy, style) {
   const e = document.createElement('div'); e.className = 'sfx ' + cls; e.style.left = u.pos.x + 'px'; e.style.top = (u.pos.y - (dy == null ? u.h * 0.45 : dy)) + 'px';
   if (style) e.style.cssText += style; $('units').appendChild(e); setTimeout(() => e.remove(), ms || 900);
 }
+async function castPose(u) { u.el.classList.add('cast'); await sleep(560); u.el.classList.remove('cast'); }   // 施法动作：拨弦的起伏摆动 + 光晕
 function castFx(u, id) {                       // 出手者一侧：乐声起势
   const k = SKILL_FX[id]; if (!k) return;
   ['wave', 'wave b', 'wave c'].forEach(c => fxAt(c, u, 800, 6));
@@ -1550,6 +1551,7 @@ async function perform(u, act) {
   bmsg(act.skill === 'attack' || act.skill === 'bite' ? '' : u.name + ' · ' + s.name);
   castFx(u, act.skill);
   if (s.heal || s.healPow || s.revive) {
+    if (SKILL_FX[act.skill]) await castPose(u);
     const mates = B.units.filter(x => x.side === u.side), lowest = () => mates.filter(x => x.alive).sort((x, y) => x.hp / x.maxHp - y.hp / y.maxHp)[0] || u;
     if (s.revive) {
       const dead = mates.find(x => !x.alive);
@@ -1574,10 +1576,11 @@ async function perform(u, act) {
   if (s.hits > 1) targets = [primary].concat(foes.filter(x => x !== primary).sort(() => Math.random() - 0.5).slice(0, s.hits - 1));
   const magic = !!s.magic || (act.skill === 'attack' && u.magicAtk);
   // 冲上去
-  const t0 = targets[0], k = s.target === 'all' ? 0.4 : 0.7;
+  const music = !!SKILL_FX[act.skill], t0 = targets[0], k = music ? 0.22 : s.target === 'all' ? 0.4 : 0.7;
   u.el.style.zIndex = 1500;
   u.el.style.transform = 'translate(' + ((t0.pos.x - u.pos.x) * k) + 'px,' + ((t0.pos.y - u.pos.y) * k) + 'px)';
   await sleep(170);
+  if (music) await castPose(u);
   for (const t of targets) {
     if (Math.random() * 100 < (t.dodge || 0)) { floatText(t, '闪避', ''); if (targets.length > 1) await sleep(60); continue; }
     const crit = Math.random() * 100 < (u.crit != null ? u.crit : 10);
