@@ -391,7 +391,7 @@ window.DATA = {
       foes: [{ stage: 'denwolf', at: [760, 870] }, { stage: 'wolfboss', at: [1380, 300] }]
     },
     town: {
-      name: '汉中郡', world: [467, 765], note: '主城', home: 'town', img: 'bg_town', mini: 'mini_town', iw: 3677, ih: 2101, scale: 1.7, k: 1.288, start: [850, 575],
+      name: '汉中郡', world: [467, 765], note: '主城', home: 'town', img: 'bg_town', mini: 'mini_town', iw: 3677, ih: 2101, scale: 1.5, k: 1.288, start: [850, 575],
       alt: '青瓦红柱的繁华主城：中央是高耸的玄兵塔，周围有擂台、锻造坊、寄卖行、集市和荷塘石桥',
       walk: [],
       roads: [
