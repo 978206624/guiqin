@@ -155,7 +155,7 @@ def portraits(src, names):
     assert len(runs)==len(names),(src,runs)
     for n,(x0,x1) in zip(names,runs):
         c=im.crop((x0,0,x1,im.height)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
-        c.save(f'{AD}/cls_{n}.webp',quality=50,method=6)
+        c.save(f'{AD}/cls_{n}.webp',quality=40,method=6)
         hx=c.width*HEAD_X[n]; sz=int(c.height*0.2); l=int(max(0,min(c.width-sz,hx-sz/2))); t=int(c.height*0.02)
         hd=Image.new('RGBA',(sz,sz),(43,36,64,255)); hd.alpha_composite(c.crop((l,t,l+sz,t+sz)))
         hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{n}.webp',quality=90)
@@ -171,21 +171,21 @@ def dao_head(c,name):
     hd=Image.new('RGBA',(sz,sz),(43,36,64,255)); hd.alpha_composite(c.crop((l,t,l+sz,t+sz))); hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{name}.webp',quality=90)
 for n,src in [('dao_ty',DA+'/port_ty.png' if os.path.exists(DA+'/port_ty.png') else DA+'/ref.png'),('dao_qm',DA+'/port_qm.png')]:
     c=keyed(src); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
-    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
+    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=64,method=6); dao_head(c,n)
 # 新手男 / 女：参考 kunkunxunqin 创角预览里的赤绳少年 / 青带少女，用本游戏的手绘画风重画（art-src/novice-kk/）
 NK=G+'/novice-kk'
 for k,n in [('nf','novice_f'),('nm','novice_m')]:
     walk_sheet(f'{NK}/walkf_{k}.png','walk_f_'+n,118); walk_sheet(f'{NK}/walkb_{k}.png','walk_b_'+n,118)
     cut_row(f'{NK}/back_{k}.png',['b_'+n],{'b_'+n:126})
     c=keyed(f'{NK}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
-    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
+    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=64,method=6); dao_head(c,n)
 # 道家男角色（天音 / 琴魔）：人物参考新手男，风格参考女主
 DM=G+'/daoist-m'
 for k in ['ty','qm']:
     n='dao_'+k+'_m'
     walk_sheet(f'{DM}/walkf_{k}.png','walk_f_'+n,118); walk_sheet(f'{DM}/walkb_{k}.png','walk_b_'+n,118)
     c=keyed(f'{DM}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
-    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=80,method=6); dao_head(c,n)
+    c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=64,method=6); dao_head(c,n)
 cut_row(DM+'/back.png',['b_dao_ty_m','b_dao_qm_m'],dict(b_dao_ty_m=126,b_dao_qm_m=126))
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
@@ -195,7 +195,7 @@ b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.wid
 b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=True)
 
 from PIL import ImageFilter
-for n,q in [('bg_town',36),('bg_village',68),('bg_wild',78),('world',50),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',70),('bg_creek',70),('bg_mist',70),('bg_pine',64),('bg_wolfvalley',78)]:
+for n,q in [('bg_town',33),('bg_village',68),('bg_wild',78),('world',50),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',70),('bg_creek',70),('bg_mist',70),('bg_pine',64),('bg_wolfvalley',78)]:
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue
     im=Image.open(p).convert('RGB')

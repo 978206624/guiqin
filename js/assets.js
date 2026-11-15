@@ -11,6 +11,8 @@ window.ASSETS = {
   "b_fox": "assets/b_fox.webp",
   "b_girl": "assets/b_girl.webp",
   "b_hawk": "assets/b_hawk.webp",
+  "b_novice_f": "assets/b_novice_f.webp",
+  "b_novice_m": "assets/b_novice_m.webp",
   "b_player": "assets/b_player.webp",
   "b_rabbit": "assets/b_rabbit.webp",
   "b_tiger": "assets/b_tiger.webp",
@@ -178,11 +180,15 @@ window.ASSETS = {
   "walk_b_dao_qm_m": "assets/walk_b_dao_qm_m.webp",
   "walk_b_dao_ty": "assets/walk_b_dao_ty.webp",
   "walk_b_dao_ty_m": "assets/walk_b_dao_ty_m.webp",
+  "walk_b_novice_f": "assets/walk_b_novice_f.webp",
+  "walk_b_novice_m": "assets/walk_b_novice_m.webp",
   "walk_f": "assets/walk_f.webp",
   "walk_f_dao_qm": "assets/walk_f_dao_qm.webp",
   "walk_f_dao_qm_m": "assets/walk_f_dao_qm_m.webp",
   "walk_f_dao_ty": "assets/walk_f_dao_ty.webp",
   "walk_f_dao_ty_m": "assets/walk_f_dao_ty_m.webp",
+  "walk_f_novice_f": "assets/walk_f_novice_f.webp",
+  "walk_f_novice_m": "assets/walk_f_novice_m.webp",
   "wolf": "assets/wolf.webp",
   "world": "assets/world.webp"
  },
@@ -359,6 +365,34 @@ window.ASSETS = {
   ],
   "b_dao_qm": [
    112.0,
+   126.0
+  ],
+  "walk_f_novice_f": [
+   101.0,
+   121.0,
+   59.627906976744185
+  ],
+  "walk_b_novice_f": [
+   90.0,
+   123.5,
+   48.051238257899236
+  ],
+  "b_novice_f": [
+   117.0,
+   126.0
+  ],
+  "walk_f_novice_m": [
+   107.5,
+   120.0,
+   61.0
+  ],
+  "walk_b_novice_m": [
+   80.0,
+   122.5,
+   35.21258503401361
+  ],
+  "b_novice_m": [
+   128.0,
    126.0
   ],
   "walk_f_dao_ty_m": [
