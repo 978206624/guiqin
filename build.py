@@ -156,7 +156,7 @@ def portraits(src, names):
     assert len(runs)==len(names),(src,runs)
     for n,(x0,x1) in zip(names,runs):
         c=im.crop((x0,0,x1,im.height)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
-        c.save(f'{AD}/cls_{n}.webp',quality=40,method=6)
+        c.save(f'{AD}/cls_{n}.webp',quality=30,method=6)
         hx=c.width*HEAD_X[n]; sz=int(c.height*0.2); l=int(max(0,min(c.width-sz,hx-sz/2))); t=int(c.height*0.02)
         hd=Image.new('RGBA',(sz,sz),(43,36,64,255)); hd.alpha_composite(c.crop((l,t,l+sz,t+sz)))
         hd.resize((160,160),Image.LANCZOS).save(f'{AD}/head_{n}.webp',quality=90)
