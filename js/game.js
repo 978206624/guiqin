@@ -1343,8 +1343,17 @@ function castFx(u, id) {                       // 出手者一侧：乐声起势
   const k = SKILL_FX[id]; if (!k) return;
   ['wave', 'wave b', 'wave c'].forEach(c => fxAt(c, u, 800, 6));
 }
+// 高清光效：4×2 = 8 帧的精灵表（art-src/fx，图像生成重画），黑底，用 screen 混合叠在战场上；缺图时退回下面的代码绘制版
+function sheetFx(k, u, scale) {
+  const w = 170 * (scale || 1), h = 227 * (scale || 1), e = document.createElement('div'); e.className = 'sfx hd';
+  e.style.cssText = 'left:' + u.pos.x + 'px;top:' + (u.pos.y - u.h * 0.5) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG('fx_' + k) + ')';
+  $('units').appendChild(e);
+  let i = 0; const step = () => { e.style.backgroundPosition = ((i % 4) * 100 / 3) + '% ' + (i >= 4 ? 100 : 0) + '%'; if (++i >= 8) { clearInterval(tm); setTimeout(() => e.remove(), 90); } };
+  const tm = setInterval(step, 95); step();
+}
 function skillHitFx(id, t) {                   // 目标一侧
   const k = SKILL_FX[id]; if (!k) return false;
+  if (AS.img['fx_' + k]) { sheetFx(k, t, k === 'revive' ? 1.15 : 1); return true; }
   if (k === 'wave') { fxAt('wave', t, 700); fxAt('wave b', t, 800); }
   else if (k === 'notes') { for (let i = 0; i < 4; i++) { fxAt('note', t, 1100, t.h * 0.3 + i * 4, '--dx:' + rnd(-26, 26) + 'px;animation-delay:' + (i * 0.1) + 's;opacity:0'); const el = $('units').lastChild; el.textContent = i % 2 ? '♫' : '♪'; } }
   else fxAt(k, t, 1000);

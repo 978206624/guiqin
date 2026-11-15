@@ -203,12 +203,19 @@ b=Image.open(G+'/battle.png').convert('RGB'); cw=round(b.height*9/16); x0=(b.wid
 b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=True)
 
 from PIL import ImageFilter
-for n,q in [('bg_town',24),('bg_village',60),('bg_wild',78),('world',40),('bg_battle',72),('bg_battle2',72),('login',74),('bg_taixuforest',74),('bg_taixupeak',74),('bg_taixuvalley',74),('bg_outskirts',70),('bg_creek',70),('bg_mist',70),('bg_pine',56),('bg_wolfvalley',78)]:
+# 多文件版（assets/）用高清质量；单文件版有 16MB 上限，拼 HTML 时再把大图按 LOWQ 重压一遍（见下面 uri()）
+HQ=dict(bg_town=82,bg_village=80,bg_wild=80,world=82,bg_battle=80,bg_battle2=80,login=82,bg_taixuforest=80,bg_taixupeak=80,bg_taixuvalley=80,bg_outskirts=80,bg_creek=80,bg_mist=80,bg_pine=80,bg_wolfvalley=80)
+LOWQ=dict(bg_town=24,bg_village=60,bg_wild=78,world=40,bg_battle=72,bg_battle2=72,login=74,bg_taixuforest=74,bg_taixupeak=74,bg_taixuvalley=74,bg_outskirts=70,bg_creek=70,bg_mist=70,bg_pine=56,bg_wolfvalley=78)
+for n,q in HQ.items():
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue
     im=Image.open(p).convert('RGB')
     pass
     im.save(f'{AD}/{n}.webp',quality=q,method=6); os.remove(p)
+# 技能高清光效：art-src/fx/<名>.png 是 4 列×2 行、黑底的 8 帧图（图像生成），缩成 768×512 的精灵表，战斗里用 screen 混合播放
+for k in ['wave','mist','soul','chain','ring','heal','notes','revive']:
+    sp=f'{G}/fx/{k}.png'
+    if os.path.exists(sp): Image.open(sp).convert('RGB').resize((768,512),Image.LANCZOS).save(f'{AD}/fx_{k}.webp',quality=82,method=6)
 # kunkunxunqin 项目的 NPC 静态图（art-src/kunkun-npc/<资源名>.png，1000×600 画布里一个小人）：裁掉空白 → kk_<名> 立绘（显示高度见表，2 倍存储）+ head_kk_<名> 头像
 # 当前接入第一章用到的；后续章节的（npc_qxz 赵村村长 / npc_xhs 萧恨水 / npc_hx 韩信 / npc15 装备商人 / npc_bs 白素）原图已在 art-src/kunkun-npc，用到时加进来（单文件版有 16MB 上限）
 KK_NPC = dict(npc14=104, npc_zhw=118, npc_cyblq=132, npc13=104, npc07=104, npc33=104, npc57=150, npc45=150, npc47=156)   # npc57 道家门主 / npc45 琴魔堂主 / npc47 天音堂主
@@ -223,6 +230,9 @@ files=sorted(f for f in os.listdir(AD))
 keys={f.rsplit('.',1)[0]:f for f in files}
 def uri(p):
     mt={'jpg':'image/jpeg','webp':'image/webp','png':'image/png'}[p.rsplit('.',1)[1]]
+    nm=os.path.basename(p).rsplit('.',1)[0]
+    if nm in LOWQ and p.endswith('.webp'):                      # 单文件版：大背景重压到 LOWQ，控制在 16MB 内
+        import io; b=io.BytesIO(); Image.open(p).convert('RGB').save(b,'WEBP',quality=LOWQ[nm],method=6); return f'data:{mt};base64,'+base64.b64encode(b.getvalue()).decode()
     return f'data:{mt};base64,'+base64.b64encode(open(p,'rb').read()).decode()
 rel='// 素材清单（相对路径版）。单文件版里这一段会被换成内嵌的 data URI。\nwindow.ASSETS = '+json.dumps(dict(img={k:'assets/'+f for k,f in keys.items()},size=size),ensure_ascii=False,indent=1)+';\n'
 open(R+'/js/assets.js','w').write(rel)
