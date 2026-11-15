@@ -37,6 +37,8 @@ V_SUB_CIRC = [  # (x, y, r) 柱子、陶罐、木桶、木箱
 # ---------------- 汉中郡：自动 + 手工减 ----------------
 T_SUB_CIRC = [(1752,888,30),(1745,830,16)]       # 石狮子等
 T_SUB_POLY = []
+T_COR_POLY = [[[1916, 673], [2059, 347], [2406, 479], [2854, 387], [2854, 1223], [2243, 1325], [2018, 1060]],
+             [[0, 1111], [1142, 1111], [1427, 1070], [1957, 1030], [2243, 1070], [2854, 1030], [2854, 1437], [0, 1437]]]   # 新扩的东区/南区：大块走廊，真正能走的由路面颜色分割决定
 
 def poly(m, pts, v=1):
     cv2.fillPoly(m, [np.array([(int(x), int(y)) for x, y in pts], np.int32)], v)
@@ -70,12 +72,13 @@ def village():
     return img, m
 
 def town():
-    im = cv2.imread(R + '/art-src/town2.jpg'); im = cv2.resize(im, (2000, round(im.shape[0] * 2000 / im.shape[1])), interpolation=cv2.INTER_AREA)
+    im = cv2.imread(R + '/art-src/town3.jpg'); im = cv2.resize(im, (2855, round(im.shape[0] * 2855 / im.shape[1])), interpolation=cv2.INTER_AREA)
     H, W = im.shape[:2]
     hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV); S = hsv[..., 1].astype(int); V = hsv[..., 2].astype(int)
     pav = ((S < 70) & (V > 130)).astype(np.uint8)
     cor = np.zeros((H, W), np.uint8)
     for r, pts in read_roads('town'): cv2.polylines(cor, [np.array(pts, np.int32)], False, 1, thickness=r * 2 + 60)
+    for p in T_COR_POLY: poly(cor, p, 1)
     m = pav & cor
     m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15)))
     m = cv2.morphologyEx(m, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21)))
