@@ -216,7 +216,7 @@ function equipView() {
 let forgeSlot = null, gemPick = null;
 const forgeable = () => D.slotLeft.concat(D.slotRight).filter(sl => S.equip[sl]);
 function starsRow(n) { let h = ''; for (let i = 1; i <= D.forge.max; i++) h += '<i class="fs' + (i <= n ? ' on' : '') + (i % 5 === 0 ? ' m' : '') + '">★</i>'; return h; }
-function forgeView() {
+function forgeView(mode) {
   const IT = D.items, F = D.forge, list = forgeable();
   if (!forgeSlot || !S.equip[forgeSlot]) forgeSlot = list[0] || null;
   let h = '<div class="fstrip">' + D.slotLeft.concat(D.slotRight).map(sl => { const id = S.equip[sl], gr = getGear(sl);
@@ -225,8 +225,9 @@ function forgeView() {
   const id = S.equip[forgeSlot], it = IT[id], q = itemQ(id), gr = getGear(forgeSlot), s0 = gr.star, mx = s0 >= F.max;
   const base = Object.keys(STATKEY).filter(k => it[k]).map(k => D.statName[k] + ' ' + fmtStat(k, it[k]) + (PCT[k] || !s0 ? '' : ' → <b>' + fmtStat(k, Math.round(it[k] * (1 + s0 * F.perStar))) + '</b>')).join('　');
   h += '<div class="fcard"><div class="itile" style="--qc:' + q.color + '">' + itemImg(id) + '</div><div class="ibody"><h5 style="color:' + q.color + '">' + it.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
-    '<p class="meta">' + D.slots[forgeSlot] + '　星级跟着「' + D.slots[forgeSlot] + '」走，换装不丢</p><p class="bonus">' + base + '</p></div></div>' +
-    '<div class="fstars">' + starsRow(s0) + '</div><p class="fsub">' + s0 + ' / ' + F.max + ' 星　基础属性 +' + Math.round(s0 * F.perStar * 100) + '%' + (mx ? '　<b>已满星</b>' : '') + '</p>';
+    '<p class="meta">' + D.slots[forgeSlot] + '　' + (s0 ? '★' + s0 + '　' : '') + '星级和宝石都跟着部位走，换装不丢</p><p class="bonus">' + base + '</p></div></div>';
+  if (mode === 'forge') h += '<div class="fstars">' + starsRow(s0) + '</div><p class="fsub">' + s0 + ' / ' + F.max + ' 星　基础属性 +' + Math.round(s0 * F.perStar * 100) + '%' + (mx ? '　<b>已满星</b>' : '') + '</p>';
+  if (mode === 'forge') {
   if (!mx) {
     const mul = F.qMul[it.q || 1] || 1, coin = Math.round(F.coin[s0] * mul), ore = F.ore[s0], have = S.items.ore || 0, rate = F.rate[s0], drop = s0 >= F.dropFrom;
     const ok = S.coin >= coin && have >= ore;
@@ -234,6 +235,8 @@ function forgeView() {
       '<div>成功率 <b class="' + (rate >= .7 ? 'okc' : rate >= .4 ? 'midc' : 'badc') + '">' + Math.round(rate * 100) + '%</b> <small>' + (drop ? '失败掉 1 星' : '失败不掉星') + '</small></div></div>' +
       '<p class="center" style="margin:10px 0 0"><button type="button" class="tbtn red forgebtn" data-act="forge:' + forgeSlot + '"' + (ok ? '' : ' disabled') + '>锻造</button></p>';
   }
+  }
+  if (mode !== 'inlay') return h;
   // 宝石孔
   const nSock = socketCount(s0);
   h += '<h4 class="fh">宝石孔　<small>5 / 10 / 15 星各解锁一个孔</small></h4><div class="sockets">';
@@ -354,15 +357,14 @@ function shopHTML(id) {
 }
 function openShop(id) {
   shopId = id;
-  if (id === 'smith') { openSmith(); return; }
   openModal(D.shops[id].name, shopHTML(id));
 }
 // 铁匠铺：锻造升星 / 镶嵌宝石 / 买卖
 let smithTabNow = 'forge';
 function openSmith(tab) {
-  smithTabNow = tab || smithTabNow; shopId = 'smith';
-  const tabs = '<div class="rtabs"><button type="button" class="rtab' + (smithTabNow === 'forge' ? ' on' : '') + '" data-act="smithTab:forge">锻造 · 镶嵌</button><button type="button" class="rtab' + (smithTabNow === 'shop' ? ' on' : '') + '" data-act="smithTab:shop">买卖</button></div>';
-  openModal('王记铁匠铺', tabs + (smithTabNow === 'forge' ? forgeView() : shopHTML('smith')));
+  smithTabNow = tab || smithTabNow; if (smithTabNow !== 'inlay') smithTabNow = 'forge';
+  const tabs = '<div class="rtabs"><button type="button" class="rtab' + (smithTabNow === 'forge' ? ' on' : '') + '" data-act="smithTab:forge">锻造</button><button type="button" class="rtab' + (smithTabNow === 'inlay' ? ' on' : '') + '" data-act="smithTab:inlay">镶嵌</button></div>';
+  openModal('王记铁匠铺', tabs + forgeView(smithTabNow));
 }
 const ACTS = {
   sel(id) { bagSel = id; openBag(); },

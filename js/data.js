@@ -265,12 +265,12 @@ window.DATA = {
     elder:  { name: '村长',   title: '【恒山村】', idle: '山下不比村里，凡事多留个心眼。累了就回来歇歇。' },
     axiu:   { name: '阿秀',   color: '#a8e6ff', idle: '我刚采了草药，熬了一锅汤，少侠喝一碗再走吧。', rest: true, restMsg: '喝了一碗草药汤，气血法力回满' },
     waiter: { name: '店小二', idle: '客官辛苦，喝壶热茶歇歇脚吧。', rest: true, restMsg: '喝了一壶热茶，气血法力回满' },
-    smith:  { name: '王铁匠', idle: '打铁还需自身硬。要给兵器、铠甲锻造升星，或是镶宝石，都找老夫；打好的家伙也有现成的。', shop: 'smith' },
+    smith:  { name: '王铁匠', idle: '打铁还需自身硬。兵器铠甲要锻造升星，还是想在孔里镶宝石，都交给老夫。', shop: 'smith' },
     girl:   { name: '逍遥子', title: '【百花谷】', color: '#dca8ff', titleColor: '#ffa8d0', idle: '今晚灯会的灯谜好难……你也是来猜谜的吗？' },
     arenaman: { name: '擂台官', title: '【竞技场】', color: '#ff9a8a', sprite: 'f_blade', head: 'head_m_spear', idle: '擂台已经备好，五对五，人宠齐上。要不要上去练练手？', act: 'arena' },
     towerman: { name: '守塔人', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'f_tao', head: 'head_m_mage', idle: '玄兵塔共九层，一层比一层凶险。塔门暂时还不能开，等你再强一些。' },
     trader:   { name: '掌柜',   title: '【寄卖行】', color: '#ffe08a', sprite: 'f_healer', head: 'head_vendor', shop: 'trader', idle: '百宝摊上的项链、戒指、法宝、护符，都是各路好货，少侠随便看。' },
-    vendor: { name: '货郎',   color: '#ffffff', idle: '金创药、回气丹，行走江湖少不了——少侠来点儿？', shop: 'vendor' }
+    vendor: { name: '货郎',   color: '#ffffff', idle: '金创药、回气丹，还有锻造用的玄铁矿，行走江湖少不了——少侠来点儿？', shop: 'vendor' }
   },
 
   // 地图。坐标都写在“底图原图像素 / k”的单位里：舞台像素 = 坐标 * k * scale。
@@ -362,9 +362,8 @@ window.DATA = {
   },
 
   shops: {
-    vendor: { name: '货郎的担子', sell: ['hp_potion', 'mp_potion'] },
-    smith:  { name: '王记铁匠铺', sell: ['ore', 'iron_sword', 'steel_saber', 'steel_sword', 'leather_cap', 'iron_helm', 'leather_armor', 'iron_armor', 'linen_legs', 'iron_greaves', 'leather_bracer', 'steel_bracer', 'linen_belt', 'cloth_boots'] },
-    trader: { name: '百宝摊',       sell: ['gem_atk_1', 'gem_matk_1', 'gem_hp_1', 'gem_def_1', 'gem_mdef_1', 'gem_mp_1', 'gem_dodge_1', 'gem_spd_1', 'gem_crit_1', 'jade_sword', 'scale_armor', 'crimson_sword', 'phoenix_armor', 'wood_beads', 'jade_pendant', 'copper_ring', 'silver_ring', 'bronze_bell', 'bagua_mirror', 'peace_charm', 'jade_charm', 'herb_pouch', 'brocade_pouch', 'jade_belt', 'cloud_boots'] }
+    vendor: { name: '货郎的担子', sell: ['hp_potion', 'mp_potion', 'ore'] },
+    trader: { name: '百宝摊', sell: ['iron_sword', 'steel_saber', 'steel_sword', 'leather_cap', 'iron_helm', 'leather_armor', 'iron_armor', 'linen_legs', 'iron_greaves', 'leather_bracer', 'steel_bracer', 'linen_belt', 'cloth_boots', 'gem_atk_1', 'gem_matk_1', 'gem_hp_1', 'gem_def_1', 'gem_mdef_1', 'gem_mp_1', 'gem_dodge_1', 'gem_spd_1', 'gem_crit_1', 'jade_sword', 'scale_armor', 'crimson_sword', 'phoenix_armor', 'wood_beads', 'jade_pendant', 'copper_ring', 'silver_ring', 'bronze_bell', 'bagua_mirror', 'peace_charm', 'jade_charm', 'herb_pouch', 'brocade_pouch', 'jade_belt', 'cloud_boots'] }
   }
 };
 // 宝石物品由 D.gems 生成：gem_<类型>_<阶>，品质颜色跟着阶数走（1 白 … 5 红）
