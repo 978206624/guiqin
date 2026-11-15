@@ -142,6 +142,8 @@ window.DATA = {
     { id: 'boar',    name: '山道野猪', rec: 2, enemies: ['boar', 'boar'],          desc: '两头在山道边拱土的野猪。', need: 'dummy' },
     { id: 'hog',     name: '荒径野猪', rec: 3, enemies: ['boar', 'boar', 'boar'],    desc: '三头在村郊荒径上横冲直撞的野猪。', need: 'boar' },
     { id: 'roam',    name: '林间游狼', rec: 4, enemies: ['wolf', 'wolf'],            desc: '两头在林子边游荡的饿狼。', need: 'hog' },
+    { id: 'creekwolf', name: '溪畔狼群', rec: 5, enemies: ['wolf', 'wolf', 'wolf'],  desc: '循着水声下山来饮水的三头饿狼。', need: 'roam' },
+    { id: 'creekgang', name: '溪边劫匪', rec: 6, enemies: ['grunt', 'grunt', 'wolf'], desc: '躲在竹林里打劫行人的山贼。', need: 'creekwolf' },
     { id: 'path',    name: '竹林小径', rec: 5, enemies: ['grunt', 'grunt'],          desc: '两个拦路的山贼喽啰。' },
     { id: 'wolves',  name: '狼群出没', rec: 6, enemies: ['wolf', 'wolf', 'wolf'],    desc: '三头饿狼，速度很快。', need: 'path' },
     { id: 'outpost', name: '山寨前哨', rec: 7, enemies: ['grunt', 'wolf', 'grunt'],  desc: '山贼和他们养的狼。',   need: 'wolves' },
@@ -182,6 +184,7 @@ window.DATA = {
     byMap: {
       village: { clear: 4, cloudy: 3, fog: 3, rain: 2, snow: 1 },
       town:    { clear: 5, cloudy: 2, rain: 2, storm: 1 },
+      creek: { clear: 4, cloudy: 2, fog: 3, rain: 3 },
       outskirts: { clear: 4, cloudy: 2, fog: 2, rain: 2 },
       wild:    { clear: 3, cloudy: 2, fog: 3, rain: 3, storm: 1 }
     }
@@ -320,12 +323,26 @@ window.DATA = {
         { r: 95, pts: [[10,1440],[200,1310],[380,1170],[560,1075],[760,1020],[860,930],[900,830]] },
         { r: 90, pts: [[900,830],[960,700],[1010,620],[1130,570],[1330,500],[1540,470],[1680,390],[1770,270],[1880,170],[1990,90]] },
         { r: 70, pts: [[560,1075],[540,950],[520,860]] },                           // 篝火圈
-        { r: 70, pts: [[1330,500],[1420,400],[1470,330]] }                          // 路牌
+        { r: 70, pts: [[1330,500],[1420,400],[1470,330]] }                          // 路牌（通清溪谷）
       ],
       blocks: [],
       glows: [[520,860],[1470,330]],
-      portals: [{ to: 'village', name: '回恒山村', at: [40, 1430], arrive: [1700, 1340] }, { to: 'town', name: '去汉中郡', at: [1960, 110], arrive: [450, 790] }],
+      portals: [{ to: 'village', name: '回恒山村', at: [40, 1430], arrive: [1700, 1340] }, { to: 'town', name: '去汉中郡', at: [1960, 110], arrive: [450, 790] }, { to: 'creek', name: '入清溪谷', at: [1480, 320], arrive: [1100, 1450] }],
       foes: [{ stage: 'hog', at: [560, 1060] }, { stage: 'roam', at: [1330, 505] }]
+    },
+    creek: {
+      name: '清溪谷', world: [420, 650], note: '碧水幽谷', home: 'village', img: 'bg_creek', mini: 'mini_creek', iw: 2000, ih: 1493, scale: 1.2, k: 1, start: [1100, 1450],
+      alt: '碧绿的溪谷：溪水带着几道小瀑布，木桥横跨溪流，红枫、竹林和荷塘相伴，石板路一路通向山上',
+      walk: [],
+      roads: [
+        { r: 85, pts: [[1100,1480],[1190,1370],[1050,1270],[950,1190],[800,1120],[690,1030],[740,900],[880,840],[1020,790]] },
+        { r: 60, pts: [[1020,790],[1170,760],[1290,700]] },                             // 木桥
+        { r: 85, pts: [[1290,700],[1420,640],[1500,540],[1600,490],[1740,450],[1860,360],[1830,250],[1760,140],[1800,40]] }
+      ],
+      blocks: [],
+      glows: [[1100,760],[1650,480],[700,1030]],
+      portals: [{ to: 'outskirts', name: '回恒山村郊', at: [1100, 1470], arrive: [1440, 390] }],
+      foes: [{ stage: 'creekwolf', at: [800, 1110] }, { stage: 'creekgang', at: [1600, 490] }]
     },
     town: {
       name: '汉中郡', world: [467, 765], note: '主城', home: 'town', img: 'bg_town', mini: 'mini_town', iw: 2576, ih: 1426, scale: 1.5, k: 1.288, start: [850, 575],
