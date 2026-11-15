@@ -1345,7 +1345,7 @@ function castFx(u, id) {                       // 出手者一侧：乐声起势
 }
 // 高清光效：4×2 = 8 帧的精灵表（art-src/fx，图像生成重画），黑底，用 screen 混合叠在战场上；缺图时退回下面的代码绘制版
 function sheetFx(k, u, scale) {
-  const w = 170 * (scale || 1), h = 227 * (scale || 1), e = document.createElement('div'); e.className = 'sfx hd';
+  const w = 200 * (scale || 1), h = 200 * (scale || 1), e = document.createElement('div'); e.className = 'sfx hd';
   e.style.cssText = 'left:' + u.pos.x + 'px;top:' + (u.pos.y - u.h * 0.5) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG('fx_' + k) + ')';
   $('units').appendChild(e);
   let i = 0; const step = () => { e.style.backgroundPosition = ((i % 4) * 100 / 3) + '% ' + (i >= 4 ? 100 : 0) + '%'; if (++i >= 8) { clearInterval(tm); setTimeout(() => e.remove(), 90); } };
