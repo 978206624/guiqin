@@ -223,9 +223,13 @@ for k in ['wave','mist','soul','chain','ring','heal','notes','revive']:
 # 原作形象特效（art-src/fx/cast/<名>.png：2×2 四帧、黑底）→ fxc_<名>.webp（黑底转透明）
 for k in ['wave','mist','soul','chain','heal','notes','revive']:
     sp=f'{G}/fx/cast/{k}.png'
-    if os.path.exists(sp):
+    if os.path.exists(sp):                       # 生成图尺寸不一：按各自的 2×2 切开，每格等比缩进 768×512 的格子再拼回 1536×1024
         import numpy as np
-        a=np.asarray(Image.open(sp).convert('RGB').resize((1536,1024),Image.LANCZOS)).astype(np.float32)/255; al=np.clip((a.max(2)-0.03)/0.97,0,1)
+        src_im=Image.open(sp).convert('RGB'); W0,H0=src_im.size; sheet=Image.new('RGB',(1536,1024),(0,0,0))
+        for ci in range(4):
+            cx,cy=(ci%2)*W0//2,(ci//2)*H0//2; cell=src_im.crop((cx,cy,cx+W0//2,cy+H0//2)); r=min(768/cell.width,512/cell.height)
+            cell=cell.resize((round(cell.width*r),round(cell.height*r)),Image.LANCZOS); sheet.paste(cell,((ci%2)*768+(768-cell.width)//2,(ci//2)*512+(512-cell.height)//2))
+        a=np.asarray(sheet).astype(np.float32)/255; fl=0.16 if k=='wave' else 0.04; al=np.clip((a.max(2)-fl)/(1-fl),0,1)
         rgb=np.where(al[...,None]>0.003,a/np.maximum(al[...,None],0.003),0).clip(0,1)
         Image.fromarray((np.dstack([rgb,al])*255).astype('uint8'),'RGBA').save(f'{AD}/fxc_{k}.webp',quality=85,method=6)
 # kunkunxunqin 项目的 NPC 静态图（art-src/kunkun-npc/<资源名>.png，1000×600 画布里一个小人）：裁掉空白 → kk_<名> 立绘（显示高度见表，2 倍存储）+ head_kk_<名> 头像

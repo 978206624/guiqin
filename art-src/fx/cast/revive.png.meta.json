@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "out": "cast/revive.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 408,
+      "elapsed": 68.8,
+      "error": "{'code': 'request_body_timeout', 'message': 'Timed out reading image upload', 'type': 'invalid_request_error'}"
+    },
+    {
+      "attempt": 2,
+      "status": 200,
+      "elapsed": 101.2,
+      "error": null
+    }
+  ]
+}
