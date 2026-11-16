@@ -218,6 +218,13 @@ window.ASSETS = {
   "mini_village": "assets/mini_village.jpg",
   "mini_wild": "assets/mini_wild.jpg",
   "mini_wolfvalley": "assets/mini_wolfvalley.jpg",
+  "pd_ss_1221": "assets/pd_ss_1221.webp",
+  "pd_ss_1222": "assets/pd_ss_1222.webp",
+  "pd_ss_1223": "assets/pd_ss_1223.webp",
+  "pd_ss_1224": "assets/pd_ss_1224.webp",
+  "pd_ss_1225": "assets/pd_ss_1225.webp",
+  "pd_ss_1226": "assets/pd_ss_1226.webp",
+  "pd_ss_1227": "assets/pd_ss_1227.webp",
   "pfx_ss_1227": "assets/pfx_ss_1227.webp",
   "player": "assets/player.webp",
   "smith": "assets/smith.webp",
@@ -586,6 +593,34 @@ window.ASSETS = {
   "pfx_ss_1227": [
    184.1,
    90.3
+  ],
+  "pd_ss_1221": [
+   153.0,
+   158
+  ],
+  "pd_ss_1222": [
+   151.2,
+   160
+  ],
+  "pd_ss_1223": [
+   141.6,
+   150
+  ],
+  "pd_ss_1224": [
+   136.6,
+   150
+  ],
+  "pd_ss_1225": [
+   194.9,
+   150
+  ],
+  "pd_ss_1226": [
+   195.0,
+   165
+  ],
+  "pd_ss_1227": [
+   117.2,
+   142
   ],
   "kk_npc14": [
    58.0,

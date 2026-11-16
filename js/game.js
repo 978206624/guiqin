@@ -525,6 +525,7 @@ function applyPetLook() {          // 出战宠物是神兽时，地图上跟随
     const sb = AS.size.b_fox, h = fox.h + 4, w = h * sb[0] / sb[1]; fox.imgB.src = IMG('b_fox'); fox.imgB.style.cssText = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px'; fox.name = '灵狐';
     $('hudPetImg').src = IMG('b_fox');
   }
+  if (player && player.pos && fox.pos) { const fp = { x: player.pos.x + (fox.h > 70 ? 96 : 46), y: player.pos.y + 18 }; if (!inside || inside(fp)) fox.pos = fp; }   // 换宠物时站到主角身旁，别叠在身上
   fox.tag.style.bottom = (fox.h + 2) + 'px'; drawTag(fox);
 }
 
