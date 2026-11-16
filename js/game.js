@@ -516,7 +516,7 @@ fox.imgB.hidden = true; fox.el.insertBefore(fox.imgB, fox.tag); fox.dir = 'f';
 function applyPetLook() {          // 出战宠物是神兽时，地图上跟随的形象换成它的图（只有一张，前后共用）
   const id = petAct(), dx = D.petDex[id];
   if (dx.ss && AS.size[dx.sprite]) {
-    const sz = AS.size[dx.sprite], h = dx.h * 0.62, w = h * sz[0] / sz[1], css = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px';
+    const sz = AS.size[dx.sprite], h = dx.h * 0.8, w = h * sz[0] / sz[1], css = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px';
     fox.img.src = IMG(dx.sprite); fox.img.style.cssText = css; fox.imgB.src = IMG(dx.sprite); fox.imgB.style.cssText = css; fox.h = h; fox.name = dx.name;
   } else {
     const sz = AS.size.fox; fox.img.src = IMG('fox'); fox.img.style.cssText = 'width:' + sz[0] + 'px;height:' + sz[1] + 'px;left:' + (-sz[0] / 2) + 'px'; fox.h = sz[1];

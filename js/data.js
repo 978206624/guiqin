@@ -618,11 +618,11 @@ window.DATA = {
     ss_qk:    { name: '乾坤逆转', mp: 0, power: 1.65, target: 'one', cd: 5, selfCost: 0.15, ss: true, des: '消耗 15% 最大血量，按 150% 转为物攻，以物攻 110% 对单体造成伤害，冷却 5 回合。' }
   });
   const base = { q: 5, ss: true, ai: 'ss', own: false, how: '集齐神兽之魂，到神兽使者处兑换' };
-  D.petDex.ss_1227 = Object.assign({}, base, { name: '青龙仙童', adv: '苍龙仙童', sprite: 'b_ss_1227', h: 100, kind: '神兽 · 物攻 · 迅捷',
+  D.petDex.ss_1227 = Object.assign({}, base, { name: '青龙仙童', adv: '苍龙仙童', sprite: 'b_ss_1227', h: 150, kind: '神兽 · 物攻 · 迅捷',
     desc: '青龙座下的仙童，发间青鬃随水汽翻飞，周身缠着一缕龙灵。', mult: { hp: 0.75, atk: 0.9, def: 0.7, spd: 1.35 },
     act: [['ss_kl', 1], ['ss_sl_bw', 0.5], ['ss_hit', 1]], pas: { atkMul: 1.35, vsFear: 1.3, dbl: 0.15, revive: 0.6, take: 0.6 },
     pasList: [['龙族本能', '对恐惧状态目标伤害提升 30%，自身攻击提升 35%。'], ['神龙祝福', '致死时恢复 60% 生命（一场一次），每次攻击 15% 几率双倍伤害。'], ['龙鳞护体', '降低所受伤害（演示版 -40%）。原作：降低 60% 受伤，死亡后降低所有敌方物防。']] });
-  D.petDex.ss_1221 = Object.assign({}, base, { name: '逆天魔龙', adv: '灭天魔龙', sprite: 'b_ss_1221', h: 124, kind: '神兽 · 物攻 · 耐久',
+  D.petDex.ss_1221 = Object.assign({}, base, { name: '逆天魔龙', adv: '灭天魔龙', sprite: 'b_ss_1221', h: 170, kind: '神兽 · 物攻 · 耐久',
     desc: '逆天而行的魔龙，紫鬃蓝鳞，盘踞云端，吐息间天象皆变。', mult: { hp: 0.9, atk: 0.8, def: 0.9, spd: 1.3 },
     act: [['ss_qk', 0.6], ['ss_hit', 1]], pas: { lowAtk: 0.2, ownerAtk: 0.2 },
     pasList: [['万魔归宗', '生命低于 30% 时，提升自身 20% 的攻击。'], ['邪龙附体', '死亡时为主人增加 20% 的攻击力。']] });
