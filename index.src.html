@@ -352,7 +352,8 @@ svg.em{width:1.25em;height:1.25em;vertical-align:-.28em;margin:0 1px}
 @keyframes die{0%{transform:none;filter:brightness(2.6)}18%{transform:translateX(calc(var(--k,1)*10px)) rotate(calc(var(--k,1)*6deg));filter:brightness(1.6)}100%{transform:translateX(calc(var(--k,1)*34px)) translateY(10px) rotate(calc(var(--k,1)*78deg)) scale(.92);filter:brightness(.7) saturate(.4)}}
 .unit.hit img{animation:hit .34s}
 .pfx{position:absolute;background-repeat:no-repeat;pointer-events:none;filter:drop-shadow(0 0 6px rgba(120,200,255,.9))}
-.pa{position:absolute;bottom:-4px;background-repeat:no-repeat;pointer-events:none;transform-origin:50% 100%;animation:idle 2.6s ease-in-out infinite;animation-delay:var(--ib,0s)}
+.pa{position:absolute;bottom:-4px;background-repeat:no-repeat;pointer-events:none;transform-origin:50% 100%;animation:pabreath 2.2s ease-in-out infinite;animation-delay:var(--ib,0s)}
+@keyframes pabreath{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-4px) scale(.99,1.025)}}
 .unit.dead .pa{animation:die .9s cubic-bezier(.3,.6,.4,1) forwards}
 .frozen .pa{animation-play-state:paused!important}
 .castanim{position:absolute;bottom:-4px;background-size:400% 100%;background-repeat:no-repeat;pointer-events:none}

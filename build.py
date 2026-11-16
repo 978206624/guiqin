@@ -299,7 +299,7 @@ def ai_pet(k,H,q=0.9):
         ids=[]
         for c,ax in fr: frames.append((c.resize((round(c.width*k2),round(c.height*k2)),Image.LANCZOS),ax*k2)); ids.append(len(frames)-1)
         seq[nm]=ids
-    seq['idle']=seq['idle']+seq['idle'][-2:0:-1]                              # 往返循环
+    seq['idle']=seq['idle'][:1]                                              # 待机只用首帧（生图的待机帧之间姿势、体型有漂移，循环播会抖），呼吸感交给 CSS 的 .pa 动画
     if 'hit' in seq: seq['dodge']=[seq['hit'][-1]]; seq['hit']=seq['hit'][:2]
     L=max(ax for c,ax in frames); Rr=max(c.width-ax for c,ax in frames); half=int(max(L,Rr))+6; cw=half*2; ch=max(c.height for c,_ in frames)+4
     ls=H/h0; cols=min(6,len(frames)); rows=(len(frames)+cols-1)//cols; tw,th=round(cw*q),round(ch*q)
