@@ -223,25 +223,51 @@ def cast_anim(src,name,stand_h=126):
 CA=G+'/cast-anim'
 for n in ['dao_dz','dao_dz_m','dao_qm','dao_qm_m','dao_ty','dao_ty_m']:
     if os.path.exists(f'{CA}/{n}.png'): cast_anim(f'{CA}/{n}.png','bc_'+n)
-# 神兽：直接用原作高清手绘帧（kunkunxunqin client/assets/pet_handpainted，tools/extract_hdpet.py 解出；各帧按 manifest 的 region 摆回 1000×600 画布，脚底对齐裁成同大小格子，水平翻转（原图朝右，本作我方朝左））
-# bp_ss_<id>：横向精灵表；b_ss_<id>：待机首帧静图。帧序列定义在 js/data.js 的 D.petAnim
-import re
-def hd_pet(k, pwd, frames, cell, ls):
-    mf=open(f'/home/claude/kunkunxunqin/client/assets/pet_handpainted/{pwd}/manifest.gd').read()
-    reg={m.group(1):tuple(map(int,m.group(2,3,4,5))) for m in re.finditer(r'frame-([\w-]+)\.res"\), "region": Rect2\((\d+), (\d+), (\d+), (\d+)\)',mf)}
-    hd=f'{G}/shenshou/hd/{k}'; x0,y0,x1,y1=cell; cw,ch=x1-x0,y1-y0
-    sheet=Image.new('RGBA',(cw*len(frames),ch),(0,0,0,0))
-    for i,f in enumerate(frames):
-        im=Image.open(f'{hd}/zd_{f}.png').convert('RGBA'); rx,ry,rw,rh=reg[f]; assert im.size==(rw,rh),(f,im.size,rw,rh)
-        cv=Image.new('RGBA',(1000,600),(0,0,0,0)); cv.alpha_composite(im,(rx,ry))
-        sheet.alpha_composite(cv.crop(cell).transpose(Image.FLIP_LEFT_RIGHT),(i*cw,0))
-    w2,h2=round(cw*ls),round(ch*ls); n=len(frames)
-    sheet.save(f'{AD}/bp_ss_{k}.webp',quality=92,method=6); size[f'bp_ss_{k}']=[w2,h2,n]
-    sheet.crop((0,0,cw,ch)).save(f'{AD}/b_ss_{k}.webp',quality=92,method=6); size[f'b_ss_{k}']=[w2,h2]
-SS=G+'/shenshou'
-if os.path.exists(f'{SS}/hd/1227'):
-    hd_pet('1227','cw_xlr',['001','002','003','007','008','013','028','019','026','018'],(350,330,650,580),0.6)
-    hd_pet('1221','1220',['idle-001','idle-002','idle-003','idle-004','idle-005','attack-001','attack-004','hit-001','hit-002','hit-003','dodge-001','dodge-002','dodge-003','dodge-004'],(340,262,660,572),0.55)
+# 神兽：直接用原作高清手绘帧（kunkunxunqin client/assets/pet_handpainted，tools/extract_hdpet.py 解出 PNG，tools/pet_cfg.py 从 aef/manifest 生成 art-src/shenshou/pets.json）。
+# 各帧按 manifest 的 region 摆回 1000×600 画布（身体原点 (500,560)），所有用到的帧裁成同一大小格子、水平翻转（原图朝右，本作我方朝左），拼成网格图集 bp_ss_<id>；
+# b_ss_<id> = 待机首帧的紧裁剪静图（地图 / 面板用）。图集元数据（格子大小、锚点、帧序列、释放帧）写进 ASSETS.pet。
+petmeta={}
+def hd_pet(k, H, q=0.75):
+    cfg=json.load(open(f'{G}/shenshou/pets.json'))[k]; A=cfg['anims']; reg=cfg['region']; hd=f'{G}/shenshou/hd/{k}'
+    def png(f): return f'{hd}/zd_{int(f):03d}.png' if str(f).isdigit() else f'{hd}/zd_{f.split("-")[0]}-{int(f.split("-")[1]):03d}.png'
+    if k=='1221':      # 逆天魔龙：原作 manifest 的战斗兼容动画（待机 / 攻击 / 受击 / 闪避）
+        seq={'idle':['idle-1','idle-2','idle-3','idle-4','idle-5','idle-4','idle-3','idle-2'],'atk':['attack-1','attack-2','attack-3','attack-4'],'hit':['hit-1','hit-2','hit-3'],'dodge':['dodge-1','dodge-2','dodge-3','dodge-4']}
+    else:
+        A=[[str(x) for x in a] for a in A]; idle=A[0]; w0=reg[idle[0]][2]
+        seq={'idle':idle,'atk':A[1]+A[2],'hit':A[4]}
+        n=0
+        for a in A[3:]:
+            if a is A[4]: continue
+            if max(reg[f][2] for f in a)>w0*1.3: n+=1; seq[f'sk{n}']=a
+        seq['dodge']=seq['hit']
+    used=[]
+    for v in seq.values():
+        for f in v:
+            if f not in used: used.append(f)
+    x0=min(reg[f][0] for f in used); x1=max(reg[f][0]+reg[f][2] for f in used); y0=min(reg[f][1] for f in used); y1=max(reg[f][1]+reg[f][3] for f in used)
+    x0=min(x0,500-60); x1=max(x1,500+60); cw,ch=x1-x0,y1-y0
+    i0=reg[seq['idle'][0]]; ls=H/i0[3]       # 以待机首帧的身高为准：身高 H 个游戏像素
+    cols=min(6,len(used)); rows=(len(used)+cols-1)//cols; sc=q
+    tw,th=round(cw*sc),round(ch*sc); sheet=Image.new('RGBA',(tw*cols,th*rows),(0,0,0,0)); idx={}
+    for n,f in enumerate(used):
+        im=Image.open(png(f)).convert('RGBA'); rx,ry,rw,rh=reg[f]; assert im.size==(rw,rh),(k,f,im.size,rw,rh)
+        cv=Image.new('RGBA',(cw,ch),(0,0,0,0)); cv.alpha_composite(im,(rx-x0,ry-y0)); cv=cv.transpose(Image.FLIP_LEFT_RIGHT).resize((tw,th),Image.LANCZOS)
+        sheet.alpha_composite(cv,((n%cols)*tw,(n//cols)*th)); idx[f]=n
+    sheet.save(f'{AD}/bp_ss_{k}.webp',quality=88,method=6)
+    st=Image.open(png(seq['idle'][0])).convert('RGBA'); st=st.transpose(Image.FLIP_LEFT_RIGHT); st=st.crop(st.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
+    st=st.resize((round(st.width*q),round(st.height*q)),Image.LANCZOS); st.save(f'{AD}/b_ss_{k}.webp',quality=92,method=6)
+    size[f'b_ss_{k}']=[round(st.width/q*ls*0.0+st.width/q*ls,1),H]
+    ms={'idle':130,'hit':95,'dodge':90}
+    out={}; rel={}
+    for name,v in seq.items():
+        out[name]=[[idx[f],ms.get(name,115)] for f in v]
+        if name!='idle' and name not in('hit','dodge'):
+            rel[name]=max(range(len(v)),key=lambda i:reg[v[i]][2]*reg[v[i]][3])
+    petmeta[f'b_ss_{k}']=dict(sheet=f'bp_ss_{k}',cols=cols,rows=rows,cw=round(cw*ls,1),ch=round(ch*ls,1),ox=round((x1-500)*ls,1),by=round((y1-(i0[1]+i0[3]))*ls,1),H=H,seq=out,rel=rel)
+    size[f'bp_ss_{k}']=[round(cw*ls,1),round(ch*ls,1)]
+if os.path.exists(f'{G}/shenshou/pets.json'):
+    for k,H in [('1221',158),('1222',160),('1223',150),('1224',150),('1225',150),('1226',165),('1227',142)]:
+        if os.path.isdir(f'{G}/shenshou/hd/{k}'): hd_pet(k,H)
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)
@@ -297,9 +323,9 @@ def uri(p):
     if nm in LOWQ and p.endswith('.webp'):                      # 单文件版：大背景重压到 LOWQ，控制在 16MB 内
         import io; b=io.BytesIO(); Image.open(p).convert('RGB').save(b,'WEBP',quality=LOWQ[nm],method=6); return f'data:{mt};base64,'+base64.b64encode(b.getvalue()).decode()
     return f'data:{mt};base64,'+base64.b64encode(open(p,'rb').read()).decode()
-rel='// 素材清单（相对路径版）。单文件版里这一段会被换成内嵌的 data URI。\nwindow.ASSETS = '+json.dumps(dict(img={k:'assets/'+f for k,f in keys.items()},size=size),ensure_ascii=False,indent=1)+';\n'
+rel='// 素材清单（相对路径版）。单文件版里这一段会被换成内嵌的 data URI。\nwindow.ASSETS = '+json.dumps(dict(img={k:'assets/'+f for k,f in keys.items()},size=size,pet=petmeta),ensure_ascii=False,indent=1)+';\n'
 open(R+'/js/assets.js','w').write(rel)
-inl='window.ASSETS = '+json.dumps(dict(img={k:uri(f'{AD}/{f}') for k,f in keys.items()},size=size))+';'
+inl='window.ASSETS = '+json.dumps(dict(img={k:uri(f'{AD}/{f}') for k,f in keys.items()},size=size,pet=petmeta))+';'
 src=open(R+'/index.src.html').read()
 single=src.replace('<!--SCRIPTS-->','<script>\n'+inl+'\n</script>\n<script>\n'+open(R+'/js/masks.js').read()+'\n</script>\n<script>\n'+open(R+'/js/water.js').read()+'\n</script>\n<script>\n'+open(R+'/js/data.js').read()+'\n</script>\n<script>\n'+open(R+'/js/story.js').read()+'\n</script>\n<script>\n'+open(R+'/js/chat.js').read()+'\n</script>\n<script>\n'+open(R+'/js/game.js').read()+'\n</script>\n<script>\n'+open(R+'/js/front.js').read()+'\n</script>')
 open(DIST+'/guiqin.html','w').write(single)

@@ -631,8 +631,8 @@ window.DATA = {
   D.maps.village.npcs.push({ id: 'ss_envoy', at: [1015, 805] });
 })();
 
-// 神兽高清帧动画（原作 pet_handpainted 帧，由 build.py 拼成 bp_ss_<id> 精灵表）：序列 = [[帧号, 毫秒], ...]
-window.DATA.petAnim = {
-  b_ss_1227: { idle: [[0,130],[0,130],[1,130],[1,130],[2,130],[2,130],[1,130],[1,130]], atk: [[3,110],[4,120],[5,170],[6,170]], hit: [[7,110],[7,100],[8,100]], dodge: [[9,260]] },
-  b_ss_1221: { idle: [[0,130],[1,130],[2,130],[3,130],[4,130],[3,130],[2,130],[1,130]], atk: [[5,120],[6,260]], hit: [[7,110],[8,110],[9,120]], dodge: [[10,90],[11,90],[12,90],[13,90]] }
+// 神兽技能 → 原作帧序列（序列名见 build.py 的 hd_pet：idle / atk / hit / dodge / skN，图集元数据在 ASSETS.pet）
+window.DATA.petSeq = {
+  b_ss_1227: { ss_hit: 'atk', ss_sl_bw: 'sk2', ss_kl: 'sk3' },
+  b_ss_1221: { ss_hit: 'atk', ss_qk: 'atk' }
 };

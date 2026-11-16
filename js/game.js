@@ -1353,30 +1353,35 @@ function makeUnit(side, row, def, pos) {
   B.units.push(u); petAnimInit(u); drawUnit(u); return u;
 }
 
-// 神兽逐帧动画：待机循环，攻击 / 受击 / 闪避时临时插播
+// 神兽逐帧动画（原作高清帧，图集元数据见 ASSETS.pet[sprite]）：待机循环；攻击 / 技能 / 受击 / 闪避时插播，播完回到待机
 function petAnimInit(u) {
-  const key = 'bp_' + (u.sprite || '').slice(2), pa = D.petAnim && D.petAnim[u.sprite];
-  if (!pa || !AS.size[key] || !AS.size[key][2]) return;
-  const sz = AS.size[key], n = sz[2], k = u.h / sz[1], w = sz[0] * k, h = sz[1] * k, d = document.createElement('div'), img = u.el.querySelector('img');
-  d.className = 'pa'; d.style.cssText = 'left:' + (-w / 2) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG(key) + ');background-size:' + (n * 100) + '% 100%';
+  const m = AS.pet && AS.pet[u.sprite]; if (!m || !AS.img[m.sheet]) return;
+  const k = u.h / m.H, w = m.cw * k, h = m.ch * k, d = document.createElement('div'), img = u.el.querySelector('img');
+  d.className = 'pa'; d.style.cssText = 'left:' + (-m.ox * k) + 'px;bottom:' + (-4 - m.by * k) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG(m.sheet) + ');background-size:' + (m.cols * 100) + '% ' + (m.rows * 100) + '%';
   u.el.insertBefore(d, img); img.style.visibility = 'hidden';
-  u.pa = { d, n, seq: 'idle', i: 0, tm: 0, lock: 0 };
-  const show = f => { d.style.backgroundPosition = (n > 1 ? f * 100 / (n - 1) : 0) + '% 0'; };
-  const tick = () => {
-    const p = u.pa; if (!p || !u.el.isConnected) return;
-    const s = pa[p.seq]; if (p.i >= s.length) { if (p.seq !== 'idle') { p.seq = 'idle'; p.lock = 0; } p.i = 0; }
-    const [f, ms] = pa[p.seq][p.i++]; show(f); p.tm = setTimeout(tick, ms);
-  };
-  tick();
+  u.pa = { d, m, tm: 0, gen: 0, i: 0 }; petIdle(u);
 }
-function petPlay(u, name) {
-  const p = u.pa, pa = D.petAnim[u.sprite]; if (!p || !pa[name]) return;
-  clearTimeout(p.tm); p.seq = name; p.i = 0; p.lock = 1;
-  const s = pa[name]; let i = 0, tot = 0; for (const [, ms] of s) tot += ms;
-  const run = () => { if (!u.el.isConnected) return; if (i >= s.length) { p.seq = 'idle'; p.i = 0; p.lock = 0; return petTick(u); } const [f, ms] = s[i++]; p.d.style.backgroundPosition = (p.n > 1 ? f * 100 / (p.n - 1) : 0) + '% 0'; p.tm = setTimeout(run, ms); };
-  run();
+function petShow(u, f) { const m = u.pa.m, c = f % m.cols, r = Math.floor(f / m.cols); u.pa.d.style.backgroundPosition = (m.cols > 1 ? c * 100 / (m.cols - 1) : 0) + '% ' + (m.rows > 1 ? r * 100 / (m.rows - 1) : 0) + '%'; }
+function petIdle(u) {
+  const p = u.pa, g = ++p.gen, s = p.m.seq.idle; clearTimeout(p.tm);
+  const loop = () => { if (p.gen !== g || !u.el.isConnected) return; if (p.i >= s.length) p.i = 0; const [f, ms] = s[p.i++]; petShow(u, f); p.tm = setTimeout(loop, ms); };
+  loop();
 }
-function petTick(u) { const p = u.pa, pa = D.petAnim[u.sprite]; const loop = () => { if (!u.el.isConnected || p.lock) return; if (p.i >= pa.idle.length) p.i = 0; const [f, ms] = pa.idle[p.i++]; p.d.style.backgroundPosition = (p.n > 1 ? f * 100 / (p.n - 1) : 0) + '% 0'; p.tm = setTimeout(loop, ms); }; loop(); }
+// 播一段帧序列；到释放帧时调用 onRel；整段播完（回到待机）后 resolve
+function petPlay(u, name, onRel) {
+  const p = u.pa; if (!p || !p.m.seq[name]) { onRel && onRel(); return Promise.resolve(); }
+  const g = ++p.gen, s = p.m.seq[name], rel = p.m.rel[name]; clearTimeout(p.tm);
+  return new Promise(res => {
+    let i = 0;
+    const run = () => {
+      if (p.gen !== g || !u.el.isConnected) { onRel && i <= rel && onRel(); return res(); }
+      if (i >= s.length) { p.i = 0; petIdle(u); return res(); }
+      const [f, ms] = s[i]; petShow(u, f); if (i === rel && onRel) onRel(); i++; p.tm = setTimeout(run, ms);
+    };
+    run();
+  });
+}
+function petSeqFor(u, skill) { const t = D.petSeq && D.petSeq[u.sprite]; return u.pa && t && t[skill] || null; }
 function drawUnit(u) {
   u.el.querySelector('.hpb i').style.width = Math.max(0, u.hp / u.maxHp * 100) + '%';
   if (u === B.player) { setBar('hp', u.hp, u.maxHp); setBar('mp', u.mp, u.maxMp); }
@@ -1720,18 +1725,17 @@ async function perform(u, act) {
   if (s.cd) u.cd[act.skill] = s.cd + 1;
   if (s.selfCost) { const c = Math.round(u.maxHp * s.selfCost); u.hp = Math.max(1, u.hp - c); floatText(u, '-' + c, 'info'); drawUnit(u); }
   // 时间轴：预备（后撤）→ 冲刺 → 释放点（特效/伤害/受击/顿帧/震屏/音效同帧）→ 收招回位
-  const music = !!SKILL_FX[act.skill], t0 = targets[0], k = music ? 0.22 : s.target === 'all' ? 0.4 : 0.7;
+  const pseq = petSeqFor(u, act.skill), music = !!SKILL_FX[act.skill] || !!pseq, t0 = targets[0], k = pseq ? 0 : music ? 0.22 : s.target === 'all' ? 0.4 : 0.7;
   const ux = t0.pos.x - u.pos.x, uy = t0.pos.y - u.pos.y, UL = Math.hypot(ux, uy) || 1;
   u.el.style.zIndex = 1500;
   if (!music) {                                   // 预备动作：向后蓄一下
-    petPlay(u, 'atk');
     u.el.classList.add('kb'); u.el.style.transform = 'translate(' + (-ux / UL * 16) + 'px,' + (-uy / UL * 8) + 'px) scale(1.02,.96)'; await sleep(110);
     u.el.classList.remove('kb');
   }
   u.el.classList.add('mv'); u.el.style.transform = 'translate(' + (ux * k) + 'px,' + (uy * k) + 'px)';
-  await sleep(music ? 170 : 130); u.el.classList.remove('mv');
+  await sleep(pseq ? 60 : music ? 170 : 130); u.el.classList.remove('mv');
   let relA; const releasedA = new Promise(r => { relA = r; });
-  const poseA = music ? castPose(u, relA) : (relA(), null);
+  const poseA = pseq ? petPlay(u, pseq, relA) : music ? castPose(u, relA) : (relA(), null);
   await releasedA;
   if (!music) { if (s.fire || magic) SND.release(); else SND.slash(); }
   let anyCrit = false, anyHit = false;
