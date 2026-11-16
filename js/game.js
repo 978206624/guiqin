@@ -1307,7 +1307,7 @@ function levelStats(L, m) {
 
 function makeUnit(side, row, def, pos) {
   const sz = AS.size[def.sprite], h = def.h, w = h * sz[0] / sz[1];
-  const el = document.createElement('div'); el.className = 'unit ' + side + ' ' + row;
+  const el = document.createElement('div'); el.className = 'unit ' + side + ' ' + row; el.style.setProperty('--ib', (-Math.random() * 2.6).toFixed(2) + 's');
   el.innerHTML = '<div class="sh"></div><img alt="" src="' + IMG(def.sprite) + '" style="width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px' + (def.flip ? ';scale:-1 1' : '') + '">' +
     '<div class="tap" style="left:' + (-w / 2) + 'px;bottom:0;width:' + w + 'px;height:' + h + 'px"></div>' +
     '<div class="hpb" style="bottom:' + (h + 4) + 'px"><i></i></div><div class="stt"></div>' + (row === 'person' ? '<div class="nm" style="bottom:' + (h + 13) + 'px">' + def.name + '</div>' : '');
@@ -1322,6 +1322,50 @@ function makeUnit(side, row, def, pos) {
 function drawUnit(u) {
   u.el.querySelector('.hpb i').style.width = Math.max(0, u.hp / u.maxHp * 100) + '%';
   if (u === B.player) { setBar('hp', u.hp, u.maxHp); setBar('mp', u.mp, u.maxMp); }
+}
+// ---------- 战斗手感：合成音效（WebAudio，无外部素材）/ 顿帧 / 震屏 ----------
+const SND = (() => {
+  let ac = null, master = null, muted = false;
+  try { muted = localStorage.getItem('gq_mute') === '1'; } catch (e) {}
+  const ctx = () => { if (muted) return null; try { if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = 0.32; master.connect(ac.destination); } if (ac.state === 'suspended') ac.resume(); return ac; } catch (e) { return null; } };
+  const noise = (a, dur, f0, f1, vol, type) => { const c = ctx(); if (!c) return; const n = c.sampleRate * dur | 0, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const s = c.createBufferSource(); s.buffer = b; const f = c.createBiquadFilter(); f.type = type || 'lowpass'; f.frequency.setValueAtTime(f0, c.currentTime + a); f.frequency.exponentialRampToValueAtTime(Math.max(40, f1), c.currentTime + a + dur);
+    const g = c.createGain(); g.gain.setValueAtTime(vol, c.currentTime + a); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + a + dur); s.connect(f); f.connect(g); g.connect(master); s.start(c.currentTime + a); };
+  const tone = (a, dur, f0, f1, vol, type) => { const c = ctx(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(f0, c.currentTime + a); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), c.currentTime + a + dur);
+    g.gain.setValueAtTime(0.0001, c.currentTime + a); g.gain.exponentialRampToValueAtTime(vol, c.currentTime + a + 0.008); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + a + dur); o.connect(g); g.connect(master); o.start(c.currentTime + a); o.stop(c.currentTime + a + dur + 0.05); };
+  const pluck = (a, f, vol) => { tone(a, 0.55, f, f * 0.995, vol, 'triangle'); tone(a, 0.3, f * 2, f * 2, vol * 0.35, 'sine'); };
+  return {
+    get muted() { return muted; }, toggle() { muted = !muted; try { localStorage.setItem('gq_mute', muted ? '1' : '0'); } catch (e) {} if (!muted) this.hit(false); return muted; },
+    unlock() { ctx(); },
+    slash() { noise(0, 0.14, 5200, 900, 0.5, 'bandpass'); },
+    hit(crit) { noise(0, 0.12, 1800, 160, 0.9); tone(0, 0.14, 150, 55, 0.8, 'sine'); if (crit) { tone(0.01, 0.35, 1320, 880, 0.35, 'square'); tone(0.01, 0.5, 2640, 2000, 0.18, 'sine'); noise(0, 0.2, 3000, 300, 0.5); } },
+    dodge() { noise(0, 0.18, 800, 3200, 0.35, 'bandpass'); },
+    cast() { [392, 523, 659, 784].forEach((f, i) => pluck(i * 0.07, f, 0.32)); tone(0, 0.7, 196, 294, 0.14, 'sine'); },
+    release() { noise(0, 0.35, 700, 5200, 0.38, 'bandpass'); tone(0, 0.5, 330, 660, 0.2, 'sawtooth'); },
+    heal() { [523, 659, 784, 1046].forEach((f, i) => tone(i * 0.08, 0.5, f, f, 0.2, 'sine')); },
+    die() { tone(0, 0.55, 220, 55, 0.5, 'sawtooth'); noise(0, 0.4, 900, 80, 0.5); },
+    win() { [523, 659, 784, 1046, 1318].forEach((f, i) => { pluck(i * 0.11, f, 0.3); }); },
+    lose() { [392, 330, 262, 196].forEach((f, i) => tone(i * 0.2, 0.6, f, f * 0.97, 0.3, 'triangle')); },
+    ui() { tone(0, 0.08, 880, 880, 0.15, 'sine'); }
+  };
+})();
+function shake(power, ms) {            // 震屏：对整个舞台做衰减抖动（Web Animations，不占用 transform）
+  if (reduce || !stage.animate) return;
+  const n = 7, kf = [{ translate: '0 0' }];
+  for (let i = 1; i < n; i++) { const a = power * (1 - i / n); kf.push({ translate: (i % 2 ? 1 : -1) * a * rnd(0.6, 1) + 'px ' + (i % 3 ? -1 : 1) * a * 0.6 + 'px' }); }
+  kf.push({ translate: '0 0' }); stage.animate(kf, { duration: ms || 260, easing: 'ease-out' });
+}
+async function hitstop(ms) { const u = $('units'); u.classList.add('frozen'); await sleep(ms); u.classList.remove('frozen'); }
+function impactAt(u, crit) { const e = document.createElement('div'); e.className = 'impact' + (crit ? ' crit' : ''); e.style.left = u.pos.x + 'px'; e.style.top = (u.pos.y - u.h * 0.5) + 'px'; $('units').appendChild(e); setTimeout(() => e.remove(), 280); }
+function knock(t, from, px) {          // 受击后仰：沿“攻击者→目标”方向退一小步再回位
+  const dx = t.pos.x - from.pos.x, dy = t.pos.y - from.pos.y, L = Math.hypot(dx, dy) || 1;
+  t.el.classList.add('kb'); t.el.style.transform = 'translate(' + (dx / L * px) + 'px,' + (dy / L * px * 0.5) + 'px)';
+  setTimeout(() => { t.el.classList.remove('kb'); t.el.classList.add('ret'); t.el.style.transform = ''; setTimeout(() => t.el.classList.remove('ret'), 280); }, 90);
+}
+function dodgeStep(t, from) {          // 闪避：向侧后方滑开一步
+  const s = t.side === 'ally' ? 1 : -1;
+  t.el.classList.add('kb'); t.el.style.transform = 'translate(' + (s * 26) + 'px,-8px)';
+  setTimeout(() => { t.el.classList.remove('kb'); t.el.classList.add('ret'); t.el.style.transform = ''; setTimeout(() => t.el.classList.remove('ret'), 280); }, 150);
 }
 function floatText(u, text, cls) {
   const f = document.createElement('div'); f.className = 'float ' + (cls || ''); f.textContent = text;
@@ -1338,17 +1382,18 @@ function fxAt(cls, u, ms, dy, style) {
   const e = document.createElement('div'); e.className = 'sfx ' + cls; e.style.left = u.pos.x + 'px'; e.style.top = (u.pos.y - (dy == null ? u.h * 0.45 : dy)) + 'px';
   if (style) e.style.cssText += style; $('units').appendChild(e); setTimeout(() => e.remove(), ms || 900);
 }
-async function castPose(u) {   // 施法动作：有逐帧施法图（bc_*，图像生成）就播帧动画，没有就退回整图摆动
+async function castPose(u, onRelease) {   // 施法动作：有逐帧施法图（bc_*，图像生成）就播帧动画，没有就退回整图摆动
   const bc = u.sprite && u.sprite.startsWith('b_') ? 'bc_' + u.sprite.slice(2) : null;
   if (bc && AS.size[bc] && u.el.querySelector('img')) {
     const img = u.el.querySelector('img'), sz = AS.size[bc], k = u.h / 126, w = sz[0] * k, h = sz[1] * k, d = document.createElement('div');
     d.className = 'castanim'; d.style.cssText = 'left:' + (-w / 2) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG(bc) + ')' + (u.side === 'ally' ? '' : ';scale:-1 1');
     u.el.insertBefore(d, img); img.style.visibility = 'hidden';
     const seq = [[0, 130], [1, 170], [2, 260], [3, 200]];
-    for (const [f, ms] of seq) { d.style.backgroundPosition = (f * 100 / 3) + '% 0'; await sleep(ms); }
+    SND.cast();
+    for (const [f, ms] of seq) { d.style.backgroundPosition = (f * 100 / 3) + '% 0'; if (f === 2) { SND.release(); onRelease && onRelease(); } await sleep(ms); }
     d.remove(); img.style.visibility = ''; return;
   }
-  u.el.style.setProperty('--d', u.side === 'ally' ? -1 : 1); u.el.classList.add('cast'); await sleep(720); u.el.classList.remove('cast');
+  u.el.style.setProperty('--d', u.side === 'ally' ? -1 : 1); u.el.classList.add('cast'); SND.cast(); await sleep(300); SND.release(); onRelease && onRelease(); await sleep(420); u.el.classList.remove('cast');
 }
 function castFx(u, id) {                       // 出手者一侧：乐声起势
   const k = SKILL_FX[id]; if (!k) return;
@@ -1393,6 +1438,7 @@ const weakestOf = side => living(side).sort((a, b) => a.hp - b.hp)[0];
 function beginBattle(mode, title, teams, names) {
   stop(); wander = false; autoBtn.classList.remove('on');
   $('units').innerHTML = '';
+  SND.unlock(); if (!$('sndBtn')) { const b = document.createElement('button'); b.type = 'button'; b.id = 'sndBtn'; b.className = 'sndbtn'; b.textContent = SND.muted ? '🔇' : '🔊'; b.addEventListener('click', e => { e.stopPropagation(); b.textContent = SND.toggle() ? '🔇' : '🔊'; }); stage.appendChild(b); }
   B.active = true; B.mode = mode; B.round = 0; B.auto = false; B.over = null; B.units = []; B.player = null; B.title = title;
   stage.classList.add('fight');
   $('bnameE').textContent = names[0]; $('bnameA').textContent = names[1];
@@ -1585,23 +1631,25 @@ async function perform(u, act) {
   bmsg(act.skill === 'attack' || act.skill === 'bite' ? '' : u.name + ' · ' + s.name);
   castFx(u, act.skill);
   if (s.heal || s.healPow || s.revive) {
-    if (SKILL_FX[act.skill]) await castPose(u);
+    let relH; const releasedH = new Promise(r => { relH = r; });
+    const poseH = SKILL_FX[act.skill] ? castPose(u, relH) : (relH(), null);
+    await releasedH;
     const mates = B.units.filter(x => x.side === u.side), lowest = () => mates.filter(x => x.alive).sort((x, y) => x.hp / x.maxHp - y.hp / y.maxHp)[0] || u;
     if (s.revive) {
       const dead = mates.find(x => !x.alive);
-      if (dead) { dead.alive = true; dead.hp = Math.round(dead.maxHp * s.revive); dead.el.classList.remove('dead'); floatText(dead, '复活', 'heal'); skillHitFx(act.skill, dead); drawUnit(dead); await sleep(560); return; }
+      if (dead) { SND.heal(); dead.alive = true; dead.hp = Math.round(dead.maxHp * s.revive); dead.el.classList.remove('dead'); floatText(dead, '复活', 'heal'); skillHitFx(act.skill, dead); drawUnit(dead); await sleep(560); return; }
     }
     const ts = s.target === 'allies' ? mates.filter(x => x.alive) : s.target === 'self' ? [u] : [act.target && act.target.alive && act.target.side === u.side ? act.target : lowest()];
     for (const t of ts) {
       const v = s.healPow ? Math.round(u.matk * s.healPow * rnd(0.9, 1.1)) : Math.round(t.maxHp * (s.heal || 0.3));
-      t.hp = Math.min(t.maxHp, t.hp + v); floatText(t, '+' + v, 'heal');
+      t.hp = Math.min(t.maxHp, t.hp + v); floatText(t, '+' + v, 'heal'); SND.heal();
       skillHitFx(act.skill, t);
       if (s.cleanse) { clearStatus(t, 'slow'); clearStatus(t, 'mark'); }
       if (s.shield) { t.st.shield = { turns: s.shield }; floatText(t, '护体', 'info'); }
       if (s.hot) t.st.hot = { turns: s.hot.turns, v: Math.round(v * s.hot.pct) };
       drawUnit(t); refreshFx(t);
     }
-    await sleep(520); return;
+    if (poseH) await poseH; await sleep(260); return;
   }
   const foes = living(other(u.side));
   if (!foes.length) return;
@@ -1609,25 +1657,37 @@ async function perform(u, act) {
   let targets = s.target === 'all' ? foes : [primary];
   if (s.hits > 1) targets = [primary].concat(foes.filter(x => x !== primary).sort(() => Math.random() - 0.5).slice(0, s.hits - 1));
   const magic = !!s.magic || (act.skill === 'attack' && u.magicAtk);
-  // 冲上去
+  // 时间轴：预备（后撤）→ 冲刺 → 释放点（特效/伤害/受击/顿帧/震屏/音效同帧）→ 收招回位
   const music = !!SKILL_FX[act.skill], t0 = targets[0], k = music ? 0.22 : s.target === 'all' ? 0.4 : 0.7;
+  const ux = t0.pos.x - u.pos.x, uy = t0.pos.y - u.pos.y, UL = Math.hypot(ux, uy) || 1;
   u.el.style.zIndex = 1500;
-  u.el.style.transform = 'translate(' + ((t0.pos.x - u.pos.x) * k) + 'px,' + ((t0.pos.y - u.pos.y) * k) + 'px)';
-  await sleep(170);
-  if (music) await castPose(u);
+  if (!music) {                                   // 预备动作：向后蓄一下
+    u.el.classList.add('kb'); u.el.style.transform = 'translate(' + (-ux / UL * 16) + 'px,' + (-uy / UL * 8) + 'px) scale(1.02,.96)'; await sleep(110);
+    u.el.classList.remove('kb');
+  }
+  u.el.classList.add('mv'); u.el.style.transform = 'translate(' + (ux * k) + 'px,' + (uy * k) + 'px)';
+  await sleep(music ? 170 : 130); u.el.classList.remove('mv');
+  let relA; const releasedA = new Promise(r => { relA = r; });
+  const poseA = music ? castPose(u, relA) : (relA(), null);
+  await releasedA;
+  if (!music) { if (s.fire || magic) SND.release(); else SND.slash(); }
+  let anyCrit = false, anyHit = false;
   for (const t of targets) {
-    if (Math.random() * 100 < (t.dodge || 0)) { floatText(t, '闪避', ''); if (targets.length > 1) await sleep(60); continue; }
+    if (Math.random() * 100 < (t.dodge || 0)) { floatText(t, '闪避', 'miss'); SND.dodge(); dodgeStep(t, u); if (targets.length > 1) await sleep(60); continue; }
     const crit = Math.random() * 100 < (u.crit != null ? u.crit : 10);
     let dmg = (magic ? u.matk : u.atk) * s.power * rnd(0.9, 1.1) * (crit ? 1.5 : 1) - (magic ? t.mdef : t.def) * 0.6;
     if (s.vsMark && t.st.mark) dmg *= s.vsMark;
     if (t.st.shield) dmg *= 0.7;
     if (t.defending) dmg *= 0.5;
     dmg = Math.max(1, Math.round(dmg));
-    t.hp = Math.max(0, t.hp - dmg);
-    if (!skillHitFx(act.skill, t)) slashFx(t, !!s.fire); floatText(t, (crit ? '暴击 ' : '') + '-' + dmg, crit ? 'crit' : '');
+    t.hp = Math.max(0, t.hp - dmg); anyHit = true; anyCrit = anyCrit || crit;
+    if (!skillHitFx(act.skill, t)) slashFx(t, !!s.fire);
+    impactAt(t, crit); SND.hit(crit);
+    floatText(t, (crit ? '暴击 ' : '') + '-' + dmg, crit ? 'crit' : dmg >= t.maxHp * 0.25 ? 'big' : '');
     t.el.classList.remove('hit'); void t.el.offsetWidth; t.el.classList.add('hit');
+    knock(t, u, crit ? 30 : 15);
     drawUnit(t);
-    if (t.hp <= 0) { t.alive = false; t.el.classList.add('dead'); t.st = {}; }
+    if (t.hp <= 0) { t.alive = false; t.st = {}; setTimeout(() => { t.el.classList.add('dead'); SND.die(); }, 160); }
     else {
       if (s.mark) { t.st.mark = { turns: s.mark }; floatText(t, '魔化', 'info'); }
       if (s.slow) { if (!t.st.slow) { t._spd0 = t.spd; t._dg0 = t.dodge; t.spd = Math.round(t.spd * 0.8); t.dodge = Math.max(0, t.dodge - 10); } t.st.slow = { turns: s.slow }; floatText(t, '减速', 'info'); }
@@ -1635,9 +1695,11 @@ async function perform(u, act) {
     refreshFx(t);
     if (targets.length > 1) await sleep(60);
   }
-  await sleep(200);
-  u.el.style.transform = ''; u.el.style.zIndex = Math.round(u.pos.y);
-  await sleep(200);
+  if (anyHit) { shake(anyCrit ? 9 : targets.length > 1 ? 6 : 4, anyCrit ? 340 : 240); await hitstop(anyCrit ? 120 : 70); }
+  if (poseA) await poseA;
+  await sleep(120);
+  u.el.classList.add('ret'); u.el.style.transform = ''; u.el.style.zIndex = Math.round(u.pos.y);
+  await sleep(260); u.el.classList.remove('ret');
 }
 
 // ---------- 结算 ----------
@@ -1651,6 +1713,7 @@ function finish() {
     openModal(title, h, leaveBattle); return;
   }
   S.hp = Math.max(1, B.player.hp); S.mp = B.player.mp;
+  if (res === 'win') SND.win(); else if (res === 'lose') SND.lose();
   if (res === 'win') {
     const r = { exp: 0, coin: 0, items: {} };
     st.enemies.forEach(id => { const e = D.enemies[id]; r.exp += e.exp; r.coin += e.coin; e.drops.forEach(d => { if (Math.random() < d[1]) r.items[d[0]] = (r.items[d[0]] || 0) + 1; }); });
@@ -1682,7 +1745,7 @@ function finish() {
 function leaveBattle() {
   if (!B.active) return;
   const arena = B.mode === 'arena';
-  B.active = false; stage.classList.remove('fight'); $('units').innerHTML = ''; B.units = [];
+  B.active = false; stage.classList.remove('fight'); $('units').innerHTML = ''; B.units = []; { const sb = $('sndBtn'); if (sb) sb.remove(); }
   if (!arena) {
     // 打赢的敌人从地图上消失（重新进图会再出现）；打输回城
     if (B.over === 'win' && B.foe) { B.foe.el.remove(); M.list = M.list.filter(a => a !== B.foe); }
