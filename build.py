@@ -268,6 +268,69 @@ def hd_pet(k, H, q=0.75):
 if os.path.exists(f'{G}/shenshou/pets.json'):
     for k,H in [('1221',158),('1222',160),('1223',150),('1224',150),('1225',150),('1226',165),('1227',142)]:
         if os.path.isdir(f'{G}/shenshou/hd/{k}'): hd_pet(k,H)
+# 神兽斜向重绘（art-src/shenshou/ai/<id>/{idle,atk,hit}.png：以原作帧为参考、用生图重画成"背面三四视角、朝左上"的连帧条，绿幕或透明底）。
+# 有这套图的神兽用它替换上面的原作侧视帧：同样输出 bp_ss_<id> 图集与 ASSETS.pet 元数据（序列 idle / atk / hit / dodge），技能特效由战斗里的通用特效补。
+def ai_strip(src,n):
+    import numpy as np
+    im=keyed(src).convert('RGBA'); a=np.array(im.getchannel('A'))>40; cols=a.sum(0)>2; runs=[]; s0=None
+    for x,v in enumerate(cols):
+        if v and s0 is None: s0=x
+        if not v and s0 is not None:
+            if x-s0>40: runs.append((s0,x))
+            s0=None
+    if s0 is not None: runs.append((s0,len(cols)))
+    while len(runs)>n:                      # 碎块并入最近的大块（飘带、小龙可能与主体断开）
+        i=min(range(len(runs)-1),key=lambda k:runs[k+1][0]-runs[k][1]); runs[i:i+2]=[(runs[i][0],runs[i+1][1])]
+    assert len(runs)==n,(src,runs)
+    fr=[]
+    for x0,x1 in runs:
+        c=im.crop((x0,0,x1,im.height)); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox()); al=np.array(c.getchannel('A'))>40
+        low=al[int(c.height*0.8):]; xs=np.nonzero(low.any(0))[0]; fr.append((c,float(xs.mean()) if len(xs) else c.width/2))
+    return fr
+def ai_pet(k,H,q=0.9):
+    d=f'{G}/shenshou/ai/{k}'; spec=[('idle',4),('atk',4),('hit',3)]; strips={}
+    for nm,n in spec:
+        if os.path.exists(f'{d}/{nm}.png'): strips[nm]=ai_strip(f'{d}/{nm}.png',n)
+    if 'idle' not in strips: return
+    med=lambda L:sorted(L)[len(L)//2]
+    h0=med([c.height for c,_ in strips['idle']]); frames=[]; seq={}
+    for nm,fr in strips.items():
+        k2=h0/med([c.height for c,_ in fr]) if nm!='idle' else 1.0        # 各条按身高中位数对齐到待机
+        ids=[]
+        for c,ax in fr: frames.append((c.resize((round(c.width*k2),round(c.height*k2)),Image.LANCZOS),ax*k2)); ids.append(len(frames)-1)
+        seq[nm]=ids
+    seq['idle']=seq['idle']+seq['idle'][-2:0:-1]                              # 往返循环
+    if 'hit' in seq: seq['dodge']=[seq['hit'][-1]]; seq['hit']=seq['hit'][:2]
+    L=max(ax for c,ax in frames); Rr=max(c.width-ax for c,ax in frames); half=int(max(L,Rr))+6; cw=half*2; ch=max(c.height for c,_ in frames)+4
+    ls=H/h0; cols=min(6,len(frames)); rows=(len(frames)+cols-1)//cols; tw,th=round(cw*q),round(ch*q)
+    sheet=Image.new('RGBA',(tw*cols,th*rows),(0,0,0,0))
+    for n,(c,ax) in enumerate(frames):
+        cv=Image.new('RGBA',(cw,ch),(0,0,0,0)); cv.alpha_composite(c,(int(half-ax),ch-c.height)); cv=cv.resize((tw,th),Image.LANCZOS); sheet.alpha_composite(cv,((n%cols)*tw,(n//cols)*th))
+    sheet.save(f'{AD}/bp_ss_{k}.webp',quality=88,method=6)
+    c0,_=frames[seq['idle'][0]]; c0.resize((round(c0.width*q),round(c0.height*q)),Image.LANCZOS).save(f'{AD}/b_ss_{k}.webp',quality=92,method=6); size[f'b_ss_{k}']=[round(c0.width*ls,1),H]
+    ms={'idle':150,'hit':110,'dodge':110}; out={nm:[[i,ms.get(nm,120)] for i in v] for nm,v in seq.items()}
+    petmeta[f'b_ss_{k}']=dict(sheet=f'bp_ss_{k}',cols=cols,rows=rows,cw=round(cw*ls,1),ch=round(ch*ls,1),ox=round(half*ls,1),by=0,H=H,seq=out,rel={'atk':2})
+    size[f'bp_ss_{k}']=[round(cw*ls,1),round(ch*ls,1)]
+for k,H in [('1227',142)]:
+    if os.path.isdir(f'{G}/shenshou/ai/{k}'): ai_pet(k,H)
+# 神兽弹道特效：从原作技能帧里切出身体以外的光束 / 龙焰（x≥650 的部分，原图朝右、保持朝右），战斗里按目标方向旋转、飞向目标。
+def pfx_pet(k,H,sets,xcut=650,q=0.9,boost=1.5):
+    cfg=json.load(open(f'{G}/shenshou/pets.json'))[k]; reg=cfg['region']; hd=f'{G}/shenshou/hd/{k}'; ls=H/reg[cfg['anims'][0][0].__str__()][3]
+    crops=[]; amap={}
+    for sk,ids in sets.items():
+        amap[sk]=[]
+        for f in ids:
+            im=Image.open(f'{hd}/zd_{int(f):03d}.png').convert('RGBA'); rx,ry,rw,rh=reg[str(f)]
+            cv=Image.new('RGBA',(1000,600),(0,0,0,0)); cv.alpha_composite(im,(rx,ry)); c=cv.crop((xcut,0,1000,600)); bb=c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox()
+            c=c.crop(bb); amap[sk].append(len(crops)); crops.append((c,bb[1]+c.height/2-560))   # 竖直中心相对身体原点 (y=560) 的偏移
+    cw=max(c.width for c,_ in crops); ch=max(c.height for c,_ in crops)
+    sheet=Image.new('RGBA',(cw*len(crops),ch),(0,0,0,0))
+    for i,(c,_) in enumerate(crops): sheet.alpha_composite(c,(i*cw,(ch-c.height)//2))
+    sheet=sheet.resize((round(sheet.width*q),round(sheet.height*q)),Image.LANCZOS); sheet.save(f'{AD}/pfx_ss_{k}.webp',quality=90,method=6)
+    petmeta[f'b_ss_{k}']['pfx']=dict(sheet=f'pfx_ss_{k}',n=len(crops),cw=round(cw*ls*boost,1),ch=round(ch*ls*boost,1),map=amap)
+    size[f'pfx_ss_{k}']=[round(cw*ls*boost,1),round(ch*ls*boost,1)]
+if 'b_ss_1227' in petmeta and os.path.isdir(f'{G}/shenshou/hd/1227'):
+    pfx_pet('1227',142,{'ss_hit':[9,10],'ss_sl_bw':[15,16],'ss_kl':[25,15,16]})
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)

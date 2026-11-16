@@ -1381,7 +1381,21 @@ function petPlay(u, name, onRel) {
     run();
   });
 }
-function petSeqFor(u, skill) { const t = D.petSeq && D.petSeq[u.sprite]; return u.pa && t && t[skill] || null; }
+
+// 神兽弹道特效：原作光束 / 龙焰帧（图集 ASSETS.pet[...].pfx），原图朝右，按施法者→目标的方向旋转、飞向目标
+function petFx(u, skill, t) {
+  const m = u.pa && u.pa.m.pfx; if (!m || !m.map[skill] || !AS.img[m.sheet]) return 0;
+  const fr = m.map[skill], k = u.h / u.pa.m.H, w = m.cw * k, h = m.ch * k;
+  const sx = u.pos.x - u.h * 0.12, sy = u.pos.y - u.h * 0.55, ex = t.pos.x, ey = t.pos.y - t.h * 0.5, ang = Math.atan2(ey - sy, ex - sx) * 180 / Math.PI, dist = Math.hypot(ex - sx, ey - sy);
+  const e = document.createElement('div'); e.className = 'pfx';
+  e.style.cssText = 'left:' + sx + 'px;top:' + (sy - h / 2) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG(m.sheet) + ');background-size:' + (m.n * 100) + '% 100%;transform-origin:0 50%;transform:rotate(' + ang + 'deg) translateX(0);z-index:1999';
+  $('units').appendChild(e); const dur = Math.max(160, Math.min(320, dist * 1.1));
+  let i = 0; const step = () => { const f = fr[i++ % fr.length]; e.style.backgroundPosition = (m.n > 1 ? f * 100 / (m.n - 1) : 0) + '% 0'; }; step(); const tm = setInterval(step, 70);
+  requestAnimationFrame(() => requestAnimationFrame(() => { e.style.transition = 'transform ' + dur + 'ms cubic-bezier(.4,0,.8,.6),opacity ' + dur + 'ms'; e.style.transform = 'rotate(' + ang + 'deg) translateX(' + Math.max(0, dist - w * 0.6) + 'px)'; }));
+  setTimeout(() => { clearInterval(tm); e.style.opacity = 0; setTimeout(() => e.remove(), 160); }, dur);
+  return dur;
+}
+function petSeqFor(u, skill) { if (!u.pa) return null; const t = D.petSeq && D.petSeq[u.sprite], s = t && t[skill], sq = u.pa.m.seq; return s && sq[s] ? s : sq.atk && (skill === 'attack' || D.skills[skill] && D.skills[skill].ss) ? 'atk' : null; }
 function drawUnit(u) {
   u.el.querySelector('.hpb i').style.width = Math.max(0, u.hp / u.maxHp * 100) + '%';
   if (u === B.player) { setBar('hp', u.hp, u.maxHp); setBar('mp', u.mp, u.maxMp); }
@@ -1737,6 +1751,7 @@ async function perform(u, act) {
   let relA; const releasedA = new Promise(r => { relA = r; });
   const poseA = pseq ? petPlay(u, pseq, relA) : music ? castPose(u, relA) : (relA(), null);
   await releasedA;
+  if (pseq) { const dly = petFx(u, act.skill, t0); if (dly) await sleep(dly * 0.85); }
   if (!music) { if (s.fire || magic) SND.release(); else SND.slash(); }
   let anyCrit = false, anyHit = false;
   for (const t of targets) {

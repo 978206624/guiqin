@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "g_hit.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 67.6,
+      "error": null
+    }
+  ]
+}
