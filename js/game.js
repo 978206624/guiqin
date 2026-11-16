@@ -338,7 +338,7 @@ function petPower(p) { return Math.round(p.maxHp / 10 + p.atk * 2 + p.def * 1.5 
 function stars(n, color) { return '<span class="stars" style="color:' + color + '">' + '★'.repeat(n) + '<i>' + '★'.repeat(5 - n) + '</i></span>'; }
 function openPet() {
   const pid = petAct(), dex = D.petDex[pid], q = D.petQuality[dex.q], p = petStats(pid), bd = bondInfo(), b = D.base, g = D.grow, L = S.lv, m = dex.mult || D.pet, kb = 1 + bd.bonus;
-  let h = '<div class="pethero"><div class="pglow"></div><img alt="" src="' + IMG(dex.sprite) + '"><div class="pinfo"><h5>' + dex.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
+  let h = '<div class="pethero"><div class="pglow"></div><img alt="" src="' + IMG(dex.show || dex.sprite) + '"><div class="pinfo"><h5>' + dex.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
     '<p>' + stars(q.stars, q.color) + '　' + dex.kind + '</p><p>等级 <b class="gold">' + L + '</b>（随主人成长）　战力 <b class="gold">' + fmt(petPower(p)) + '</b></p>' +
     '<p class="small">亲密度 · <b style="color:#ffd9a0">' + bd.name + '</b>　' + bd.n + (bd.to ? ' / ' + bd.to : '') + '</p><div class="rbar exp bond"><i style="width:' + (bd.to ? Math.min(100, (bd.n - bd.from) / (bd.to - bd.from) * 100) : 100) + '%"></i></div></div></div>' +
     '<div class="rtabs">' + Object.keys(D.petDex).filter(ownPet).map(id => '<button type="button" class="rtab' + (id === pid ? ' on' : '') + '" data-act="petUse:' + id + '">' + D.petDex[id].name + (id === pid ? ' · 出战' : '') + '</button>').join('') + '</div>' +
@@ -367,7 +367,7 @@ function openPet() {
   } else {
     const ids = Object.keys(D.petDex), own = ownPet, sel = D.petDex[petSel] || D.petDex.fox, sq = D.petQuality[sel.q];
     h += '<div class="petgrid">' + ids.map(id => { const x = D.petDex[id], c = D.petQuality[x.q].color;
-      return '<button type="button" class="pcard' + (id === petSel ? ' sel' : '') + (own(id) ? '' : ' lock') + '" style="--qc:' + c + '" data-act="petSel:' + id + '"><img alt="" src="' + IMG(x.sprite) + '"><span>' + (own(id) ? x.name : '？？？') + '</span></button>'; }).join('') + '</div>' +
+      return '<button type="button" class="pcard' + (id === petSel ? ' sel' : '') + (own(id) ? '' : ' lock') + '" style="--qc:' + c + '" data-act="petSel:' + id + '"><img alt="" src="' + IMG(x.show || x.sprite) + '"><span>' + (own(id) ? x.name : '？？？') + '</span></button>'; }).join('') + '</div>' +
       '<div class="pdetail"><div class="pdhead"><h6>' + (sel.own ? sel.name : sel.name) + ' <span class="qual" style="color:' + sq.color + ';border-color:' + sq.color + '">' + sq.name + '</span></h6>' + stars(sq.stars, sq.color) + '</div>' +
       '<p>' + sel.kind + '</p><p>' + sel.desc + '</p><p class="how">' + (ownPet(petSel) ? '<b>已拥有</b>　' + (sel.ss ? '可在上方切换出战。' : '出生自带，一直跟随主人。') : '获得途径：' + sel.how + (sel.ss ? '' : '（暂未开放）')) + '</p></div>' +
       '<p class="hint">已收集 ' + ids.filter(own).length + ' / ' + ids.length + '</p>';
@@ -513,14 +513,17 @@ Object.values(WALK_SHEET).forEach(k => { const im = new Image(); im.src = IMG(k)
 fox.imgB = document.createElement('img'); fox.imgB.alt = ''; fox.imgB.src = IMG('b_fox');
 { const sz = AS.size.b_fox, h = fox.h + 4, w = h * sz[0] / sz[1]; fox.imgB.style.cssText = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px'; }
 fox.imgB.hidden = true; fox.el.insertBefore(fox.imgB, fox.tag); fox.dir = 'f';
-function applyPetLook() {          // 出战宠物是神兽时，地图上跟随的形象换成它的图（只有一张，前后共用）
+function applyPetLook() {          // 出战宠物是神兽时，地图上跟随的形象换成它的图：正面用原作立绘，背面用斜向重绘的背面图（没有时共用一张）
   const id = petAct(), dx = D.petDex[id];
   if (dx.ss && AS.size[dx.sprite]) {
-    const sz = AS.size[dx.sprite], h = dx.h * 0.8, w = h * sz[0] / sz[1], css = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px';
-    fox.img.src = IMG(dx.sprite); fox.img.style.cssText = css; fox.imgB.src = IMG(dx.sprite); fox.imgB.style.cssText = css; fox.h = h; fox.name = dx.name;
+    const mk = (spr) => { const sz = AS.size[spr], h = dx.h * 0.8, w = h * sz[0] / sz[1]; return 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px'; };
+    const fs = dx.show && AS.size[dx.show] ? dx.show : dx.sprite;
+    fox.img.src = IMG(fs); fox.img.style.cssText = mk(fs); fox.imgB.src = IMG(dx.sprite); fox.imgB.style.cssText = mk(dx.sprite); fox.h = dx.h * 0.8; fox.name = dx.name;
+    $('hudPetImg').src = IMG(fs);
   } else {
     const sz = AS.size.fox; fox.img.src = IMG('fox'); fox.img.style.cssText = 'width:' + sz[0] + 'px;height:' + sz[1] + 'px;left:' + (-sz[0] / 2) + 'px'; fox.h = sz[1];
     const sb = AS.size.b_fox, h = fox.h + 4, w = h * sb[0] / sb[1]; fox.imgB.src = IMG('b_fox'); fox.imgB.style.cssText = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px'; fox.name = '灵狐';
+    $('hudPetImg').src = IMG('b_fox');
   }
   fox.tag.style.bottom = (fox.h + 2) + 'px'; drawTag(fox);
 }
@@ -574,7 +577,7 @@ function loadMap(id, at) {
   buildGrid(); drawMiniDots(); wxSnap();
   const p = at && inside(at) ? at : I(def.start[0], def.start[1]);
   player.pos = { x: p.x, y: p.y }; player.face = 1;
-  const fp = { x: p.x + 46, y: p.y + 18 }; fox.pos = inside(fp) ? fp : { x: p.x, y: p.y };
+  const fp = { x: p.x + (fox.h > 70 ? 96 : 46), y: p.y + 18 }; fox.pos = inside(fp) ? fp : { x: p.x, y: p.y };
   stop();
   $('place').textContent = def.name; $('miniMap').style.backgroundImage = 'url(' + IMG(def.mini) + ')';
   $('miniMap').style.backgroundSize = (M.W * MINI) + 'px ' + (M.H * MINI) + 'px';
@@ -846,7 +849,7 @@ function openEnvoy() {
   const have = S.items.ss_soul || 0;
   let h = '<p class="center" style="margin:0">神兽之魂 <b class="gold">' + have + '</b>　银两 <b class="gold">' + fmt(S.coin) + '</b></p><div class="shop">' +
     Object.keys(D.petDex).filter(id => D.petDex[id].ss).map(id => { const x = D.petDex[id], own = ownPet(id);
-      return '<button type="button" class="row" data-act="ssExch:' + id + '"' + (own || have < D.ssCost ? ' disabled' : '') + '><img alt="" src="' + IMG(x.sprite) + '" style="height:54px;width:auto"><div><h5 style="color:' + D.petQuality[x.q].color + '">' + x.name + '<small style="color:var(--muted)">　进阶：' + x.adv + '</small></h5><p>' + x.kind + '　技能：' + x.act.filter(a => a[0] !== 'ss_hit').map(a => D.skills[a[0]].name).join('、') + '</p></div><span>' + (own ? '已拥有' : '魂 ×' + D.ssCost) + '</span></button>'; }).join('') +
+      return '<button type="button" class="row" data-act="ssExch:' + id + '"' + (own || have < D.ssCost ? ' disabled' : '') + '><img alt="" src="' + IMG(x.show || x.sprite) + '" style="height:54px;width:auto"><div><h5 style="color:' + D.petQuality[x.q].color + '">' + x.name + '<small style="color:var(--muted)">　进阶：' + x.adv + '</small></h5><p>' + x.kind + '　技能：' + x.act.filter(a => a[0] !== 'ss_hit').map(a => D.skills[a[0]].name).join('、') + '</p></div><span>' + (own ? '已拥有' : '魂 ×' + D.ssCost) + '</span></button>'; }).join('') +
     '</div><p class="center" style="margin:14px 0 0"><button type="button" class="tbtn red" data-act="ssRite">办神兽祭　银两 ' + D.ssRite.coin + '</button></p><p class="hint">神兽祭：奉上祭品，天神会赐下 ' + D.ssRite.min + '~' + D.ssRite.max + ' 枚神兽之魂。（原作兑换需要 99 枚，演示版 ' + D.ssCost + ' 枚）</p>';
   openModal('神兽使者', h);
 }
@@ -1059,10 +1062,11 @@ function placePlayer() {
 }
 function stepFox(dt) {
   const tx = player.pos.x - fox.pos.x, ty = player.pos.y + 10 - fox.pos.y, dist = Math.hypot(tx, ty);
-  if (dist > 84) fox.moving = true; if (dist < 62) fox.moving = false;
+  const nr = fox.h > 70 ? 104 : 62;
+  if (dist > nr + 22) fox.moving = true; if (dist < nr) fox.moving = false;
   if (dist > 600) { fox.pos.x = player.pos.x; fox.pos.y = player.pos.y; return; }
   if (!fox.moving) return;
-  const len = Math.min(dist - 58, (SPEED + 30) * dt), sx = tx / dist * len;
+  const len = Math.min(dist - (nr - 4), (SPEED + 30) * dt), sx = tx / dist * len;
   fox.pos.x += sx; fox.pos.y += ty / dist * len; if (Math.abs(sx) > .05) fox.face = sx > 0 ? 1 : -1;
   if (Math.abs(ty) > dist * 0.35) fox.dir = ty < 0 ? 'b' : 'f';
 }

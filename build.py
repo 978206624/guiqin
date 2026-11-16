@@ -331,6 +331,12 @@ def pfx_pet(k,H,sets,xcut=650,q=0.9,boost=1.5):
     size[f'pfx_ss_{k}']=[round(cw*ls*boost,1),round(ch*ls*boost,1)]
 if 'b_ss_1227' in petmeta and os.path.isdir(f'{G}/shenshou/hd/1227'):
     pfx_pet('1227',142,{'ss_hit':[9,10],'ss_sl_bw':[15,16],'ss_kl':[25,15,16]})
+# 神兽展示图（面板 / 图鉴 / 地图正面）：原作待机首帧，保持原作朝向，紧裁剪，身高与战斗图一致
+for k,H,f in [('1221',158,'idle-001'),('1222',160,'009'),('1223',150,'001'),('1224',150,'009'),('1225',150,'009'),('1226',165,'005'),('1227',142,'001')]:
+    p=f'{G}/shenshou/hd/{k}/zd_{f}.png'
+    if os.path.exists(p):
+        im=Image.open(p).convert('RGBA'); im=im.crop(im.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox()); sc=H*2/im.height
+        im.resize((round(im.width*sc),round(im.height*sc)),Image.LANCZOS).save(f'{AD}/pd_ss_{k}.webp',quality=92,method=6); size[f'pd_ss_{k}']=[round(im.width*sc/2,1),H]
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)
