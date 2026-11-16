@@ -1354,6 +1354,8 @@ function makeUnit(side, row, def, pos) {
   const u = { side, row, sprite: def.sprite, name: def.name, el, pos, h, hp: st.hp, maxHp: st.maxHp, mp: st.mp || 0, maxMp: st.maxMp || 0, atk: st.atk, def: st.def, matk: st.matk != null ? st.matk : st.atk, mdef: st.mdef != null ? st.mdef : st.def, crit: st.crit != null ? st.crit : 10, dodge: st.dodge || 0, spd: st.spd,
     kit: def.kit, pas: def.pas, cd: {}, alive: true, defending: false, ai: def.ai || 'attack', aggro: def.aggro || 1, data: def.data || null, magicAtk: !!def.magicAtk, st: {} };
   if (side === 'enemy') el.addEventListener('click', () => { if (B.picking && u.alive) { const f = B.picking; B.picking = null; f(u); } });
+  if (u.pas && u.pas.baotiStart) u._bt = u.pas.baotiStart;
+  if (u.pas && u.pas.dodgeUp) u.dodge += u.pas.dodgeUp;
   if (u.pas && u.pas.atkMul) { u.atk = Math.round(u.atk * u.pas.atkMul); u.matk = Math.round(u.matk * u.pas.atkMul); }
   B.units.push(u); petAnimInit(u); drawUnit(u); return u;
 }
@@ -1390,7 +1392,7 @@ function petPlay(u, name, onRel) {
 // 神兽弹道特效：原作光束 / 龙焰帧（图集 ASSETS.pet[...].pfx），原图朝右，按施法者→目标的方向旋转、飞向目标
 function petFx(u, skill, t) {
   const m = u.pa && u.pa.m.pfx; if (!m || !m.map[skill] || !AS.img[m.sheet]) return 0;
-  const fr = m.map[skill], k = u.h / u.pa.m.H, w = m.cw * k, h = m.ch * k;
+  const fr = m.map[skill], k = u.h / u.pa.m.H * ((m.sc && m.sc[skill]) || 1), w = m.cw * k, h = m.ch * k;
   const sx = u.pos.x - u.h * 0.12, sy = u.pos.y - u.h * 0.55, ex = t.pos.x, ey = t.pos.y - t.h * 0.5, ang = Math.atan2(ey - sy, ex - sx) * 180 / Math.PI, dist = Math.hypot(ex - sx, ey - sy);
   const e = document.createElement('div'); e.className = 'pfx';
   e.style.cssText = 'left:' + sx + 'px;top:' + (sy - h / 2) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG(m.sheet) + ');background-size:' + (m.n * 100) + '% 100%;transform-origin:0 50%;transform:rotate(' + ang + 'deg) translateX(0);z-index:1999';
@@ -1545,7 +1547,7 @@ function startBattle(st) {
   });
   beginBattle('pve', st.name, {
     ally: { persons: [{ name: ROLE.name, sprite: AS.size['b_' + ROLE.cls] ? 'b_' + ROLE.cls : 'b_player', h: 126, me: true, magicAtk: !!curCls().magicAtk, stats: { hp: Math.max(1, S.hp), maxHp: ps.maxHp, mp: S.mp, maxMp: ps.maxMp, atk: ps.atk, matk: ps.matk, def: ps.def, mdef: ps.mdef, crit: ps.crit, dodge: ps.dodge, spd: ps.spd } }],
-            pets: [{ name: (D.petDex[petAct()] || D.petDex.fox).name, sprite: (D.petDex[petAct()] || D.petDex.fox).sprite, h: (D.petDex[petAct()] || D.petDex.fox).h || 62, ai: (D.petDex[petAct()] || D.petDex.fox).ai || 'fox', kit: (D.petDex[petAct()] || {}).act, pas: (D.petDex[petAct()] || {}).pas, stats: { hp: fs.maxHp, maxHp: fs.maxHp, atk: fs.atk, matk: fs.matk, def: fs.def, mdef: fs.mdef, crit: fs.crit, dodge: fs.dodge, spd: fs.spd } }] },
+            pets: [{ name: (D.petDex[petAct()] || D.petDex.fox).name, sprite: (D.petDex[petAct()] || D.petDex.fox).sprite, h: (D.petDex[petAct()] || D.petDex.fox).h || 62, ai: (D.petDex[petAct()] || D.petDex.fox).ai || 'fox', kit: (D.petDex[petAct()] || {}).act, pas: (D.petDex[petAct()] || {}).pas, magicAtk: !!(D.petDex[petAct()] || {}).mag, stats: { hp: fs.maxHp, maxHp: fs.maxHp, atk: fs.atk, matk: fs.matk, def: fs.def, mdef: fs.mdef, crit: fs.crit, dodge: fs.dodge, spd: fs.spd } }] },
     enemy: foes
   }, [st.name, '我方']);
 }
@@ -1583,7 +1585,7 @@ async function loop() {
       if (!u.alive || B.over) continue;
       u.el.classList.add('turn');
       statusStart(u);
-      await perform(u, u === B.player ? act : unitAct(u));
+      if (u.st.stun) { floatText(u, '眩晕', 'info'); await sleep(420); } else await perform(u, u === B.player ? act : unitAct(u));
       statusEnd(u);
       u.el.classList.remove('turn');
       if (!living('enemy').length) B.over = 'win';
@@ -1687,17 +1689,17 @@ function unitAct(u) {
     case 'striker': return { type: 'skill', skill: 'snipe', target: low };
     case 'tank':    return { type: 'skill', skill: 'smash', target: pickFoe() };
     case 'boss':    return B.round % 3 === 0 ? { type: 'skill', skill: 'sweep' } : { type: 'skill', skill: 'attack', target: pickFoe() };
-    case 'ss': { const pick = (u.kit || []).find(a => !u.cd[a[0]] && Math.random() < a[1]); return { type: 'skill', skill: pick ? pick[0] : 'ss_hit', target: pickFoe() }; }
+    case 'ss': { const pick = (u.kit || []).find(a => { const k = D.skills[a[0]] || {}; return !u.cd[a[0]] && !(k.absorb && u.absorb > 0) && !(k.guard && u.guard > 0) && Math.random() < a[1]; }); return { type: 'skill', skill: pick ? pick[0] : 'ss_hit', target: pickFoe() }; }
     case 'fox':     return { type: 'skill', skill: Math.random() < 0.35 ? 'foxfire' : 'bite', target: low };
     default:        return { type: 'skill', skill: u.row === 'pet' ? 'bite' : 'attack', target: pickFoe() };
   }
 }
 
 // ---------- 状态：魔化 mark / 减速 slow / 护体 shield / 持续回复 hot ----------
-const FX_BADGE = { fear: ['惧', '#7a4bd1'], mark: ['魔', '#a64bff'], slow: ['缓', '#3d8bff'], shield: ['盾', '#e0a526'], hot: ['愈', '#33b36b'] };
+const FX_BADGE = { fear: ['惧', '#7a4bd1'], mark: ['魔', '#a64bff'], slow: ['缓', '#3d8bff'], shield: ['盾', '#e0a526'], hot: ['愈', '#33b36b'], stun: ['晕', '#8a8a8a'], curse: ['罚', '#c23b3b'], dd: ['破', '#c9772a'], mfear: ['惑', '#9a4bd1'], absorb: ['吸', '#e0a526'] };
 function refreshFx(u) { u.el.querySelector('.stt').innerHTML = Object.keys(u.st).map(k => '<b style="background:' + FX_BADGE[k][1] + '">' + FX_BADGE[k][0] + u.st[k].turns + '</b>').join(''); }
-function clearStatus(u, k) { if (!u.st[k]) return; if (k === 'fear' && u._df0) { u.def = u._df0; u._df0 = 0; } if (k === 'slow') { u.spd = u._spd0; u.dodge = u._dg0; } delete u.st[k]; refreshFx(u); }
-function statusStart(u) { for (const k of Object.keys(u.cd || {})) { if (--u.cd[k] <= 0) delete u.cd[k]; } if (u.alive && u.st.hot) { const v = u.st.hot.v; u.hp = Math.min(u.maxHp, u.hp + v); floatText(u, '+' + v, 'heal'); drawUnit(u); } }
+function clearStatus(u, k) { if (!u.st[k]) return; if (k === 'stun') u._take2 = 0; if (k === 'curse' && u._cu) { u.atk = Math.round(u.atk / Math.pow(0.9, u._cu)); u.matk = Math.round(u.matk / Math.pow(0.9, u._cu)); u._cu = 0; } if (k === 'dd' && u._dd0) { u.def = u._dd0; u._dd0 = 0; } if (k === 'mfear' && u._md0) { u.mdef = u._md0; u._md0 = 0; } if (k === 'fear' && u._df0) { u.def = u._df0; u._df0 = 0; } if (k === 'slow') { u.spd = u._spd0; u.dodge = u._dg0; } delete u.st[k]; refreshFx(u); }
+function statusStart(u) { if (u.invul) u.invul--; if (u.alive && u.pas && u.pas.baoti && (u._bt || 0) < 5) { u._bt = (u._bt || 0) + 1; floatText(u, '霸体 ×' + u._bt, 'info'); } for (const k of Object.keys(u.cd || {})) { if (--u.cd[k] <= 0) delete u.cd[k]; } if (u.alive && u.st.hot) { const v = u.st.hot.v; u.hp = Math.min(u.maxHp, u.hp + v); floatText(u, '+' + v, 'heal'); drawUnit(u); } }
 function statusEnd(u) { for (const k of Object.keys(u.st)) { if (--u.st[k].turns <= 0) clearStatus(u, k); } refreshFx(u); }
 
 // ---------- 出手 ----------
@@ -1740,8 +1742,12 @@ async function perform(u, act) {
   const primary = act.target && act.target.alive && act.target.side !== u.side ? act.target : foes[0];
   let targets = s.target === 'all' ? foes : [primary];
   if (s.hits > 1) targets = [primary].concat(foes.filter(x => x !== primary).sort(() => Math.random() - 0.5).slice(0, s.hits - 1));
-  const magic = !!s.magic || (act.skill === 'attack' && u.magicAtk);
+  const magic = !!s.magic || ((act.skill === 'attack' || act.skill === 'ss_hit') && u.magicAtk);
   if (s.cd) u.cd[act.skill] = s.cd + 1;
+  if (s.absorb || s.guard) {                      // 自身防护：真武御体（伤害转治疗，N 次）/ 天蛇噬血的抵挡（N 次免伤）
+    if (s.absorb) { u.absorb = s.absorb; u.st.absorb = { turns: 99 }; } if (s.guard) u.guard = s.guard;
+    if (s.absorb) refreshFx(u); floatText(u, s.absorb ? '血盾 ×' + s.absorb : '抵挡 ×' + s.guard, 'info'); SND.heal(); await petPlay(u, 'atk', null); if (!s.power) return;
+  }
   if (s.selfCost) { const c = Math.round(u.maxHp * s.selfCost); u.hp = Math.max(1, u.hp - c); floatText(u, '-' + c, 'info'); drawUnit(u); }
   // 时间轴：预备（后撤）→ 冲刺 → 释放点（特效/伤害/受击/顿帧/震屏/音效同帧）→ 收招回位
   const pseq = petSeqFor(u, act.skill), music = !!SKILL_FX[act.skill] || !!pseq, t0 = targets[0], k = pseq ? 0 : music ? 0.22 : s.target === 'all' ? 0.4 : 0.7;
@@ -1761,7 +1767,7 @@ async function perform(u, act) {
   let anyCrit = false, anyHit = false;
   for (const t of targets) {
     if (Math.random() * 100 < (t.dodge || 0)) { floatText(t, '闪避', 'miss'); SND.dodge(); dodgeStep(t, u); if (targets.length > 1) await sleep(60); continue; }
-    const crit = Math.random() * 100 < (u.crit != null ? u.crit : 10);
+    const crit = Math.random() * 100 < ((u.crit != null ? u.crit : 10) + (s.critUp || 0));
     let dmg = (magic ? u.matk : u.atk) * s.power * rnd(0.9, 1.1) * (crit ? 1.5 : 1) - (magic ? t.mdef : t.def) * 0.6;
     if (s.vsMark && t.st.mark) dmg *= s.vsMark;
     if (t.st.shield) dmg *= 0.7;
@@ -1771,9 +1777,21 @@ async function perform(u, act) {
     if (up.lowAtk && u.hp < u.maxHp * 0.3) dmg *= 1 + up.lowAtk;
     if (up.dbl && Math.random() < up.dbl) { dmg *= 2; floatText(u, '双倍', 'info'); }
     if (tp.take) dmg *= tp.take;
+    if (up.dmgUp) dmg *= 1 + up.dmgUp;                                   // 万剑归宗等：伤害额外提升
+    if (u._dmgBuff) dmg *= 1 + u._dmgBuff;                               // 绝杀咒印触发后的伤害提升
+    if (s.baoti && u._bt) { dmg *= 1 + 0.1 * u._bt; floatText(u, '霸体 ×' + u._bt + ' 燎原', 'info'); u._bt = 0; }   // 天火燎原：消耗霸体
+    if (t._take2) dmg *= 2;                                              // 蛊心定影：被定身期间受伤翻倍
+    if (t.st.curse) dmg *= 1 + 0.1 * t._cu;                              // 天罚：受伤提升
+    if (tp.baoti && t._bt) dmg *= 1 - 0.1 * t._bt;                       // 混元霸体：每层 -10% 受伤
+    if (tp.hurtStack && t._hs) dmg *= 1 - Math.min(tp.hurtStack.max, t._hs) * tp.hurtStack.step;   // 仙魔真诀：每受伤一次，减伤叠加
     dmg = Math.max(1, Math.round(dmg));
+    if (t.invul) { floatText(t, '无敌', 'miss'); if (targets.length > 1) await sleep(60); continue; }
+    if (t.guard > 0) { t.guard--; floatText(t, '抵挡', 'miss'); SND.dodge(); if (targets.length > 1) await sleep(60); continue; }
+    if (t.absorb > 0) { t.absorb--; if (!t.absorb) clearStatus(t, 'absorb'); t.hp = Math.min(t.maxHp, t.hp + dmg); floatText(t, '+' + dmg, 'heal'); SND.heal(); drawUnit(t); if (targets.length > 1) await sleep(60); continue; }
     t.hp = Math.max(0, t.hp - dmg); anyHit = true; anyCrit = anyCrit || crit;
-    if (t.hp <= 0 && tp.revive && !t._rv) { t._rv = true; t.hp = Math.round(t.maxHp * tp.revive); floatText(t, '神龙祝福', 'heal'); SND.heal(); }
+    if (t.hp <= 0 && tp.deathWard && !t._dw) { t._dw = true; t.hp = 1; t.invul = 2; t._dmgBuff = 0.5; floatText(t, '绝杀咒印', 'heal'); SND.heal(); }
+    if (t.hp <= 0 && tp.revive && !t._rv) { t._rv = true; t.hp = Math.round(t.maxHp * tp.revive); floatText(t, tp.reviveText || '神龙祝福', 'heal'); SND.heal(); if (tp.reviveAtk) { t.atk = Math.round(t.atk * (1 + tp.reviveAtk)); t.matk = Math.round(t.matk * (1 + tp.reviveAtk)); } }
+    if (t.hp <= 0 && tp.lethalStun && !t._ls) { t._ls = true; u.st.stun = { turns: 1 }; u._take2 = 1; floatText(u, '定身', 'info'); refreshFx(u); }
     if (!skillHitFx(act.skill, t)) slashFx(t, !!s.fire);
     impactAt(t, crit); SND.hit(crit);
     floatText(t, (crit ? '暴击 ' : '') + '-' + dmg, crit ? 'crit' : dmg >= t.maxHp * 0.25 ? 'big' : '');
@@ -1781,9 +1799,16 @@ async function perform(u, act) {
     knock(t, u, crit ? 30 : 15);
     drawUnit(t);
     if (t.hp <= 0 && tp.ownerAtk && B.player && B.player.alive && t.side === B.player.side) { B.player.atk = Math.round(B.player.atk * (1 + tp.ownerAtk)); B.player.matk = Math.round(B.player.matk * (1 + tp.ownerAtk)); floatText(B.player, '攻击 +' + Math.round(tp.ownerAtk * 100) + '%', 'info'); }
+    if (t.hp > 0 && tp.hurtStack) t._hs = (t._hs || 0) + 1;
+    if (t.hp > 0 && tp.hurtAtk && (t._ha || 0) < tp.hurtAtk.max) { t._ha = (t._ha || 0) + 1; t.atk = Math.round(t.atk * (1 + tp.hurtAtk.step)); t.matk = Math.round(t.matk * (1 + tp.hurtAtk.step)); }
+    if (crit && s.critAtk && (u._ca || 0) < 3) { u._ca = (u._ca || 0) + 1; u.atk = Math.round(u.atk * 1.15); u.matk = Math.round(u.matk * 1.15); floatText(u, '攻击 +15%', 'info'); }
     if (t.hp <= 0) { t.alive = false; t.st = {}; setTimeout(() => { t.el.classList.add('dead'); SND.die(); }, 160); }
     else {
       if (s.fear) { const f = t.st.fear || { turns: 3, n: 0 }; f.n = Math.min(3, f.n + s.fear); f.turns = 3; if (!t._df0) t._df0 = t.def; t.def = Math.round(t._df0 * (1 - 0.12 * f.n)); t.st.fear = f; floatText(t, '恐惧', 'info'); }
+      if (s.hpCut) { const c = Math.round(t.maxHp * s.hpCut); t.maxHp -= c; t.hp = Math.min(t.hp, t.maxHp); floatText(t, '上限 -' + c, 'info'); drawUnit(t); }
+      if (s.defDown) { if (!t._dd0) { t._dd0 = t.def; t.def = Math.round(t.def * (1 - s.defDown)); } t.st.dd = { turns: 3 }; floatText(t, '破防', 'info'); }
+      if (s.mfear) { if (!t._md0) t._md0 = t.mdef; const n = Math.min(3, (t._mf || 0) + 1); t._mf = n; t.mdef = Math.round(t._md0 * (1 - 0.1 * n)); t.st.mfear = { turns: 3 }; floatText(t, '离魂', 'info'); }
+      if (s.curse) { t._cu = Math.min(2, (t._cu || 0) + 1); if (t._cu <= 2) { t.atk = Math.round(t.atk * 0.9); t.matk = Math.round(t.matk * 0.9); } t.st.curse = { turns: 2 }; floatText(t, '天罚', 'info'); }
       if (s.mark) { t.st.mark = { turns: s.mark }; floatText(t, '魔化', 'info'); }
       if (s.slow) { if (!t.st.slow) { t._spd0 = t.spd; t._dg0 = t.dodge; t.spd = Math.round(t.spd * 0.8); t.dodge = Math.max(0, t.dodge - 10); } t.st.slow = { turns: s.slow }; floatText(t, '减速', 'info'); }
     }

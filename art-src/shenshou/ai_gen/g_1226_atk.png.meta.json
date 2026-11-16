@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "out": "g_1226_atk.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 504,
+      "elapsed": 185.0,
+      "error": "{'code': 'upstream_connect_timeout', 'message': 'Upstream preparation exceeded the opening time limit', 'type': 'server_error'}"
+    },
+    {
+      "attempt": 2,
+      "status": 200,
+      "elapsed": 45.3,
+      "error": null
+    }
+  ]
+}

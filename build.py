@@ -311,26 +311,35 @@ def ai_pet(k,H,q=0.9):
     ms={'idle':150,'hit':110,'dodge':110}; out={nm:[[i,ms.get(nm,120)] for i in v] for nm,v in seq.items()}
     petmeta[f'b_ss_{k}']=dict(sheet=f'bp_ss_{k}',cols=cols,rows=rows,cw=round(cw*ls,1),ch=round(ch*ls,1),ox=round(half*ls,1),by=0,H=H,seq=out,rel={'atk':2})
     size[f'bp_ss_{k}']=[round(cw*ls,1),round(ch*ls,1)]
-for k,H in [('1227',142)]:
+for k,H in [('1227',142),('1222',160),('1223',150),('1224',150),('1225',150),('1226',165),('1221',158)]:
     if os.path.isdir(f'{G}/shenshou/ai/{k}'): ai_pet(k,H)
 # 神兽弹道特效：从原作技能帧里切出身体以外的光束 / 龙焰（x≥650 的部分，原图朝右、保持朝右），战斗里按目标方向旋转、飞向目标。
-def pfx_pet(k,H,sets,xcut=650,q=0.9,boost=1.5):
-    cfg=json.load(open(f'{G}/shenshou/pets.json'))[k]; reg=cfg['region']; hd=f'{G}/shenshou/hd/{k}'; ls=H/reg[cfg['anims'][0][0].__str__()][3]
-    crops=[]; amap={}
-    for sk,ids in sets.items():
-        amap[sk]=[]
+def pfx_pet(k,H,sets,q=0.9,boost=1.5):
+    cfg=json.load(open(f'{G}/shenshou/pets.json'))[k]; reg=cfg['region']; hd=f'{G}/shenshou/hd/{k}'; ls=H/reg[str(cfg['anims'][0][0])][3]
+    crops=[]; amap={}; scm={}
+    for sk,(ids,xcut,sc) in sets.items():
+        amap[sk]=[]; scm[sk]=sc
         for f in ids:
-            im=Image.open(f'{hd}/zd_{int(f):03d}.png').convert('RGBA'); rx,ry,rw,rh=reg[str(f)]
+            fn=f'{hd}/zd_{int(f):03d}.png' if str(f).isdigit() else f'{hd}/zd_{str(f).split("-")[0]}-{int(str(f).split("-")[1]):03d}.png'
+            im=Image.open(fn).convert('RGBA'); rx,ry,rw,rh=reg[str(f)]
             cv=Image.new('RGBA',(1000,600),(0,0,0,0)); cv.alpha_composite(im,(rx,ry)); c=cv.crop((xcut,0,1000,600)); bb=c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox()
-            c=c.crop(bb); amap[sk].append(len(crops)); crops.append((c,bb[1]+c.height/2-560))   # 竖直中心相对身体原点 (y=560) 的偏移
-    cw=max(c.width for c,_ in crops); ch=max(c.height for c,_ in crops)
+            c=c.crop(bb); amap[sk].append(len(crops)); crops.append(c)
+    cw=max(c.width for c in crops); ch=max(c.height for c in crops)
     sheet=Image.new('RGBA',(cw*len(crops),ch),(0,0,0,0))
-    for i,(c,_) in enumerate(crops): sheet.alpha_composite(c,(i*cw,(ch-c.height)//2))
+    for i,c in enumerate(crops): sheet.alpha_composite(c,(i*cw,(ch-c.height)//2))
     sheet=sheet.resize((round(sheet.width*q),round(sheet.height*q)),Image.LANCZOS); sheet.save(f'{AD}/pfx_ss_{k}.webp',quality=90,method=6)
-    petmeta[f'b_ss_{k}']['pfx']=dict(sheet=f'pfx_ss_{k}',n=len(crops),cw=round(cw*ls*boost,1),ch=round(ch*ls*boost,1),map=amap)
+    petmeta[f'b_ss_{k}']['pfx']=dict(sheet=f'pfx_ss_{k}',n=len(crops),cw=round(cw*ls*boost,1),ch=round(ch*ls*boost,1),map=amap,sc=scm)
     size[f'pfx_ss_{k}']=[round(cw*ls*boost,1),round(ch*ls*boost,1)]
-if 'b_ss_1227' in petmeta and os.path.isdir(f'{G}/shenshou/hd/1227'):
-    pfx_pet('1227',142,{'ss_hit':[9,10],'ss_sl_bw':[15,16],'ss_kl':[25,15,16]})
+# 各神兽弹道：{技能: ([原作帧], 裁切起点 x, 放大倍数)}
+PFX={'1227':{'ss_hit':([9,10],650,1),'ss_sl_bw':([15,16],650,1),'ss_kl':([25,15,16],650,1.3)},
+ '1222':{'ss_hit':([35,36],650,1),'ss_sy':([28,29],650,1.2)},
+ '1223':{'ss_hit':([18,19],650,1),'ss_sx':([22,23],690,1.1),'ss_tsy':([22,23],690,1.3)},
+ '1224':{'ss_hit':([18],640,1),'ss_ts':([17,18],640,1.2)},
+ '1225':{'ss_hit':([18,19],730,1),'ss_sg':([18,19],730,1.3)},
+ '1221':{'ss_hit':(['attack-2','attack-3'],650,0.9),'ss_qk':(['attack-2','attack-3'],650,1.2)},
+ '1226':{'ss_hit':([17,18,19,20],700,1),'ss_th':([17,18,19],700,1.5),'ss_dy':([18,19,20],700,1.2)}}
+for k,H in [('1227',142),('1222',160),('1223',150),('1224',150),('1225',150),('1226',165),('1221',158)]:
+    if f'b_ss_{k}' in petmeta and os.path.isdir(f'{G}/shenshou/hd/{k}'): pfx_pet(k,H,PFX[k])
 # 神兽展示图（面板 / 图鉴 / 地图正面）：原作待机首帧，保持原作朝向，紧裁剪，身高与战斗图一致
 for k,H,f in [('1221',158,'idle-001'),('1222',160,'009'),('1223',150,'001'),('1224',150,'009'),('1225',150,'009'),('1226',165,'005'),('1227',142,'001')]:
     p=f'{G}/shenshou/hd/{k}/zd_{f}.png'

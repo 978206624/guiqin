@@ -1,0 +1,3 @@
+{"attempt": 1, "status": 504, "elapsed": 183.5, "error": "{'code': 'upstream_connect_timeout', 'message': 'Upstream preparation exceeded the opening time limit', 'type': 'server_error'}"}
+{"attempt": 2, "status": 200, "elapsed": 88.2, "error": null}
+SAVED g_1222_hit.png

@@ -636,3 +636,39 @@ window.DATA.petSeq = {
   b_ss_1227: { ss_hit: 'atk', ss_sl_bw: 'sk2', ss_kl: 'sk3' },
   b_ss_1221: { ss_hit: 'atk', ss_qk: 'atk' }
 };
+
+// ---------- 另外 5 只神兽（原作 1222~1226）：技能 / 被动名称与数值取自原作 pet_skills_special，叠层类效果在演示版里折算 ----------
+(function () {
+  const D = window.DATA;
+  Object.assign(D.skills, {
+    ss_sy:  { name: '碎元剑诀', mp: 0, power: 2.0, target: 'one', hpCut: 0.05, ss: true, des: '对目标造成 200% 攻击伤害，并削减对方 5% 生命上限。' },
+    ss_sx:  { name: '蛇啸焚天', mp: 0, power: 2.5, magic: true, target: 'one', mfear: 1, ss: true, des: '对目标造成 250% 法术伤害，并使其「离魂」：法防降低 10%，持续 3 回合，最多叠加 3 层。' },
+    ss_tsy: { name: '天蛇噬血', mp: 0, power: 4.0, magic: true, target: 'one', cd: 5, guard: 2, ss: true, des: '对目标造成 400% 法术伤害，自身获得 2 次抵挡（免疫 2 次伤害），冷却 5 回合。（原作另有离魂转血量，演示版省略）' },
+    ss_ts:  { name: '天魔噬魂', mp: 0, power: 0.8, magic: true, target: 'all', defDown: 0.3, ss: true, des: '对全体敌人造成 80% 法术伤害，并使其物防降低 30%，持续 3 回合。' },
+    ss_sg:  { name: '双龙逆天', mp: 0, power: 1.8, target: 'one', critUp: 50, critAtk: true, ss: true, des: '暴击率提高 50%，以 180% 攻击斩向单体；暴击后自身攻击提升 15%，最多叠加 3 次。' },
+    ss_zw:  { name: '真武御体', mp: 0, target: 'self', cd: 5, absorb: 2, ss: true, des: '给自己加持血盾：接下来 2 次受到的伤害转化为治疗。冷却 5 回合。' },
+    ss_th:  { name: '天火燎原', mp: 0, power: 4.0, magic: true, target: 'one', cd: 5, baoti: true, ss: true, des: '对目标造成 400% 法术伤害，并消耗全部「霸体」层数，每层使伤害提升 10%。冷却 5 回合。' },
+    ss_dy:  { name: '都天炎爆', mp: 0, power: 2.5, magic: true, target: 'one', curse: true, ss: true, des: '对目标造成 250% 法术伤害，使其陷入「天罚」：受到伤害 +10%、攻击 -10%，持续 2 回合，最多叠加 2 层。' }
+  });
+  const base = { q: 5, ss: true, ai: 'ss', own: false, how: '集齐神兽之魂，到神兽使者处兑换' };
+  D.petDex.ss_1222 = Object.assign({}, base, { name: '惑天玄姬', adv: '祸天狐仙', sprite: 'b_ss_1222', show: 'pd_ss_1222', h: 160, kind: '神兽 · 物攻 · 迅捷',
+    desc: '九尾狐族的玄姬，立于紫色法阵之上，卷轴所指之处，万剑齐发。', mult: { hp: 0.7, atk: 0.95, def: 0.6, spd: 1.2 },
+    act: [['ss_sy', 1], ['ss_hit', 1]], pas: { dmgUp: 0.3, deathWard: 1 },
+    pasList: [['万剑归宗', '造成的伤害额外提升 30%。'], ['绝杀咒印', '受到致死伤害时保留 1 点生命并无敌一回合，之后伤害提升 50%（一场一次）。']] });
+  D.petDex.ss_1223 = Object.assign({}, base, { name: '小青娘子', adv: '千年青蛇', sprite: 'b_ss_1223', show: 'pd_ss_1223', h: 150, kind: '神兽 · 法攻 · 控制', mag: true,
+    desc: '蛇身人面的青衣娘子，手持葫芦灯，吐息如焰，眼波能定人魂魄。', mult: { hp: 0.85, atk: 1.0, def: 0.7, spd: 1.1 },
+    act: [['ss_tsy', 1], ['ss_sx', 1], ['ss_hit', 1]], pas: { lethalStun: 1 },
+    pasList: [['蛊心定影', '受到致死伤害时，使对方定身一回合，期间其受到的伤害翻倍（一场一次；演示版中她自己仍会倒下）。']] });
+  D.petDex.ss_1224 = Object.assign({}, base, { name: '九天玄女', adv: '九天圣女', sprite: 'b_ss_1224', show: 'pd_ss_1224', h: 150, kind: '神兽 · 法攻 · 辅助', mag: true,
+    desc: '头戴金焰光环的玄女，红袍广袖，挥袖间魔光如潮。', mult: { hp: 0.9, atk: 0.85, def: 0.8, spd: 1.0 },
+    act: [['ss_ts', 1], ['ss_hit', 1]], pas: { take: 0.6, dodgeUp: 20, revive: 1, reviveAtk: 0.2, reviveText: '移魂转命' },
+    pasList: [['九天魔甲', '受到的伤害减少 40%，闪避提高 20%。'], ['移魂转命', '致死时恢复全部生命并提升 20% 法攻（一场一次）。']] });
+  D.petDex.ss_1225 = Object.assign({}, base, { name: '龙翔天兵', adv: '龙翔神将', sprite: 'b_ss_1225', show: 'pd_ss_1225', h: 150, kind: '神兽 · 物攻 · 坚韧',
+    desc: '金甲红缨的天兵，长枪所指，火焰随行。', mult: { hp: 0.85, atk: 0.9, def: 0.9, spd: 1.0 },
+    act: [['ss_zw', 1], ['ss_sg', 1], ['ss_hit', 1]], pas: { dbl: 0.2, hurtStack: { step: 0.1, max: 4 } },
+    pasList: [['神鬼俱焚', '每次攻击有 20% 几率造成双倍伤害。'], ['仙魔真诀', '每受到一次伤害，伤害减免提高 10%，最多叠加 4 次。']] });
+  D.petDex.ss_1226 = Object.assign({}, base, { name: '龙翔帝君', adv: '龙翔大帝', sprite: 'b_ss_1226', show: 'pd_ss_1226', h: 165, kind: '神兽 · 法攻 · 霸体', mag: true,
+    desc: '浑身燃着烈焰的帝君，一柄巨斧劈开天火，脚下炎环不灭。', mult: { hp: 1.0, atk: 1.0, def: 0.9, spd: 0.9 },
+    act: [['ss_th', 1], ['ss_dy', 1], ['ss_hit', 1]], pas: { baoti: 1, baotiStart: 5, atkMul: 1.3, revive: 0.6, reviveText: '混元霸体', hurtAtk: { step: 0.1, max: 10 } },
+    pasList: [['烈战狂歌', '开场获得 5 层霸体，攻击提升 30%。'], ['混元霸体', '每回合获得 1 层霸体（最多 5 层），每层使受到的伤害 -10%；致死时恢复 60% 生命（一场一次）。'], ['九域神威', '每受到一次伤害，攻击提升 10%，最多叠加 10 次。']] });
+})();
