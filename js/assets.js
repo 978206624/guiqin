@@ -43,6 +43,8 @@ window.ASSETS = {
   "bg_wolfvalley": "assets/bg_wolfvalley.webp",
   "boar": "assets/boar.webp",
   "boss": "assets/boss.webp",
+  "bp_ss_1221": "assets/bp_ss_1221.webp",
+  "bp_ss_1227": "assets/bp_ss_1227.webp",
   "cls_dao_dz": "assets/cls_dao_dz.webp",
   "cls_dao_dz_m": "assets/cls_dao_dz_m.webp",
   "cls_dao_qm": "assets/cls_dao_qm.webp",
@@ -514,13 +516,23 @@ window.ASSETS = {
    108.5,
    145.0
   ],
+  "bp_ss_1227": [
+   180,
+   150,
+   10
+  ],
   "b_ss_1227": [
-   79.5,
-   112.0
+   180,
+   150
+  ],
+  "bp_ss_1221": [
+   176,
+   170,
+   14
   ],
   "b_ss_1221": [
-   100.5,
-   124.0
+   176,
+   170
   ],
   "kk_npc14": [
    58.0,
