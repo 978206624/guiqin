@@ -223,10 +223,25 @@ def cast_anim(src,name,stand_h=126):
 CA=G+'/cast-anim'
 for n in ['dao_dz','dao_dz_m','dao_qm','dao_qm_m','dao_ty','dao_ty_m']:
     if os.path.exists(f'{CA}/{n}.png'): cast_anim(f'{CA}/{n}.png','bc_'+n)
-# 神兽（art-src/shenshou：参考原作拆件像素图，图像生成重绘的战斗立绘）
+# 神兽：直接用原作高清手绘帧（kunkunxunqin client/assets/pet_handpainted，tools/extract_hdpet.py 解出；各帧按 manifest 的 region 摆回 1000×600 画布，脚底对齐裁成同大小格子，水平翻转（原图朝右，本作我方朝左））
+# bp_ss_<id>：横向精灵表；b_ss_<id>：待机首帧静图。帧序列定义在 js/data.js 的 D.petAnim
+import re
+def hd_pet(k, pwd, frames, cell, ls):
+    mf=open(f'/home/claude/kunkunxunqin/client/assets/pet_handpainted/{pwd}/manifest.gd').read()
+    reg={m.group(1):tuple(map(int,m.group(2,3,4,5))) for m in re.finditer(r'frame-([\w-]+)\.res"\), "region": Rect2\((\d+), (\d+), (\d+), (\d+)\)',mf)}
+    hd=f'{G}/shenshou/hd/{k}'; x0,y0,x1,y1=cell; cw,ch=x1-x0,y1-y0
+    sheet=Image.new('RGBA',(cw*len(frames),ch),(0,0,0,0))
+    for i,f in enumerate(frames):
+        im=Image.open(f'{hd}/zd_{f}.png').convert('RGBA'); rx,ry,rw,rh=reg[f]; assert im.size==(rw,rh),(f,im.size,rw,rh)
+        cv=Image.new('RGBA',(1000,600),(0,0,0,0)); cv.alpha_composite(im,(rx,ry))
+        sheet.alpha_composite(cv.crop(cell).transpose(Image.FLIP_LEFT_RIGHT),(i*cw,0))
+    w2,h2=round(cw*ls),round(ch*ls); n=len(frames)
+    sheet.save(f'{AD}/bp_ss_{k}.webp',quality=92,method=6); size[f'bp_ss_{k}']=[w2,h2,n]
+    sheet.crop((0,0,cw,ch)).save(f'{AD}/b_ss_{k}.webp',quality=92,method=6); size[f'b_ss_{k}']=[w2,h2]
 SS=G+'/shenshou'
-for k,h in [('1227',112),('1221',124)]:
-    if os.path.exists(f'{SS}/gen_{k}.png'): cut_row(f'{SS}/gen_{k}.png',['b_ss_'+k],{'b_ss_'+k:h})
+if os.path.exists(f'{SS}/hd/1227'):
+    hd_pet('1227','cw_xlr',['001','002','003','007','008','013','028','019','026','018'],(350,330,650,580),0.6)
+    hd_pet('1221','1220',['idle-001','idle-002','idle-003','idle-004','idle-005','attack-001','attack-004','hit-001','hit-002','hit-003','dodge-001','dodge-002','dodge-003','dodge-004'],(340,262,660,572),0.55)
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)

@@ -1350,8 +1350,33 @@ function makeUnit(side, row, def, pos) {
     kit: def.kit, pas: def.pas, cd: {}, alive: true, defending: false, ai: def.ai || 'attack', aggro: def.aggro || 1, data: def.data || null, magicAtk: !!def.magicAtk, st: {} };
   if (side === 'enemy') el.addEventListener('click', () => { if (B.picking && u.alive) { const f = B.picking; B.picking = null; f(u); } });
   if (u.pas && u.pas.atkMul) { u.atk = Math.round(u.atk * u.pas.atkMul); u.matk = Math.round(u.matk * u.pas.atkMul); }
-  B.units.push(u); drawUnit(u); return u;
+  B.units.push(u); petAnimInit(u); drawUnit(u); return u;
 }
+
+// 神兽逐帧动画：待机循环，攻击 / 受击 / 闪避时临时插播
+function petAnimInit(u) {
+  const key = 'bp_' + (u.sprite || '').slice(2), pa = D.petAnim && D.petAnim[u.sprite];
+  if (!pa || !AS.size[key] || !AS.size[key][2]) return;
+  const sz = AS.size[key], n = sz[2], k = u.h / sz[1], w = sz[0] * k, h = sz[1] * k, d = document.createElement('div'), img = u.el.querySelector('img');
+  d.className = 'pa'; d.style.cssText = 'left:' + (-w / 2) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG(key) + ');background-size:' + (n * 100) + '% 100%';
+  u.el.insertBefore(d, img); img.style.visibility = 'hidden';
+  u.pa = { d, n, seq: 'idle', i: 0, tm: 0, lock: 0 };
+  const show = f => { d.style.backgroundPosition = (n > 1 ? f * 100 / (n - 1) : 0) + '% 0'; };
+  const tick = () => {
+    const p = u.pa; if (!p || !u.el.isConnected) return;
+    const s = pa[p.seq]; if (p.i >= s.length) { if (p.seq !== 'idle') { p.seq = 'idle'; p.lock = 0; } p.i = 0; }
+    const [f, ms] = pa[p.seq][p.i++]; show(f); p.tm = setTimeout(tick, ms);
+  };
+  tick();
+}
+function petPlay(u, name) {
+  const p = u.pa, pa = D.petAnim[u.sprite]; if (!p || !pa[name]) return;
+  clearTimeout(p.tm); p.seq = name; p.i = 0; p.lock = 1;
+  const s = pa[name]; let i = 0, tot = 0; for (const [, ms] of s) tot += ms;
+  const run = () => { if (!u.el.isConnected) return; if (i >= s.length) { p.seq = 'idle'; p.i = 0; p.lock = 0; return petTick(u); } const [f, ms] = s[i++]; p.d.style.backgroundPosition = (p.n > 1 ? f * 100 / (p.n - 1) : 0) + '% 0'; p.tm = setTimeout(run, ms); };
+  run();
+}
+function petTick(u) { const p = u.pa, pa = D.petAnim[u.sprite]; const loop = () => { if (!u.el.isConnected || p.lock) return; if (p.i >= pa.idle.length) p.i = 0; const [f, ms] = pa.idle[p.i++]; p.d.style.backgroundPosition = (p.n > 1 ? f * 100 / (p.n - 1) : 0) + '% 0'; p.tm = setTimeout(loop, ms); }; loop(); }
 function drawUnit(u) {
   u.el.querySelector('.hpb i').style.width = Math.max(0, u.hp / u.maxHp * 100) + '%';
   if (u === B.player) { setBar('hp', u.hp, u.maxHp); setBar('mp', u.mp, u.maxMp); }
@@ -1396,6 +1421,7 @@ function knock(t, from, px) {          // 受击后仰：沿“攻击者→目�
   setTimeout(() => { t.el.classList.remove('kb'); t.el.classList.add('ret'); t.el.style.transform = ''; setTimeout(() => t.el.classList.remove('ret'), 280); }, 90);
 }
 function dodgeStep(t, from) {          // 闪避：向侧后方滑开一步
+  petPlay(t, 'dodge');
   const s = t.side === 'ally' ? 1 : -1;
   t.el.classList.add('kb'); t.el.style.transform = 'translate(' + (s * 26) + 'px,-8px)';
   setTimeout(() => { t.el.classList.remove('kb'); t.el.classList.add('ret'); t.el.style.transform = ''; setTimeout(() => t.el.classList.remove('ret'), 280); }, 150);
@@ -1698,6 +1724,7 @@ async function perform(u, act) {
   const ux = t0.pos.x - u.pos.x, uy = t0.pos.y - u.pos.y, UL = Math.hypot(ux, uy) || 1;
   u.el.style.zIndex = 1500;
   if (!music) {                                   // 预备动作：向后蓄一下
+    petPlay(u, 'atk');
     u.el.classList.add('kb'); u.el.style.transform = 'translate(' + (-ux / UL * 16) + 'px,' + (-uy / UL * 8) + 'px) scale(1.02,.96)'; await sleep(110);
     u.el.classList.remove('kb');
   }
@@ -1726,7 +1753,7 @@ async function perform(u, act) {
     if (!skillHitFx(act.skill, t)) slashFx(t, !!s.fire);
     impactAt(t, crit); SND.hit(crit);
     floatText(t, (crit ? '暴击 ' : '') + '-' + dmg, crit ? 'crit' : dmg >= t.maxHp * 0.25 ? 'big' : '');
-    t.el.classList.remove('hit'); void t.el.offsetWidth; t.el.classList.add('hit');
+    t.el.classList.remove('hit'); void t.el.offsetWidth; t.el.classList.add('hit'); petPlay(t, 'hit');
     knock(t, u, crit ? 30 : 15);
     drawUnit(t);
     if (t.hp <= 0 && tp.ownerAtk && B.player && B.player.alive && t.side === B.player.side) { B.player.atk = Math.round(B.player.atk * (1 + tp.ownerAtk)); B.player.matk = Math.round(B.player.matk * (1 + tp.ownerAtk)); floatText(B.player, '攻击 +' + Math.round(tp.ownerAtk * 100) + '%', 'info'); }
