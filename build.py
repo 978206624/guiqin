@@ -223,6 +223,10 @@ def cast_anim(src,name,stand_h=126):
 CA=G+'/cast-anim'
 for n in ['dao_dz','dao_dz_m','dao_qm','dao_qm_m','dao_ty','dao_ty_m']:
     if os.path.exists(f'{CA}/{n}.png'): cast_anim(f'{CA}/{n}.png','bc_'+n)
+# 神兽（art-src/shenshou：参考原作拆件像素图，图像生成重绘的战斗立绘）
+SS=G+'/shenshou'
+for k,h in [('1227',112),('1221',124)]:
+    if os.path.exists(f'{SS}/gen_{k}.png'): cut_row(f'{SS}/gen_{k}.png',['b_ss_'+k],{'b_ss_'+k:h})
 # 大地图：城镇用整张原图，城外用新图；各配一张小地图用的缩略图
 t=Image.open(G+'/town6.jpg').convert('RGB'); t.save(f'{AD}/bg_town.jpg',quality=95); t.resize((512,round(512*t.height/t.width)),Image.LANCZOS).save(f'{AD}/mini_town.jpg',quality=80)
 w=Image.open(G+'/wild.png').convert('RGB'); w.save(f'{AD}/bg_wild.jpg',quality=88,optimize=True); w.resize((512,288),Image.LANCZOS).save(f'{AD}/mini_wild.jpg',quality=80)

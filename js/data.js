@@ -603,3 +603,30 @@ window.DATA = {
     heart: { name: '道家心法', desc: '每级提升法攻 2 点、法防 2 点（原作：智力、精神）', perLv: { matk: 2, mdef: 2 } },
     auto: [['lingmai_fs', 'selfHurt'], ['dangmo_fs', 'always']], desc: '已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。' });
 })();
+
+// ---------- 神兽（参考原作 data_pet_defs 的 1221~1227 与 pet_skills_special；原作还有进阶形态 x8，这里先记名字） ----------
+// 数据驱动：每只 = 图鉴条目 + 战斗倍率 mult + 出手表 act（[技能, 触发几率] 按顺序试）+ 被动 pas。技能描述原样取自原作，演示版数值已折算
+(function () {
+  const D = window.DATA;
+  D.petQuality[5] = { name: '神兽', color: '#ff8a5a', stars: 5 };
+  D.items.ss_soul = { name: '神兽之魂', icon: 'jade_charm', q: 4, type: 'mat', price: 10, desc: '神兽遗落世间的精魂，集齐后可到神兽使者处兑换神兽（原作需要 99 个，演示版 ' + 10 + ' 个）。' };
+  D.ssCost = 10; D.ssRite = { coin: 800, min: 1, max: 3 };
+  Object.assign(D.skills, {
+    ss_hit:   { name: '神兽冲击', mp: 0, power: 1.1, target: 'one', ss: true, des: '以 110% 攻击冲击一名敌人。' },
+    ss_sl_bw: { name: '神龙摆尾', mp: 0, power: 2.5, target: 'one', fear: 1, ss: true, des: '对目标造成 250% 攻击伤害，使对方恐惧（降低物防，叠加 3 层）。' },
+    ss_kl:    { name: '亢龙有悔', mp: 0, power: 4.0, target: 'one', cd: 5, ss: true, des: '对目标造成 400% 攻击伤害，冷却 5 回合。（原作附带燃烧目标魔法）' },
+    ss_qk:    { name: '乾坤逆转', mp: 0, power: 1.65, target: 'one', cd: 5, selfCost: 0.15, ss: true, des: '消耗 15% 最大血量，按 150% 转为物攻，以物攻 110% 对单体造成伤害，冷却 5 回合。' }
+  });
+  const base = { q: 5, ss: true, ai: 'ss', own: false, how: '集齐神兽之魂，到神兽使者处兑换' };
+  D.petDex.ss_1227 = Object.assign({}, base, { name: '青龙仙童', adv: '苍龙仙童', sprite: 'b_ss_1227', h: 100, kind: '神兽 · 物攻 · 迅捷',
+    desc: '青龙座下的仙童，发间青鬃随水汽翻飞，周身缠着一缕龙灵。', mult: { hp: 0.75, atk: 0.9, def: 0.7, spd: 1.35 },
+    act: [['ss_kl', 1], ['ss_sl_bw', 0.5], ['ss_hit', 1]], pas: { atkMul: 1.35, vsFear: 1.3, dbl: 0.15, revive: 0.6, take: 0.6 },
+    pasList: [['龙族本能', '对恐惧状态目标伤害提升 30%，自身攻击提升 35%。'], ['神龙祝福', '致死时恢复 60% 生命（一场一次），每次攻击 15% 几率双倍伤害。'], ['龙鳞护体', '降低所受伤害（演示版 -40%）。原作：降低 60% 受伤，死亡后降低所有敌方物防。']] });
+  D.petDex.ss_1221 = Object.assign({}, base, { name: '逆天魔龙', adv: '灭天魔龙', sprite: 'b_ss_1221', h: 124, kind: '神兽 · 物攻 · 耐久',
+    desc: '逆天而行的魔龙，紫鬃蓝鳞，盘踞云端，吐息间天象皆变。', mult: { hp: 0.9, atk: 0.8, def: 0.9, spd: 1.3 },
+    act: [['ss_qk', 0.6], ['ss_hit', 1]], pas: { lowAtk: 0.2, ownerAtk: 0.2 },
+    pasList: [['万魔归宗', '生命低于 30% 时，提升自身 20% 的攻击。'], ['邪龙附体', '死亡时为主人增加 20% 的攻击力。']] });
+  D.npcs.ss_envoy = { name: '神兽使者', title: '【神兽】', color: '#ffb08a', sprite: 'kk_npc07', head: 'head_kk_npc07', act: 'ssEnvoy',
+    idle: '神兽遗魂散落人间，聚齐了魂魄，我便能替你唤来神兽。凡人也可以出银两办一场神兽祭，求天神赐下魂魄。' };
+  D.maps.village.npcs.push({ id: 'ss_envoy', at: [1015, 805] });
+})();

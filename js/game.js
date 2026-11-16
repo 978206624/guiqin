@@ -84,8 +84,10 @@ function bondInfo() {
   const n = S.bond || 0, T = D.bondTiers; let i = 0; while (i + 1 < T.length && n >= T[i + 1].at) i++;
   return { n, i, name: T[i].name, from: T[i].at, to: i + 1 < T.length ? T[i + 1].at : null, bonus: i * 0.03 };
 }
-function petStats() {
-  const b = D.base, g = D.grow, L = S.lv, p = D.pet, k = 1 + bondInfo().bonus;
+const ownPet = id => id === 'fox' || !!(D.petDex[id] && D.petDex[id].own) || !!(S.petOwn && S.petOwn[id]);
+const petAct = () => (S.petAct && D.petDex[S.petAct] && ownPet(S.petAct)) ? S.petAct : 'fox';
+function petStats(id) {
+  const dx = D.petDex[id || petAct()] || {}, b = D.base, g = D.grow, L = S.lv, p = dx.mult || D.pet, k = 1 + bondInfo().bonus;
   return { maxHp: Math.round((b.hp + g.hp * L) * p.hp * k), atk: Math.round((b.atk + g.atk * L) * p.atk * k), matk: Math.round((b.matk + g.matk * L) * p.atk * k), def: Math.round((b.def + g.def * L) * p.def), mdef: Math.round((b.mdef + g.mdef * L) * p.def), crit: 10, dodge: 3, spd: Math.round((b.spd + g.spd * L) * p.spd) };
 }
 const expNeed = () => D.expNeed.base + D.expNeed.perLevel * S.lv;
@@ -335,10 +337,11 @@ let petTab = 'attr', petSel = 'fox';
 function petPower(p) { return Math.round(p.maxHp / 10 + p.atk * 2 + p.def * 1.5 + p.spd); }
 function stars(n, color) { return '<span class="stars" style="color:' + color + '">' + '★'.repeat(n) + '<i>' + '★'.repeat(5 - n) + '</i></span>'; }
 function openPet() {
-  const dex = D.petDex.fox, q = D.petQuality[dex.q], p = petStats(), bd = bondInfo(), b = D.base, g = D.grow, L = S.lv, m = D.pet, kb = 1 + bd.bonus;
+  const pid = petAct(), dex = D.petDex[pid], q = D.petQuality[dex.q], p = petStats(pid), bd = bondInfo(), b = D.base, g = D.grow, L = S.lv, m = dex.mult || D.pet, kb = 1 + bd.bonus;
   let h = '<div class="pethero"><div class="pglow"></div><img alt="" src="' + IMG(dex.sprite) + '"><div class="pinfo"><h5>' + dex.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
     '<p>' + stars(q.stars, q.color) + '　' + dex.kind + '</p><p>等级 <b class="gold">' + L + '</b>（随主人成长）　战力 <b class="gold">' + fmt(petPower(p)) + '</b></p>' +
     '<p class="small">亲密度 · <b style="color:#ffd9a0">' + bd.name + '</b>　' + bd.n + (bd.to ? ' / ' + bd.to : '') + '</p><div class="rbar exp bond"><i style="width:' + (bd.to ? Math.min(100, (bd.n - bd.from) / (bd.to - bd.from) * 100) : 100) + '%"></i></div></div></div>' +
+    '<div class="rtabs">' + Object.keys(D.petDex).filter(ownPet).map(id => '<button type="button" class="rtab' + (id === pid ? ' on' : '') + '" data-act="petUse:' + id + '">' + D.petDex[id].name + (id === pid ? ' · 出战' : '') + '</button>').join('') + '</div>' +
     '<div class="rtabs">' + [['attr', '属性'], ['skill', '技能'], ['dex', '图鉴']].map(t => '<button type="button" class="rtab' + (petTab === t[0] ? ' on' : '') + '" data-act="petTab:' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
   if (petTab === 'attr') {
     const row = (name, total, base, grow, note) => '<div class="arow"><span>' + name + '</span><b>' + total + '</b><small>' + note + '</small></div>';
@@ -348,20 +351,25 @@ function openPet() {
       row('防御', p.def, 0, 0, '(基础 ' + Math.round(b.def * m.def) + ' + 成长 ' + Math.round(g.def * L * m.def) + ')') +
       row('速度', p.spd, 0, 0, '(基础 ' + Math.round(b.spd * m.spd) + ' + 成长 ' + Math.round(g.spd * L * m.spd) + ')') +
       '</div><div class="bondrow">' + D.bondTiers.map((t, i) => '<div class="' + (i <= bd.i ? 'on' : '') + '"><b>' + t.name + '</b><small>' + (i ? '≥ ' + t.at + ' 战 · +' + i * 3 + '%' : '初始') + '</small></div>').join('') + '</div>' +
-      '<p class="hint">灵狐的属性取主人裸属性的一部分，随等级成长；每打赢一场战斗亲密度 +1，亲密度升档后气血和攻击提高。</p>';
+      '<p class="hint">' + dex.name + '的属性取主人裸属性的一部分，随等级成长；每打赢一场战斗亲密度 +1，亲密度升档后气血和攻击提高。</p>';
   } else if (petTab === 'skill') {
     const sk = id => { const x = D.skills[id]; return x; };
+    if (dex.ss) {
+      h += '<div class="pskills">' + dex.act.filter(a => a[0] !== 'ss_hit').map(a => { const x = D.skills[a[0]]; return '<div class="pskill"><div class="pico fire">' + x.name[0] + '</div><div><h6>' + x.name + '<small>主动' + (x.cd ? ' · 冷却 ' + x.cd + ' 回合' : '') + '</small></h6><p>' + x.des + '</p></div></div>'; }).join('') +
+        dex.pasList.map(a => '<div class="pskill"><div class="pico bond">' + a[0][0] + '</div><div><h6>' + a[0] + '<small>被动</small></h6><p>' + a[1] + '</p></div></div>').join('') +
+        '</div><p class="hint">技能描述取自原作；演示版数值已按本作难度折算。宠物在战斗中自动出手。进阶形态「' + dex.adv + '」暂未开放。</p>';
+    } else
     h += '<div class="pskills">' +
       '<div class="pskill"><div class="pico">咬</div><div><h6>撕咬<small>普通招式</small></h6><p>扑上去撕咬一名敌人，造成 ' + Math.round(p.atk * 1.0) + ' 点基础伤害。出手时有 65% 的几率使用。</p></div></div>' +
       '<div class="pskill"><div class="pico fire">火</div><div><h6>狐火<small>主动 · 35% 触发</small></h6><p>喷出一团幽蓝狐火，对一名敌人造成 ' + Math.round(p.atk * 1.6) + ' 点伤害（约 1.6 倍攻击），并优先攻击气血最低的敌人。</p></div></div>' +
       '<div class="pskill"><div class="pico bond">灵</div><div><h6>灵犀<small>被动</small></h6><p>与主人越亲近越强：当前「' + bd.name + '」档，气血、攻击 ' + (bd.i ? '+' + bd.i * 3 + '%' : '尚无加成') + '。' + (bd.to ? '再打赢 ' + (bd.to - bd.n) + ' 场升到「' + D.bondTiers[bd.i + 1].name + '」。' : '已满级。') + '</p></div></div>' +
       '</div><p class="hint">宠物在战斗中自动出手，不需要手动指挥。</p>';
   } else {
-    const ids = Object.keys(D.petDex), own = id => !!D.petDex[id].own, sel = D.petDex[petSel] || D.petDex.fox, sq = D.petQuality[sel.q];
+    const ids = Object.keys(D.petDex), own = ownPet, sel = D.petDex[petSel] || D.petDex.fox, sq = D.petQuality[sel.q];
     h += '<div class="petgrid">' + ids.map(id => { const x = D.petDex[id], c = D.petQuality[x.q].color;
       return '<button type="button" class="pcard' + (id === petSel ? ' sel' : '') + (own(id) ? '' : ' lock') + '" style="--qc:' + c + '" data-act="petSel:' + id + '"><img alt="" src="' + IMG(x.sprite) + '"><span>' + (own(id) ? x.name : '？？？') + '</span></button>'; }).join('') + '</div>' +
       '<div class="pdetail"><div class="pdhead"><h6>' + (sel.own ? sel.name : sel.name) + ' <span class="qual" style="color:' + sq.color + ';border-color:' + sq.color + '">' + sq.name + '</span></h6>' + stars(sq.stars, sq.color) + '</div>' +
-      '<p>' + sel.kind + '</p><p>' + sel.desc + '</p><p class="how">' + (sel.own ? '<b>已拥有</b>　出生自带，一直跟随主人。' : '获得途径：' + sel.how + '（暂未开放）') + '</p></div>' +
+      '<p>' + sel.kind + '</p><p>' + sel.desc + '</p><p class="how">' + (ownPet(petSel) ? '<b>已拥有</b>　' + (sel.ss ? '可在上方切换出战。' : '出生自带，一直跟随主人。') : '获得途径：' + sel.how + (sel.ss ? '' : '（暂未开放）')) + '</p></div>' +
       '<p class="hint">已收集 ' + ids.filter(own).length + ' / ' + ids.length + '</p>';
   }
   openModal('宠物', h);
@@ -393,6 +401,9 @@ function openSmith(tab) {
   openModal('王记铁匠铺', tabs + forgeView(smithTabNow));
 }
 const ACTS = {
+  petUse(id) { if (!ownPet(id)) return; S.petAct = id; petSel = id; save(); applyPetLook(); toast(D.petDex[id].name + ' 出战'); openPet(); },
+  ssExch(id) { const dx = D.petDex[id]; if (!dx || ownPet(id)) return; if ((S.items.ss_soul || 0) < D.ssCost) { toast('神兽之魂不够'); return; } addItem('ss_soul', -D.ssCost); S.petOwn = S.petOwn || {}; S.petOwn[id] = true; S.petAct = id; save(); refresh(); applyPetLook(); toast('神兽「' + dx.name + '」跟随了你'); openEnvoy(); },
+  ssRite() { if (S.coin < D.ssRite.coin) { toast('银两不够'); return; } S.coin -= D.ssRite.coin; const n = Math.round(rnd(D.ssRite.min, D.ssRite.max)); addItem('ss_soul', n); save(); refresh(); toast('神兽祭：天神赐下神兽之魂 ×' + n); openEnvoy(); },
   sel(id) { bagSel = id; openBag(); },
   eqBag(id) { eqSel = { t: 'bag', v: id }; openRole(); },
   eqSlot(sl) { eqSel = { t: 'slot', v: sl }; openRole(); },
@@ -502,6 +513,17 @@ Object.values(WALK_SHEET).forEach(k => { const im = new Image(); im.src = IMG(k)
 fox.imgB = document.createElement('img'); fox.imgB.alt = ''; fox.imgB.src = IMG('b_fox');
 { const sz = AS.size.b_fox, h = fox.h + 4, w = h * sz[0] / sz[1]; fox.imgB.style.cssText = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px'; }
 fox.imgB.hidden = true; fox.el.insertBefore(fox.imgB, fox.tag); fox.dir = 'f';
+function applyPetLook() {          // 出战宠物是神兽时，地图上跟随的形象换成它的图（只有一张，前后共用）
+  const id = petAct(), dx = D.petDex[id];
+  if (dx.ss && AS.size[dx.sprite]) {
+    const sz = AS.size[dx.sprite], h = dx.h * 0.62, w = h * sz[0] / sz[1], css = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px';
+    fox.img.src = IMG(dx.sprite); fox.img.style.cssText = css; fox.imgB.src = IMG(dx.sprite); fox.imgB.style.cssText = css; fox.h = h; fox.name = dx.name;
+  } else {
+    const sz = AS.size.fox; fox.img.src = IMG('fox'); fox.img.style.cssText = 'width:' + sz[0] + 'px;height:' + sz[1] + 'px;left:' + (-sz[0] / 2) + 'px'; fox.h = sz[1];
+    const sb = AS.size.b_fox, h = fox.h + 4, w = h * sb[0] / sb[1]; fox.imgB.src = IMG('b_fox'); fox.imgB.style.cssText = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px'; fox.name = '灵狐';
+  }
+  fox.tag.style.bottom = (fox.h + 2) + 'px'; drawTag(fox);
+}
 
 // ---------- 载入地图 ----------
 function loadMap(id, at) {
@@ -819,6 +841,14 @@ function offerSect() {
 }
 // 门派两步：10 级找门主入道家（ROLE.sect），再去对应堂主处选分堂（职业形象此时才变）。原作入门 15 级、分堂 30 级，演示只做到 10 级所以都按 10 级
 const SECT_LV = 10;
+function openEnvoy() {
+  const have = S.items.ss_soul || 0;
+  let h = '<p class="center" style="margin:0">神兽之魂 <b class="gold">' + have + '</b>　银两 <b class="gold">' + fmt(S.coin) + '</b></p><div class="shop">' +
+    Object.keys(D.petDex).filter(id => D.petDex[id].ss).map(id => { const x = D.petDex[id], own = ownPet(id);
+      return '<button type="button" class="row" data-act="ssExch:' + id + '"' + (own || have < D.ssCost ? ' disabled' : '') + '><img alt="" src="' + IMG(x.sprite) + '" style="height:54px;width:auto"><div><h5 style="color:' + D.petQuality[x.q].color + '">' + x.name + '<small style="color:var(--muted)">　进阶：' + x.adv + '</small></h5><p>' + x.kind + '　技能：' + x.act.filter(a => a[0] !== 'ss_hit').map(a => D.skills[a[0]].name).join('、') + '</p></div><span>' + (own ? '已拥有' : '魂 ×' + D.ssCost) + '</span></button>'; }).join('') +
+    '</div><p class="center" style="margin:14px 0 0"><button type="button" class="tbtn red" data-act="ssRite">办神兽祭　银两 ' + D.ssRite.coin + '</button></p><p class="hint">神兽祭：奉上祭品，天神会赐下 ' + D.ssRite.min + '~' + D.ssRite.max + ' 枚神兽之魂。（原作兑换需要 99 枚，演示版 ' + D.ssCost + ' 枚）</p>';
+  openModal('神兽使者', h);
+}
 function joinDaoTalk() {
   const c = curCls();
   if (ROLE.sect === 'dao') {            // 已入道家：门主管基础技能；选了分堂的，基础技能不再用，分堂技能去堂主处
@@ -887,6 +917,7 @@ function talk(n) {
   openDialog(n, info.idle, () => {
     if (info.shop === 'smith') openSmith('forge');
     else if (info.shop) openShop(info.shop);
+    else if (info.act === 'ssEnvoy') openEnvoy();
     else if (info.act === 'joinSect') joinDaoTalk();
     else if (info.act === 'pickHall') pickHallTalk(info.hall);
     else if (info.act === 'arena') openModal('竞技场', '<p class="center">五对五模拟对战（不影响存档）。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">上擂台</button>　<button type="button" class="tbtn" data-act="close">再看看</button></p>');
@@ -1315,8 +1346,9 @@ function makeUnit(side, row, def, pos) {
   $('units').appendChild(el);
   const st = def.stats;
   const u = { side, row, sprite: def.sprite, name: def.name, el, pos, h, hp: st.hp, maxHp: st.maxHp, mp: st.mp || 0, maxMp: st.maxMp || 0, atk: st.atk, def: st.def, matk: st.matk != null ? st.matk : st.atk, mdef: st.mdef != null ? st.mdef : st.def, crit: st.crit != null ? st.crit : 10, dodge: st.dodge || 0, spd: st.spd,
-    alive: true, defending: false, ai: def.ai || 'attack', aggro: def.aggro || 1, data: def.data || null, magicAtk: !!def.magicAtk, st: {} };
+    kit: def.kit, pas: def.pas, cd: {}, alive: true, defending: false, ai: def.ai || 'attack', aggro: def.aggro || 1, data: def.data || null, magicAtk: !!def.magicAtk, st: {} };
   if (side === 'enemy') el.addEventListener('click', () => { if (B.picking && u.alive) { const f = B.picking; B.picking = null; f(u); } });
+  if (u.pas && u.pas.atkMul) { u.atk = Math.round(u.atk * u.pas.atkMul); u.matk = Math.round(u.matk * u.pas.atkMul); }
   B.units.push(u); drawUnit(u); return u;
 }
 function drawUnit(u) {
@@ -1452,7 +1484,7 @@ function beginBattle(mode, title, teams, names) {
 // 野外 / 剧情战斗：我方是主角 + 灵狐，敌方按关卡配置
 function startBattle(st) {
   clampVitals();
-  const ps = stats(), fs = petStats();
+  const ps = stats(), fs = petStats(petAct());
   B.stage = st;
   const foes = { persons: [], pets: [] };
   st.enemies.forEach(id => {
@@ -1462,7 +1494,7 @@ function startBattle(st) {
   });
   beginBattle('pve', st.name, {
     ally: { persons: [{ name: ROLE.name, sprite: AS.size['b_' + ROLE.cls] ? 'b_' + ROLE.cls : 'b_player', h: 126, me: true, magicAtk: !!curCls().magicAtk, stats: { hp: Math.max(1, S.hp), maxHp: ps.maxHp, mp: S.mp, maxMp: ps.maxMp, atk: ps.atk, matk: ps.matk, def: ps.def, mdef: ps.mdef, crit: ps.crit, dodge: ps.dodge, spd: ps.spd } }],
-            pets: [{ name: '灵狐', sprite: 'b_fox', h: 62, ai: 'fox', stats: { hp: fs.maxHp, maxHp: fs.maxHp, atk: fs.atk, matk: fs.matk, def: fs.def, mdef: fs.mdef, crit: fs.crit, dodge: fs.dodge, spd: fs.spd } }] },
+            pets: [{ name: (D.petDex[petAct()] || D.petDex.fox).name, sprite: (D.petDex[petAct()] || D.petDex.fox).sprite, h: (D.petDex[petAct()] || D.petDex.fox).h || 62, ai: (D.petDex[petAct()] || D.petDex.fox).ai || 'fox', kit: (D.petDex[petAct()] || {}).act, pas: (D.petDex[petAct()] || {}).pas, stats: { hp: fs.maxHp, maxHp: fs.maxHp, atk: fs.atk, matk: fs.matk, def: fs.def, mdef: fs.mdef, crit: fs.crit, dodge: fs.dodge, spd: fs.spd } }] },
     enemy: foes
   }, [st.name, '我方']);
 }
@@ -1604,16 +1636,17 @@ function unitAct(u) {
     case 'striker': return { type: 'skill', skill: 'snipe', target: low };
     case 'tank':    return { type: 'skill', skill: 'smash', target: pickFoe() };
     case 'boss':    return B.round % 3 === 0 ? { type: 'skill', skill: 'sweep' } : { type: 'skill', skill: 'attack', target: pickFoe() };
+    case 'ss': { const pick = (u.kit || []).find(a => !u.cd[a[0]] && Math.random() < a[1]); return { type: 'skill', skill: pick ? pick[0] : 'ss_hit', target: pickFoe() }; }
     case 'fox':     return { type: 'skill', skill: Math.random() < 0.35 ? 'foxfire' : 'bite', target: low };
     default:        return { type: 'skill', skill: u.row === 'pet' ? 'bite' : 'attack', target: pickFoe() };
   }
 }
 
 // ---------- 状态：魔化 mark / 减速 slow / 护体 shield / 持续回复 hot ----------
-const FX_BADGE = { mark: ['魔', '#a64bff'], slow: ['缓', '#3d8bff'], shield: ['盾', '#e0a526'], hot: ['愈', '#33b36b'] };
+const FX_BADGE = { fear: ['惧', '#7a4bd1'], mark: ['魔', '#a64bff'], slow: ['缓', '#3d8bff'], shield: ['盾', '#e0a526'], hot: ['愈', '#33b36b'] };
 function refreshFx(u) { u.el.querySelector('.stt').innerHTML = Object.keys(u.st).map(k => '<b style="background:' + FX_BADGE[k][1] + '">' + FX_BADGE[k][0] + u.st[k].turns + '</b>').join(''); }
-function clearStatus(u, k) { if (!u.st[k]) return; if (k === 'slow') { u.spd = u._spd0; u.dodge = u._dg0; } delete u.st[k]; refreshFx(u); }
-function statusStart(u) { if (u.alive && u.st.hot) { const v = u.st.hot.v; u.hp = Math.min(u.maxHp, u.hp + v); floatText(u, '+' + v, 'heal'); drawUnit(u); } }
+function clearStatus(u, k) { if (!u.st[k]) return; if (k === 'fear' && u._df0) { u.def = u._df0; u._df0 = 0; } if (k === 'slow') { u.spd = u._spd0; u.dodge = u._dg0; } delete u.st[k]; refreshFx(u); }
+function statusStart(u) { for (const k of Object.keys(u.cd || {})) { if (--u.cd[k] <= 0) delete u.cd[k]; } if (u.alive && u.st.hot) { const v = u.st.hot.v; u.hp = Math.min(u.maxHp, u.hp + v); floatText(u, '+' + v, 'heal'); drawUnit(u); } }
 function statusEnd(u) { for (const k of Object.keys(u.st)) { if (--u.st[k].turns <= 0) clearStatus(u, k); } refreshFx(u); }
 
 // ---------- 出手 ----------
@@ -1657,6 +1690,8 @@ async function perform(u, act) {
   let targets = s.target === 'all' ? foes : [primary];
   if (s.hits > 1) targets = [primary].concat(foes.filter(x => x !== primary).sort(() => Math.random() - 0.5).slice(0, s.hits - 1));
   const magic = !!s.magic || (act.skill === 'attack' && u.magicAtk);
+  if (s.cd) u.cd[act.skill] = s.cd + 1;
+  if (s.selfCost) { const c = Math.round(u.maxHp * s.selfCost); u.hp = Math.max(1, u.hp - c); floatText(u, '-' + c, 'info'); drawUnit(u); }
   // 时间轴：预备（后撤）→ 冲刺 → 释放点（特效/伤害/受击/顿帧/震屏/音效同帧）→ 收招回位
   const music = !!SKILL_FX[act.skill], t0 = targets[0], k = music ? 0.22 : s.target === 'all' ? 0.4 : 0.7;
   const ux = t0.pos.x - u.pos.x, uy = t0.pos.y - u.pos.y, UL = Math.hypot(ux, uy) || 1;
@@ -1679,16 +1714,24 @@ async function perform(u, act) {
     if (s.vsMark && t.st.mark) dmg *= s.vsMark;
     if (t.st.shield) dmg *= 0.7;
     if (t.defending) dmg *= 0.5;
+    const up = u.pas || {}, tp = t.pas || {};
+    if (up.vsFear && t.st.fear) dmg *= up.vsFear;
+    if (up.lowAtk && u.hp < u.maxHp * 0.3) dmg *= 1 + up.lowAtk;
+    if (up.dbl && Math.random() < up.dbl) { dmg *= 2; floatText(u, '双倍', 'info'); }
+    if (tp.take) dmg *= tp.take;
     dmg = Math.max(1, Math.round(dmg));
     t.hp = Math.max(0, t.hp - dmg); anyHit = true; anyCrit = anyCrit || crit;
+    if (t.hp <= 0 && tp.revive && !t._rv) { t._rv = true; t.hp = Math.round(t.maxHp * tp.revive); floatText(t, '神龙祝福', 'heal'); SND.heal(); }
     if (!skillHitFx(act.skill, t)) slashFx(t, !!s.fire);
     impactAt(t, crit); SND.hit(crit);
     floatText(t, (crit ? '暴击 ' : '') + '-' + dmg, crit ? 'crit' : dmg >= t.maxHp * 0.25 ? 'big' : '');
     t.el.classList.remove('hit'); void t.el.offsetWidth; t.el.classList.add('hit');
     knock(t, u, crit ? 30 : 15);
     drawUnit(t);
+    if (t.hp <= 0 && tp.ownerAtk && B.player && B.player.alive && t.side === B.player.side) { B.player.atk = Math.round(B.player.atk * (1 + tp.ownerAtk)); B.player.matk = Math.round(B.player.matk * (1 + tp.ownerAtk)); floatText(B.player, '攻击 +' + Math.round(tp.ownerAtk * 100) + '%', 'info'); }
     if (t.hp <= 0) { t.alive = false; t.st = {}; setTimeout(() => { t.el.classList.add('dead'); SND.die(); }, 160); }
     else {
+      if (s.fear) { const f = t.st.fear || { turns: 3, n: 0 }; f.n = Math.min(3, f.n + s.fear); f.turns = 3; if (!t._df0) t._df0 = t.def; t.def = Math.round(t._df0 * (1 - 0.12 * f.n)); t.st.fear = f; floatText(t, '恐惧', 'info'); }
       if (s.mark) { t.st.mark = { turns: s.mark }; floatText(t, '魔化', 'info'); }
       if (s.slow) { if (!t.st.slow) { t._spd0 = t.spd; t._dg0 = t.dodge; t.spd = Math.round(t.spd * 0.8); t.dodge = Math.max(0, t.dodge - 10); } t.st.slow = { turns: s.slow }; floatText(t, '减速', 'info'); }
     }
@@ -1799,6 +1842,7 @@ function enterGame(role, serverName) {
   $('hudName').textContent = role.name; $('hudSect').textContent = sectTxt; $('hudFace').src = IMG(AS.img['head_' + role.cls] ? 'head_' + role.cls : 'head_player');
   $('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!S.gift; });
   window.CHAT.reset(serverName, role.name);
+  applyPetLook();
   loadMap(D.maps[S.map] ? S.map : D.start.map, S.pos); refresh(); save(); last = performance.now();
 }
 function peekLevel(id) { try { const t = localStorage.getItem('guiqin-save:' + id); if (t) return JSON.parse(t).lv || D.start.lv; } catch (e) {} return D.start.lv; }

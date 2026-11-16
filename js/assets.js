@@ -17,6 +17,8 @@ window.ASSETS = {
   "b_novice_m": "assets/b_novice_m.webp",
   "b_player": "assets/b_player.webp",
   "b_rabbit": "assets/b_rabbit.webp",
+  "b_ss_1221": "assets/b_ss_1221.webp",
+  "b_ss_1227": "assets/b_ss_1227.webp",
   "b_tiger": "assets/b_tiger.webp",
   "b_wuchen": "assets/b_wuchen.webp",
   "b_yan": "assets/b_yan.webp",
@@ -511,6 +513,14 @@ window.ASSETS = {
   "bc_dao_ty_m": [
    108.5,
    145.0
+  ],
+  "b_ss_1227": [
+   79.5,
+   112.0
+  ],
+  "b_ss_1221": [
+   100.5,
+   124.0
   ],
   "kk_npc14": [
    58.0,
