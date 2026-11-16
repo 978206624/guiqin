@@ -686,7 +686,8 @@ function onBtn(key, label, b) {
   else if (key === 'auto') { wander = !wander; wanderWait = 0; autoBtn.classList.toggle('on', wander); if (!wander) stop(); toast(wander ? '开始挂机闲逛，再点一次停止' : '停止挂机'); }
   else if (key === 'potion') { if (!S.items.hp_potion) toast('没有金创药了，找货郎买点吧'); else usePotion('hp_potion'); }
   else if (key === 'gift') {
-    if (S.gift) toast('今日福利已领取');
+    if (!S.ssGift) { S.ssGift = true; S.petOwn = Object.assign(S.petOwn || {}, { ss_1227: true, ss_1221: true }); S.petAct = 'ss_1227'; addItem('ss_soul', 20); save(); refresh(); applyPetLook(); toast('神兽体验福利：青龙仙童、逆天魔龙已入队，在宠物面板切换出战；另送神兽之魂 ×20'); }
+    else if (S.gift) toast('今日福利已领取');
     else { S.gift = true; grant({ coin: 200, items: { hp_potion: 2 } }); toast('领取福利：银两 +200，金创药 ×2'); const d = b.querySelector('.dot'); if (d) d.hidden = true; }
   }
   else if (key === 'rank') openModal('竞技场', '<p class="center">' + D.arena.allyName + ' 对 ' + D.arena.foeName + '<br>双方各 5 名侠客、5 只宠物，等级相同。<br>你操作自己的角色，队友和宠物自动出手；每回合 ' + TURN_SECONDS + ' 秒，超时自动行动。<br>演示对战，不影响等级和背包。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">开始 5v5 对战</button></p>');
@@ -1827,7 +1828,7 @@ let qTab = 0;
 function showQuestTab(i) { qTab = i; $('quest').querySelectorAll('h3 span').forEach((s, j) => s.classList.toggle('on', j === i)); $('quest').querySelectorAll('.q').forEach(q => { if (!q.closest('#qParty')) q.hidden = i === 1; }); $('qParty').hidden = i === 0; if (i === 1) drawParty(); }
 $('quest').querySelectorAll('h3 span').forEach((s, i) => s.addEventListener('click', e => { e.stopPropagation(); showQuestTab(i); }));
 window.addEventListener('chat-party', () => { if (qTab === 1) drawParty(); });
-$('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!S.gift; });
+$('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!(S.gift && S.ssGift); });
 loadMap(D.maps[S.map] ? S.map : D.start.map, S.pos); refresh(); requestAnimationFrame(frame);
 // 给自动化测试和调试用
 // ---------- 和登录 / 选角界面的接口 ----------
@@ -1840,7 +1841,7 @@ function enterGame(role, serverName) {
   const sectTxt = c.joinSect && role.sect === 'dao' ? '道家' : clsName(c);
   player.name = role.name; player.title = '【' + sectTxt + '】'; drawTag(player);
   $('hudName').textContent = role.name; $('hudSect').textContent = sectTxt; $('hudFace').src = IMG(AS.img['head_' + role.cls] ? 'head_' + role.cls : 'head_player');
-  $('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!S.gift; });
+  $('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!(S.gift && S.ssGift); });
   window.CHAT.reset(serverName, role.name);
   applyPetLook();
   loadMap(D.maps[S.map] ? S.map : D.start.map, S.pos); refresh(); save(); last = performance.now();
