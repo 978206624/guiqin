@@ -590,7 +590,7 @@ function makePortal(p) {
   drawTag(a); return a;
 }
 function drawTag(a, auto) {
-  if (a.kind === 'portal' || a.kind === 'spot') { a.tag.innerHTML = (a.mark ? '<span class="mk">!</span>' : '') + '<span>' + a.name + (a.kind === 'spot' ? ' ✦' : ' ▶') + '</span>'; return; }
+  if (a.kind === 'portal' || a.kind === 'spot') { a.tag.innerHTML = '<span>' + a.name + (a.kind === 'spot' ? ' ✦' : ' ▶') + '</span>'; return; }
   a.tag.innerHTML = (a.mark ? '<span class="mk">!</span>' : '') + (auto ? '<span class="auto">自动寻路中…</span>' : '') +
     (a.title ? '<small style="color:' + a.titleColor + '">' + a.title + '</small>' : '') + '<span style="color:' + a.color + '">' + a.name + '</span>';
 }
