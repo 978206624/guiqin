@@ -630,6 +630,33 @@ function applyPetLook() {          // 出战宠物是神兽时，地图上跟随
 }
 
 // ---------- 载入地图 ----------
+// ---------- 水车：只让辐条圆盘绕轮毂转（把背景图里的这块裁出来旋转再盖回去）----------
+function wheelSetup() {
+  const old = world.querySelector('canvas.wheel'); if (old) old.remove();
+  M.wheel = null; const w = M.def.wheel; if (!w) return;
+  const sc = M.def.scale * (M.def.k || 1), [x0, y0, x1, y1] = w.box;
+  const cv = document.createElement('canvas'); cv.className = 'wheel'; cv.width = Math.round((x1 - x0) * sc); cv.height = Math.round((y1 - y0) * sc);
+  cv.style.cssText = 'position:absolute;pointer-events:none;left:' + x0 * sc + 'px;top:' + y0 * sc + 'px;z-index:0';
+  world.insertBefore(cv, world.children[1] || null);
+  M.wheel = { cv, cx: cv.getContext('2d'), sc, box: w.box, w, ang: 0, last: -1 };
+}
+function wheelStep(t) {
+  const W = M.wheel; if (!W || !CFG.water || reduce || document.hidden) { if (W && W.dirty) { W.cx.clearRect(0, 0, W.cv.width, W.cv.height); W.dirty = false; } return; }
+  const [x0, y0, x1, y1] = W.box, sc = W.sc;
+  if (x1 * sc < cam.x || x0 * sc > cam.x + 720 || y1 * sc < cam.y || y0 * sc > cam.y + 1280) return;      // 不在画面里就不画
+  if (t - W.last < 0.05) return; const dt = W.last < 0 ? 0.05 : t - W.last; W.last = t;
+  const img = bgMap; if (!img.complete || !img.naturalWidth) return;
+  const w = W.w, cx = W.cx; W.ang = (W.ang + w.speed * dt) % (Math.PI * 2);
+  const phi = w.phi * Math.PI / 180, k = w.clip || 0.88;
+  const base = () => { cx.setTransform(1, 0, 0, 1, 0, 0); cx.scale(sc, sc); cx.translate(-x0, -y0); };
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, W.cv.width, W.cv.height);
+  cx.save(); base(); cx.beginPath(); cx.ellipse(w.E[0], w.E[1], w.ah * k, w.av * k, phi, 0, Math.PI * 2); cx.clip();
+  cx.translate(w.H[0], w.H[1]); cx.rotate(phi); cx.scale(w.ah, w.av); cx.rotate(W.ang); cx.scale(1 / w.ah, 1 / w.av); cx.rotate(-phi); cx.translate(-w.H[0], -w.H[1]);
+  cx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, img.naturalWidth * (M.def.iw / img.naturalWidth), img.naturalHeight * (M.def.iw / img.naturalWidth)); cx.restore();
+  if (w.leg) { cx.save(); base(); cx.beginPath(); w.leg.forEach((p, i) => i ? cx.lineTo(p[0], p[1]) : cx.moveTo(p[0], p[1])); cx.closePath(); cx.clip();      // 支架不转：把原图盖回去
+    cx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, M.def.iw, M.def.ih); cx.restore(); }
+  W.dirty = true;
+}
 function loadMap(id, at) {
   const def = D.maps[id];
   M = { id, def, W: def.iw * def.scale, H: def.ih * def.scale, npcs: {}, list: [] };
@@ -650,7 +677,7 @@ function loadMap(id, at) {
   world.style.width = M.W + 'px'; world.style.height = M.H + 'px';
   bgMap.src = IMG(def.img); bgMap.style.width = M.W + 'px'; bgMap.style.height = M.H + 'px'; bgMap.alt = def.alt || def.name;
   world.querySelectorAll('.actor,.portal').forEach(e => e.remove());
-  waterSetup(); bfSetup();
+  waterSetup(); bfSetup(); wheelSetup();
   $('glows').innerHTML = '';
   { const fg = $('fog'); fg.innerHTML = '';                      // 动态雾：一批缓慢漂移、忽浓忽淡的大雾团
     if (def.fog) { const n = def.fog.n || 26, W = M.W, H = M.H; let seed = 7;
@@ -1643,7 +1670,7 @@ function frame(now) {
     stepPlayer(dt); stepFox(dt);
     placePlayer(); place(fox, t); for (const a of M.list) if (a.kind !== 'portal' && a.kind !== 'spot') place(a, t);
     seeThru(player); seeThru(fox); for (const a of M.list) if (a.kind === 'npc' || a.kind === 'foe') seeThru(a);
-    bfStep(dt, t);
+    bfStep(dt, t); wheelStep(t);
     ring.style.transform = 'translate(' + player.pos.x.toFixed(1) + 'px,' + player.pos.y.toFixed(1) + 'px)';
     // 镜头：平滑跟随，不超出地图边缘
     const ct = camTarget(), k = reduce ? 1 : 1 - Math.exp(-7 * dt);
