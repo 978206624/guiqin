@@ -526,7 +526,7 @@ svg.em{width:1.25em;height:1.25em;vertical-align:-.28em;margin:0 1px}
   <div class="layer" id="town">
     <div id="world"><img id="bgMap" alt="">
       <div id="glows"></div><div id="fog"></div>
-      <div id="ring"><svg viewBox="-44 -22 88 44"><ellipse rx="40" ry="20" fill="rgba(143,230,255,.14)" stroke="#a8f0ff" stroke-width="2" stroke-dasharray="12 7"><animate attributeName="stroke-dashoffset" from="0" to="38" dur="1.4s" repeatCount="indefinite"/></ellipse></svg></div>
+      <div id="ring"><svg viewBox="-44 -22 88 44"><defs><radialGradient id="ringG"><stop offset="0" stop-color="#bff4ff" stop-opacity=".1"/><stop offset=".6" stop-color="#8fe6ff" stop-opacity=".3"/><stop offset="1" stop-color="#8fe6ff" stop-opacity="0"/></radialGradient></defs><ellipse rx="42" ry="21" fill="url(#ringG)"/><ellipse rx="30" ry="15" fill="none" stroke="#d6f8ff" stroke-opacity=".85" stroke-width="1.8"><animate attributeName="rx" values="30;33;30" dur="2.6s" repeatCount="indefinite"/><animate attributeName="ry" values="15;16.5;15" dur="2.6s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".9;.5;.9" dur="2.6s" repeatCount="indefinite"/></ellipse></svg></div>
       <div id="mark"></div>
     </div>
     <div id="petals"></div>
