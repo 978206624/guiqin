@@ -75,8 +75,8 @@ function grantInitSkills(id) { ensureSkl(); const c = D.classes[id]; if (c && c.
 
 function stats() {
   const b = D.base, g = D.grow, L = S.lv, m = clsMul;
-  const st = { maxHp: (b.hp + g.hp * L) * m('hp'), maxMp: (b.mp + g.mp * L) * m('mp'), atk: (b.atk + g.atk * L) * m('atk'), matk:
-      (b.matk + g.matk * L) * m('matk') + heartBonus('matk'), def: (b.def + g.def * L) * m('def'), mdef: (b.mdef + g.mdef * L) * m('mdef') +
+  const st = { maxHp: (b.hp + g.hp * L) * m('hp'), maxMp: (b.mp + g.mp * L) * m('mp'), atk: (b.atk + g.atk * L) * m('atk') + heartBonus('atk'), matk:
+      (b.matk + g.matk * L) * m('matk') + heartBonus('matk'), def: (b.def + g.def * L) * m('def') + heartBonus('def'), mdef: (b.mdef + g.mdef * L) * m('mdef') +
       heartBonus('mdef'), spd: b.spd + g.spd * L, crit: b.crit, dodge: b.dodge };
   for (const k of ['maxHp', 'maxMp', 'atk', 'matk', 'def', 'mdef']) st[k] = Math.round(st[k]);
   const gs = gearSum(); for (const k in gs) st[STATKEY[k]] += gs[k];
@@ -375,7 +375,7 @@ function skillsHTML() {
     const x = D.skills[id], ok = skillUsable(id), lvTxt = curCls().skills && ok ? ' <small>Lv.' + skl(id) + '</small>' : '';
     h += '<div class="row" style="' + (ok ? '' : 'opacity:.5') + '"><div><h5>' + x.name + lvTxt + '</h5><p>' + x.desc + '</p></div><span>' + (ok ? '法力 ' + x.mp : curCls().skills ? '未学习' : x.lv + ' 级解锁') + '</span></div>';
   });
-  return h + '<p class="hint" style="margin-top:14px">' + (curCls().skills ? (ROLE.sect === 'dao' ? (curCls().sect === '道家' && curCls().name !== '道家弟子' ? '分堂技能找本堂堂主学习、升级。' : '基础技能找道家门主学习、升级。') + '　' : '') : '') + '技能在战斗中使用。' + (curCls().weapon ? '武器：' + curCls().weapon + '。' : '') + '</p>';
+  return h + '<p class="hint" style="margin-top:14px">' + (curCls().skills ? (ROLE.sect ? (curCls().sect && !/弟子$/.test(curCls().name) ? '分堂技能找本堂堂主学习、升级。' : '基础技能找' + (ROLE.sect === 'mo' ? '墨巨子' : '道家门主') + '学习、升级。') + '　' : '') : '') + '技能在战斗中使用。' + (curCls().weapon ? '武器：' + curCls().weapon + '。' : '') + '</p>';
 }
 let petTab = 'attr', petSel = 'fox';
 function petPower(p) { return Math.round(p.maxHp / 10 + p.atk * 2 + p.def * 1.5 + p.spd); }
@@ -959,7 +959,7 @@ function changeClass(id) {         // 拜入门派：换职业、形象、头像
   ROLE.cls = id; const c = D.classes[id]; grantInitSkills(id);
   setPlayerLook(id); player.title = '【' + clsName(c) + '】'; drawTag(player);
   $('hudSect').textContent = clsName(c); $('hudFace').src = IMG(AS.img['head_' + id] ? 'head_' + id : 'head_player');
-  S.hp = stats().maxHp; S.mp = stats().maxMp; if (id.indexOf('dao_dz') === 0) { sys('你拜入道家，背起箜篌。请去太虚之林找琴魔堂主或天音堂主选择分堂。'); toast('拜入道家'); } else { sys('你选定' + c.name + '分堂，成为「' + c.name + '」。'); toast('拜入' + c.sect + '·' + c.name); }
+  S.hp = stats().maxHp; S.mp = stats().maxMp; if (id.indexOf('dao_dz') === 0) { sys('你拜入道家，背起箜篌。请去太虚之林找琴魔堂主或天音堂主选择分堂。'); toast('拜入道家'); } else if (id.indexOf('mo_dz') === 0) { sys('你拜入墨家，背起长剑。请去太虚之峰找猛士堂主或遁甲堂主选择分堂。'); toast('拜入墨家'); } else { sys('你选定' + c.name + '分堂，成为「' + c.name + '」。'); toast('拜入' + c.sect + '·' + c.name); }
   if (window.GAME.onRoleChange) window.GAME.onRoleChange(); save(); refresh();
 }
 function offerSect() {
@@ -987,6 +987,7 @@ function openEnvoy() {
 }
 function joinDaoTalk() {
   const c = curCls();
+  if (ROLE.sect === 'mo') { toast('你已拜入墨家，不可再入道家'); return; }
   if (ROLE.sect === 'dao') {            // 已入道家：门主管基础技能；选了分堂的，基础技能不再用，分堂技能去堂主处
     if (c.name === '道家弟子') openTrain('menzhu'); else toast('分堂技能请找本堂堂主学习、升级');
     return;
@@ -996,13 +997,13 @@ function joinDaoTalk() {
   openModal('拜入道家', '<p class="center">道家门主说：道法自然。入我门下，再去琴魔、天音两位堂主处择一堂修行。</p><p class="center"><button type="button" class="tbtn red" data-act="joinDao">拜入道家</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
 }
 // 技能修炼（参考原作：门派心法不在此升级；分堂技能只能在本堂堂主处学）。演示简化：只耗银两，等级上限 5，升级要求人物等级随技能等级升高
-function trainList(who) { return who === 'menzhu' ? D.train.base : (curCls().skills || []); }
+function trainList(who) { return who === 'menzhu' ? (ROLE.sect === 'mo' ? D.train.baseMo : D.train.base) : (curCls().skills || []); }
 function trainCost(id) {
   const n = skl(id) + 1, x = D.skills[id], T = D.train;
   return n === 1 ? { lvReq: x.lv || 1, coin: T.learnCoin * (x.lv || 1) } : { lvReq: (x.lv || 1) + T.upLv * (n - 1), coin: T.upCoin * n * n };
 }
 function openTrain(who) {
-  const T = D.train, name = who === 'menzhu' ? '道家门主' : (curCls().name + '堂主');
+  const T = D.train, name = who === 'menzhu' ? (ROLE.sect === 'mo' ? '墨巨子' : '道家门主') : (curCls().name + '堂主');
   let h = '<p class="center" style="margin:0;color:var(--amber)">银两 ' + fmt(S.coin) + '</p><p class="hint center">' + name + '：学习新技能、把学过的技能升级（技能每升一级，威力与疗效 +12%）。</p>';
   trainList(who).forEach(id => {
     const x = D.skills[id], cur = skl(id), maxed = cur >= T.maxLv, ct = trainCost(id);
@@ -1019,8 +1020,28 @@ ACTS.train = v => { const [who, id] = v.split(':'), ct = trainCost(id);
   if (skl(id) >= D.train.maxLv || S.lv < ct.lvReq || S.coin < ct.coin || trainList(who).indexOf(id) < 0) return;
   S.coin -= ct.coin; S.skl[id] = skl(id) + 1; save(); refresh(); toast(D.skills[id].name + ' 升到 ' + S.skl[id] + ' 级'); openTrain(who); };
 ACTS.joinDao = () => { closeModal(); ROLE.sect = 'dao'; changeClass(curCls().gender === 'm' ? 'dao_dz_m' : 'dao_dz'); };
+function joinMoTalk() {
+  const c = curCls();
+  if (ROLE.sect === 'mo') { if (c.name === '墨家弟子') openTrain('menzhu'); else toast('分堂技能请找本堂堂主学习、升级'); return; }
+  if (ROLE.sect === 'dao') { toast('你已拜入道家，不可再入墨家'); return; }
+  if (!c.joinSect) { toast('你已是门派弟子'); return; }
+  if (S.lv < SECT_LV) { toast('需达到 ' + SECT_LV + ' 级方可入门（现在 ' + S.lv + ' 级）'); return; }
+  openModal('拜入墨家', '<p class="center">墨巨子说：兼爱非攻，机关为用。入我门下，再去猛士、遁甲两位堂主处择一堂修行。</p><p class="center"><button type="button" class="tbtn red" data-act="joinMo">拜入墨家</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
+}
+ACTS.joinMo = () => { closeModal(); ROLE.sect = 'mo'; changeClass(curCls().gender === 'm' ? 'mo_dz_m' : 'mo_dz'); };
+function pickMoHallTalk(hall) {          // hall: 'ms' | 'dj'
+  const c = curCls(), name = hall === 'ms' ? '猛士' : '遁甲';
+  if (c.sect === '墨家' && !/弟子$/.test(c.name)) { if (c.name === name) openTrain('hall'); else toast('你已入另一堂，分堂不可改选'); return; }
+  if (ROLE.sect !== 'mo') { toast('先去找墨巨子入门（' + SECT_LV + ' 级）'); return; }
+  const id = c.joinSect.find(x => x.indexOf('mo_' + hall) === 0), d = D.classes[id];
+  openModal('选择分堂', '<div class="q"><img alt="" src="' + IMG('head_' + id) +
+      '" style="width:56px;height:56px;border-radius:50%;float:left;margin-right:10px"><b>' + d.name + '</b>（' + d.weapon + '）<br><small>' + d.desc +
+      '</small></div><p class="center">分堂选定后不能改选。</p><p class="center"><button type="button" class="tbtn red" data-act="sect:' + id + '">拜入' + name +
+      '</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
+}
 function pickHallTalk(hall) {          // hall: 'qm' | 'ty'
   const c = curCls(), name = hall === 'qm' ? '琴魔' : '天音';
+  if (ROLE.sect === 'mo') { toast('你已拜入墨家'); return; }
   if (!c.joinSect) { if (c.sect === '道家' && c.name === name) openTrain('hall'); else toast('你已入另一堂，分堂不可改选'); return; }
   if (ROLE.sect !== 'dao') { toast('先去找道家门主入门（' + SECT_LV + ' 级）'); return; }
   const id = c.joinSect.find(x => x.indexOf('dao_' + hall) === 0), d = D.classes[id];
@@ -1061,6 +1082,8 @@ function talk(n) {
     else if (info.act === 'towerTp') openTowerTp();
     else if (info.act === 'joinSect') joinDaoTalk();
     else if (info.act === 'pickHall') pickHallTalk(info.hall);
+    else if (info.act === 'joinMo') joinMoTalk();
+    else if (info.act === 'pickMoHall') pickMoHallTalk(info.hall);
     else if (info.act === 'arena') openModal('竞技场', '<p class="center">五对五模拟对战（不影响存档）。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">上擂台</button>　<button type="button" class="tbtn" data-act="close">再看看</button></p>');
     else if (info.rest) { const st = stats(); if (S.hp < st.maxHp || S.mp < st.maxMp) { S.hp = st.maxHp; S.mp = st.maxMp; save(); refresh(); toast(info.restMsg || '歇了一会儿，气血法力回满'); } }
   });
@@ -1761,6 +1784,7 @@ function fxAt(cls, u, ms, dy, style) {
   const e = document.createElement('div'); e.className = 'sfx ' + cls; e.style.left = u.pos.x + 'px'; e.style.top = (u.pos.y - (dy == null ? u.h * 0.45 : dy)) + 'px';
   if (style) e.style.cssText += style; $('units').appendChild(e); setTimeout(() => e.remove(), ms || 900);
 }
+const hasBc = u => !!(u.sprite && u.sprite.startsWith('b_') && AS.size['bc_' + u.sprite.slice(2)]);
 async function castPose(u, onRelease) {   // 施法动作：有逐帧施法图（bc_*，图像生成）就播帧动画，没有就退回整图摆动
   const bc = u.sprite && u.sprite.startsWith('b_') ? 'bc_' + u.sprite.slice(2) : null;
   if (bc && AS.size[bc] && u.el.querySelector('img')) {
@@ -1979,11 +2003,12 @@ function autoAct() {
     const cond = {
       selfHurt: () => p.hp < p.maxHp * 0.5, allyHurt: () => mates.some(x => x.alive && x.hp < x.maxHp * 0.55),
       allyHurtMany: () => mates.filter(x => x.alive && x.hp < x.maxHp * 0.7).length >= 2, dead: () => mates.some(x => !x.alive),
-      many: () => foes.length >= 3, marked: () => foes.some(f => f.st.mark), fast: () => foes.some(f => !f.st.slow) && B.round % 3 === 2, always: () => true };
+      many: () => foes.length >= 3, marked: () => foes.some(f => f.st.mark), fast: () => foes.some(f => !f.st.slow) && B.round % 3 === 2, always: () => true,
+      bleeding: () => foes.some(f => f.st.bleed), noVuln: () => foes.some(f => !f.st.vuln), hpHigh: () => p.hp > p.maxHp * 0.5, rageOK: () => !p.st.rage && p.hp > p.maxHp * 0.4 && B.round % 3 === 1, teamStart: () => !mates.some(x => x.alive && x.st.bless) };
     for (const [id, c] of cls.auto) {
       if (!ok(id) || !cond[c]()) continue;
       const sk = D.skills[id];
-      if (sk.target === 'one') return { type: 'skill', skill: id, target: (c === 'marked' && foes.find(f => f.st.mark)) || weakestOf('enemy') };
+      if (sk.target === 'one') return { type: 'skill', skill: id, target: (c === 'marked' && foes.find(f => f.st.mark)) || (c === 'bleeding' && foes.find(f => f.st.bleed)) || (c === 'noVuln' && foes.find(f => !f.st.vuln)) || weakestOf('enemy') };
       return { type: 'skill', skill: id };
     }
     return { type: 'skill', skill: 'attack', target: weakestOf('enemy') };
@@ -2017,11 +2042,12 @@ function unitAct(u) {
 }
 
 // ---------- 状态：魔化 mark / 减速 slow / 护体 shield / 持续回复 hot ----------
-const FX_BADGE = { fear: ['惧', '#7a4bd1'], mark: ['魔', '#a64bff'], slow: ['缓', '#3d8bff'], shield: ['盾', '#e0a526'], hot: ['愈', '#33b36b'], stun: ['晕', '#8a8a8a'], curse: ['罚', '#c23b3b'], dd: ['破', '#c9772a'], mfear: ['惑', '#9a4bd1'], absorb: ['吸', '#e0a526'] };
+const FX_BADGE = { bleed: ['血', '#b3182a'], vuln: ['易', '#d4572a'], bless: ['战', '#e0a526'], rage: ['狂', '#c2301f'], fear: ['惧', '#7a4bd1'], mark: ['魔', '#a64bff'], slow: ['缓', '#3d8bff'], shield: ['盾', '#e0a526'], hot: ['愈', '#33b36b'], stun: ['晕', '#8a8a8a'], curse: ['罚', '#c23b3b'], dd: ['破', '#c9772a'], mfear: ['惑', '#9a4bd1'], absorb: ['吸', '#e0a526'] };
 function refreshFx(u) { u.el.querySelector('.stt').innerHTML = Object.keys(u.st).map(k => '<b style="background:' + FX_BADGE[k][1] + '">' + FX_BADGE[k][0] + u.st[k].turns + '</b>').join(''); }
 function clearStatus(u, k) {
   if (!u.st[k]) return;
   if (k === 'stun') u._take2 = 0;
+  if (k === 'rage' && u._rg0) { u.def = u._rg0; u._rg0 = 0; }
   if (k === 'curse' && u._cu) {
     u.atk = Math.round(u.atk / Math.pow(0.9, u._cu));
     u.matk = Math.round(u.matk / Math.pow(0.9, u._cu));
@@ -2055,6 +2081,7 @@ function statusStart(u) {
   for (const k of Object.keys(u.cd || {})) {
     if (--u.cd[k] <= 0) delete u.cd[k];
   }
+  if (u.alive && u.st.bleed) { const v = u.st.bleed.v; u.hp = Math.max(1, u.hp - v); floatText(u, '流血 -' + v, ''); drawUnit(u); }
   if (u.alive && u.st.hot) {
     const v = u.st.hot.v;
     u.hp = Math.min(u.maxHp, u.hp + v);
@@ -2078,6 +2105,17 @@ async function perform(u, act) {
   if (s.mp) { if (u.mp < s.mp) return perform(u, { type: 'skill', skill: 'attack', target: weakestOf(other(u.side)) }); u.mp -= s.mp; drawUnit(u); }
   bmsg(act.skill === 'attack' || act.skill === 'bite' ? '' : u.name + ' · ' + s.name);
   castFx(u, act.skill);
+  if (s.teamBuff || s.rage) {                      // 墨家：战魂歌（全队增益）/ 狂龙吼（自身舍防换伤）
+    let relB; const relBp = new Promise(r => { relB = r; }), poseB = hasBc(u) ? castPose(u, relB) : (relB(), null);
+    await relBp;
+    if (s.cd) u.cd[act.skill] = s.cd + 1;
+    for (const t of (s.teamBuff ? B.units.filter(x => x.side === u.side && x.alive) : [u])) {
+      if (s.teamBuff) { const n = s.teamBuff.turns + (t === u ? 1 : 0); t.st.bless = { turns: n }; t.st.shield = { turns: n }; floatText(t, '战魂', 'info'); }
+      else { clearStatus(t, 'rage'); t._rg0 = t.def; t.def = Math.round(t.def * 0.2); t.st.rage = { turns: s.rage + 1 }; floatText(t, '狂龙', 'info'); }
+      SND.heal(); refreshFx(t);
+    }
+    if (poseB) await poseB; await sleep(260); return;
+  }
   if (s.heal || s.healPow || s.revive) {
     let relH; const releasedH = new Promise(r => { relH = r; });
     const poseH = SKILL_FX[act.skill] ? castPose(u, relH) : (relH(), null);
@@ -2110,6 +2148,7 @@ async function perform(u, act) {
     if (s.absorb) { u.absorb = s.absorb; u.st.absorb = { turns: 99 }; } if (s.guard) u.guard = s.guard;
     if (s.absorb) refreshFx(u); floatText(u, s.absorb ? '血盾 ×' + s.absorb : '抵挡 ×' + s.guard, 'info'); SND.heal(); await petPlay(u, 'atk', null); if (!s.power) return;
   }
+  if (s.selfVuln) { u.st.vuln = { turns: s.selfVuln + 1 }; floatText(u, '易伤', 'info'); refreshFx(u); }
   if (s.selfCost) { const c = Math.round(u.maxHp * s.selfCost); u.hp = Math.max(1, u.hp - c); floatText(u, '-' + c, 'info'); drawUnit(u); }
   // 时间轴：预备（后撤）→ 冲刺 → 释放点（特效/伤害/受击/顿帧/震屏/音效同帧）→ 收招回位
   const pseq = petSeqFor(u, act.skill), music = !!SKILL_FX[act.skill] || !!pseq, t0 = targets[0], k = pseq ? 0 : music ? 0.22 : s.target === 'all' ? 0.4 : 0.7;
@@ -2122,7 +2161,7 @@ async function perform(u, act) {
   u.el.classList.add('mv'); u.el.style.transform = 'translate(' + (ux * k) + 'px,' + (uy * k) + 'px)';
   await sleep(pseq ? 60 : music ? 170 : 130); u.el.classList.remove('mv');
   let relA; const releasedA = new Promise(r => { relA = r; });
-  const poseA = pseq ? petPlay(u, pseq, relA) : music ? castPose(u, relA) : (relA(), null);
+  const poseA = pseq ? petPlay(u, pseq, relA) : (music || (s.melee && hasBc(u))) ? castPose(u, relA) : (relA(), null);
   await releasedA;
   if (pseq) { const dly = petFx(u, act.skill, t0); if (dly) await sleep(dly * 0.85); }
   if (!music) { if (s.fire || magic) SND.release(); else SND.slash(); }
@@ -2132,6 +2171,10 @@ async function perform(u, act) {
     const crit = Math.random() * 100 < ((u.crit != null ? u.crit : 10) + (s.critUp || 0));
     let dmg = (magic ? u.matk : u.atk) * s.power * rnd(0.9, 1.1) * (crit ? 1.5 : 1) - (magic ? t.mdef : t.def) * 0.6;
     if (s.vsMark && t.st.mark) dmg *= s.vsMark;
+    if (s.vsBleed && t.st.bleed) dmg *= s.vsBleed;
+    if (t.st.vuln) dmg *= 1.3;                                           // 墨家：破天吼 / 破甲的易伤
+    if (u.st.bless) dmg *= 1.2;                                          // 战魂歌：伤害 +20%
+    if (u.st.rage) dmg *= 1.6;                                           // 狂龙吼：伤害 +60%
     if (t.st.shield) dmg *= 0.7;
     if (t.defending) dmg *= 0.5;
     const up = u.pas || {}, tp = t.pas || {};
@@ -2159,6 +2202,7 @@ async function perform(u, act) {
     floatText(t, (crit ? '暴击 ' : '') + '-' + dmg, crit ? 'crit' : dmg >= t.maxHp * 0.25 ? 'big' : '');
     t.el.classList.remove('hit'); void t.el.offsetWidth; t.el.classList.add('hit'); petPlay(t, 'hit');
     knock(t, u, crit ? 30 : 15);
+    if (s.lifesteal && u.alive) { const hv = Math.max(1, Math.round(dmg * s.lifesteal)); u.hp = Math.min(u.maxHp, u.hp + hv); floatText(u, '+' + hv, 'heal'); drawUnit(u); }
     drawUnit(t);
     if (t.hp <= 0 && tp.ownerAtk && B.player && B.player.alive && t.side === B.player.side) { B.player.atk = Math.round(B.player.atk * (1 + tp.ownerAtk)); B.player.matk = Math.round(B.player.matk * (1 + tp.ownerAtk)); floatText(B.player, '攻击 +' + Math.round(tp.ownerAtk * 100) + '%', 'info'); }
     if (t.hp > 0 && tp.hurtStack) t._hs = (t._hs || 0) + 1;
@@ -2171,6 +2215,8 @@ async function perform(u, act) {
       if (s.defDown) { if (!t._dd0) { t._dd0 = t.def; t.def = Math.round(t.def * (1 - s.defDown)); } t.st.dd = { turns: 3 }; floatText(t, '破防', 'info'); }
       if (s.mfear) { if (!t._md0) t._md0 = t.mdef; const n = Math.min(3, (t._mf || 0) + 1); t._mf = n; t.mdef = Math.round(t._md0 * (1 - 0.1 * n)); t.st.mfear = { turns: 3 }; floatText(t, '离魂', 'info'); }
       if (s.curse) { t._cu = Math.min(2, (t._cu || 0) + 1); if (t._cu <= 2) { t.atk = Math.round(t.atk * 0.9); t.matk = Math.round(t.matk * 0.9); } t.st.curse = { turns: 2 }; floatText(t, '天罚', 'info'); }
+      if (s.bleed) { t.st.bleed = { turns: s.bleed.turns, v: Math.max(1, Math.round(t.maxHp * s.bleed.pct)) }; floatText(t, '流血', 'info'); }
+      if (s.vuln) { t.st.vuln = { turns: s.vuln }; floatText(t, '易伤', 'info'); }
       if (s.mark) { t.st.mark = { turns: s.mark }; floatText(t, '魔化', 'info'); }
       if (s.slow) { if (!t.st.slow) { t._spd0 = t.spd; t._dg0 = t.dodge; t.spd = Math.round(t.spd * 0.8); t.dodge = Math.max(0, t.dodge - 10); } t.st.slow = { turns: s.slow }; floatText(t, '减速', 'info'); }
     }
@@ -2282,7 +2328,7 @@ function enterGame(role, serverName) {
   S = load() || newGame(); bagSel = null; ensureSkl();
   const c = D.classes[role.cls];
   setPlayerLook(role.cls);
-  const sectTxt = c.joinSect && role.sect === 'dao' ? '道家' : clsName(c);
+  const sectTxt = c.joinSect && role.sect ? (role.sect === 'mo' ? '墨家' : '道家') : clsName(c);
   player.name = role.name; player.title = '【' + sectTxt + '】'; drawTag(player);
   $('hudName').textContent = role.name; $('hudSect').textContent = sectTxt; $('hudFace').src = IMG(AS.img['head_' + role.cls] ? 'head_' + role.cls : 'head_player');
   $('btns').querySelectorAll('.dot').forEach(x => { x.hidden = !!(S.gift && S.ssGift); });

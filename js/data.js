@@ -140,6 +140,19 @@ window.DATA = {
     mohun:     { name: '魔魂曲', mp: 90,  power: 0.8, target: 'one', hits: 3, mark: 2, magic: true, lv: 5, desc: '魔音扩散，攻击最多 3 个敌人，并使其魔化 2 回合。' },
     duohun:    { name: '夺魂曲', mp: 70,  power: 1.1, vsMark: 1.7, target: 'one', magic: true, lv: 8, desc: '单体伤害，对魔化状态的敌人伤害 ×1.7。' },
     fuling:    { name: '缚灵曲', mp: 80,  power: 0.95, target: 'one', slow: 2, magic: true, lv: 10, desc: '单体伤害，并使目标出手速度和闪避下降 2 回合。' },
+    // ---- 墨家（猛士 / 遁甲，技能参考原作 data_skill_defs 的 ms / dj / zs，数值按本作回合制折算）----
+    menghu_zs: { name: '猛虎纵', mp: 30, power: 1.15, target: 'one', melee: true, lv: 1, desc: '纵身扑击，对单体造成物理伤害。' },
+    potian_zs: { name: '破天吼', mp: 45, power: 0.9, target: 'one', melee: true, vuln: 3, cd: 1, lv: 1, desc: '一声长啸，使目标 3 回合内受到的伤害 +30%。' },
+    menghu_ms: { name: '猛虎纵', mp: 35, power: 1.3, target: 'one', melee: true, bleed: { turns: 3, pct: 0.05 }, lv: 1, desc: '纵身重击，并使目标流血 3 回合，每回合损失 5% 气血。' },
+    potian_ms: { name: '破天吼', mp: 50, power: 1.0, target: 'one', melee: true, vuln: 4, cd: 1, lv: 3, desc: '重创单体，并使其 4 回合内受到的伤害 +30%。' },
+    lianzhan:  { name: '连斩',   mp: 70, power: 1.95, target: 'one', melee: true, selfCost: 0.05, selfVuln: 1, cd: 1, lv: 5, desc: '三连斩合计 195% 伤害，自身损失 5% 气血，且下回合受伤 +30%。' },
+    xueji:     { name: '血祭',   mp: 70, power: 1.45, vsBleed: 1.7, target: 'one', melee: true, selfCost: 0.08, lv: 8, desc: '燃血一击，损失 8% 气血；对流血的敌人伤害 ×1.7。' },
+    kuanglong: { name: '狂龙吼', mp: 90, target: 'self', melee: true, rage: 2, cd: 1, lv: 10, desc: '舍弃 80% 防御，换取 2 回合伤害 +60%。' },
+    menghu_dj: { name: '猛虎纵', mp: 30, power: 1.15, target: 'one', melee: true, lv: 1, desc: '纵身扑击，对单体造成物理伤害。' },
+    potian_dj: { name: '破天吼', mp: 70, power: 0.65, target: 'all', melee: true, vuln: 4, cd: 1, lv: 3, desc: '吼声震慑全体敌人，伤害并使其 4 回合内受伤 +30%。' },
+    pojia:     { name: '破甲',   mp: 55, power: 1.2, defDown: 0.3, vuln: 3, target: 'one', melee: true, lv: 5, desc: '破甲一击，降低目标 30% 防御，并使其 3 回合内受伤 +30%。' },
+    zhanhun:   { name: '战魂歌', mp: 100, target: 'allies', melee: true, teamBuff: { turns: 3, dmg: 0.2, shield: true }, cd: 3, lv: 8, desc: '鼓舞全队：3 回合内伤害 +20%，所受伤害 -30%。' },
+    cuogu:     { name: '挫骨',   mp: 75, power: 1.3, lifesteal: 0.3, selfCost: 0.04, target: 'one', melee: true, cd: 1, lv: 10, desc: '挫骨重击，损失 4% 气血；按伤害的 30% 吸取气血。' },
     // ---- 道家·天音 ----
     dangmo_ty: { name: '荡魔曲', mp: 40,  power: 1.2, target: 'one', magic: true, lv: 1,  desc: '拨动琵琶，以曲音震伤一名敌人。' },
     lingmai_ty:{ name: '灵脉曲', mp: 50,  heal: 0.2, target: 'ally', cleanse: true, shield: 2, lv: 3, desc: '为气血最低的友方回复 20% 气血，解除减速、魔化，并降低 30% 所受伤害（2 回合）。' },
@@ -338,7 +351,9 @@ window.DATA = {
     dao_menzhu: { name: '道家门主', title: '【道家】', color: '#bfe8ff', sprite: 'kk_npc57', head: 'head_kk_npc57', act: 'joinSect', idle: '道法自然，无为而无不为。太虚之林乃本门驻地。十级以上、与道有缘者，可在此拜入道家，再去堂主处择天音或琴魔一堂。' },
     dao_qinmo:  { name: '琴魔堂主', title: '【道家·琴魔】', color: '#bfe8ff', act: 'pickHall', hall: 'qm', sprite: 'kk_npc45', head: 'head_kk_npc45', idle: '琴魔一脉，以魔音入敌心。琴声不是用来讨好谁的，是用来镇住心里那头兽的。' },
     dao_tianyin: { name: '天音堂主', title: '【道家·天音】', color: '#bfe8ff', act: 'pickHall', hall: 'ty', sprite: 'kk_npc47', head: 'head_kk_npc47', idle: '天音一脉，琵琶一曲可疗伤、护体、唤回将逝之人。会救人，才算真本事。' },
-    taixu_mo:    { name: '墨巨子',   title: '【墨家】', color: '#ffd9a0', sprite: 'f_spear', head: 'head_m_spear', idle: '兼爱非攻，机关为用。太虚之峰的每一道机括，都是墨家弟子亲手所造。' },
+    taixu_mo:    { name: '墨巨子',   title: '【墨家】', color: '#ffd9a0', sprite: 'f_spear', head: 'head_m_spear', act: 'joinMo', idle: '兼爱非攻，机关为用。太虚之峰的每一道机括，都是墨家弟子亲手所造。' },
+    mo_mengshi:  { name: '猛士堂主', title: '【墨家·猛士】', color: '#ffd9a0', act: 'pickMoHall', hall: 'ms', sprite: 'kk_npc14', head: 'head_kk_npc14', idle: '猛士一脉，双刃开山。流血、易伤、拼命的打法，不怕疼的人才学得会。' },
+    mo_dunjia:   { name: '遁甲堂主', title: '【墨家·遁甲】', color: '#ffd9a0', act: 'pickMoHall', hall: 'dj', sprite: 'kk_npc33', head: 'head_kk_npc33', idle: '遁甲一脉，剑盾为阵。破甲、鼓舞、吸血，站在最前面，也要让身后的人站得住。' },
     taixu_yin:   { name: '邹长老',   title: '【阴阳家】', color: '#ffc6e8', sprite: 'f_healer', head: 'head_f_heal', idle: '阴阳消长，五行流转。太虚之谷里的每一块卦石，都藏着天地的玄机。' },
     zhanhw:   { name: '展护卫',   title: '【恒山村】', color: '#ffd9a0', sprite: 'kk_npc_zhw',  head: 'head_kk_npc_zhw', idle: '拳脚功夫不是一天练成的。去清溪谷之前，多打几场熟悉手感。' },
     bianque:  { name: '扁老鹊',   title: '【村医】',   color: '#b8f0c0', sprite: 'kk_npc_cyblq',   head: 'head_kk_npc_cyblq',  idle: '身子还虚的话，随时来我这儿讨碗药。心里的事，也别一个人扛着。' },
@@ -500,7 +515,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[1450, 320], [1220, 1000]],
-      npcs: [{ id: 'taixu_mo', at: [1460, 320] }],
+      npcs: [{ id: 'taixu_mo', at: [1460, 320] }, { id: 'mo_mengshi', at: [1380, 400] }, { id: 'mo_dunjia', at: [1540, 400] }],
       portals: [{ to: 'town', name: '返回汉中郡', at: [1150, 500], arrive: [850, 575] }]
     },
     taixuvalley: {
@@ -610,6 +625,30 @@ window.DATA = {
   C.dao_dz_m = Object.assign({}, C.novice_m, { name: '道家弟子', sect: '道家', role: '近战 · 箜篌', weapon: '箜篌', hidden: true, magicAtk: true, skills: ['dangmo_fs', 'lingmai_fs'], mod: { atk: 0.8, matk: 1.15, def: 1.0, mdef: 1.1, hp: 1.05, mp: 1.1 },
     heart: { name: '道家心法', desc: '每级提升法攻 2 点、法防 2 点（原作：智力、精神）', perLv: { matk: 2, mdef: 2 } },
     auto: [['lingmai_fs', 'selfHurt'], ['dangmo_fs', 'always']], desc: '已拜入道家、尚未选分堂的弟子，背负箜篌。去琴魔堂主或天音堂主处选定分堂。' });
+})();
+
+// 墨家：猛士(双刃斧) / 遁甲(剑盾) / 墨家弟子（未分堂）。女角色用默认键，男角色加 _m
+(function () { const C = window.DATA.classes;
+  C.mo_ms = { hidden: true, name: '猛士', sect: '墨家', gender: 'f', role: '近战 · 双刃斧', weapon: '双刃斧',
+    desc: '墨家猛士堂，双刃斧开山劈岭。流血、易伤、拿命换伤害，血线越险，出手越狠。', stats: { 攻击: 5, 防御: 2, 速度: 3, 法术: 1, 气血: 3 },
+    mod: { atk: 1.35, matk: 0.6, def: 0.95, mdef: 0.8, hp: 1.05, mp: 0.9 },
+    heart: { name: '杀气决', desc: '每级提升物攻 3 点（原作：力量成长）', perLv: { atk: 3 } },
+    skills: ['menghu_ms', 'potian_ms', 'lianzhan', 'xueji', 'kuanglong'],
+    auto: [['kuanglong', 'rageOK'], ['xueji', 'bleeding'], ['lianzhan', 'hpHigh'], ['potian_ms', 'noVuln'], ['menghu_ms', 'always']] };
+  C.mo_dj = { hidden: true, name: '遁甲', sect: '墨家', gender: 'f', role: '近战 · 剑盾', weapon: '剑盾',
+    desc: '墨家遁甲堂，剑盾成阵。破甲、鼓舞、吸血，既扛得住也带得动队伍。', stats: { 攻击: 3, 防御: 5, 速度: 2, 法术: 1, 气血: 5 },
+    mod: { atk: 1.05, matk: 0.6, def: 1.3, mdef: 1.0, hp: 1.25, mp: 0.95 },
+    heart: { name: '运气决', desc: '每级提升物防 4 点、法防 2 点（原作：体质、精神）', perLv: { def: 4, mdef: 2 } },
+    skills: ['menghu_dj', 'potian_dj', 'pojia', 'zhanhun', 'cuogu'],
+    auto: [['zhanhun', 'teamStart'], ['cuogu', 'selfHurt'], ['pojia', 'noVuln'], ['potian_dj', 'many'], ['menghu_dj', 'always']] };
+  C.mo_dz = Object.assign({}, C.novice_f, { name: '墨家弟子', sect: '墨家', role: '近战 · 剑', weapon: '长剑', hidden: true, skills: ['menghu_zs', 'potian_zs'],
+    joinSect: ['mo_ms', 'mo_dj'], mod: { atk: 1.1, matk: 0.8, def: 1.05, mdef: 0.9, hp: 1.1, mp: 1.0 },
+    heart: { name: '墨家心法', desc: '每级提升物攻 2 点', perLv: { atk: 2 } },
+    auto: [['potian_zs', 'noVuln'], ['menghu_zs', 'always']], desc: '已拜入墨家、尚未选分堂的弟子，背负长剑。去猛士堂主或遁甲堂主处选定分堂。' });
+  C.mo_ms_m = Object.assign({}, C.mo_ms, { gender: 'm' });
+  C.mo_dj_m = Object.assign({}, C.mo_dj, { gender: 'm' });
+  C.mo_dz_m = Object.assign({}, C.novice_m, C.mo_dz, { gender: 'm', joinSect: ['mo_ms_m', 'mo_dj_m'] });
+  window.DATA.train.baseMo = ['menghu_zs', 'potian_zs'];
 })();
 
 // ---------- 神兽（参考原作 data_pet_defs 的 1221~1227 与 pet_skills_special；原作还有进阶形态 x8，这里先记名字） ----------

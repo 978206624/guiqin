@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "out": "/home/claude/guiqin/art-src/mojia/ms_f/back.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 0,
+      "elapsed": 24.7,
+      "error": "ConnectionResetError: [Errno 104] Connection reset by peer"
+    },
+    {
+      "attempt": 2,
+      "status": 200,
+      "elapsed": 277.1,
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "/home/claude/guiqin/art-src/mojia/dz_f/cast.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 39.1,
+      "error": null
+    }
+  ]
+}

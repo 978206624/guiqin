@@ -226,6 +226,17 @@ def cast_anim(src,name,stand_h=126):
 CA=G+'/cast-anim'
 for n in ['dao_dz','dao_dz_m','dao_qm','dao_qm_m','dao_ty','dao_ty_m']:
     if os.path.exists(f'{CA}/{n}.png'): cast_anim(f'{CA}/{n}.png','bc_'+n)
+# 墨家（参考 kunkunxunqin 的 mojia_hd_v1 像素角色，用本作平滑手绘风重画，art-src/mojia/<堂>_<m|f>/）：猛士(ms,双刃斧) / 遁甲(dj,剑盾) / 墨家弟子(dz,背剑)
+MJ=G+'/mojia'
+for h in ['ms','dj','dz']:
+    for g in ['f','m']:
+        n='mo_'+h+('_m' if g=='m' else ''); d=f'{MJ}/{h}_{g}'
+        if not os.path.exists(d+'/walkf.png'): continue
+        walk_sheet(d+'/walkf.png','walk_f_'+n,118,flip=True); walk_sheet(d+'/walkb.png','walk_b_'+n,118)
+        cut_row(d+'/back.png',['b_'+n],{'b_'+n:126})
+        c=keyed(d+'/port.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
+        c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=58,method=6); dao_head(c,n)
+        if os.path.exists(d+'/cast.png'): cast_anim(d+'/cast.png','bc_'+n)
 # 神兽：直接用原作高清手绘帧（kunkunxunqin client/assets/pet_handpainted，tools/extract_hdpet.py 解出 PNG，tools/pet_cfg.py 从 aef/manifest 生成 art-src/shenshou/pets.json）。
 # 各帧按 manifest 的 region 摆回 1000×600 画布（身体原点 (500,560)），所有用到的帧裁成同一大小格子、水平翻转（原图朝右，本作我方朝左），拼成网格图集 bp_ss_<id>；
 # b_ss_<id> = 待机首帧的紧裁剪静图（地图 / 面板用）。图集元数据（格子大小、锚点、帧序列、释放帧）写进 ASSETS.pet。

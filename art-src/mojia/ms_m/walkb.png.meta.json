@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "/home/claude/guiqin/art-src/mojia/ms_m/walkb.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 34.3,
+      "error": null
+    }
+  ]
+}

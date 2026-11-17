@@ -1,0 +1,6 @@
+The input image is ONE game battle sprite: a Chinese wuxia character seen FROM BEHIND in a three-quarter back view facing the upper-left. TASK: output a single horizontal strip of exactly FOUR full-body frames of this SAME character (identical face/hair, outfit, colors, cape, weapon, proportions, smooth painted art style, and the same camera angle: from behind, facing the upper-left) performing a martial skill motion, raising the shield and thrusting the sword forward, evenly spaced left to right with wide empty gaps between them, all the same size, all standing on the same baseline, each fully separated by green space:
+frame 1 = anticipation: weight shifts back, body crouched, weapon pulled back;
+frame 2 = wind-up: weapon raised high, torso twisting, cape lifted;
+frame 3 = release: the strike lunges forward toward the upper-left, body stepping into it, cape streaming back, the most dynamic pose;
+frame 4 = follow-through: weapon extended but relaxing, body settling back toward the standing pose.
+Flat solid pure green (#00FF00) chroma key background, no ground, no shadows, no text, no effects, no glow.
