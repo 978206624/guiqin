@@ -381,7 +381,7 @@ window.DATA = {
   maps: {
     village: {
       butterflies: 9,
-      name: '恒山村', img: 'bg_village', mini: 'mini_village', iw: 2000, ih: 1500, scale: 1.0, k: 1, start: [960, 690],
+      name: '恒山村', img: 'bg_village', mini: 'mini_village', iw: 2000, ih: 1500, scale: 1.0, k: 1, start: [930, 690],
       alt: '溪水环绕的山村：茅草屋、拱桥、水车、凉亭和村长的瓦顶大屋，青石台阶一路通向山上',
       world: [888, 710], note: '新手村', home: 'village', battleBg: 'bg_battle2',
       water: { dir: [-1, .3], speed: 20, zones: [{ rect: [790, 0, 1000, 300], dir: [.12, 1], speed: 55 }] },   // 遮罩坐标是 1000×750（地图的一半）
@@ -401,7 +401,7 @@ window.DATA = {
         { poly: [[1700,330],[1752,330],[1762,380],[1905,440],[1908,525],[1860,562],[1790,548],[1700,565],[1612,548],[1602,500],[1602,416],[1690,375]], base: 565 }
       ],
       glows: [[1110,330],[1570,520],[1790,960],[1710,520]],
-      npcs: [{ id: 'elder', at: [900, 550] }, { id: 'axiu', at: [1190, 845] }],
+      npcs: [{ id: 'elder', at: [1350, 445] }, { id: 'axiu', at: [1190, 845] }],
       portals: [{ to: 'outskirts', name: '下山·恒山村郊', at: [1790, 1380], arrive: [140, 1360], needQuest: '1001', lockMsg: '村长还有话要交代，先别急着下山' }],
       foes: [{ stage: 'dummy', at: [440, 1225] }, { stage: 'boar', at: [1560, 480] }]
     },
