@@ -219,23 +219,22 @@ window.DATA = {
   // 天气：各地图按权重随机，每隔 span 秒转一次。演示用，不影响战斗数值。
   weather: {
     clear:  { name: '晴',   desc: '天朗气清，适合赶路。' },
-    cloudy: { name: '多云', desc: '云层压得很低，光线有些暗。' },
     rain:   { name: '小雨', desc: '细雨绵绵，石板路上泛着水光。' },
     storm:  { name: '雷雨', desc: '电闪雷鸣，雨下得又急又大。' },
     snow:   { name: '飘雪', desc: '雪花悠悠落下，四下一片安静。' },
     span: [90, 200],
     byMap: {
-      village: { clear: 4, cloudy: 3, rain: 2, snow: 1 },
-      town:    { clear: 5, cloudy: 2, rain: 2, storm: 1 },
-      pine: { clear: 4, cloudy: 3, rain: 2 },
-      wolfvalley: { clear: 2, cloudy: 4, storm: 2 },
-      taixuforest: { clear: 4, cloudy: 3, rain: 2 },
-      taixupeak: { clear: 5, cloudy: 3, rain: 1 },
-      taixuvalley: { clear: 2, cloudy: 3, rain: 2 },
-      mist: { clear: 2, cloudy: 3, rain: 2 },
-      creek: { clear: 4, cloudy: 2, rain: 3 },
-      outskirts: { clear: 4, cloudy: 2, rain: 2 },
-      wild:    { clear: 3, cloudy: 2, rain: 3, storm: 1 }
+      village: { clear: 4, rain: 2, snow: 1 },
+      town:    { clear: 5, rain: 2, storm: 1 },
+      pine: { clear: 4, rain: 2 },
+      wolfvalley: { clear: 2, storm: 2 },
+      taixuforest: { clear: 4, rain: 2 },
+      taixupeak: { clear: 5, rain: 1 },
+      taixuvalley: { clear: 2, rain: 2 },
+      mist: { clear: 2, rain: 2 },
+      creek: { clear: 4, rain: 3 },
+      outskirts: { clear: 4, rain: 2 },
+      wild:    { clear: 3, rain: 3, storm: 1 }
     }
   },
   // 聊天：世界频道里的“路人”和系统公告都是前端模拟的，没有联网。换成真服务器时，把 js/chat.js 里的 simulate* 去掉、
