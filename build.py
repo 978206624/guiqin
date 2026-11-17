@@ -1,4 +1,4 @@
-# 构建：切图 → assets/；生成 js/assets.js（相对路径版）；输出单文件版 wuxia_town.html 和可移植的源码 zip
+# 构建：切图 → assets/；生成 js/assets.js（相对路径版）；输出单文件版 dist/guiqin.html 和可移植的源码 zip
 import base64, json, os, shutil, zipfile
 from PIL import Image
 R=os.path.dirname(os.path.abspath(__file__)); G=R+'/art-src'; AD=R+'/assets'; DIST=R+'/dist'      # 全部相对仓库根目录，换机器也能直接构建
