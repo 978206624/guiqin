@@ -935,7 +935,7 @@ $('dialog').addEventListener('click', e => { e.stopPropagation(); closeDialog();
   out.forEach(b => { if (b.type === 'spot' && !D.npcs[b.npc]) D.npcs[b.npc] = { name: b.spot, spot: true, color: '#9ff0ff', idle: '' }; });
 })();
 const faceOf = who => {
-  if (who === '你') return 'head_player';
+  if (who === '你') return ROLE && AS.img['head_' + ROLE.cls] ? 'head_' + ROLE.cls : 'head_player';   // 对白里的“你”用当前职业的头像
   const id = Object.keys(D.npcs).find(k => D.npcs[k].name === who && !D.npcs[k].spot);
   if (id) return D.npcs[id].head || 'head_' + id;
   return D.speakers && D.speakers[who] ? D.speakers[who] : null;
