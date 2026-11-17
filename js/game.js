@@ -75,7 +75,9 @@ function grantInitSkills(id) { ensureSkl(); const c = D.classes[id]; if (c && c.
 
 function stats() {
   const b = D.base, g = D.grow, L = S.lv, m = clsMul;
-  const st = { maxHp: (b.hp + g.hp * L) * m('hp'), maxMp: (b.mp + g.mp * L) * m('mp'), atk: (b.atk + g.atk * L) * m('atk'), matk: (b.matk + g.matk * L) * m('matk') + heartBonus('matk'), def: (b.def + g.def * L) * m('def'), mdef: (b.mdef + g.mdef * L) * m('mdef') + heartBonus('mdef'), spd: b.spd + g.spd * L, crit: b.crit, dodge: b.dodge };
+  const st = { maxHp: (b.hp + g.hp * L) * m('hp'), maxMp: (b.mp + g.mp * L) * m('mp'), atk: (b.atk + g.atk * L) * m('atk'), matk:
+      (b.matk + g.matk * L) * m('matk') + heartBonus('matk'), def: (b.def + g.def * L) * m('def'), mdef: (b.mdef + g.mdef * L) * m('mdef') +
+      heartBonus('mdef'), spd: b.spd + g.spd * L, crit: b.crit, dodge: b.dodge };
   for (const k of ['maxHp', 'maxMp', 'atk', 'matk', 'def', 'mdef']) st[k] = Math.round(st[k]);
   const gs = gearSum(); for (const k in gs) st[STATKEY[k]] += gs[k];
   return st;
@@ -88,7 +90,9 @@ const ownPet = id => id === 'fox' || !!(D.petDex[id] && D.petDex[id].own) || !!(
 const petAct = () => (S.petAct && D.petDex[S.petAct] && ownPet(S.petAct)) ? S.petAct : 'fox';
 function petStats(id) {
   const dx = D.petDex[id || petAct()] || {}, b = D.base, g = D.grow, L = S.lv, p = dx.mult || D.pet, k = 1 + bondInfo().bonus;
-  return { maxHp: Math.round((b.hp + g.hp * L) * p.hp * k), atk: Math.round((b.atk + g.atk * L) * p.atk * k), matk: Math.round((b.matk + g.matk * L) * p.atk * k), def: Math.round((b.def + g.def * L) * p.def), mdef: Math.round((b.mdef + g.mdef * L) * p.def), crit: 10, dodge: 3, spd: Math.round((b.spd + g.spd * L) * p.spd) };
+  return { maxHp: Math.round((b.hp + g.hp * L) * p.hp * k), atk: Math.round((b.atk + g.atk * L) * p.atk * k), matk:
+      Math.round((b.matk + g.matk * L) * p.atk * k), def: Math.round((b.def + g.def * L) * p.def), mdef: Math.round((b.mdef + g.mdef * L) * p.def),
+      crit: 10, dodge: 3, spd: Math.round((b.spd + g.spd * L) * p.spd) };
 }
 const expNeed = () => D.expNeed.base + D.expNeed.perLevel * S.lv;
 function clampVitals() {
@@ -171,7 +175,10 @@ function openBag() {
   let h = '<div class="bagtop"><div class="rtabs">' + Object.keys(BAGCAT).map(k => '<button type="button" class="rtab' + (bagTab === k ? ' on' : '') + '" data-act="bagTab:' + k + '">' + BAGCAT[k] + '</button>').join('') + '</div>' +
     '<div class="bagcap"><span>' + all.length + ' / ' + cap + '</span><button type="button" class="tbtn" data-act="bagSort">整理</button></div></div><div class="grid">';
   ids.forEach(id => { const it = D.items[id], c = itemQ(id).color, eq = it.type === 'equip';
-    h += '<button type="button" class="tile q' + qHi(id) + (id === bagSel ? ' sel' : '') + '" style="--qc:' + c + '" data-act="sel:' + id + '" aria-label="' + it.name + '">' + itemImg(id) + (S.items[id] > 1 || !eq ? '<b>' + S.items[id] + '</b>' : '') + (eq && it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>'; });
+    h += '<button type="button" class="tile q' + qHi(id) + (id === bagSel ? ' sel' : '') + '" style="--qc:' + c + '" data-act="sel:' + id +
+        '" aria-label="' + it.name + '">' + itemImg(id) + (S.items[id] > 1 || !eq ? '<b>' + S.items[id] + '</b>' : '') +
+        (eq && it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>';
+    });
   for (let i = ids.length; i < (bagTab === 'all' ? cap : Math.max(10, Math.ceil(ids.length / 5) * 5)); i++) h += '<div class="tile empty"></div>';
   h += '</div>';
   if (bagSel) {
@@ -208,14 +215,21 @@ function equipView() {
   if (!eqSel || (eqSel.t === 'bag' && !S.items[eqSel.v]) || (eqSel.t === 'slot' && !S.equip[eqSel.v] && false)) eqSel = null;
   if (!eqSel) { const first = ids.find(i => IT[i].type === 'equip') || ids[0]; eqSel = first ? { t: 'bag', v: first } : null; }
   const slotTile = sl => { const id = S.equip[sl], q = id ? itemQ(id).color : 'rgba(226,176,74,.3)', on = eqSel && eqSel.t === 'slot' && eqSel.v === sl;
-    return '<button type="button" class="dslot' + (id ? qHi(id) : ' empty') + (on ? ' sel' : '') + '" style="--qc:' + q + '" data-act="eqSlot:' + sl + '" aria-label="' + SLOTNAME[sl] + '">' + (id ? itemImg(id) : '') + (getGear(sl).star ? '<i class="sstar">★' + getGear(sl).star + '</i>' : '') + '<span>' + SLOTNAME[sl] + '</span></button>'; };
+    return '<button type="button" class="dslot' + (id ? qHi(id) : ' empty') + (on ? ' sel' : '') + '" style="--qc:' + q + '" data-act="eqSlot:' + sl +
+        '" aria-label="' + SLOTNAME[sl] + '">' + (id ? itemImg(id) : '') +
+        (getGear(sl).star ? '<i class="sstar">★' + getGear(sl).star + '</i>' : '') + '<span>' + SLOTNAME[sl] + '</span></button>';
+    };
   let h = '<div class="doll"><div class="dglow"></div><div class="dcol dl">' + D.slotLeft.map(slotTile).join('') + '</div><div class="dcol dr">' + D.slotRight.map(slotTile).join('') + '</div>' +
     '<div class="dname"><b>' + ROLE.name + '</b><small>Lv.' + S.lv + ' · ' + clsName(D.classes[ROLE.cls]) + '</small></div><div class="dpow">战力 <b>' + fmt(powerOf(st)) + '</b></div>' +
     '<img alt="" src="' + IMG('cls_' + ROLE.cls) + '">' +
     '<div class="dstats"><div>攻击<b>' + Math.round(st.atk) + '</b></div><div>防御<b>' + Math.round(st.def) + '</b></div><div>速度<b>' + Math.round(st.spd) + '</b></div><div>气血<b>' + Math.round(st.maxHp) + '</b></div></div></div>';
   h += '<div class="grid eqgrid">';
   ids.forEach(id => { const it = IT[id], on = eqSel && eqSel.t === 'bag' && eqSel.v === id;
-    h += '<button type="button" class="tile q' + qHi(id) + (on ? ' sel' : '') + (it.type === 'equip' ? '' : ' dim') + '" style="--qc:' + itemQ(id).color + '" data-act="eqBag:' + id + '" aria-label="' + it.name + '">' + itemImg(id) + (it.type !== 'equip' || S.items[id] > 1 ? '<b>' + S.items[id] + '</b>' : '') + (it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>'; });
+    h += '<button type="button" class="tile q' + qHi(id) + (on ? ' sel' : '') + (it.type === 'equip' ? '' : ' dim') + '" style="--qc:' +
+        itemQ(id).color + '" data-act="eqBag:' + id + '" aria-label="' + it.name + '">' + itemImg(id) +
+        (it.type !== 'equip' || S.items[id] > 1 ? '<b>' + S.items[id] + '</b>' : '') + (it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') +
+        '</button>';
+    });
   for (let i = ids.length; i < Math.max(10, Math.ceil(ids.length / 5) * 5); i++) h += '<div class="tile empty"></div>';
   h += '</div>';
   if (eqSel) {
@@ -227,7 +241,13 @@ function equipView() {
       else if (it.type === 'potion') btn = '<button type="button" class="tbtn red" data-act="use:' + id + '">使用</button>';
       h += '<div class="idetail"><div class="itile" style="--qc:' + q.color + '">' + itemImg(id) + '</div><div class="ibody"><h5>' + it.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
         '<p class="meta">' + TYPENAME[it.type] + (it.slot ? ' · ' + SLOTNAME[it.slot] : '') + (eqSel.t === 'slot' ? '　已装备' : '　持有 ' + S.items[id]) + '</p>' +
-        (it.type === 'equip' ? '<p class="bonus">' + itemBonus(it) + (eqSel.t === 'slot' && getGear(eqSel.v).star ? '　<span class="gold2">★' + getGear(eqSel.v).star + ' 锻造 +' + Math.round(getGear(eqSel.v).star * D.forge.perStar * 100) + '%</span>' : '') + '</p>' + (eqSel.t === 'bag' ? '<p class="cmp">' + (S.equip[it.slot] ? '对比当前「' + IT[S.equip[it.slot]].name + '」：' + (bagDelta(it) || '无差别') : '该部位空着，装上就是净提升') + '</p>' : '') : '') +
+        (it.type === 'equip' ? '<p class="bonus">' + itemBonus(it) +
+            (eqSel.t === 'slot' && getGear(eqSel.v).star ? '　<span class="gold2">★' + getGear(eqSel.v).star + ' 锻造 +' +
+            Math.round(getGear(eqSel.v).star * D.forge.perStar * 100) + '%</span>' : '') +
+            '</p>' +
+            (eqSel.t === 'bag' ? '<p class="cmp">' +
+            (S.equip[it.slot] ? '对比当前「' + IT[S.equip[it.slot]].name + '」：' + (bagDelta(it) || '无差别') : '该部位空着，装上就是净提升') + '</p>' : '') :
+            '') +
         '<p>' + it.desc + '</p>' + (eqSel.t === 'slot' ? '<p class="hint" style="margin:4px 0 0">锻造升星、镶嵌宝石：去汉中郡找王铁匠。</p>' : '') + '</div><div class="ibtn1">' + btn + '</div></div>'; }
   }
   return h + '<p class="center" style="margin:12px 0 0"><button type="button" class="tbtn" data-act="openBag">打开完整背包（整理 / 出售）</button></p>';
@@ -239,7 +259,10 @@ function forgeView(mode) {
   const IT = D.items, F = D.forge, list = forgeable();
   if (!forgeSlot || !S.equip[forgeSlot]) forgeSlot = list[0] || null;
   let h = '<div class="fstrip">' + D.slotLeft.concat(D.slotRight).map(sl => { const id = S.equip[sl], gr = getGear(sl);
-    return '<button type="button" class="fchip' + (sl === forgeSlot ? ' sel' : '') + (id ? qHi(id) : ' empty') + '" style="--qc:' + (id ? itemQ(id).color : 'rgba(226,176,74,.3)') + '" data-act="forgeSlot:' + sl + '" aria-label="' + D.slots[sl] + '">' + (id ? itemImg(id) : '') + '<span>' + D.slots[sl] + '</span>' + (gr.star ? '<i>★' + gr.star + '</i>' : '') + '</button>'; }).join('') + '</div>';
+    return '<button type="button" class="fchip' + (sl === forgeSlot ? ' sel' : '') + (id ? qHi(id) : ' empty') + '" style="--qc:' +
+        (id ? itemQ(id).color : 'rgba(226,176,74,.3)') + '" data-act="forgeSlot:' + sl + '" aria-label="' + D.slots[sl] + '">' +
+        (id ? itemImg(id) : '') + '<span>' + D.slots[sl] + '</span>' + (gr.star ? '<i>★' + gr.star + '</i>' : '') + '</button>';
+    }).join('') + '</div>';
   if (!forgeSlot) return h + '<div class="idetail"><div class="ibody"><p>还没有穿任何装备。先到「装备」页穿上一件，再回来锻造。</p></div></div>';
   const id = S.equip[forgeSlot], it = IT[id], q = itemQ(id), gr = getGear(forgeSlot), s0 = gr.star, mx = s0 >= F.max;
   const base = Object.keys(STATKEY).filter(k => it[k]).map(k => D.statName[k] + ' ' + fmtStat(k, it[k]) + (PCT[k] || !s0 ? '' : ' → <b>' + fmtStat(k, Math.round(it[k] * (1 + s0 * F.perStar))) + '</b>')).join('　');
@@ -253,8 +276,13 @@ function forgeView(mode) {
     const have = S.items[forgeGem] || 0, gi = D.items[forgeGem], rate = gi.forge >= 5 ? 1 : Math.min(1, base + F.gemBonus[gi.forge - 1]);
     const ok = S.coin >= coin && have >= 1;
     h += '<h4 class="fh">选一颗锻造宝石<small>　锻造必须消耗一颗，品质越高成功率越高</small></h4><div class="fgems">' + fids.map(i => { const n = S.items[i] || 0, g = D.items[i], q = itemQ(i);
-      return '<button type="button" class="fgem' + (i === forgeGem ? ' sel' : '') + (n ? '' : ' none') + qHi(i) + '" style="--qc:' + q.color + '" data-act="forgeGem:' + i + '" aria-label="' + g.name + '">' + itemImg(i) + '<b>' + n + '</b><small>' + (g.forge >= 5 ? '必成' : '+' + Math.round(F.gemBonus[g.forge - 1] * 100) + '%') + '</small></button>'; }).join('') + '</div>' +
-      '<div class="fcost"><div><small>锻造到 ' + (s0 + 1) + ' 星</small></div><div class="' + (S.coin >= coin ? '' : 'lack') + '">银两 ' + fmt(coin) + ' <small>（有 ' + fmt(S.coin) + '）</small></div><div class="' + (have >= 1 ? '' : 'lack') + '" style="color:' + itemQ(forgeGem).color + '">' + gi.name + ' ×1 <small>（有 ' + have + '）</small></div>' +
+      return '<button type="button" class="fgem' + (i === forgeGem ? ' sel' : '') + (n ? '' : ' none') + qHi(i) + '" style="--qc:' + q.color +
+          '" data-act="forgeGem:' + i + '" aria-label="' + g.name + '">' + itemImg(i) + '<b>' + n + '</b><small>' +
+          (g.forge >= 5 ? '必成' : '+' + Math.round(F.gemBonus[g.forge - 1] * 100) + '%') + '</small></button>';
+      }).join('') + '</div>' +
+      '<div class="fcost"><div><small>锻造到 ' + (s0 + 1) + ' 星</small></div><div class="' + (S.coin >= coin ? '' : 'lack') + '">银两 ' + fmt(coin) +
+          ' <small>（有 ' + fmt(S.coin) + '）</small></div><div class="' + (have >= 1 ? '' : 'lack') + '" style="color:' + itemQ(forgeGem).color +
+          '">' + gi.name + ' ×1 <small>（有 ' + have + '）</small></div>' +
       '<div>成功率 <b class="' + (rate >= .7 ? 'okc' : rate >= .4 ? 'midc' : 'badc') + '">' + Math.round(rate * 100) + '%</b> <small>' + (gi.forge >= 5 ? '必定成功' : '基础 ' + Math.round(base * 100) + '% + 宝石 ' + Math.round(F.gemBonus[gi.forge - 1] * 100) + '%') + '</small></div>' +
       '<div class="fwide"><small>' + (gi.forge >= 5 ? '' : drop ? '失败掉 1 星，宝石和银两都会消耗' : '失败不掉星，宝石和银两仍会消耗') + '</small></div></div>' +
       '<p class="center" style="margin:10px 0 0"><button type="button" class="tbtn red forgebtn" data-act="forge:' + forgeSlot + '"' + (ok ? '' : ' disabled') + '>锻造</button></p>';
@@ -272,11 +300,20 @@ function forgeView(mode) {
   h += '</div>';
   if (gemPick && gemPick.slot === forgeSlot) {
     const gems = Object.keys(S.items).filter(i => IT[i].type === 'gem');
-    h += '<p class="fsub">选一颗宝石镶进第 ' + (gemPick.i + 1) + ' 个孔：</p>' + (gems.length ? '<div class="grid gemgrid">' + gems.map(i => '<button type="button" class="tile q' + qHi(i) + '" style="--qc:' + itemQ(i).color + '" data-act="gemSet:' + i + '" aria-label="' + IT[i].name + '">' + itemImg(i) + '<b>' + S.items[i] + '</b><u>' + D.statName[IT[i].gem] + '</u></button>').join('') + '</div>' : '<p class="hint">背包里没有宝石。百宝摊（寄卖行掌柜）有卖一阶宝石。</p>');
+    h += '<p class="fsub">选一颗宝石镶进第 ' + (gemPick.i + 1) + ' 个孔：</p>' +
+        (gems.length ? '<div class="grid gemgrid">' +
+        gems.map(i => '<button type="button" class="tile q' + qHi(i) + '" style="--qc:' + itemQ(i).color + '" data-act="gemSet:' + i +
+        '" aria-label="' + IT[i].name + '">' + itemImg(i) + '<b>' + S.items[i] + '</b><u>' + D.statName[IT[i].gem] + '</u></button>').join('') +
+        '</div>' : '<p class="hint">背包里没有宝石。百宝摊（寄卖行掌柜）有卖一阶宝石。</p>');
   } else h += '<p class="hint">点空孔选宝石镶嵌；点已镶的宝石可以摘下放回背包。</p>';
   // 合成
   const merge = Object.keys(S.items).filter(i => IT[i].type === 'gem' && IT[i].lv < 5 && S.items[i] >= 3);
-  h += '<h4 class="fh">宝石合成　<small>三颗同种同阶 → 一颗高一阶</small></h4>' + (merge.length ? merge.map(i => '<div class="row mrow">' + itemImg(i) + '<div><h5 style="color:' + itemQ(i).color + '">' + IT[i].name + ' ×' + S.items[i] + '</h5><p>→ ' + IT[i.replace(/_\d$/, '_' + (IT[i].lv + 1))].name + '</p></div><button type="button" class="tbtn" data-act="gemMerge:' + i + '">3 合 1</button></div>').join('') : '<p class="hint">还没有凑够三颗的宝石。</p>');
+  h += '<h4 class="fh">宝石合成　<small>三颗同种同阶 → 一颗高一阶</small></h4>' +
+      (merge.length ?
+      merge.map(i => '<div class="row mrow">' + itemImg(i) + '<div><h5 style="color:' + itemQ(i).color + '">' + IT[i].name + ' ×' + S.items[i] +
+      '</h5><p>→ ' + IT[i.replace(/_\d$/, '_' + (IT[i].lv + 1))].name + '</p></div><button type="button" class="tbtn" data-act="gemMerge:' + i +
+      '">3 合 1</button></div>').join('') :
+      '<p class="hint">还没有凑够三颗的宝石。</p>');
   return h;
 }
 function forgeDo(slot) {
@@ -303,12 +340,19 @@ function openRole() {
   let h = '<div class="who"><img alt="" src="' + IMG('cls_' + ROLE.cls) + '"><div><h5>' + ROLE.name + '</h5><p>' + clsName(cls) + ' · ' + cls.role + ' · ' + (cls.gender === 'm' ? '男' : '女') + '</p>' +
     '<p>等级 <b class="gold">' + S.lv + '</b>　战力 <b class="gold">' + fmt(powerOf(st)) + '</b></p>' +
     '<p class="small">经验 ' + S.exp + ' / ' + need + '</p><div class="rbar exp"><i style="width:' + Math.min(100, S.exp / need * 100) + '%"></i></div></div></div>' +
-    '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') + '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') + '" data-act="roleTab:equip">装备</button><button type="button" class="rtab' + (roleTab === 'skill' ? ' on' : '') + '" data-act="roleTab:skill">技能</button></div>';
+    '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') +
+        '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') +
+        '" data-act="roleTab:equip">装备</button><button type="button" class="rtab' + (roleTab === 'skill' ? ' on' : '') +
+        '" data-act="roleTab:skill">技能</button></div>';
   if (roleTab === 'attr') {
     // 每项属性拆成 基础 + 等级成长 + 装备（含星级和宝石），装备加成用绿色标出来
     const gear = gearSum(), base = D.base, grow = D.grow, L = S.lv;
     const line = (k, tip) => { const sk = STATKEY[k], tot = st[sk], e = gear[k] || 0, mu = clsMul(k), hb = heartBonus(k);
-      return '<div class="arow"><span>' + D.statName[k] + '</span><b>' + fmtStat(k, tot) + '</b><small>' + (tip || '基础 ' + fmtStat(k, Math.round(base[k] * mu)) + (grow[k] ? ' + 成长 ' + fmtStat(k, Math.round(grow[k] * L * mu)) : '') + (hb ? ' + 心法 ' + hb : '')) + (e ? ' <em>+ 装备 ' + fmtStat(k, e) + '</em>' : '') + '</small></div>'; };
+      return '<div class="arow"><span>' + D.statName[k] + '</span><b>' + fmtStat(k, tot) + '</b><small>' +
+          (tip || '基础 ' + fmtStat(k, Math.round(base[k] * mu)) + (grow[k] ? ' + 成长 ' + fmtStat(k, Math.round(grow[k] * L * mu)) : '') +
+          (hb ? ' + 心法 ' + hb : '')) +
+          (e ? ' <em>+ 装备 ' + fmtStat(k, e) + '</em>' : '') + '</small></div>';
+      };
     h += '<div class="vit"><div><small>生命</small>' + bar(S.hp, st.maxHp, 'hp') + '</div><div><small>魔法</small>' + bar(S.mp, st.maxMp, 'mp') + '</div></div>' +
       '<div class="alist">' + ['atk', 'matk', 'def', 'mdef', 'hp', 'mp', 'spd'].map(k => line(k)).join('') +
       line('crit', '暴击时伤害 ×1.5') + line('dodge', '被攻击时有几率完全躲开') +
@@ -354,7 +398,11 @@ function openPet() {
   } else if (petTab === 'skill') {
     const sk = id => { const x = D.skills[id]; return x; };
     if (dex.ss) {
-      h += '<div class="pskills">' + dex.act.filter(a => a[0] !== 'ss_hit').map(a => { const x = D.skills[a[0]]; return '<div class="pskill"><div class="pico fire">' + x.name[0] + '</div><div><h6>' + x.name + '<small>主动' + (x.cd ? ' · 冷却 ' + x.cd + ' 回合' : '') + '</small></h6><p>' + x.des + '</p></div></div>'; }).join('') +
+      h += '<div class="pskills">' + dex.act.filter(a => a[0] !== 'ss_hit').map(a => {
+        const x = D.skills[a[0]];
+        return '<div class="pskill"><div class="pico fire">' + x.name[0] + '</div><div><h6>' + x.name + '<small>主动' +
+            (x.cd ? ' · 冷却 ' + x.cd + ' 回合' : '') + '</small></h6><p>' + x.des + '</p></div></div>';
+      }).join('') +
         dex.pasList.map(a => '<div class="pskill"><div class="pico bond">' + a[0][0] + '</div><div><h6>' + a[0] + '<small>被动</small></h6><p>' + a[1] + '</p></div></div>').join('') +
         '</div><p class="hint">技能描述取自原作；演示版数值已按本作难度折算。宠物在战斗中自动出手。进阶形态「' + dex.adv + '」暂未开放。</p>';
     } else
@@ -381,7 +429,10 @@ function shopHTML(id) {
   let h = '<p class="center" style="margin:0;color:var(--amber)">银两 ' + fmt(S.coin) + '</p>';
   shop.sell.forEach(iid => {
     const it = D.items[iid];
-    h += '<button type="button" class="row" data-act="buy:' + iid + '"' + (S.coin < it.price ? ' disabled' : '') + '>' + itemImg(iid) + '<div><h5 style="color:' + itemQ(iid).color + '">' + it.name + (S.items[iid] ? '　<small style="color:var(--muted)">已有 ' + S.items[iid] + '</small>' : '') + '</h5><p>' + it.desc + '</p></div><span>' + it.price + ' 两</span></button>';
+    h += '<button type="button" class="row" data-act="buy:' + iid + '"' + (S.coin < it.price ? ' disabled' : '') + '>' + itemImg(iid) +
+        '<div><h5 style="color:' + itemQ(iid).color + '">' + it.name +
+        (S.items[iid] ? '　<small style="color:var(--muted)">已有 ' + S.items[iid] + '</small>' : '') + '</h5><p>' + it.desc + '</p></div><span>' +
+        it.price + ' 两</span></button>';
   });
   const sellable = Object.keys(S.items).filter(i => D.items[i].type === 'mat' && D.items[i].price > 0);
   if (sellable.length) {
@@ -403,7 +454,23 @@ function openSmith(tab) {
 }
 const ACTS = {
   petUse(id) { if (!ownPet(id)) return; S.petAct = id; petSel = id; save(); applyPetLook(); toast(D.petDex[id].name + ' 出战'); openPet(); },
-  ssExch(id) { const dx = D.petDex[id]; if (!dx || ownPet(id)) return; if ((S.items.ss_soul || 0) < D.ssCost) { toast('神兽之魂不够'); return; } addItem('ss_soul', -D.ssCost); S.petOwn = S.petOwn || {}; S.petOwn[id] = true; S.petAct = id; save(); refresh(); applyPetLook(); toast('神兽「' + dx.name + '」跟随了你'); openEnvoy(); },
+  ssExch(id) {
+    const dx = D.petDex[id];
+    if (!dx || ownPet(id)) return;
+    if ((S.items.ss_soul || 0) < D.ssCost) {
+      toast('神兽之魂不够');
+      return;
+    }
+    addItem('ss_soul', -D.ssCost);
+    S.petOwn = S.petOwn || {};
+    S.petOwn[id] = true;
+    S.petAct = id;
+    save();
+    refresh();
+    applyPetLook();
+    toast('神兽「' + dx.name + '」跟随了你');
+    openEnvoy();
+  },
   ssRite() { if (S.coin < D.ssRite.coin) { toast('银两不够'); return; } S.coin -= D.ssRite.coin; const n = Math.round(rnd(D.ssRite.min, D.ssRite.max)); addItem('ss_soul', n); save(); refresh(); toast('神兽祭：天神赐下神兽之魂 ×' + n); openEnvoy(); },
   sel(id) { bagSel = id; openBag(); },
   eqBag(id) { eqSel = { t: 'bag', v: id }; openRole(); },
@@ -427,7 +494,19 @@ const ACTS = {
   forgeGem(id) { forgeGem = id; openSmith('forge'); },
   forge(sl) { forgeDo(sl); },
   gemPick(arg) { const [sl, i] = arg.split(':'); gemPick = { slot: sl, i: +i }; openSmith('forge'); },
-  gemSet(id) { if (!gemPick || !S.items[id]) return; const gr = (S.gear = S.gear || {})[gemPick.slot] || (S.gear[gemPick.slot] = { star: 0, gems: [] }); gr.gems = gr.gems || []; gr.gems[gemPick.i] = id; addItem(id, -1); gemPick = null; clampVitals(); save(); refresh(); toast('镶嵌了' + D.items[id].name); openSmith('forge'); },
+  gemSet(id) {
+    if (!gemPick || !S.items[id]) return;
+    const gr = (S.gear = S.gear || {})[gemPick.slot] || (S.gear[gemPick.slot] = { star: 0, gems: [] });
+    gr.gems = gr.gems || [];
+    gr.gems[gemPick.i] = id;
+    addItem(id, -1);
+    gemPick = null;
+    clampVitals();
+    save();
+    refresh();
+    toast('镶嵌了' + D.items[id].name);
+    openSmith('forge');
+  },
   gemOff(arg) { const [sl, i] = arg.split(':'); const gr = getGear(sl), id = gr.gems && gr.gems[+i]; if (!id) return; S.gear[sl].gems[+i] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('摘下了' + D.items[id].name); openSmith('forge'); },
   gemMerge(id) { if ((S.items[id] || 0) < 3) return; const nx = id.replace(/_\d$/, '_' + (D.items[id].lv + 1)); addItem(id, -3); addItem(nx, 1); save(); toast('合成了' + D.items[nx].name); openSmith('forge'); },
   roleTab(t) { roleTab = t; gemPick = null; openRole(); },
@@ -436,7 +515,16 @@ const ACTS = {
   unequip(slot) { if (!S.equip[slot]) return; const id = S.equip[slot]; S.equip[slot] = null; addItem(id, 1); clampVitals(); save(); refresh(); toast('卸下了' + D.items[id].name); eqSel = { t: 'bag', v: id }; openRole(); },
   openBag() { openBag(); },
   bagTab(t) { bagTab = t; openBag(); },
-  bagSort() { const order = { equip: 0, gem: 1, potion: 2, mat: 3 }, ids = Object.keys(S.items).sort((a, b) => order[D.items[a].type] - order[D.items[b].type] || (D.items[b].q || 1) - (D.items[a].q || 1)), o = {}; ids.forEach(i => o[i] = S.items[i]); S.items = o; save(); toast('已整理背包'); openBag(); },
+  bagSort() {
+    const order = { equip: 0, gem: 1, potion: 2, mat: 3 },
+        ids = Object.keys(S.items).sort((a, b) => order[D.items[a].type] - order[D.items[b].type] || (D.items[b].q || 1) - (D.items[a].q || 1)),
+        o = {};
+    ids.forEach(i => o[i] = S.items[i]);
+    S.items = o;
+    save();
+    toast('已整理背包');
+    openBag();
+  },
   bagSell(id) { const it = D.items[id]; if (!S.items[id] || !(it.price > 0)) return; if (it.type === 'equip' && S.items[id] === 1 && Object.values(S.equip).includes(id)) return; addItem(id, -1); S.coin += it.price; save(); refresh(); toast('卖出' + it.name + '，银两 +' + it.price); openBag(); },
   switchRole() { closeModal(); stop(); save(); window.FRONT.showRoles(); },
   close() { closeModal(); },
@@ -556,7 +644,9 @@ function loadMap(id, at) {
     if (def.fog) { const n = def.fog.n || 26, W = M.W, H = M.H; let seed = 7;
       const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
       for (let i = 0; i < n; i++) { const s = 380 + rnd() * 520, e = document.createElement('i');
-        e.style.cssText = 'width:' + s + 'px;height:' + s * (0.55 + rnd() * 0.3) + 'px;left:' + (rnd() * (W + s) - s * .5) + 'px;top:' + (rnd() * (H + s) - s * .5) + 'px;--dx:' + (60 + rnd() * 160) + 'px;--dy:' + (-30 + rnd() * 60) + 'px;--d:' + (14 + rnd() * 18) + 's;--o1:' + (def.fog.lo ?? .25) + ';--o2:' + (def.fog.hi ?? .8) + ';animation-delay:' + (-rnd() * 20) + 's';
+        e.style.cssText = 'width:' + s + 'px;height:' + s * (0.55 + rnd() * 0.3) + 'px;left:' + (rnd() * (W + s) - s * .5) + 'px;top:' +
+            (rnd() * (H + s) - s * .5) + 'px;--dx:' + (60 + rnd() * 160) + 'px;--dy:' + (-30 + rnd() * 60) + 'px;--d:' + (14 + rnd() * 18) +
+            's;--o1:' + (def.fog.lo ?? .25) + ';--o2:' + (def.fog.hi ?? .8) + ';animation-delay:' + (-rnd() * 20) + 's';
         fg.appendChild(e); } } }
   (def.glows || []).forEach((g, i) => {
     const d = document.createElement('div'); d.className = 'glow'; const p = I(g[0], g[1]);
@@ -636,7 +726,23 @@ function findPath(from, to) {
   const cost = new Float32Array(N).fill(1e9), prev = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
   const heap = [];                               // 小顶堆：[f, index]
   const push = (f, i) => { heap.push([f, i]); let k = heap.length - 1; while (k > 0) { const p = (k - 1) >> 1; if (heap[p][0] <= heap[k][0]) break; [heap[p], heap[k]] = [heap[k], heap[p]]; k = p; } };
-  const pop = () => { const top = heap[0], lastN = heap.pop(); if (heap.length) { heap[0] = lastN; let k = 0; for (;;) { let m = k; const l = 2 * k + 1, r = l + 1; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m; } } return top; };
+  const pop = () => {
+    const top = heap[0], lastN = heap.pop();
+    if (heap.length) {
+      heap[0] = lastN;
+      let k = 0;
+      for (;;) {
+        let m = k;
+        const l = 2 * k + 1, r = l + 1;
+        if (l < heap.length && heap[l][0] < heap[m][0]) m = l;
+        if (r < heap.length && heap[r][0] < heap[m][0]) m = r;
+        if (m === k) break;
+        [heap[m], heap[k]] = [heap[k], heap[m]];
+        k = m;
+      }
+    }
+    return top;
+  };
   const hx = i => { const dx = Math.abs(i % W - g.x), dy = Math.abs(Math.floor(i / W) - g.y); return Math.max(dx, dy) + 0.414 * Math.min(dx, dy); };
   cost[si] = 0; push(hx(si), si);
   let found = false;
@@ -691,11 +797,23 @@ function onBtn(key, label, b) {
   else if (key === 'auto') { wander = !wander; wanderWait = 0; autoBtn.classList.toggle('on', wander); if (!wander) stop(); toast(wander ? '开始挂机闲逛，再点一次停止' : '停止挂机'); }
   else if (key === 'potion') { if (!S.items.hp_potion) toast('没有金创药了，找货郎买点吧'); else usePotion('hp_potion'); }
   else if (key === 'gift') {
-    if (!S.ssGift2) { S.ssGift2 = true; S.ssGift = true; S.petOwn = Object.assign(S.petOwn || {}, { ss_1221: true, ss_1222: true, ss_1223: true, ss_1224: true, ss_1225: true, ss_1226: true, ss_1227: true }); S.petAct = S.petAct && S.petAct !== 'fox' ? S.petAct : 'ss_1227'; save(); refresh(); applyPetLook(); toast('神兽体验福利：七只神兽已全部入队，在宠物面板切换出战'); }
+    if (!S.ssGift2) {
+      S.ssGift2 = true;
+      S.ssGift = true;
+      S.petOwn = Object.assign(S.petOwn || {},
+          { ss_1221: true, ss_1222: true, ss_1223: true, ss_1224: true, ss_1225: true, ss_1226: true, ss_1227: true });
+      S.petAct = S.petAct && S.petAct !== 'fox' ? S.petAct : 'ss_1227';
+      save();
+      refresh();
+      applyPetLook();
+      toast('神兽体验福利：七只神兽已全部入队，在宠物面板切换出战');
+    }
     else if (S.gift) toast('今日福利已领取');
     else { S.gift = true; grant({ coin: 200, items: { hp_potion: 2 } }); toast('领取福利：银两 +200，金创药 ×2'); const d = b.querySelector('.dot'); if (d) d.hidden = true; }
   }
-  else if (key === 'rank') openModal('竞技场', '<p class="center">' + D.arena.allyName + ' 对 ' + D.arena.foeName + '<br>双方各 5 名侠客、5 只宠物，等级相同。<br>你操作自己的角色，队友和宠物自动出手；每回合 ' + TURN_SECONDS + ' 秒，超时自动行动。<br>演示对战，不影响等级和背包。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">开始 5v5 对战</button></p>');
+  else if (key === 'rank') openModal('竞技场', '<p class="center">' + D.arena.allyName + ' 对 ' + D.arena.foeName +
+      '<br>双方各 5 名侠客、5 只宠物，等级相同。<br>你操作自己的角色，队友和宠物自动出手；每回合 ' + TURN_SECONDS +
+      ' 秒，超时自动行动。<br>演示对战，不影响等级和背包。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">开始 5v5 对战</button></p>');
   else if (key === 'act') toast('中秋灯会将在戌时三刻开始');
   else toast('「' + (label || '坐骑') + '」暂未开放');
 }
@@ -843,7 +961,10 @@ function changeClass(id) {         // 拜入门派：换职业、形象、头像
 function offerSect() {
   const opts = (curCls().joinSect || []).map(id => D.classes[id]); if (!opts.length) return;
   openModal('拜入门派', '<p class="center">道家门主说：你与道家有缘。选一个分堂吧。</p>' + (curCls().joinSect).map(id => { const c = D.classes[id];
-    return '<div class="q"><img alt="" src="' + IMG('head_' + id) + '" style="width:56px;height:56px;border-radius:50%;float:left;margin-right:10px"><b>' + c.name + '</b>（' + c.weapon + '）<br><small>' + c.desc + '</small><br><button type="button" class="tbtn red" data-act="sect:' + id + '">拜入' + c.name + '</button></div>'; }).join(''));
+    return '<div class="q"><img alt="" src="' + IMG('head_' + id) +
+        '" style="width:56px;height:56px;border-radius:50%;float:left;margin-right:10px"><b>' + c.name + '</b>（' + c.weapon + '）<br><small>' +
+        c.desc + '</small><br><button type="button" class="tbtn red" data-act="sect:' + id + '">拜入' + c.name + '</button></div>';
+    }).join(''));
 }
 // 门派两步：10 级找门主入道家（ROLE.sect），再去对应堂主处选分堂（职业形象此时才变）。原作入门 15 级、分堂 30 级，演示只做到 10 级所以都按 10 级
 const SECT_LV = 10;
@@ -851,7 +972,12 @@ function openEnvoy() {
   const have = S.items.ss_soul || 0;
   let h = '<p class="center" style="margin:0">神兽之魂 <b class="gold">' + have + '</b>　银两 <b class="gold">' + fmt(S.coin) + '</b></p><div class="shop">' +
     Object.keys(D.petDex).filter(id => D.petDex[id].ss).map(id => { const x = D.petDex[id], own = ownPet(id);
-      return '<button type="button" class="row" data-act="ssExch:' + id + '"' + (own || have < D.ssCost ? ' disabled' : '') + '><img alt="" src="' + IMG(x.show || x.sprite) + '" style="height:54px;width:auto"><div><h5 style="color:' + D.petQuality[x.q].color + '">' + x.name + '<small style="color:var(--muted)">　进阶：' + x.adv + '</small></h5><p>' + x.kind + '　技能：' + x.act.filter(a => a[0] !== 'ss_hit').map(a => D.skills[a[0]].name).join('、') + '</p></div><span>' + (own ? '已拥有' : '魂 ×' + D.ssCost) + '</span></button>'; }).join('') +
+      return '<button type="button" class="row" data-act="ssExch:' + id + '"' + (own || have < D.ssCost ? ' disabled' : '') + '><img alt="" src="' +
+          IMG(x.show || x.sprite) + '" style="height:54px;width:auto"><div><h5 style="color:' + D.petQuality[x.q].color + '">' + x.name +
+          '<small style="color:var(--muted)">　进阶：' + x.adv + '</small></h5><p>' + x.kind + '　技能：' +
+          x.act.filter(a => a[0] !== 'ss_hit').map(a => D.skills[a[0]].name).join('、') + '</p></div><span>' + (own ? '已拥有' : '魂 ×' + D.ssCost) +
+          '</span></button>';
+      }).join('') +
     '</div><p class="center" style="margin:14px 0 0"><button type="button" class="tbtn red" data-act="ssRite">办神兽祭　银两 ' + D.ssRite.coin + '</button></p><p class="hint">神兽祭：奉上祭品，天神会赐下 ' + D.ssRite.min + '~' + D.ssRite.max + ' 枚神兽之魂。（原作兑换需要 99 枚，演示版 ' + D.ssCost + ' 枚）</p>';
   openModal('神兽使者', h);
 }
@@ -894,7 +1020,10 @@ function pickHallTalk(hall) {          // hall: 'qm' | 'ty'
   if (!c.joinSect) { if (c.sect === '道家' && c.name === name) openTrain('hall'); else toast('你已入另一堂，分堂不可改选'); return; }
   if (ROLE.sect !== 'dao') { toast('先去找道家门主入门（' + SECT_LV + ' 级）'); return; }
   const id = c.joinSect.find(x => x.indexOf('dao_' + hall) === 0), d = D.classes[id];
-  openModal('选择分堂', '<div class="q"><img alt="" src="' + IMG('head_' + id) + '" style="width:56px;height:56px;border-radius:50%;float:left;margin-right:10px"><b>' + d.name + '</b>（' + d.weapon + '）<br><small>' + d.desc + '</small></div><p class="center">分堂选定后不能改选。</p><p class="center"><button type="button" class="tbtn red" data-act="sect:' + id + '">拜入' + name + '</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
+  openModal('选择分堂', '<div class="q"><img alt="" src="' + IMG('head_' + id) +
+      '" style="width:56px;height:56px;border-radius:50%;float:left;margin-right:10px"><b>' + d.name + '</b>（' + d.weapon + '）<br><small>' + d.desc +
+      '</small></div><p class="center">分堂选定后不能改选。</p><p class="center"><button type="button" class="tbtn red" data-act="sect:' + id + '">拜入' + name +
+      '</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
 }
 ACTS.sect = id => { closeModal(); changeClass(id); };
 // 完成当前这一拍：进入下一拍；任务最后一拍发奖励并播完成对白（下一个任务不是“找人”时，顺带播它的接取对白）
@@ -1222,7 +1351,18 @@ function wtTiles() {
     // 细密的亮纹 + 暗纹（短、细、弯）
     for (let i = 0; i < 150; i++) { const px = R() * 256, py = R() * 256, L = 6 + R() * 20, bright = R() > .4, bend = (R() - .5) * 5;
       x.strokeStyle = bright ? 'rgba(238,255,250,' + (.3 + R() * .4).toFixed(2) + ')' : 'rgba(5,75,85,' + (.14 + R() * .16).toFixed(2) + ')'; x.lineWidth = bright ? .7 + R() * .9 : 1 + R() * 1.1;
-      wrap((ox, oy) => { x.beginPath(); if (vert) { x.moveTo(px + ox, py + oy); x.quadraticCurveTo(px + ox + bend, py + oy + L * .7, px + ox + bend * .4, py + oy + L * 1.6); } else { x.moveTo(px + ox, py + oy); x.quadraticCurveTo(px + ox + L / 2, py + oy + bend, px + ox + L, py + oy + L * .1); } x.stroke(); }); }
+      wrap((ox, oy) => {
+        x.beginPath();
+        if (vert) {
+          x.moveTo(px + ox, py + oy);
+          x.quadraticCurveTo(px + ox + bend, py + oy + L * .7, px + ox + bend * .4, py + oy + L * 1.6);
+        } else {
+          x.moveTo(px + ox, py + oy);
+          x.quadraticCurveTo(px + ox + L / 2, py + oy + bend, px + ox + L, py + oy + L * .1);
+        }
+        x.stroke();
+      });
+      }
     // 焦散：小段网状亮线
     for (let i = 0; i < 34; i++) { const px = R() * 256, py = R() * 256, r = 4 + R() * 8, a0 = R() * 6.28;
       x.strokeStyle = 'rgba(255,255,240,' + (.22 + R() * .25).toFixed(2) + ')'; x.lineWidth = .6 + R() * .6;
@@ -1300,7 +1440,24 @@ function waterDraw(dt, t) {
     const L = Math.hypot(d[0], d[1]) || 1; l.x += d[0] / L * sp * f * .8 * step; l.y += d[1] / L * sp * f * .8 * step;
     const xi = l.x | 0, yi = l.y | 0;
     if (l.a > l.life || xi < 0 || yi < 0 || xi >= W || yi >= H || !WT.solid[yi * W + xi]) { WT.leaves.splice(i, 1); continue; }
-    const fade = Math.min(1, l.a * 2, (l.life - l.a) * 2); cx.save(); cx.globalAlpha = fade * .9; cx.translate(l.x, l.y + Math.sin(t * 2 + l.ph) * 1.2 * f); cx.scale(f * .8, f * .8); cx.rotate(Math.sin(t * 1.4 + l.ph) * .8); cx.fillStyle = l.hue; cx.beginPath(); cx.ellipse(0, 0, 5, 2.4, 0, 0, 6.283); cx.fill(); cx.strokeStyle = 'rgba(60,40,10,.5)'; cx.lineWidth = .8; cx.beginPath(); cx.moveTo(-5, 0); cx.lineTo(5, 0); cx.stroke(); cx.restore(); }
+    const fade = Math.min(1, l.a * 2, (l.life - l.a) * 2);
+    cx.save();
+    cx.globalAlpha = fade * .9;
+    cx.translate(l.x, l.y + Math.sin(t * 2 + l.ph) * 1.2 * f);
+    cx.scale(f * .8, f * .8);
+    cx.rotate(Math.sin(t * 1.4 + l.ph) * .8);
+    cx.fillStyle = l.hue;
+    cx.beginPath();
+    cx.ellipse(0, 0, 5, 2.4, 0, 0, 6.283);
+    cx.fill();
+    cx.strokeStyle = 'rgba(60,40,10,.5)';
+    cx.lineWidth = .8;
+    cx.beginPath();
+    cx.moveTo(-5, 0);
+    cx.lineTo(5, 0);
+    cx.stroke();
+    cx.restore();
+    }
 }
 
 function frame(now) {
@@ -1352,7 +1509,9 @@ function makeUnit(side, row, def, pos) {
   el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px'; el.style.zIndex = Math.round(pos.y);
   $('units').appendChild(el);
   const st = def.stats;
-  const u = { side, row, sprite: def.sprite, name: def.name, el, pos, h, hp: st.hp, maxHp: st.maxHp, mp: st.mp || 0, maxMp: st.maxMp || 0, atk: st.atk, def: st.def, matk: st.matk != null ? st.matk : st.atk, mdef: st.mdef != null ? st.mdef : st.def, crit: st.crit != null ? st.crit : 10, dodge: st.dodge || 0, spd: st.spd,
+  const u = { side, row, sprite: def.sprite, name: def.name, el, pos, h, hp: st.hp, maxHp: st.maxHp, mp: st.mp || 0, maxMp: st.maxMp || 0, atk:
+      st.atk, def: st.def, matk: st.matk != null ? st.matk : st.atk, mdef: st.mdef != null ? st.mdef : st.def, crit: st.crit != null ? st.crit : 10,
+      dodge: st.dodge || 0, spd: st.spd,
     kit: def.kit, pas: def.pas, cd: {}, alive: true, defending: false, ai: def.ai || 'attack', aggro: def.aggro || 1, data: def.data || null, magicAtk: !!def.magicAtk, st: {} };
   if (side === 'enemy') el.addEventListener('click', () => { if (B.picking && u.alive) { const f = B.picking; B.picking = null; f(u); } });
   if (u.pas && u.pas.baotiStart) u._bt = u.pas.baotiStart;
@@ -1416,7 +1575,13 @@ const SND = (() => {
   const noise = (a, dur, f0, f1, vol, type) => { const c = ctx(); if (!c) return; const n = c.sampleRate * dur | 0, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     const s = c.createBufferSource(); s.buffer = b; const f = c.createBiquadFilter(); f.type = type || 'lowpass'; f.frequency.setValueAtTime(f0, c.currentTime + a); f.frequency.exponentialRampToValueAtTime(Math.max(40, f1), c.currentTime + a + dur);
     const g = c.createGain(); g.gain.setValueAtTime(vol, c.currentTime + a); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + a + dur); s.connect(f); f.connect(g); g.connect(master); s.start(c.currentTime + a); };
-  const tone = (a, dur, f0, f1, vol, type) => { const c = ctx(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(f0, c.currentTime + a); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), c.currentTime + a + dur);
+  const tone = (a, dur, f0, f1, vol, type) => {
+    const c = ctx();
+    if (!c) return;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f0, c.currentTime + a);
+    if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), c.currentTime + a + dur);
     g.gain.setValueAtTime(0.0001, c.currentTime + a); g.gain.exponentialRampToValueAtTime(vol, c.currentTime + a + 0.008); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + a + dur); o.connect(g); g.connect(master); o.start(c.currentTime + a); o.stop(c.currentTime + a + dur + 0.05); };
   const pluck = (a, f, vol) => { tone(a, 0.55, f, f * 0.995, vol, 'triangle'); tone(a, 0.3, f * 2, f * 2, vol * 0.35, 'sine'); };
   return {
@@ -1500,7 +1665,9 @@ const CAST_FX = { dangmo_qm: 'wave', dangmo_ty: 'wave', dangmo_fs: 'wave', mohun
 function castSheet(k, u, opts) {
   opts = opts || {}; const w = (opts.w || 330), h = w * 2 / 3, e = document.createElement('div'); e.className = 'sfx hd c4';
   const face = opts.face ? ' scaleX(' + opts.face + ')' : '';
-  e.style.cssText = 'left:' + (u.pos.x + (opts.dx || 0)) + 'px;top:' + (u.pos.y - u.h * (opts.up == null ? 0.55 : opts.up)) + 'px;width:' + w + 'px;height:' + h + 'px;z-index:' + (opts.behind ? Math.round(u.pos.y) - 1 : 1998) + ';background-image:url(' + IMG('fxc_' + k) + ');transform:translate(-50%,-50%)' + face;
+  e.style.cssText = 'left:' + (u.pos.x + (opts.dx || 0)) + 'px;top:' + (u.pos.y - u.h * (opts.up == null ? 0.55 : opts.up)) + 'px;width:' + w +
+      'px;height:' + h + 'px;z-index:' + (opts.behind ? Math.round(u.pos.y) - 1 : 1998) + ';background-image:url(' + IMG('fxc_' + k) +
+      ');transform:translate(-50%,-50%)' + face;
   $('units').appendChild(e);
   let i = 0; const step = () => { e.style.backgroundPosition = ((i % 2) * 100) + '% ' + (i >= 2 ? 100 : 0) + '%'; e.style.opacity = i === 3 ? 0.75 : 1; if (++i >= 4) { clearInterval(tm); e.style.transition = 'opacity .25s'; e.style.opacity = 0; setTimeout(() => e.remove(), 260); } };
   const tm = setInterval(step, 190); step();
@@ -1524,7 +1691,19 @@ const weakestOf = side => living(side).sort((a, b) => a.hp - b.hp)[0];
 function beginBattle(mode, title, teams, names) {
   stop(); wander = false; autoBtn.classList.remove('on');
   $('units').innerHTML = '';
-  SND.unlock(); if (!$('sndBtn')) { const b = document.createElement('button'); b.type = 'button'; b.id = 'sndBtn'; b.className = 'sndbtn'; b.textContent = SND.muted ? '🔇' : '🔊'; b.addEventListener('click', e => { e.stopPropagation(); b.textContent = SND.toggle() ? '🔇' : '🔊'; }); stage.appendChild(b); }
+  SND.unlock();
+  if (!$('sndBtn')) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.id = 'sndBtn';
+    b.className = 'sndbtn';
+    b.textContent = SND.muted ? '🔇' : '🔊';
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      b.textContent = SND.toggle() ? '🔇' : '🔊';
+    });
+    stage.appendChild(b);
+  }
   B.active = true; B.mode = mode; B.round = 0; B.auto = false; B.over = null; B.units = []; B.player = null; B.title = title;
   stage.classList.add('fight');
   $('bnameE').textContent = names[0]; $('bnameA').textContent = names[1];
@@ -1547,8 +1726,17 @@ function startBattle(st) {
       stats: { hp: e.hp, maxHp: e.hp, atk: e.atk, def: e.def, spd: e.spd } });
   });
   beginBattle('pve', st.name, {
-    ally: { persons: [{ name: ROLE.name, sprite: AS.size['b_' + ROLE.cls] ? 'b_' + ROLE.cls : 'b_player', h: 126, me: true, magicAtk: !!curCls().magicAtk, stats: { hp: Math.max(1, S.hp), maxHp: ps.maxHp, mp: S.mp, maxMp: ps.maxMp, atk: ps.atk, matk: ps.matk, def: ps.def, mdef: ps.mdef, crit: ps.crit, dodge: ps.dodge, spd: ps.spd } }],
-            pets: [{ name: (D.petDex[petAct()] || D.petDex.fox).name, sprite: (D.petDex[petAct()] || D.petDex.fox).sprite, h: (D.petDex[petAct()] || D.petDex.fox).h || 62, ai: (D.petDex[petAct()] || D.petDex.fox).ai || 'fox', kit: (D.petDex[petAct()] || {}).act, pas: (D.petDex[petAct()] || {}).pas, magicAtk: !!(D.petDex[petAct()] || {}).mag, stats: { hp: fs.maxHp, maxHp: fs.maxHp, atk: fs.atk, matk: fs.matk, def: fs.def, mdef: fs.mdef, crit: fs.crit, dodge: fs.dodge, spd: fs.spd } }] },
+    ally:
+        { persons:
+        [{ name: ROLE.name, sprite: AS.size['b_' + ROLE.cls] ? 'b_' + ROLE.cls : 'b_player', h: 126, me: true, magicAtk: !!curCls().magicAtk, stats:
+        { hp: Math.max(1, S.hp), maxHp: ps.maxHp, mp: S.mp, maxMp: ps.maxMp, atk: ps.atk, matk: ps.matk, def: ps.def, mdef: ps.mdef, crit: ps.crit,
+        dodge: ps.dodge, spd: ps.spd } }],
+            pets:
+                [{ name: (D.petDex[petAct()] || D.petDex.fox).name, sprite: (D.petDex[petAct()] || D.petDex.fox).sprite, h:
+                (D.petDex[petAct()] || D.petDex.fox).h || 62, ai: (D.petDex[petAct()] || D.petDex.fox).ai || 'fox', kit:
+                (D.petDex[petAct()] || {}).act, pas: (D.petDex[petAct()] || {}).pas, magicAtk: !!(D.petDex[petAct()] || {}).mag, stats:
+                { hp: fs.maxHp, maxHp: fs.maxHp, atk: fs.atk, matk: fs.matk, def: fs.def, mdef: fs.mdef, crit: fs.crit, dodge: fs.dodge, spd:
+                fs.spd } }] },
     enemy: foes
   }, [st.name, '我方']);
 }
@@ -1633,7 +1821,11 @@ function onCmd(cmd) {
   else if (cmd === 'skill') {
     tip('选择技能');
     $('cmdList').innerHTML = playerSkills().map(id => { const s = D.skills[id], lock = B.mode !== 'arena' && !skillUsable(id);
-      return '<button type="button" class="tbtn" data-pick="skill:' + id + '"' + (lock || B.player.mp < s.mp ? ' disabled' : '') + '>' + s.name + '<small>' + (lock ? (curCls().skills ? '未学习' : s.lv + ' 级解锁') : '法力 ' + s.mp + (curCls().skills && B.mode !== 'arena' ? ' · Lv.' + skl(id) : '')) + '</small></button>'; }).join('');
+      return '<button type="button" class="tbtn" data-pick="skill:' + id + '"' + (lock || B.player.mp < s.mp ? ' disabled' : '') + '>' + s.name +
+          '<small>' +
+          (lock ? (curCls().skills ? '未学习' : s.lv + ' 级解锁') : '法力 ' + s.mp + (curCls().skills && B.mode !== 'arena' ? ' · Lv.' + skl(id) : '')) +
+          '</small></button>';
+      }).join('');
   } else if (cmd === 'item') {
     const ids = B.mode === 'arena' ? [] : Object.keys(S.items).filter(i => D.items[i].type === 'potion');
     tip(B.mode === 'arena' ? '竞技场里不能用药' : ids.length ? '选择道具' : '背包里没有可用的药');
@@ -1699,8 +1891,49 @@ function unitAct(u) {
 // ---------- 状态：魔化 mark / 减速 slow / 护体 shield / 持续回复 hot ----------
 const FX_BADGE = { fear: ['惧', '#7a4bd1'], mark: ['魔', '#a64bff'], slow: ['缓', '#3d8bff'], shield: ['盾', '#e0a526'], hot: ['愈', '#33b36b'], stun: ['晕', '#8a8a8a'], curse: ['罚', '#c23b3b'], dd: ['破', '#c9772a'], mfear: ['惑', '#9a4bd1'], absorb: ['吸', '#e0a526'] };
 function refreshFx(u) { u.el.querySelector('.stt').innerHTML = Object.keys(u.st).map(k => '<b style="background:' + FX_BADGE[k][1] + '">' + FX_BADGE[k][0] + u.st[k].turns + '</b>').join(''); }
-function clearStatus(u, k) { if (!u.st[k]) return; if (k === 'stun') u._take2 = 0; if (k === 'curse' && u._cu) { u.atk = Math.round(u.atk / Math.pow(0.9, u._cu)); u.matk = Math.round(u.matk / Math.pow(0.9, u._cu)); u._cu = 0; } if (k === 'dd' && u._dd0) { u.def = u._dd0; u._dd0 = 0; } if (k === 'mfear' && u._md0) { u.mdef = u._md0; u._md0 = 0; } if (k === 'fear' && u._df0) { u.def = u._df0; u._df0 = 0; } if (k === 'slow') { u.spd = u._spd0; u.dodge = u._dg0; } delete u.st[k]; refreshFx(u); }
-function statusStart(u) { if (u.invul) u.invul--; if (u.alive && u.pas && u.pas.baoti && (u._bt || 0) < 5) { u._bt = (u._bt || 0) + 1; floatText(u, '霸体 ×' + u._bt, 'info'); } for (const k of Object.keys(u.cd || {})) { if (--u.cd[k] <= 0) delete u.cd[k]; } if (u.alive && u.st.hot) { const v = u.st.hot.v; u.hp = Math.min(u.maxHp, u.hp + v); floatText(u, '+' + v, 'heal'); drawUnit(u); } }
+function clearStatus(u, k) {
+  if (!u.st[k]) return;
+  if (k === 'stun') u._take2 = 0;
+  if (k === 'curse' && u._cu) {
+    u.atk = Math.round(u.atk / Math.pow(0.9, u._cu));
+    u.matk = Math.round(u.matk / Math.pow(0.9, u._cu));
+    u._cu = 0;
+  }
+  if (k === 'dd' && u._dd0) {
+    u.def = u._dd0;
+    u._dd0 = 0;
+  }
+  if (k === 'mfear' && u._md0) {
+    u.mdef = u._md0;
+    u._md0 = 0;
+  }
+  if (k === 'fear' && u._df0) {
+    u.def = u._df0;
+    u._df0 = 0;
+  }
+  if (k === 'slow') {
+    u.spd = u._spd0;
+    u.dodge = u._dg0;
+  }
+  delete u.st[k];
+  refreshFx(u);
+}
+function statusStart(u) {
+  if (u.invul) u.invul--;
+  if (u.alive && u.pas && u.pas.baoti && (u._bt || 0) < 5) {
+    u._bt = (u._bt || 0) + 1;
+    floatText(u, '霸体 ×' + u._bt, 'info');
+  }
+  for (const k of Object.keys(u.cd || {})) {
+    if (--u.cd[k] <= 0) delete u.cd[k];
+  }
+  if (u.alive && u.st.hot) {
+    const v = u.st.hot.v;
+    u.hp = Math.min(u.maxHp, u.hp + v);
+    floatText(u, '+' + v, 'heal');
+    drawUnit(u);
+  }
+}
 function statusEnd(u) { for (const k of Object.keys(u.st)) { if (--u.st[k].turns <= 0) clearStatus(u, k); } refreshFx(u); }
 
 // ---------- 出手 ----------
@@ -1889,7 +2122,10 @@ window.CHAT.bind(() => ({
   bagItems: () => [...new Set(Object.keys(S.items).concat(Object.values(S.equip).filter(Boolean)))].filter(id => D.items[id]),
   showItem(id) {                                                        // 点聊天里的物品链接 → 物品详情
     const it = D.items[id]; if (!it) return;
-    openModal(it.name, '<div class="who"><div class="tile" style="width:96px;flex:none">' + itemImg(id) + '</div><div><h5>' + it.name + '</h5><p>' + ({ equip: '装备', potion: '药品' }[it.type] || '物品') + (it.price ? ' · 售价 ' + it.price + ' 银两' : '') + '</p>' + (itemBonus(it) ? '<p style="color:#7ee08a">' + itemBonus(it) + '</p>' : '') + '</div></div><p style="color:var(--muted);margin:0">' + (it.desc || '') + '</p>');
+    openModal(it.name, '<div class="who"><div class="tile" style="width:96px;flex:none">' + itemImg(id) + '</div><div><h5>' + it.name + '</h5><p>' +
+        ({ equip: '装备', potion: '药品' }[it.type] || '物品') + (it.price ? ' · 售价 ' + it.price + ' 银两' : '') + '</p>' +
+        (itemBonus(it) ? '<p style="color:#7ee08a">' + itemBonus(it) + '</p>' : '') + '</div></div><p style="color:var(--muted);margin:0">' +
+        (it.desc || '') + '</p>');
   },
   showInfo(name, cls, lv) {                                              // 点名字 → 查看
     const c = D.classes[cls];
