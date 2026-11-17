@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "out_ty_f.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1024x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 71.1,
+      "error": null
+    }
+  ]
+}
