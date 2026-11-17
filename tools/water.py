@@ -46,9 +46,9 @@ def build_poly(src, N, polys, direct=(), ratio=None):
     mm = np.minimum(np.asarray(mi), np.asarray(pm))
     dm = Image.new('L', mi.size, 0); d = ImageDraw.Draw(dm)
     for p in direct: d.polygon([(x * N / 1000, y * N / 1000) for x, y in p], fill=255)
-    mi = Image.fromarray(np.maximum(mm, np.asarray(dm.filter(ImageFilter.GaussianBlur(1.2)).point(lambda v: 255 if v > 110 else 0)))).convert('1')
+    mi = Image.fromarray(np.maximum(mm, np.asarray(dm.filter(ImageFilter.GaussianBlur(1.2)).point(lambda v: 255 if v > 110 else 0)))).filter(ImageFilter.GaussianBlur(2.0))
     buf = io.BytesIO(); mi.save(buf, 'PNG', optimize=True)
-    return dict(w=N, h=im.height, mask='data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()), np.asarray(mi).mean(), mi
+    return dict(w=N, h=im.height, mask='data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()), np.asarray(mi).mean() / 255, mi.point(lambda v: 255 if v > 128 else 0).convert('1')
 def build(src, N, drops):
     im = Image.open(src).convert('RGB'); im = im.resize((N, round(N * im.height / im.width)), Image.LANCZOS)
     a = np.asarray(im).astype(int); r, g, b = a[..., 0], a[..., 1], a[..., 2]
@@ -57,9 +57,9 @@ def build(src, N, drops):
     mi = mi.point(lambda v: 255 if v > 110 else 0)
     f = N / 1000
     for x0, y0, x1, y1 in drops: mi.paste(0, (round(x0 * f), round(y0 * f), round(x1 * f), round(y1 * f)))
-    mi = mi.convert('1')
+    mi = mi.filter(ImageFilter.GaussianBlur(1.6 * N / 1000 + .4))      # 软边：岸边渐变，游戏里用来画水花线
     buf = io.BytesIO(); mi.save(buf, 'PNG', optimize=True)
-    return dict(w=N, h=im.height, mask='data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()), np.asarray(mi).mean()
+    return dict(w=N, h=im.height, mask='data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()), np.asarray(mi).mean() / 255
 out = {}
 for k, f in (('taixupeak', 'taixu_peak.jpg'), ('taixuvalley', 'taixu_valley.jpg')):
     d, cov, mi = build_poly(ART + '/' + f, 1000, ZONES[k], DIRECT[k], 0.752 if k == 'taixuvalley' else None); out[k] = d; print(k, 'coverage %.1f%%' % (cov * 100))

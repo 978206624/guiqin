@@ -1372,25 +1372,39 @@ function wtTiles() {
 }
 function waterSetup() {
   const W = window.WATER && window.WATER[M.id], def = M.def.water;
-  WT.on = false; if (WT.cv) { WT.cv.remove(); WT.cv = null; }
+  WT.on = false; if (WT.cv) { WT.cv.remove(); WT.cv = null; } if (WT.rcv) { WT.rcv.remove(); WT.rcv = null; }
   if (!W || !def) return;
   WT.f = W.w / 1000;
   if (!WT.tiles) WT.tiles = wtTiles();
   const cv = document.createElement('canvas'); cv.id = 'water'; cv.width = W.w; cv.height = W.h; cv.style.width = M.W + 'px'; cv.style.height = M.H + 'px';
-  bgMap.after(cv); WT.cv = cv; WT.cx = cv.getContext('2d'); WT.leaves = []; WT.rip = []; WT.zones = [];
+  const rcv = document.createElement('canvas'); rcv.id = 'waterR'; rcv.width = W.w; rcv.height = W.h; rcv.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;width:' + M.W + 'px;height:' + M.H + 'px';   // 折射层单独一张画布，半帧率更新
+  bgMap.after(rcv); WT.rcv = rcv; WT.rcx = rcv.getContext('2d');
+  rcv.after(cv); WT.cv = cv; WT.cx = cv.getContext('2d'); WT.leaves = []; WT.rip = []; WT.zones = [];
   const img = new Image(); const id = M.id;
   img.onload = () => {
     if (!M || M.id !== id) return;
     const sc = c => { const o = document.createElement('canvas'); o.width = W.w; o.height = W.h; return o; };
     const base = sc(); const bx = base.getContext('2d'); bx.drawImage(img, 0, 0);
-    const id2 = bx.getImageData(0, 0, W.w, W.h), px = id2.data; for (let i = 0; i < W.w * W.h; i++) { px[i * 4 + 3] = px[i * 4] > 128 ? 255 : 0; } bx.putImageData(id2, 0, 0);   // 黑白图 → 白色=不透明、黑色=透明
-    WT.pts = []; WT.W = W.w; WT.H = W.h; WT.solid = new Uint8Array(W.w * W.h);
-    for (let i = 0; i < W.w * W.h; i++) if (px[i * 4 + 3] > 128) { WT.solid[i] = 1; if (i % 37 === 0) WT.pts.push(i); }
+    const id2 = bx.getImageData(0, 0, W.w, W.h), px = id2.data; for (let i = 0; i < W.w * W.h; i++) { px[i * 4 + 3] = px[i * 4]; } bx.putImageData(id2, 0, 0);   // 灰度图 → 亮度=不透明度（软边），黑色=透明
+    WT.pts = []; WT.W = W.w; WT.H = W.h; WT.solid = new Uint8Array(W.w * W.h); WT.alpha = new Uint8Array(W.w * W.h); WT.foam = new Uint8Array(W.w * W.h); const il = [];
+    for (let i = 0; i < W.w * W.h; i++) { const v = px[i * 4]; if (v > 6) { WT.alpha[i] = v; il.push(i); const e = 255 - Math.abs(2 * v - 255); if (e > 70) WT.foam[i] = e; } if (v > 128) { WT.solid[i] = 1; if (i % 37 === 0) WT.pts.push(i); } }
+    WT.idx = Uint32Array.from(il); WT.falls = []; WT.mist = [];
     // 按区域拆分遮罩：每个区域有自己的流向和流速
     const list = (def.zones || []).concat([{ rest: true, dir: def.dir, speed: def.speed }]);
     WT.zones = list.map(z => { const o = sc(), x = o.getContext('2d'); x.drawImage(base, 0, 0); x.globalCompositeOperation = z.rest ? 'destination-out' : 'destination-in';
       if (z.rest) { (def.zones || []).forEach(q => x.fillRect(q.rect[0] * WT.f, q.rect[1] * WT.f, (q.rect[2] - q.rect[0]) * WT.f, (q.rect[3] - q.rect[1]) * WT.f)); } else x.fillRect(z.rect[0] * WT.f, z.rect[1] * WT.f, (z.rect[2] - z.rect[0]) * WT.f, (z.rect[3] - z.rect[1]) * WT.f);
-      const d = z.dir || [-1, .3], L = Math.hypot(d[0], d[1]) || 1; return { box: z.rest ? null : z.rect.map(v => v * WT.f), mask: o, dx: d[0] / L, dy: d[1] / L, sp: (z.speed || 20) * WT.f, vert: Math.abs(d[1]) > Math.abs(d[0]) * 1.5, buf: sc() }; });
+      const d = z.dir || [-1, .3], L = Math.hypot(d[0], d[1]) || 1; return { box: z.rest ? null : z.rect.map(v => v * WT.f), mask: o, dx: d[0] / L, dy: d[1] / L, sp: (z.speed || 20) * WT.f, vert: Math.abs(d[1]) > Math.abs(d[0]) * 1.5, buf: sc(), cbuf: sc() }; });
+    // 瀑布区域：折射改成竖向抖动；找到落水点放水雾；水面内部（离岸远）单独快一层
+    WT.vz = new Uint8Array(W.w * W.h);
+    for (const z of WT.zones) if (z.vert && z.box) { const [bx0, by0, bx1, by1] = z.box.map(Math.round); for (let y = Math.max(0, by0); y < Math.min(W.h, by1); y++) for (let x = Math.max(0, bx0); x < Math.min(W.w, bx1); x++) WT.vz[y * W.w + x] = 1;
+      for (let y = Math.min(W.h, by1) - 1; y > by0; y--) { let n = 0, sx = 0; for (let x = Math.max(0, bx0); x < Math.min(W.w, bx1); x++) if (WT.solid[y * W.w + x]) { n++; sx += x; } if (n >= 3) { WT.falls.push({ x: sx / n, y, w: n }); break; } } }
+    { const R = Math.max(3, Math.round(5 * WT.f)), cm = sc(), cmx = cm.getContext('2d'), cd = cmx.createImageData(W.w, W.h), S = WT.solid, w = W.w;
+      for (const i of WT.idx) { if (!S[i]) continue; const x = i % w, y = (i / w) | 0; if (x < R || y < R || x >= w - R || y >= W.h - R) continue; if (S[i - R] && S[i + R] && S[i - R * w] && S[i + R * w] && S[i - R - R * w] && S[i + R + R * w] && S[i - R + R * w] && S[i + R - R * w]) { cd.data[i * 4 + 3] = 255; } }
+      cmx.putImageData(cd, 0, 0);
+      for (const z of WT.zones) { const o = sc(), x = o.getContext('2d'); x.drawImage(z.mask, 0, 0); x.globalCompositeOperation = 'destination-in'; x.drawImage(cm, 0, 0); z.core = o; } }
+    // 折射用的底图：把地图画到和遮罩同样大小，水面每帧从这里取被扭曲的像素
+    const prep = () => { if (!M || M.id !== id) return; const c = sc(), x = c.getContext('2d'); x.drawImage(bgMap, 0, 0, W.w, W.h); WT.src = new Uint32Array(x.getImageData(0, 0, W.w, W.h).data.buffer); WT.out = new ImageData(W.w, W.h); WT.o32 = new Uint32Array(WT.out.data.buffer); };
+    WT.src = null; if (bgMap.complete && bgMap.naturalWidth) prep(); else bgMap.addEventListener('load', prep, { once: true });
     // 把水面按 40px 网格连通成几块，只在这些包围框里绘制（省掉大片岸上的无用计算）
     const C = 40, gw = Math.ceil(W.w / C), gh = Math.ceil(W.h / C), cell = new Uint8Array(gw * gh);
     for (let y = 0; y < W.h; y++) for (let x = 0; x < W.w; x++) if (WT.solid[y * W.w + x]) cell[((y / C) | 0) * gw + ((x / C) | 0)] = 1;
@@ -1407,6 +1421,19 @@ function waterDraw(dt, t) {
   if (!WT.on || B.active || reduce) return;
   WT.acc += dt; if (WT.acc < 1 / 24) return; const step = WT.acc; WT.acc = 0;
   const cx = WT.cx, W = WT.W, H = WT.H, f = WT.f; cx.clearRect(0, 0, W, H);
+  const heavy = ((WT.tick = (WT.tick || 0) + 1) & 1) === 0;   // 折射和中心流层每两帧才重算一次（约 12 帧/秒）
+  if (WT.src && heavy) { WT.rcx.clearRect(0, 0, W, H);   // 折射：水下的画面随波纹轻轻扭动；岸边加一圈流动的白色水花
+    const o32 = WT.o32, s32 = WT.src, al = WT.alpha, idx = WT.idx, vz = WT.vz, fm = WT.foam, A = 1.15 * f, k1 = 1 / f, sin = Math.sin;
+    for (let k = 0; k < idx.length; k++) {
+      const i = idx[k], x = i % W, y = (i / W) | 0, xf = x * k1, yf = y * k1; let dx, dy;
+      if (vz[i]) { dx = A * 1.7 * sin(yf * .5 - t * 9 + xf * .2); dy = 0; } else { dx = A * sin(yf * .16 + t * 1.7 + xf * .05); dy = A * sin(xf * .13 + t * 1.35 + yf * .04); }
+      let sx = (x + dx + .5) | 0, sy = (y + dy + .5) | 0; sx = sx < 0 ? 0 : sx >= W ? W - 1 : sx; sy = sy < 0 ? 0 : sy >= H ? H - 1 : sy;
+      let p = s32[sy * W + sx];
+      if (fm[i] && !vz[i]) { const fo = fm[i] / 255 * (.5 + .5 * sin(t * 1.8 + xf * .09 + yf * .07)) * .7; const r = p & 255, g = (p >> 8) & 255, b = (p >> 16) & 255; p = ((r + (255 - r) * fo) | 0) | (((g + (255 - g) * fo) | 0) << 8) | (((b + (255 - b) * fo) | 0) << 16); }
+      o32[i] = (p & 0xffffff) | (al[i] << 24);
+    }
+    for (const rg of WT.regions) WT.rcx.putImageData(WT.out, 0, 0, rg[0], rg[1], rg[2] - rg[0], rg[3] - rg[1]);
+  }
   for (const z of WT.zones) {
     const b = z.buf.getContext('2d'), tile = z.vert ? WT.tiles.v : WT.tiles.h;
     for (const rg of WT.regions) {
@@ -1414,13 +1441,31 @@ function waterDraw(dt, t) {
       if (x1 <= x0 || y1 <= y0) continue; const w = x1 - x0, h = y1 - y0;
       b.save(); b.beginPath(); b.rect(x0, y0, w, h); b.clip(); b.globalCompositeOperation = 'source-over'; b.clearRect(x0, y0, w, h);
       for (const [sc, sp, al] of [[1, 1, .8], [1.55, .62, .55], [.7, 1.35, .3]]) {
-        b.save(); b.globalAlpha = al; b.scale(sc, sc);
+        b.save(); b.globalAlpha = al * (WT.src && !z.vert ? .7 : 1); b.scale(sc, sc);
         const ox = ((t * z.sp * z.dx * sp) % 256 + 256) % 256, oy = ((t * z.sp * z.dy * sp) % 256 + 256) % 256;
         b.fillStyle = b.createPattern(tile, 'repeat'); b.translate(ox, oy); b.fillRect(x0 / sc - ox, y0 / sc - oy, w / sc, h / sc); b.restore();
       }
       b.globalCompositeOperation = 'destination-in'; b.drawImage(z.mask, 0, 0); b.restore();
       cx.drawImage(z.buf, x0, y0, w, h, x0, y0, w, h);
+      if (!z.vert && z.core) {   // 水面中央流得更快：叠一层 1.7 倍速的纹理，岸边保持慢
+        if (heavy) { const c = z.cbuf.getContext('2d'); c.save(); c.beginPath(); c.rect(x0, y0, w, h); c.clip(); c.clearRect(x0, y0, w, h);
+          c.globalAlpha = .38; const ox = ((t * z.sp * z.dx * 1.7) % 256 + 256) % 256, oy = ((t * z.sp * z.dy * 1.7) % 256 + 256) % 256;
+          c.fillStyle = c.createPattern(tile, 'repeat'); c.translate(ox, oy); c.fillRect(x0 - ox, y0 - oy, w, h); c.setTransform(1, 0, 0, 1, 0, 0);
+          c.globalCompositeOperation = 'destination-in'; c.drawImage(z.core, 0, 0); c.restore(); }
+        cx.drawImage(z.cbuf, x0, y0, w, h, x0, y0, w, h);
+      }
     }
+  }
+  // 瀑布落点：水雾升腾 + 溅起的水珠
+  if (WT.falls.length) {
+    if (!WT.spr) { const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'), g = x.createRadialGradient(16, 16, 0, 16, 16, 16); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(.5, 'rgba(235,248,255,.35)'); g.addColorStop(1, 'rgba(235,248,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 32, 32); WT.spr = c; }
+    for (const fl of WT.falls) { if (Math.random() < step * 7) WT.mist.push({ x: fl.x + (Math.random() - .5) * fl.w * .9, y: fl.y, vx: (Math.random() - .5) * 8 * f, vy: -(9 + Math.random() * 14) * f, r: (5 + Math.random() * 6) * f, a: 0, life: 1.2 + Math.random() * .9, d: 0 });
+      if (Math.random() < step * 5) WT.mist.push({ x: fl.x + (Math.random() - .5) * fl.w * .8, y: fl.y, vx: (Math.random() - .5) * 40 * f, vy: -(28 + Math.random() * 30) * f, r: 1.3 * f, a: 0, life: .7 + Math.random() * .3, d: 1 }); }
+    if (WT.mist.length > 90) WT.mist.splice(0, WT.mist.length - 90);
+    for (let i = WT.mist.length - 1; i >= 0; i--) { const p = WT.mist[i]; p.a += step; const k = p.a / p.life; if (k >= 1) { WT.mist.splice(i, 1); continue; }
+      p.x += p.vx * step; p.y += p.vy * step; if (p.d) p.vy += 95 * f * step;
+      if (p.d) { cx.fillStyle = 'rgba(245,252,255,' + (.8 * (1 - k)).toFixed(2) + ')'; cx.fillRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2); }
+      else { const r = p.r * (1 + k * 1.8); cx.globalAlpha = .42 * Math.sin(Math.PI * Math.min(1, k * 1.15)); cx.drawImage(WT.spr, p.x - r, p.y - r, r * 2, r * 2); cx.globalAlpha = 1; } }
   }
   // 涟漪
   if (WT.pts.length && Math.random() < step * 2.2 && WT.rip.length < 8) { const i = WT.pts[(Math.random() * WT.pts.length) | 0]; WT.rip.push({ x: i % W, y: (i / W) | 0, a: 0, life: 1.6 + Math.random() }); }
