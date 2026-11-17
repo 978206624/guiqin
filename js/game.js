@@ -653,6 +653,8 @@ function wheelStep(t) {
   cx.save(); base(); cx.beginPath(); cx.ellipse(w.E[0], w.E[1], w.ah * k, w.av * k, phi, 0, Math.PI * 2); cx.clip();
   cx.translate(w.H[0], w.H[1]); cx.rotate(phi); cx.scale(w.ah, w.av); cx.rotate(W.ang); cx.scale(1 / w.ah, 1 / w.av); cx.rotate(-phi); cx.translate(-w.H[0], -w.H[1]);
   cx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, img.naturalWidth * (M.def.iw / img.naturalWidth), img.naturalHeight * (M.def.iw / img.naturalWidth)); cx.restore();
+  if (w.hub) { cx.save(); base(); cx.beginPath(); cx.ellipse(w.H[0], w.H[1], w.hub * 0.8, w.hub, phi, 0, Math.PI * 2); cx.clip();      // 轮毂不转
+    cx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, M.def.iw, M.def.ih); cx.restore(); }
   if (w.leg) { cx.save(); base(); cx.beginPath(); w.leg.forEach((p, i) => i ? cx.lineTo(p[0], p[1]) : cx.moveTo(p[0], p[1])); cx.closePath(); cx.clip();      // 支架不转：把原图盖回去
     cx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, M.def.iw, M.def.ih); cx.restore(); }
   W.dirty = true;
