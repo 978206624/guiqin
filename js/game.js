@@ -1824,7 +1824,9 @@ function castSheet(k, u, opts) {
   let i = 0; const step = () => { e.style.backgroundPosition = ((i % 2) * 100) + '% ' + (i >= 2 ? 100 : 0) + '%'; e.style.opacity = i === 3 ? 0.75 : 1; if (++i >= 4) { clearInterval(tm); e.style.transition = 'opacity .25s'; e.style.opacity = 0; setTimeout(() => e.remove(), 260); } };
   const tm = setInterval(step, 190); step();
 }
+const MO_FX = { menghu_zs: 'mo_tiger', menghu_ms: 'mo_tiger', menghu_dj: 'mo_tiger', potian_zs: 'mo_roar', potian_ms: 'mo_roar', potian_dj: 'mo_roar', lianzhan: 'mo_slash', xueji: 'mo_blood', pojia: 'mo_pojia', cuogu: 'mo_bone', zhanhun: 'mo_song', kuanglong: 'mo_dragon' };   // 墨家技能 → 光效精灵表 fx_<名>
 function skillHitFx(id, t) {                   // 目标一侧
+  const mk = MO_FX[id]; if (mk && AS.img['fx_' + mk]) { sheetFx(mk, t, mk === 'mo_dragon' || mk === 'mo_song' ? 1.25 : mk === 'mo_roar' ? 1.4 : 1.1); return true; }
   const k = SKILL_FX[id]; if (!k) return false;
   const ck = CAST_FX[id];
   if (ck && AS.img['fxc_' + ck] && (ck === 'heal' || ck === 'notes' || ck === 'revive')) { castSheet(ck, t, { w: 340, up: 0.7 }); return true; }
@@ -2112,7 +2114,7 @@ async function perform(u, act) {
     for (const t of (s.teamBuff ? B.units.filter(x => x.side === u.side && x.alive) : [u])) {
       if (s.teamBuff) { const n = s.teamBuff.turns + (t === u ? 1 : 0); t.st.bless = { turns: n }; t.st.shield = { turns: n }; floatText(t, '战魂', 'info'); }
       else { clearStatus(t, 'rage'); t._rg0 = t.def; t.def = Math.round(t.def * 0.2); t.st.rage = { turns: s.rage + 1 }; floatText(t, '狂龙', 'info'); }
-      SND.heal(); refreshFx(t);
+      SND.heal(); skillHitFx(act.skill, t); refreshFx(t);
     }
     if (poseB) await poseB; await sleep(260); return;
   }

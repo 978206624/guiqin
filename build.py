@@ -379,7 +379,7 @@ for n,q in HQ.items():
     pass
     im.save(f'{AD}/{n}.webp',quality=q,method=6); os.remove(p)
 # 技能高清光效：art-src/fx/<名>.png 是 4 列×2 行、黑底的 8 帧图（图像生成，每格方形），缩成 1024×512 的精灵表，战斗里用 screen 混合播放
-for k in ['wave','mist','soul','chain','ring','heal','notes','revive']:
+for k in ['wave','mist','soul','chain','ring','heal','notes','revive','mo_tiger','mo_roar','mo_slash','mo_blood','mo_pojia','mo_bone','mo_song','mo_dragon']:
     sp=f'{G}/fx/{k}.png'
     if os.path.exists(sp):                       # 黑底转透明：alpha = 三通道最大值，颜色按 alpha 还原（等价于加色发光，不依赖混合模式）
         import numpy as np

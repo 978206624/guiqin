@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "/home/claude/guiqin/art-src/fx/mo_dragon.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "2048x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 70.7,
+      "error": null
+    }
+  ]
+}

@@ -313,7 +313,15 @@ window.ASSETS = {
   "kk_mo_ms": "assets/kk_mo_ms.webp",
   "head_kk_mo_ms": "assets/head_kk_mo_ms.webp",
   "kk_mo_dj": "assets/kk_mo_dj.webp",
-  "head_kk_mo_dj": "assets/head_kk_mo_dj.webp"
+  "head_kk_mo_dj": "assets/head_kk_mo_dj.webp",
+  "fx_mo_tiger": "assets/fx_mo_tiger.webp",
+  "fx_mo_roar": "assets/fx_mo_roar.webp",
+  "fx_mo_slash": "assets/fx_mo_slash.webp",
+  "fx_mo_blood": "assets/fx_mo_blood.webp",
+  "fx_mo_pojia": "assets/fx_mo_pojia.webp",
+  "fx_mo_bone": "assets/fx_mo_bone.webp",
+  "fx_mo_song": "assets/fx_mo_song.webp",
+  "fx_mo_dragon": "assets/fx_mo_dragon.webp"
  },
  "size": {
   "player": [
