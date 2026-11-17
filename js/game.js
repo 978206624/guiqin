@@ -661,7 +661,14 @@ function wheelStep(t) {
       cx.strokeStyle = '#b98544'; cx.lineWidth = l[4] * 0.3; cx.beginPath(); cx.moveTo(l[0] - 1, l[1]); cx.lineTo(l[2] - 1, l[3]); cx.stroke(); });
     cx.restore(); }
   const th = w.thick || 10; for (let i = th; i > 0; i--) draw(W.back, -i);
-  draw(W.spr, 0); W.drawn = true;
+  draw(W.spr, 0);
+  if (w.water) { cx.save(); cx.globalCompositeOperation = 'source-atop'; cx.setTransform(sc, 0, 0, sc, -x0 * sc, -y0 * sc);      // 泡在水里的部分：压一层青绿
+    const g = cx.createLinearGradient(0, w.water, 0, w.water + 30); g.addColorStop(0, 'rgba(30,150,150,0)'); g.addColorStop(1, 'rgba(30,150,150,.5)');
+    cx.fillStyle = g; cx.fillRect(x0, w.water, x1 - x0, y1 - w.water); cx.restore();
+    cx.save(); cx.setTransform(sc, 0, 0, sc, -x0 * sc, -y0 * sc); cx.strokeStyle = 'rgba(235,255,255,.55)'; cx.lineWidth = 1.6;           // 入水处的浪花
+    for (let i = 0; i < 3; i++) { const ph = (t * 0.9 + i / 3) % 1; cx.globalAlpha = (1 - ph) * .8; cx.beginPath(); cx.ellipse(w.H[0] - 6 + i * 4, w.water + 2, 22 + ph * 26, 4 + ph * 6, 0, 0, Math.PI * 2); cx.stroke(); }
+    cx.restore(); }
+  W.drawn = true;
 }
 function loadMap(id, at) {
   const def = D.maps[id];
