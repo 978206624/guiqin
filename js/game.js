@@ -558,6 +558,7 @@ function inPoly(poly, p) {
   return c;
 }
 function inside(p) {
+  if (M.opens) for (const poly of M.opens) if (inPoly(poly, p)) return true;     // 手工打通的口子（台阶等位图漏掉的地方）
   if (M.mask) {                                      // 有碰撞位图的地图：直接查位图（再减去 blocks）
     const m = M.mask, u = M.def.scale * (M.def.k || 1) * m.cell, gx = Math.floor(p.x / u), gy = Math.floor(p.y / u);
     if (gx < 0 || gy < 0 || gx >= m.w || gy >= m.h) return false;
@@ -634,6 +635,7 @@ function loadMap(id, at) {
   const mk = window.MASKS && window.MASKS[id];
   if (mk) { const bin = atob(mk.bits), bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); M.mask = { cell: mk.cell, w: mk.w, h: mk.h, bytes }; CELL = 8; } else CELL = 16;
   M.walk = def.walk.map(poly => poly.map(p => I(p[0], p[1])));
+  M.opens = (def.opens || []).map(poly => poly.map(p => I(p[0], p[1])));
   M.blocks = (def.blocks || []).map(b => { const c = I(b.at[0], b.at[1]), w = b.r * def.scale * (def.k || 1), o = []; for (let k = 0; k < 8; k++) o.push({ x: c.x + Math.cos(k * Math.PI / 4) * w, y: c.y + Math.sin(k * Math.PI / 4) * w * 0.6 }); return o; });
   (def.roads || []).forEach(r => {              // 道路：每段一个矩形，每个拐点一个八边形
     const pts = r.pts.map(p => I(p[0], p[1])), w = r.r * def.scale * (def.k || 1);
