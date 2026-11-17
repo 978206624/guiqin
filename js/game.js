@@ -176,7 +176,7 @@ function bagDelta(it) {   // 对比当前同部位装备（只比装备自带属
 }
 function openBag() {
   lastPanel = 'bag';
-  const all = Object.keys(S.items), ids = all.filter(id => bagTab === 'all' || D.items[id].type === bagTab);
+  const all = Object.keys(S.items).filter(id => D.items[id]), ids = all.filter(id => bagTab === 'all' || D.items[id].type === bagTab);
   if (!ids.includes(bagSel)) bagSel = ids[0] || null;
   const cap = D.bagSize;
   let h = '<div class="bagtop"><div class="rtabs">' + Object.keys(BAGCAT).map(k => '<button type="button" class="rtab' + (bagTab === k ? ' on' : '') + '" data-act="bagTab:' + k + '">' + BAGCAT[k] + '</button>').join('') + '</div>' +
@@ -186,7 +186,7 @@ function openBag() {
         '" aria-label="' + it.name + '">' + itemImg(id) + (S.items[id] > 1 || !eq ? '<b>' + S.items[id] + '</b>' : '') +
         (eq && it.slot ? '<u>' + SLOTNAME[it.slot] + '</u>' : '') + '</button>';
     });
-  for (let i = ids.length; i < (bagTab === 'all' ? cap : Math.max(10, Math.ceil(ids.length / 5) * 5)); i++) h += '<div class="tile empty"></div>';
+  for (let i = ids.length; i < cap; i++) h += '<div class="tile empty"></div>';
   h += '</div>';
   if (bagSel) {
     const it = D.items[bagSel], q = itemQ(bagSel), n = S.items[bagSel];
@@ -200,9 +200,8 @@ function openBag() {
       '<p>' + it.desc + '</p></div></div><div class="ibtns">' + btns + '</div>';
   } else h += '<div class="idetail"><div class="ibody"><p>' + (all.length ? '这个分类下没有物品。' : '背包是空的。') + '</p></div></div>';
   // 已装备
-  h += '<div class="eqbar"><small>已装备</small>' + Object.keys(SLOTNAME).map(sl => { const id = S.equip[sl], it = id && D.items[id];
-    return '<div class="eqs' + (id ? '' : ' empty') + '" style="--qc:' + (id ? itemQ(id).color : 'rgba(226,176,74,.25)') + '">' + (id ? itemImg(id) : '') + '<span>' + (it ? it.name : SLOTNAME[sl]) + '</span></div>'; }).join('') +
-    '<b class="coinb">银两 ' + fmt(S.coin) + '</b></div>';
+  h += '<div class="eqbar"><div class="eqhd"><small>已装备</small><b class="coinb">银两 ' + fmt(S.coin) + '</b></div><div class="eqgr">' + Object.keys(SLOTNAME).map(sl => { const id = S.equip[sl], it = id && D.items[id];
+    return '<div class="eqs' + (id ? '' : ' empty') + '" style="--qc:' + (id ? itemQ(id).color : 'rgba(226,176,74,.25)') + '">' + (id ? itemImg(id) : '') + '<span>' + (it ? it.name : SLOTNAME[sl]) + '</span></div>'; }).join('') + '</div></div>';
   openModal('背包', h);
 }
 function usePotion(id) {
@@ -527,7 +526,7 @@ const ACTS = {
   bagTab(t) { bagTab = t; openBag(); },
   bagSort() {
     const order = { equip: 0, gem: 1, potion: 2, mat: 3 },
-        ids = Object.keys(S.items).sort((a, b) => order[D.items[a].type] - order[D.items[b].type] || (D.items[b].q || 1) - (D.items[a].q || 1)),
+        ids = Object.keys(S.items).filter(i => D.items[i]).sort((a, b) => order[D.items[a].type] - order[D.items[b].type] || (D.items[b].q || 1) - (D.items[a].q || 1)),
         o = {};
     ids.forEach(i => o[i] = S.items[i]);
     S.items = o;
