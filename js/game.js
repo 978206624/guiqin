@@ -1246,16 +1246,14 @@ const wxSvg = (inner) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + inner 
 const WXICON = {
   clear:  wxSvg('<circle cx="12" cy="12" r="5" fill="#f7b928" stroke="#b9750d"/><g stroke="#e59a12" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></g>'),
   cloudy: wxSvg('<path d="' + CLOUD + '" fill="#dfe5f0" stroke="#7d8aa3" stroke-width="1.2" stroke-linejoin="round"/>'),
-  fog:    wxSvg('<path d="M7 14a4 4 0 0 1 .5-6.97A5.5 5.5 0 0 1 18 8a3.5 3.5 0 0 1-.5 6z" fill="#e6eaf1" stroke="#8d98ad" stroke-width="1.2"/><g stroke="#8d98ad" stroke-width="1.8" stroke-linecap="round"><path d="M4 17.5h16M6 21h12"/></g>'),
   rain:   wxSvg('<path d="M7 15a4 4 0 0 1 .5-6.97A5.5 5.5 0 0 1 18 9a3.5 3.5 0 0 1-.5 6z" fill="#c4cfe2" stroke="#6d7b97" stroke-width="1.2"/><g stroke="#3f8fe0" stroke-width="1.8" stroke-linecap="round"><path d="M8 17.5l-1 3M12.5 17.5l-1 3M17 17.5l-1 3"/></g>'),
   storm:  wxSvg('<path d="M7 15a4 4 0 0 1 .5-6.97A5.5 5.5 0 0 1 18 9a3.5 3.5 0 0 1-.5 6z" fill="#8f9ab3" stroke="#4d5a78" stroke-width="1.2"/><path d="M12.8 13l-3 4.6h2.6l-1.4 4.4 4.4-5.6h-2.7l1.3-3.4z" fill="#ffd23f" stroke="#c7900a" stroke-width=".8" stroke-linejoin="round"/>'),
   snow:   wxSvg('<path d="M7 15a4 4 0 0 1 .5-6.97A5.5 5.5 0 0 1 18 9a3.5 3.5 0 0 1-.5 6z" fill="#e8eef9" stroke="#8d9bb8" stroke-width="1.2"/><g fill="#7fb4ee"><circle cx="8" cy="18.5" r="1.4"/><circle cx="12.5" cy="20.5" r="1.4"/><circle cx="17" cy="18.5" r="1.4"/></g>')
 };
-const WXKINDS = ['clear', 'cloudy', 'fog', 'rain', 'storm', 'snow'];
+const WXKINDS = ['clear', 'cloudy', 'rain', 'storm', 'snow'];
 const WXTARGET = {            // 各效果强度的目标值
   clear:  { rain: 0, storm: 0, snow: 0, fog: 0,   cloud: 0,  dark: 0 },
   cloudy: { rain: 0, storm: 0, snow: 0, fog: 0,   cloud: .9, dark: .35 },
-  fog:    { rain: 0, storm: 0, snow: 0, fog: 1,   cloud: .3, dark: .12 },
   rain:   { rain: .7, storm: 0, snow: 0, fog: .25, cloud: 1, dark: .55 },
   storm:  { rain: 1, storm: 1, snow: 0, fog: .2,  cloud: 1, dark: 1 },
   snow:   { rain: 0, storm: 0, snow: 1, fog: .3,  cloud: .6, dark: .2 }
@@ -1505,7 +1503,7 @@ function waterDraw(dt, t) {
     }
 }
 
-// ---------- 蝴蝶：在可走区域里飞来飞去（def.butterflies = 数量）。晴天、阴天、雾天都有，下雨/暴风/下雪时淡出 ----------
+// ---------- 蝴蝶：在可走区域里飞来飞去（def.butterflies = 数量）。晴天、阴天都有，下雨/暴风/下雪时淡出 ----------
 const BF = { el: null, list: [], vis: 1 };
 const BF_COLS = [['#ffd84a', '#f08a24'], ['#ffffff', '#b9cdee'], ['#7fc2ff', '#3a6fd0'], ['#ffa5c8', '#e0558f'], ['#ffe9a0', '#d9a441']];
 function bfSetup() {
@@ -1531,7 +1529,7 @@ function bfSetup() {
 }
 function bfStep(dt, t) {
   if (!BF.el) return;
-  const hide = Math.min(1, (wxLv.rain + wxLv.storm + wxLv.snow) * 1.8), v = 1 - hide;   // 雾天不隐藏（雾层本身会把它们蒙淡）
+  const hide = Math.min(1, (wxLv.rain + wxLv.storm + wxLv.snow) * 1.8), v = 1 - hide;
   if (Math.abs(v - BF.vis) > .005) { BF.vis = v; BF.el.style.opacity = v.toFixed(2); BF.el.style.display = v < .02 ? 'none' : ''; }
   if (v < .02) return;
   for (const b of BF.list) {

@@ -220,23 +220,22 @@ window.DATA = {
   weather: {
     clear:  { name: '晴',   desc: '天朗气清，适合赶路。' },
     cloudy: { name: '多云', desc: '云层压得很低，光线有些暗。' },
-    fog:    { name: '薄雾', desc: '雾气弥漫，远处的屋檐若隐若现。' },
     rain:   { name: '小雨', desc: '细雨绵绵，石板路上泛着水光。' },
     storm:  { name: '雷雨', desc: '电闪雷鸣，雨下得又急又大。' },
     snow:   { name: '飘雪', desc: '雪花悠悠落下，四下一片安静。' },
     span: [90, 200],
     byMap: {
-      village: { clear: 4, cloudy: 3, fog: 3, rain: 2, snow: 1 },
+      village: { clear: 4, cloudy: 3, rain: 2, snow: 1 },
       town:    { clear: 5, cloudy: 2, rain: 2, storm: 1 },
-      pine: { clear: 4, cloudy: 3, rain: 2, fog: 1 },
-      wolfvalley: { clear: 2, cloudy: 4, fog: 2, storm: 2 },
-      taixuforest: { clear: 4, cloudy: 3, fog: 3, rain: 2 },
+      pine: { clear: 4, cloudy: 3, rain: 2 },
+      wolfvalley: { clear: 2, cloudy: 4, storm: 2 },
+      taixuforest: { clear: 4, cloudy: 3, rain: 2 },
       taixupeak: { clear: 5, cloudy: 3, rain: 1 },
-      taixuvalley: { clear: 2, cloudy: 3, fog: 4, rain: 2 },
-      mist: { clear: 2, cloudy: 3, fog: 4, rain: 2 },
-      creek: { clear: 4, cloudy: 2, fog: 3, rain: 3 },
-      outskirts: { clear: 4, cloudy: 2, fog: 2, rain: 2 },
-      wild:    { clear: 3, cloudy: 2, fog: 3, rain: 3, storm: 1 }
+      taixuvalley: { clear: 2, cloudy: 3, rain: 2 },
+      mist: { clear: 2, cloudy: 3, rain: 2 },
+      creek: { clear: 4, cloudy: 2, rain: 3 },
+      outskirts: { clear: 4, cloudy: 2, rain: 2 },
+      wild:    { clear: 3, cloudy: 2, rain: 3, storm: 1 }
     }
   },
   // 聊天：世界频道里的“路人”和系统公告都是前端模拟的，没有联网。换成真服务器时，把 js/chat.js 里的 simulate* 去掉、
