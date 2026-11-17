@@ -421,7 +421,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[520,860],[1470,330]],
-      npcs: [{ id: 'zhanhw', at: [470, 855] }, { id: 'bianque', at: [560, 815] }],
+      npcs: [{ id: 'zhanhw', at: [470, 855] }, { id: 'bianque', at: [585, 880] }],
       portals: [{ to: 'village', name: '回恒山村', art: 'portal_array', at: [170, 1315], arrive: [320, 1285] }, { to: 'town', name: '去汉中郡', at: [1960, 110], arrive: [450, 790] }, { to: 'creek', name: '入清溪谷', at: [1480, 320], arrive: [1100, 1450] }],
       foes: [{ stage: 'hog', at: [560, 1060] }, { stage: 'roam', at: [1330, 505] }]
     },
