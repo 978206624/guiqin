@@ -103,7 +103,7 @@ function grant(r) {
   if (r.coin) S.coin += r.coin;
   if (r.items) for (const id in r.items) addItem(id, r.items[id]);
   if (r.exp) {
-    S.bond = (S.bond || 0) + 1;   // 每打赢一场，灵狐的亲密度 +1
+    S.bond = (S.bond || 0) + 1;   // 每打赢一场，玄晶天狐的亲密度 +1
     S.exp += r.exp;
     while (S.exp >= expNeed()) { S.exp -= expNeed(); S.lv++; ups++; }
     if (ups) { S.hp = null; S.mp = null; if (S.lv % 5 === 0) window.CHAT.notice('恭喜玩家「' + ROLE.name + '」等级突破 ' + S.lv + ' 级！'); }
@@ -495,7 +495,7 @@ function drawTag(a, auto) {
     (a.title ? '<small style="color:' + a.titleColor + '">' + a.title + '</small>' : '') + '<span style="color:' + a.color + '">' + a.name + '</span>';
 }
 const player = makeActor('player', 'player', 'player', '云中客', { x: 0, y: 0 }, { color: '#8affb0', title: '【游侠】', hop: 7 });
-const fox = makeActor('pet', 'fox', 'fox', '灵狐', { x: 0, y: 0 }, { color: '#a8e6ff', hop: 5 });
+const fox = makeActor('pet', 'fox', 'fox', '玄晶天狐', { x: 0, y: 0 }, { color: '#a8e6ff', hop: 5 });
 // 主角用行走帧：正面一套（朝右下）、背面一套（朝左上），各 4 帧；另外两个方向靠水平翻转
 // 精灵表一行 4 格，AS.size.walk_f = [每格宽, 每格高, 头部中心在格内的 x]
 const WALK_SHEET = { f: 'walk_f', b: 'walk_b' }, STEP_LEN = 26;
@@ -515,7 +515,7 @@ fox.imgB = document.createElement('img'); fox.imgB.alt = ''; fox.imgB.src = IMG(
 fox.imgB.hidden = true; fox.el.insertBefore(fox.imgB, fox.tag); fox.dir = 'f';
 function applyPetLook() {          // 出战宠物是神兽时，地图上跟随的形象换成它的图：正面用原作立绘，背面用斜向重绘的背面图（没有时共用一张）
   const id = petAct(), dx = D.petDex[id];
-  if (dx.ss && AS.size[dx.sprite]) {
+  if ((dx.ss || dx.show) && AS.size[dx.sprite]) {
     const mk = (spr) => { const sz = AS.size[spr], h = dx.h * 0.8, w = h * sz[0] / sz[1]; return 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px'; };
     const fs = dx.show && AS.size[dx.show] ? dx.show : dx.sprite;
     fox.img.src = IMG(fs); fox.img.style.cssText = mk(fs); fox.imgB.src = IMG(dx.sprite); fox.imgB.style.cssText = mk(dx.sprite); fox.h = dx.h * 0.8; fox.name = dx.name;
@@ -1534,7 +1534,7 @@ function beginBattle(mode, title, teams, names) {
   if (mode === 'arena') { const p = B.player; $('hudLv').textContent = D.arena.lv; $('hudPow').textContent = fmt(p.atk * 6 + p.def * 5 + p.maxHp / 2 + p.spd * 3); }
   drawUnit(B.player); drawCmd(); loop();
 }
-// 野外 / 剧情战斗：我方是主角 + 灵狐，敌方按关卡配置
+// 野外 / 剧情战斗：我方是主角 + 玄晶天狐，敌方按关卡配置
 function startBattle(st) {
   clampVitals();
   const ps = stats(), fs = petStats(petAct());
@@ -1857,7 +1857,7 @@ function finish() {
   } else if (res === 'lose') {
     S.hp = Math.round(stats().maxHp * 0.3); title = '战败';
     h = '<p class="center">你被抬回了' + D.maps[M.def.home || M.id].name + '。<br>找人歇一歇可以回满气血，等级和装备不够就先打前面的敌人。</p>';
-  } else { title = '成功逃脱'; h = '<p class="center">你带着灵狐退开了几步。</p>'; }
+  } else { title = '成功逃脱'; h = '<p class="center">你带着玄晶天狐退开了几步。</p>'; }
   save();
   h += '<p class="center" style="margin:18px 0 0"><button type="button" class="tbtn" data-act="leave">' + (res === 'lose' ? '回去休整' : '继续') + '</button></p>';
   openModal(title, h, leaveBattle);

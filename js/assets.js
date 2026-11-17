@@ -24,6 +24,7 @@ window.ASSETS = {
   "b_ss_1225": "assets/b_ss_1225.webp",
   "b_ss_1226": "assets/b_ss_1226.webp",
   "b_ss_1227": "assets/b_ss_1227.webp",
+  "b_ss_bs20": "assets/b_ss_bs20.webp",
   "b_tiger": "assets/b_tiger.webp",
   "b_wuchen": "assets/b_wuchen.webp",
   "b_yan": "assets/b_yan.webp",
@@ -55,6 +56,7 @@ window.ASSETS = {
   "bp_ss_1225": "assets/bp_ss_1225.webp",
   "bp_ss_1226": "assets/bp_ss_1226.webp",
   "bp_ss_1227": "assets/bp_ss_1227.webp",
+  "bp_ss_bs20": "assets/bp_ss_bs20.webp",
   "cls_dao_dz": "assets/cls_dao_dz.webp",
   "cls_dao_dz_m": "assets/cls_dao_dz_m.webp",
   "cls_dao_qm": "assets/cls_dao_qm.webp",
@@ -225,6 +227,7 @@ window.ASSETS = {
   "pd_ss_1225": "assets/pd_ss_1225.webp",
   "pd_ss_1226": "assets/pd_ss_1226.webp",
   "pd_ss_1227": "assets/pd_ss_1227.webp",
+  "pd_ss_bs20": "assets/pd_ss_bs20.webp",
   "pfx_ss_1221": "assets/pfx_ss_1221.webp",
   "pfx_ss_1222": "assets/pfx_ss_1222.webp",
   "pfx_ss_1223": "assets/pfx_ss_1223.webp",
@@ -232,6 +235,7 @@ window.ASSETS = {
   "pfx_ss_1225": "assets/pfx_ss_1225.webp",
   "pfx_ss_1226": "assets/pfx_ss_1226.webp",
   "pfx_ss_1227": "assets/pfx_ss_1227.webp",
+  "pfx_ss_bs20": "assets/pfx_ss_bs20.webp",
   "player": "assets/player.webp",
   "smith": "assets/smith.webp",
   "vendor": "assets/vendor.webp",
@@ -596,6 +600,14 @@ window.ASSETS = {
    170.2,
    146.1
   ],
+  "b_ss_bs20": [
+   129.8,
+   112
+  ],
+  "bp_ss_bs20": [
+   225.3,
+   121.5
+  ],
   "pfx_ss_1227": [
    184.1,
    90.3
@@ -624,6 +636,10 @@ window.ASSETS = {
    205.3,
    153.5
   ],
+  "pfx_ss_bs20": [
+   154.5,
+   138.8
+  ],
   "pd_ss_1221": [
    153.0,
    158
@@ -651,6 +667,10 @@ window.ASSETS = {
   "pd_ss_1227": [
    117.2,
    142
+  ],
+  "pd_ss_bs20": [
+   128.2,
+   112
   ],
   "kk_npc14": [
    58.0,
@@ -1231,6 +1251,86 @@ window.ASSETS = {
      "ss_hit": 1,
      "ss_sl_bw": 1,
      "ss_kl": 1.3
+    }
+   }
+  },
+  "b_ss_bs20": {
+   "sheet": "bp_ss_bs20",
+   "cols": 6,
+   "rows": 2,
+   "cw": 225.3,
+   "ch": 121.5,
+   "ox": 112.6,
+   "by": 0,
+   "H": 112,
+   "seq": {
+    "idle": [
+     [
+      0,
+      150
+     ]
+    ],
+    "atk": [
+     [
+      4,
+      120
+     ],
+     [
+      5,
+      120
+     ],
+     [
+      6,
+      120
+     ],
+     [
+      7,
+      120
+     ]
+    ],
+    "hit": [
+     [
+      8,
+      110
+     ],
+     [
+      9,
+      110
+     ]
+    ],
+    "dodge": [
+     [
+      10,
+      110
+     ]
+    ]
+   },
+   "rel": {
+    "atk": 2
+   },
+   "pfx": {
+    "sheet": "pfx_ss_bs20",
+    "n": 6,
+    "cw": 154.5,
+    "ch": 138.8,
+    "map": {
+     "attack": [
+      0,
+      1
+     ],
+     "bite": [
+      2,
+      3
+     ],
+     "foxfire": [
+      4,
+      5
+     ]
+    },
+    "sc": {
+     "attack": 1,
+     "bite": 1,
+     "foxfire": 1.3
     }
    }
   }

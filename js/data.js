@@ -3,15 +3,15 @@
 // 这里没有任何逻辑，移植到别的引擎时可以原样转成 JSON / 配置表。
 // ============================================================
 window.DATA = {
-  // 主角属性 = base + grow * 等级；灵狐属性 = 主角裸属性 * pet 系数
+  // 主角属性 = base + grow * 等级；玄晶天狐属性 = 主角裸属性 * pet 系数
   base: { hp: 800, mp: 300, atk: 80, matk: 70, def: 30, mdef: 25, spd: 90, crit: 10, dodge: 3 },
   grow: { hp: 120, mp: 40, atk: 14, matk: 12, def: 6, mdef: 5, spd: 2, crit: 0, dodge: 0 },
   pet:  { hp: 0.6, atk: 0.7, def: 0.6, spd: 1.2 },
-  // 宠物图鉴：灵狐是出生自带的，其余为展示用（获得途径之后接玩法）
+  // 宠物图鉴：玄晶天狐是出生自带的，其余为展示用（获得途径之后接玩法）
   petQuality: { 1: { name: '普通', color: '#c3c9d1', stars: 2 }, 2: { name: '精良', color: '#7ee08a', stars: 3 }, 3: { name: '稀有', color: '#6fb6ff', stars: 4 }, 4: { name: '传说', color: '#ffc857', stars: 5 } },
   bondTiers: [{ at: 0, name: '初识' }, { at: 15, name: '熟悉' }, { at: 40, name: '亲近' }, { at: 80, name: '默契' }, { at: 140, name: '心意相通' }],   // at = 一起打赢的战斗数；每升一档，宠物气血/攻击 +3%
   petDex: {
-    fox:      { name: '灵狐', sprite: 'b_fox',     q: 2, kind: '灵兽 · 近战', desc: '九尾灵狐的幼崽，通人性，会在主人身边寸步不离。', skills: ['bite', 'foxfire'], own: true },
+    fox:      { name: '玄晶天狐', sprite: 'b_ss_bs20', show: 'pd_ss_bs20', h: 112, q: 3, kind: '灵兽 · 近战', desc: '白毛九尾、颈缠青色灵带的天狐，足下燃着狐火，通人性，会在主人身边寸步不离。', skills: ['bite', 'foxfire'], own: true },
     deer:     { name: '小鹿', sprite: 'b_deer',    q: 2, kind: '灵兽 · 辅助', desc: '林间的白鹿，蹄声轻柔，据说能听见草木的心跳。', how: '医者职业任务奖励' },
     rabbit:   { name: '玉兔', sprite: 'b_rabbit',  q: 1, kind: '灵兽 · 敏捷', desc: '月宫来的玉兔，行动极快，总能抢在对手前面出手。', how: '竹林采集活动抽取' },
     hawk:     { name: '苍鹰', sprite: 'b_hawk',    q: 3, kind: '飞禽 · 迅捷', desc: '盘旋云端的猛禽，爪下从无活口。', how: '竞技场赛季奖励' },
@@ -261,7 +261,7 @@ window.DATA = {
       '这{weather}天气，赶路真舒服',
       '{weather}天，窝在聚贤楼喝茶最合适了',
       '有没有人一起刷山贼寨？头目掉的东西不错[酷]',
-      '求问：灵狐怎么养？',
+      '求问：玄晶天狐怎么养？',
       '剑姬的连击是真的快，羡慕',
       '刚升到新等级，气血又涨了不少',
       '竞技场五对五，大家有推荐的阵容吗',
@@ -562,7 +562,7 @@ window.DATA = {
     ally: [
       { name: '阿秀',   sprite: 'b_axiu',   ai: 'heal',    mult: { hp: 0.85, atk: 0.6, def: 0.75, spd: 1.05 }, pet: { name: '小鹿', sprite: 'b_deer',   h: 76, mult: { hp: 0.5, atk: 0.5 } } },
       { name: '逍遥子', sprite: 'b_girl',   ai: 'mage',    mult: { hp: 0.8, atk: 1.1, def: 0.65, spd: 1.1 },   pet: { name: '玉兔', sprite: 'b_rabbit', h: 56, mult: { hp: 0.45, atk: 0.6, spd: 1.3 } } },
-      { name: '云中客', sprite: 'b_player', me: true,      mult: { atk: 1.1 },                                  pet: { name: '灵狐', sprite: 'b_fox',    h: 62, ai: 'fox' } },
+      { name: '云中客', sprite: 'b_player', me: true,      mult: { atk: 1.1 },                                  pet: { name: '玄晶天狐', sprite: 'b_ss_bs20', h: 112, ai: 'fox' } },
       { name: '燕归',   sprite: 'b_yan',    ai: 'striker', mult: { hp: 0.85, atk: 1.2, def: 0.7, spd: 1.3 },   pet: { name: '苍鹰', sprite: 'b_hawk',   h: 70, mult: { hp: 0.45, atk: 0.8, spd: 1.5 } } },
       { name: '无尘',   sprite: 'b_wuchen', ai: 'tank', aggro: 3, mult: { hp: 1.5, atk: 0.7, def: 1.5, spd: 0.8 }, pet: { name: '虎崽', sprite: 'b_tiger', h: 64, mult: { hp: 0.7, atk: 0.75 } } }
     ],
@@ -633,6 +633,7 @@ window.DATA = {
 
 // 神兽技能 → 原作帧序列（序列名见 build.py 的 hd_pet：idle / atk / hit / dodge / skN，图集元数据在 ASSETS.pet）
 window.DATA.petSeq = {
+  b_ss_bs20: { attack: 'atk', bite: 'atk', foxfire: 'atk' },
   b_ss_1227: { ss_hit: 'atk', ss_sl_bw: 'sk2', ss_kl: 'sk3' },
   b_ss_1221: { ss_hit: 'atk', ss_qk: 'atk' }
 };

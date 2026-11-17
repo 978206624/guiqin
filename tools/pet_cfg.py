@@ -3,7 +3,7 @@
 每只神兽：frames（用到的帧 id）、region（每帧在 1000×600 画布的矩形）、anims（原作动画序列：0 待机 / 1 起手 / 2 出击 / 3.. 技能，hit 为 a,b,a 三帧）。"""
 import struct, glob, os, re, json
 K='/home/claude/kunkunxunqin/client/assets/'
-PETS={'1221':'1220','1222':'1221','1223':'cw_sj','1224':'1223','1225':'1224','1226':'1225','1227':'cw_xlr'}
+PETS={'1221':'1220','1222':'1221','1223':'cw_sj','1224':'1223','1225':'1224','1226':'1225','1227':'cw_xlr','bs20':'bs20'}
 def aef(path):
     d=open(path,'rb').read(); p=[0]
     def s(): v=struct.unpack('>H',d[p[0]:p[0]+2])[0]; p[0]+=2; return v
