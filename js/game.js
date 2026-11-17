@@ -10,7 +10,14 @@ const IMG = k => AS.img[k];
 const $ = id => document.getElementById(id);
 const stage = $('stage'), fit = $('fit'), world = $('world');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const sleep = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 60) : ms));
+// ---------- 设置（存在本机浏览器里）----------
+const CFG = Object.assign({ water: 1, bf: 1, wx: 1, shake: 1, speed: 1 }, (() => { try { return JSON.parse(localStorage.getItem('gq_cfg') || '{}'); } catch (e) { return {}; } })());
+function applyCfg() {
+  document.body.classList.toggle('nowater', !CFG.water); document.body.classList.toggle('nobf', !CFG.bf); document.body.classList.toggle('nowx', !CFG.wx);
+  try { localStorage.setItem('gq_cfg', JSON.stringify(CFG)); } catch (e) {}
+}
+applyCfg();
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? Math.min(ms, 60) : (B.active ? ms / CFG.speed : ms)));
 const rnd = (a, b) => a + Math.random() * (b - a);
 const fmt = n => Math.round(n).toLocaleString('en-US');
 
@@ -785,15 +792,27 @@ function addBtn(parent, icon, label, x, y, size, key, dot) {
   parent.appendChild(b); return b;
 }
 [['act', '活动', 0], ['gift', '福利', 1], ['mall', '商城', 0], ['rank', '竞技', 0], ['bag', '背包', 0], ['guild', '帮派', 0], ['friend', '好友', 0]].forEach((r, i) => addBtn($('btns'), r[0], r[1], 676, 246 + i * 76, 54, r[0], r[2]));
+addBtn($('btns'), 'gear', '设置', 676, 246 + 7 * 76, 54, 'gear', 0);
 const autoBtn = addBtn($('btns'), 'auto', '', 652, 1186, 86, 'auto');
 addBtn($('btns'), 'ride', '', 562, 1214, 56, 'ride'); addBtn($('btns'), 'potion', '', 594, 1144, 56, 'potion');
 // 点头像开角色面板，点宠物头像开宠物面板
 $('hudFace').parentNode.addEventListener('click', e => { e.stopPropagation(); if (!B.active) openRole(); });
 $('hudPet').addEventListener('click', e => { e.stopPropagation(); if (!B.active) openPet(); });
 
+function openSettings() {
+  const sw = (k, label, note) => '<div class="row"><div><h5>' + label + '</h5>' + (note ? '<p>' + note + '</p>' : '') + '</div><button type="button" class="tbtn' + (CFG[k] ? ' red' : '') + '" data-act="cfg:' + k + '">' + (CFG[k] ? '开' : '关') + '</button></div>';
+  const h = '<div class="row"><div><h5>音效</h5><p>战斗与界面音效</p></div><button type="button" class="tbtn' + (SND.muted ? '' : ' red') + '" data-act="cfg:snd">' + (SND.muted ? '关' : '开') + '</button></div>' +
+    sw('water', '水面动效', '流水、折射、浪花；关闭可减轻发热') + sw('bf', '蝴蝶', '晴天的村庄蝴蝶') + sw('wx', '天气特效', '雨、雷、雪的画面') + sw('shake', '震屏', '战斗受击的屏幕抖动') +
+    '<div class="row"><div><h5>战斗速度</h5><p>战斗动作的快慢</p></div><span>' + [1, 1.5, 2].map(v => '<button type="button" class="tbtn' + (CFG.speed === v ? ' red' : '') + '" data-act="cfg:speed:' + v + '">' + v + '×</button>').join(' ') + '</span></div>' +
+    '<p class="center" style="margin:16px 0 0"><button type="button" class="tbtn" data-act="switchRole">切换角色</button>　<button type="button" class="tbtn red" data-act="reset">重新开始</button></p>' +
+    '<p class="hint center">设置只保存在本机浏览器里。「重新开始」会清除当前角色的存档。</p>';
+  openModal('设置', h);
+}
+ACTS.cfg = v => { const [k, x] = v.split(':'); if (k === 'snd') { SND.toggle(); const b = $('sndBtn'); if (b) b.textContent = SND.muted ? '🔇' : '🔊'; } else if (k === 'speed') CFG.speed = +x; else CFG[k] = CFG[k] ? 0 : 1; applyCfg(); openSettings(); };
 let wander = false, wanderWait = 0;
 function onBtn(key, label, b) {
-  if (key === 'bag') openBag();
+  if (key === 'gear') openSettings();
+  else if (key === 'bag') openBag();
   else if (key === 'pet') openPet();
   else if (key === 'mall') openShop('vendor');
   else if (key === 'guild') window.CHAT.open('guild');
@@ -1752,7 +1771,8 @@ const SND = (() => {
     ui() { tone(0, 0.08, 880, 880, 0.15, 'sine'); }
   };
 })();
-function shake(power, ms) {            // 震屏：对整个舞台做衰减抖动（Web Animations，不占用 transform）
+function shake(power, ms) {
+  if (!CFG.shake) return;            // 震屏：对整个舞台做衰减抖动（Web Animations，不占用 transform）
   if (reduce || !stage.animate) return;
   const n = 7, kf = [{ translate: '0 0' }];
   for (let i = 1; i < n; i++) { const a = power * (1 - i / n); kf.push({ translate: (i % 2 ? 1 : -1) * a * rnd(0.6, 1) + 'px ' + (i % 3 ? -1 : 1) * a * 0.6 + 'px' }); }
