@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "fenceB.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "auto",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 26.3,
+      "error": null
+    }
+  ]
+}
