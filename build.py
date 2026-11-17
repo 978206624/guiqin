@@ -407,6 +407,8 @@ for n,hh in KK_NPC.items():
     if not os.path.exists(sp): continue
     im=Image.open(sp).convert('RGBA'); bb=im.getbbox(); c=im.crop(bb); h=hh*2; w=round(c.width*h/c.height)
     c.resize((w,h),Image.LANCZOS).save(f'{AD}/kk_{n}.webp',quality=94,method=6); size['kk_'+n]=[w/2,h/2]
+    hp=f'{G}/npc-head/h_{n}.png'                    # 重新绘制的大头头像（art-src/npc-head，平滑手绘风）；没有就从立绘上裁
+    if os.path.exists(hp): Image.open(hp).convert('RGBA').resize((160,160),Image.LANCZOS).save(f'{AD}/head_kk_{n}.webp',quality=92); continue
     x0,y0,x1,y1=KK_HEAD.get(n,(0.1,0,0.9,0.3)); top=c.crop((round(c.width*x0),round(c.height*y0),round(c.width*x1),round(c.height*y1)))   # 对话头像：只截“大头”（头发/头饰到下巴）
     s=max(top.width,top.height); sq=Image.new('RGBA',(s,s),(0,0,0,0)); sq.paste(top,((s-top.width)//2,(s-top.height)//2))
     sq.resize((160,160),Image.LANCZOS).save(f'{AD}/head_kk_{n}.webp',quality=92)

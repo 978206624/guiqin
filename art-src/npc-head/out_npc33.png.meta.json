@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "/home/claude/guiqin/art-src/npc-head/out_npc33.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "1024x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 182.4,
+      "error": null
+    }
+  ]
+}
