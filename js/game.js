@@ -1234,7 +1234,7 @@ function placePlayer() {
     w.style.backgroundImage = 'url(' + IMG(WALK_SHEET[a.dir]) + ')'; w.style.backgroundSize = (sz[0] * 4) + 'px ' + sz[1] + 'px';
     w.style.width = sz[0] + 'px'; w.style.height = sz[1] + 'px'; w.style.left = (-sz[2]) + 'px'; w.style.setProperty('--ox', sz[2] + 'px');
   }
-  const stp = a.dir === 'b' && ROLE.cls.indexOf('dao_') === 0 ? 21 : STEP_LEN;      // 道家女背面步幅小：步频加快，免得脚像在地上滑
+  const stp = a.dir === 'b' && ROLE.cls.indexOf('dao_') === 0 ? 24 : STEP_LEN;      // 道家女背面步幅小：步频加快，免得脚像在地上滑
   const frame = a.moving && !reduce ? Math.floor(a.dist / stp) % 4 : 1;     // 站着不动用“并脚”那一帧
   const bobY = a.moving && !reduce && a.dir === 'b' ? -Math.abs(Math.sin(a.dist / stp * Math.PI / 2)) * 3 : 0;   // 走路时身体随步子轻微起伏
   w.style.backgroundPosition = (-frame * sz[0]) + 'px 0';
