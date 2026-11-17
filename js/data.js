@@ -339,7 +339,7 @@ window.DATA = {
 
   npcs: {
     elder:  { name: '村长',   title: '【恒山村】', sprite: 'kk_npc14', head: 'head_kk_npc14', idle: '山下不比村里，凡事多留个心眼。累了就回来歇歇。' },
-    axiu:   { name: '阿秀',   color: '#a8e6ff', idle: '我刚采了草药，熬了一锅汤，少侠喝一碗再走吧。', rest: true, restMsg: '喝了一碗草药汤，气血法力回满' },
+    axiu:   { name: '阿秀',   sprite: 'kk_axiu', head: 'head_kk_axiu', color: '#a8e6ff', idle: '我刚采了草药，熬了一锅汤，少侠喝一碗再走吧。', rest: true, restMsg: '喝了一碗草药汤，气血法力回满' },
     waiter: { name: '店小二', idle: '客官辛苦，喝壶热茶歇歇脚吧。', rest: true, restMsg: '喝了一壶热茶，气血法力回满' },
     smith:  { name: '王铁匠', idle: '打铁还需自身硬。兵器铠甲要锻造升星，还是想在孔里镶宝石，都交给老夫。', shop: 'smith' },
     girl:   { name: '逍遥子', title: '【百花谷】', color: '#dca8ff', titleColor: '#ffa8d0', idle: '今晚灯会的灯谜好难……你也是来猜谜的吗？' },
@@ -677,7 +677,7 @@ window.DATA = {
     pasList: [['万魔归宗', '生命低于 30% 时，提升自身 20% 的攻击。'], ['邪龙附体', '死亡时为主人增加 20% 的攻击力。']] });
   D.npcs.ss_envoy = { name: '神兽使者', title: '【神兽】', color: '#ffb08a', sprite: 'kk_npc07', head: 'head_kk_npc07', act: 'ssEnvoy',
     idle: '神兽遗魂散落人间，聚齐了魂魄，我便能替你唤来神兽。凡人也可以出银两办一场神兽祭，求天神赐下魂魄。' };
-  D.maps.village.npcs.push({ id: 'ss_envoy', at: [1015, 805] });
+  D.maps.town.npcs.push({ id: 'ss_envoy', at: [1156, 1129] });   // 神兽使者在汉中郡
 })();
 
 // 神兽技能 → 原作帧序列（序列名见 build.py 的 hd_pet：idle / atk / hit / dodge / skN，图集元数据在 ASSETS.pet）
