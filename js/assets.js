@@ -309,7 +309,11 @@ window.ASSETS = {
   "walk_f_novice_f": "assets/walk_f_novice_f.webp",
   "walk_f_novice_m": "assets/walk_f_novice_m.webp",
   "wolf": "assets/wolf.webp",
-  "world": "assets/world.webp"
+  "world": "assets/world.webp",
+  "kk_mo_ms": "assets/kk_mo_ms.webp",
+  "head_kk_mo_ms": "assets/head_kk_mo_ms.webp",
+  "kk_mo_dj": "assets/kk_mo_dj.webp",
+  "head_kk_mo_dj": "assets/head_kk_mo_dj.webp"
  },
  "size": {
   "player": [
@@ -865,6 +869,14 @@ window.ASSETS = {
   "kk_npc47": [
    143.0,
    156.0
+  ],
+  "kk_mo_ms": [
+   138.0,
+   150.0
+  ],
+  "kk_mo_dj": [
+   117.0,
+   150.0
   ]
  },
  "pet": {
