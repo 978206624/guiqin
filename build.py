@@ -412,6 +412,12 @@ for n,hh in KK_NPC.items():
     x0,y0,x1,y1=KK_HEAD.get(n,(0.1,0,0.9,0.3)); top=c.crop((round(c.width*x0),round(c.height*y0),round(c.width*x1),round(c.height*y1)))   # 对话头像：只截“大头”（头发/头饰到下巴）
     s=max(top.width,top.height); sq=Image.new('RGBA',(s,s),(0,0,0,0)); sq.paste(top,((s-top.width)//2,(s-top.height)//2))
     sq.resize((160,160),Image.LANCZOS).save(f'{AD}/head_kk_{n}.webp',quality=92)
+# 宠物头像（HUD 左上的宠物按钮只要头部）：从展示图 pd_ss_<id> 按头部范围裁出 → ph_ss_<id>
+PET_HEAD = {'pd_ss_1221':(0.42,0.0,0.82,0.42),'pd_ss_1222':(0.28,0.05,0.58,0.36),'pd_ss_1223':(0.30,0.0,0.68,0.40),'pd_ss_1224':(0.34,0.1,0.68,0.45),'pd_ss_1225':(0.33,0.15,0.62,0.50),'pd_ss_1226':(0.35,0.12,0.65,0.48),'pd_ss_1227':(0.28,0.15,0.62,0.52),'pd_ss_bs20':(0.66,0.3,1.0,0.7)}
+for n,(x0,y0,x1,y1) in PET_HEAD.items():
+    if not os.path.exists(f'{AD}/{n}.webp'): continue
+    im=Image.open(f'{AD}/{n}.webp').convert('RGBA'); c=im.crop(im.getbbox()); top=c.crop((round(c.width*x0),round(c.height*y0),round(c.width*x1),round(c.height*y1)))
+    m=max(top.size); sq=Image.new('RGBA',(m,m),(0,0,0,0)); sq.paste(top,((m-top.width)//2,(m-top.height)//2)); sq.resize((160,160),Image.LANCZOS).save(f'{AD}/ph_ss_{n[6:]}.webp',quality=92)
 files=sorted(f for f in os.listdir(AD))
 keys={f.rsplit('.',1)[0]:f for f in files}
 def uri(p):

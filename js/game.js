@@ -611,7 +611,7 @@ function applyPetLook() {          // 出战宠物是神兽时，地图上跟随
     const mk = (spr) => { const sz = AS.size[spr], h = dx.h * 0.8, w = h * sz[0] / sz[1]; return 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px'; };
     const fs = dx.show && AS.size[dx.show] ? dx.show : dx.sprite;
     fox.img.src = IMG(fs); fox.img.style.cssText = mk(fs); fox.imgB.src = IMG(dx.sprite); fox.imgB.style.cssText = mk(dx.sprite); fox.h = dx.h * 0.8; fox.name = dx.name;
-    $('hudPetImg').src = IMG(fs);
+    const phk = 'ph_ss_' + fs.replace('pd_ss_', ''); $('hudPetImg').src = IMG(AS.img[phk] ? phk : fs);   // HUD 宠物按钮只显示头部
   } else {
     const sz = AS.size.fox; fox.img.src = IMG('fox'); fox.img.style.cssText = 'width:' + sz[0] + 'px;height:' + sz[1] + 'px;left:' + (-sz[0] / 2) + 'px'; fox.h = sz[1];
     const sb = AS.size.b_fox, h = fox.h + 4, w = h * sb[0] / sb[1]; fox.imgB.src = IMG('b_fox'); fox.imgB.style.cssText = 'width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px'; fox.name = '灵狐';

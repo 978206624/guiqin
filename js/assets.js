@@ -321,7 +321,15 @@ window.ASSETS = {
   "fx_mo_pojia": "assets/fx_mo_pojia.webp",
   "fx_mo_bone": "assets/fx_mo_bone.webp",
   "fx_mo_song": "assets/fx_mo_song.webp",
-  "fx_mo_dragon": "assets/fx_mo_dragon.webp"
+  "fx_mo_dragon": "assets/fx_mo_dragon.webp",
+  "ph_ss_1221": "assets/ph_ss_1221.webp",
+  "ph_ss_1222": "assets/ph_ss_1222.webp",
+  "ph_ss_1223": "assets/ph_ss_1223.webp",
+  "ph_ss_1224": "assets/ph_ss_1224.webp",
+  "ph_ss_1225": "assets/ph_ss_1225.webp",
+  "ph_ss_1226": "assets/ph_ss_1226.webp",
+  "ph_ss_1227": "assets/ph_ss_1227.webp",
+  "ph_ss_bs20": "assets/ph_ss_bs20.webp"
  },
  "size": {
   "player": [
