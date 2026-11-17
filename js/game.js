@@ -341,7 +341,6 @@ function openPet() {
   let h = '<div class="pethero"><div class="pglow"></div><img alt="" src="' + IMG(dex.show || dex.sprite) + '"><div class="pinfo"><h5>' + dex.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
     '<p>' + stars(q.stars, q.color) + '　' + dex.kind + '</p><p>等级 <b class="gold">' + L + '</b>（随主人成长）　战力 <b class="gold">' + fmt(petPower(p)) + '</b></p>' +
     '<p class="small">亲密度 · <b style="color:#ffd9a0">' + bd.name + '</b>　' + bd.n + (bd.to ? ' / ' + bd.to : '') + '</p><div class="rbar exp bond"><i style="width:' + (bd.to ? Math.min(100, (bd.n - bd.from) / (bd.to - bd.from) * 100) : 100) + '%"></i></div></div></div>' +
-    '<div class="rtabs">' + Object.keys(D.petDex).filter(ownPet).map(id => '<button type="button" class="rtab' + (id === pid ? ' on' : '') + '" data-act="petUse:' + id + '">' + D.petDex[id].name + (id === pid ? ' · 出战' : '') + '</button>').join('') + '</div>' +
     '<div class="rtabs">' + [['attr', '属性'], ['skill', '技能'], ['dex', '图鉴']].map(t => '<button type="button" class="rtab' + (petTab === t[0] ? ' on' : '') + '" data-act="petTab:' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
   if (petTab === 'attr') {
     const row = (name, total, base, grow, note) => '<div class="arow"><span>' + name + '</span><b>' + total + '</b><small>' + note + '</small></div>';
@@ -372,7 +371,9 @@ function openPet() {
       '<p>' + sel.kind + '</p><p>' + sel.desc + '</p><p class="how">' + (ownPet(petSel) ? '<b>已拥有</b>　' + (sel.ss ? '可在上方切换出战。' : '出生自带，一直跟随主人。') : '获得途径：' + sel.how + (sel.ss ? '' : '（暂未开放）')) + '</p></div>' +
       '<p class="hint">已收集 ' + ids.filter(own).length + ' / ' + ids.length + '</p>';
   }
-  openModal('宠物', h);
+  const side = '<div class="pside">' + Object.keys(D.petDex).filter(ownPet).map(id => { const x = D.petDex[id], c = D.petQuality[x.q].color;
+      return '<button type="button" class="pchip' + (id === pid ? ' on' : '') + '" style="--qc:' + c + '" data-act="petUse:' + id + '"><img alt="" src="' + IMG(x.show || x.sprite) + '"><span>' + x.name + '</span>' + (id === pid ? '<i>出战</i>' : '') + '</button>'; }).join('') + '</div>';
+  openModal('宠物', '<div class="pwrap">' + side + '<div class="pmain">' + h + '</div></div>');
 }
 let shopId = null;
 function shopHTML(id) {
