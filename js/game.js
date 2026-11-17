@@ -638,12 +638,6 @@ function loadMap(id, at) {
   world.style.width = M.W + 'px'; world.style.height = M.H + 'px';
   bgMap.src = IMG(def.img); bgMap.style.width = M.W + 'px'; bgMap.style.height = M.H + 'px'; bgMap.alt = def.alt || def.name;
   world.querySelectorAll('.actor,.portal').forEach(e => e.remove());
-  world.querySelectorAll('.occ').forEach(e => e.remove());
-  ((AS.occ && AS.occ[id]) || []).forEach(o => {                 // 遮挡层：前景物件抠图，z-index = 落脚线 y，与角色同层按 y 排序
-    const a = I(o.x, o.y), b = I(o.w, o.h), e = document.createElement('img'); e.className = 'occ'; e.alt = ''; e.src = IMG(o.img);
-    e.style.cssText = 'left:' + a.x + 'px;top:' + a.y + 'px;width:' + b.x + 'px;height:' + b.y + 'px;z-index:' + Math.round(I(0, o.base).y);
-    world.appendChild(e);
-  });
   waterSetup();
   $('glows').innerHTML = '';
   { const fg = $('fog'); fg.innerHTML = '';                      // 动态雾：一批缓慢漂移、忽浓忽淡的大雾团
@@ -1466,6 +1460,20 @@ function waterDraw(dt, t) {
     }
 }
 
+// 遮挡虚化：角色躲在前景物件（屋顶、栏杆）后面时变半透明。def.fade = [{ poly: [[x,y]…], base }]（地图数据坐标）；
+// 角色脚在 base 之上（更靠后）且身体与多边形有重叠时虚化。
+const fadePolys = {};
+function seeThru(a) {
+  const zs = M.def.fade; if (!zs || !a.el) return;
+  const f = M.def.scale * (M.def.k || 1), x = a.pos.x / f, y = a.pos.y / f, hh = (a.h || 100) * 1.35 / f, hw = 34 / f; let thru = false;
+  for (const z of zs) {
+    if (y >= z.base) continue;
+    const poly = fadePolys[z.poly] || (fadePolys[z.poly] = z.poly.map(p => ({ x: p[0], y: p[1] }))); let n = 0;
+    for (let i = 0; i < 4 && n < 3; i++) for (let j = 0; j < 5; j++) if (inPoly(poly, { x: x - hw + i * hw * 2 / 3, y: y - hh * j / 4 })) n++;
+    if (n >= 3) { thru = true; break; }
+  }
+  a.el.classList.toggle('thru', thru);
+}
 function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000), t = now / 1000; last = now;
   if (!B.active && M) {
@@ -1476,6 +1484,7 @@ function frame(now) {
     }
     stepPlayer(dt); stepFox(dt);
     placePlayer(); place(fox, t); for (const a of M.list) if (a.kind !== 'portal' && a.kind !== 'spot') place(a, t);
+    seeThru(player); seeThru(fox); for (const a of M.list) if (a.kind === 'npc' || a.kind === 'foe') seeThru(a);
     ring.style.transform = 'translate(' + player.pos.x.toFixed(1) + 'px,' + player.pos.y.toFixed(1) + 'px)';
     // 镜头：平滑跟随，不超出地图边缘
     const ct = camTarget(), k = reduce ? 1 : 1 - Math.exp(-7 * dt);

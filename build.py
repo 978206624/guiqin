@@ -62,20 +62,7 @@ def head(src_png, idx, n_total, name, cx):
     c.crop((l,0,l+sz,sz)).resize((160,160),Image.LANCZOS).save(f'{AD}/head_{name}.webp',quality=90)
 head(G+'/npc2.png',0,4,'elder',0.4); head(G+'/npc2.png',1,4,'axiu',0.5)
 v=Image.open(G+'/village2.png').convert('RGB'); v.save(f'{AD}/bg_village.jpg',quality=88,optimize=True); v.resize((512,384),Image.LANCZOS).save(f'{AD}/mini_village.jpg',quality=80)
-# 遮挡层：art-src/occluders.json 里按地图列出前景物件的多边形（地图数据坐标）和落脚线 base。从底图抠出带透明边的小图，
-# 战斗外的场景里与角色同层按 y 排序（z-index = base），角色脚在 base 之上（更靠后）时被它盖住。
 OCC={}
-from PIL import ImageDraw, ImageFilter
-_occ=json.load(open(G+'/occluders.json',encoding='utf8')) if os.path.exists(G+'/occluders.json') else {}
-_occsrc={'village':v}
-for _m,_lst in _occ.items():
-    OCC[_m]=[]
-    for _i,_o in enumerate(_lst):
-        _src=_occsrc[_m]; _pts=[tuple(p) for p in _o['poly']]; _x0=max(0,min(p[0] for p in _pts)); _y0=max(0,min(p[1] for p in _pts)); _x1=min(_src.width,max(p[0] for p in _pts)); _y1=min(_src.height,max(p[1] for p in _pts))
-        _mk=Image.new('L',(_x1-_x0,_y1-_y0),0); ImageDraw.Draw(_mk).polygon([(a-_x0,b-_y0) for a,b in _pts],fill=255)
-        if _o.get('feather',0): _mk=_mk.filter(ImageFilter.GaussianBlur(_o['feather']))
-        _c=_src.crop((_x0,_y0,_x1,_y1)).convert('RGBA'); _c.putalpha(_mk); _k=f'occ_{_m}_{_i}'; _c.save(f'{AD}/{_k}.webp',quality=88,method=6)
-        OCC[_m].append(dict(img=_k,x=_x0,y=_y0,w=_x1-_x0,h=_y1-_y0,base=_o['base']))
 wm=Image.open(G+('/world2.png' if os.path.exists(G+'/world2.png') else '/world.png')).convert('RGB'); wm.save(f'{AD}/world.jpg',quality=86,optimize=True); size['world']=list(wm.size)
 o=Image.open(G+'/outskirts.jpg').convert('RGB'); o.save(f'{AD}/bg_outskirts.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_outskirts.jpg',quality=80)
 o=Image.open(G+'/creek.jpg').convert('RGB'); o.save(f'{AD}/bg_creek.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_creek.jpg',quality=80)

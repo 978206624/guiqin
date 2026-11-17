@@ -220,8 +220,6 @@ window.ASSETS = {
   "mini_village": "assets/mini_village.jpg",
   "mini_wild": "assets/mini_wild.jpg",
   "mini_wolfvalley": "assets/mini_wolfvalley.jpg",
-  "occ_village_0": "assets/occ_village_0.webp",
-  "occ_village_1": "assets/occ_village_1.webp",
   "pd_ss_1221": "assets/pd_ss_1221.webp",
   "pd_ss_1222": "assets/pd_ss_1222.webp",
   "pd_ss_1223": "assets/pd_ss_1223.webp",
@@ -1337,24 +1335,5 @@ window.ASSETS = {
    }
   }
  },
- "occ": {
-  "village": [
-   {
-    "img": "occ_village_0",
-    "x": 1602,
-    "y": 330,
-    "w": 306,
-    "h": 235,
-    "base": 565
-   },
-   {
-    "img": "occ_village_1",
-    "x": 812,
-    "y": 780,
-    "w": 286,
-    "h": 158,
-    "base": 940
-   }
-  ]
- }
+ "occ": {}
 };
