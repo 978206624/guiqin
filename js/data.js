@@ -418,7 +418,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[520,860],[1470,330]],
-      npcs: [{ id: 'zhanhw', at: [480, 1040] }, { id: 'bianque', at: [860, 830] }],
+      npcs: [{ id: 'zhanhw', at: [309, 1215] }, { id: 'bianque', at: [860, 830] }],
       portals: [{ to: 'village', name: '回恒山村', at: [40, 1430], arrive: [1700, 1340] }, { to: 'town', name: '去汉中郡', at: [1960, 110], arrive: [450, 790] }, { to: 'creek', name: '入清溪谷', at: [1480, 320], arrive: [1100, 1450] }],
       foes: [{ stage: 'hog', at: [560, 1060] }, { stage: 'roam', at: [1330, 505] }]
     },
@@ -434,7 +434,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[1100,760],[1650,480],[700,1030]],
-      npcs: [{ id: 'qingxizi', at: [880, 830] }, { id: 'jy_dao', at: [1240, 670] }, { id: 'jy_yin', at: [1560, 590] }, { id: 'jy_mo', at: [700, 960] }],
+      npcs: [{ id: 'qingxizi', at: [880, 830] }, { id: 'jy_dao', at: [1240, 670] }, { id: 'jy_yin', at: [1480, 653] }, { id: 'jy_mo', at: [700, 960] }],
       portals: [{ to: 'outskirts', name: '回恒山村郊', at: [1100, 1470], arrive: [1440, 390] }, { to: 'mist', name: '入云雾谷', at: [1800, 50], arrive: [770, 1440] }],
       foes: [{ stage: 'creekwolf', at: [800, 1110] }, { stage: 'creekgang', at: [1600, 490] }]
     },
@@ -515,7 +515,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[1450, 320], [1220, 1000]],
-      npcs: [{ id: 'taixu_mo', at: [1460, 320] }, { id: 'mo_mengshi', at: [1380, 400] }, { id: 'mo_dunjia', at: [1540, 400] }],
+      npcs: [{ id: 'taixu_mo', at: [1455, 286] }, { id: 'mo_mengshi', at: [1344, 372] }, { id: 'mo_dunjia', at: [1576, 366] }],
       portals: [{ to: 'town', name: '返回汉中郡', at: [1150, 500], arrive: [850, 575] }]
     },
     taixuvalley: {
@@ -555,8 +555,8 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[660,225],[1215,280],[1750,200],[1620,610],[240,540],[1500,990]],
-      npcs: [{ id: 'towerman', at: [850, 535] }, { id: 'waiter', at: [1360, 330] }, { id: 'smith', at: [1290, 745] },
-             { id: 'vendor', at: [350, 745] }, { id: 'arenaman', at: [660, 705] }, { id: 'trader', at: [1690, 925] }, { id: 'girl', at: [940, 625] }],
+      npcs: [{ id: 'towerman', at: [850, 535] }, { id: 'waiter', at: [1384, 376] }, { id: 'smith', at: [1290, 745] },
+             { id: 'vendor', at: [350, 745] }, { id: 'arenaman', at: [660, 705] }, { id: 'trader', at: [1690, 925] }, { id: 'girl', at: [1009, 600] }],
       portals: [{ to: 'wild', name: '出城·竹林', at: [300, 800], arrive: [150, 453] }, { to: 'outskirts', name: '恒山村郊', at: [570, 160], arrive: [1860, 190] }]
     },
     wild: {

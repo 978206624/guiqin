@@ -2361,5 +2361,5 @@ function enterGame(role, serverName) {
 }
 function peekLevel(id) { try { const t = localStorage.getItem('guiqin-save:' + id); if (t) return JSON.parse(t).lv || D.start.lv; } catch (e) {} return D.start.lv; }
 function wipe(id) { try { localStorage.removeItem('guiqin-save:' + id); } catch (e) {} }
-window.GAME = { goTalk, get state() { return S; }, get map() { return M; }, battle: B, player, startBattle, startArena, loadMap, data: D, enter: enterGame, peekLevel, wipe };
+window.GAME = { inside: p => inside(p), goTalk, get state() { return S; }, get map() { return M; }, battle: B, player, startBattle, startArena, loadMap, data: D, enter: enterGame, peekLevel, wipe };
 })();
