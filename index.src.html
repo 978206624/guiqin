@@ -61,6 +61,7 @@ body{background:var(--ink);color:var(--text);font-family:var(--body);display:fle
 .portal{position:absolute;left:0;top:0;width:0;height:0}
 .portal i{position:absolute;left:-34px;top:-17px;width:68px;height:34px;border-radius:50%;background:radial-gradient(closest-side,rgba(159,224,255,.75),rgba(159,224,255,0));animation:flick 2s ease-in-out infinite}
 .portal .tag{bottom:26px;color:var(--sky)}
+.portal .arr{position:absolute;pointer-events:none;animation:arrp 2.6s ease-in-out infinite}@keyframes arrp{0%,100%{filter:brightness(.92) drop-shadow(0 0 6px rgba(120,230,255,.35))}50%{filter:brightness(1.25) drop-shadow(0 0 16px rgba(120,230,255,.8))}}
 
 /* 界面通用 */
 .ui{position:absolute;cursor:default}
@@ -511,7 +512,7 @@ svg.em{width:1.25em;height:1.25em;vertical-align:-.28em;margin:0 1px}
 #fCreateForm{left:30px;right:30px;top:1156px;display:flex;gap:12px;align-items:center}
 #fCreateForm input{flex:1;margin:0!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-@media (prefers-reduced-motion:reduce){.glow,.tag .mk,.portal i{animation:none}.petal{display:none}}
+@media (prefers-reduced-motion:reduce){.glow,.tag .mk,.portal i,.portal .arr{animation:none}.petal{display:none}}
 </style>
 
 <div id="fit"><div id="stage">

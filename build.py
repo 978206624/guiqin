@@ -412,6 +412,10 @@ for n,hh in KK_NPC.items():
     x0,y0,x1,y1=KK_HEAD.get(n,(0.1,0,0.9,0.3)); top=c.crop((round(c.width*x0),round(c.height*y0),round(c.width*x1),round(c.height*y1)))   # 对话头像：只截“大头”（头发/头饰到下巴）
     s=max(top.width,top.height); sq=Image.new('RGBA',(s,s),(0,0,0,0)); sq.paste(top,((s-top.width)//2,(s-top.height)//2))
     sq.resize((160,160),Image.LANCZOS).save(f'{AD}/head_kk_{n}.webp',quality=92)
+# 传送门：发光符文传送阵（art-src/array/array.png → portal_array，显示宽度 200，平铺在地面）
+if os.path.exists(f'{G}/array/array.png'):
+    _g=Image.open(f'{G}/array/array.png').convert('RGBA'); _g=_g.crop(_g.getbbox()); _w=400; _h=round(_g.height*_w/_g.width)
+    _g.resize((_w,_h),Image.LANCZOS).save(f'{AD}/portal_array.webp',quality=90,method=6); size['portal_array']=[_w/2,_h/2]
 # 宠物头像（HUD 左上的宠物按钮只要头部）：从展示图 pd_ss_<id> 按头部范围裁出 → ph_ss_<id>
 PET_HEAD = {'pd_ss_1221':(0.42,0.0,0.82,0.42),'pd_ss_1222':(0.28,0.05,0.58,0.36),'pd_ss_1223':(0.30,0.0,0.68,0.40),'pd_ss_1224':(0.34,0.1,0.68,0.45),'pd_ss_1225':(0.33,0.15,0.62,0.50),'pd_ss_1226':(0.35,0.12,0.65,0.48),'pd_ss_1227':(0.28,0.15,0.62,0.52),'pd_ss_bs20':(0.66,0.3,1.0,0.7)}
 for n,(x0,y0,x1,y1) in PET_HEAD.items():

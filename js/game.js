@@ -582,10 +582,11 @@ function makeActor(kind, id, sprite, name, pos, opt) {
   drawTag(a); return a;
 }
 function makePortal(p) {
-  const el = document.createElement('div'); el.className = 'portal'; el.innerHTML = '<i></i><div class="tag"></div>';
+  const el = document.createElement('div'); el.className = 'portal'; const sz = p.art && AS.size[p.art];
+  el.innerHTML = (sz ? '<img class="arr" alt="" src="' + IMG(p.art) + '" style="width:' + sz[0] + 'px;height:' + sz[1] + 'px;left:' + (-sz[0] / 2) + 'px;top:' + (-sz[1] / 2) + 'px">' : '<i></i>') + '<div class="tag"' + (sz ? ' style="bottom:' + (sz[1] / 2 + 6) + 'px"' : '') + '></div>';
   world.appendChild(el);
   const a = { kind: 'portal', id: 'portal_' + p.to, name: p.name, el, tag: el.querySelector('.tag'), pos: I(p.at[0], p.at[1]), h: 50, mark: false, to: p.to, arrive: p.arrive, needStep: p.needStep, lockMsg: p.lockMsg };
-  el.style.transform = 'translate(' + a.pos.x + 'px,' + a.pos.y + 'px)'; el.style.zIndex = 1;
+  el.style.transform = 'translate(' + a.pos.x + 'px,' + a.pos.y + 'px)'; el.style.zIndex = sz ? 0 : 1;
   drawTag(a); return a;
 }
 function drawTag(a, auto) {

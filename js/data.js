@@ -404,7 +404,7 @@ window.DATA = {
       opens: [[[1310, 495], [1335, 515], [1415, 478], [1395, 452]],   // 大屋右侧台阶底
         [[110, 1135], [105, 1075], [185, 1050], [200, 990], [260, 965], [470, 950], [570, 935], [585, 960], [395, 1040], [378, 1085], [385, 1170], [450, 1215], [330, 1235], [300, 1200], [225, 1125], [205, 1112]]],   // 桥西草屋的木平台和台阶
       npcs: [{ id: 'elder', at: [1295, 405] }, { id: 'axiu', at: [1190, 845] }],
-      portals: [{ to: 'outskirts', name: '下山·恒山村郊', at: [1790, 1380], arrive: [140, 1360], needQuest: '1001', lockMsg: '村长还有话要交代，先别急着下山' }],
+      portals: [{ to: 'outskirts', name: '下山·恒山村郊', art: 'portal_array', at: [230, 1295], arrive: [140, 1360], needQuest: '1001', lockMsg: '村长还有话要交代，先别急着下山' }],
       foes: [{ stage: 'dummy', at: [440, 1225] }, { stage: 'boar', at: [1560, 480] }]
     },
     outskirts: {
@@ -421,7 +421,7 @@ window.DATA = {
       blocks: [],
       glows: [[520,860],[1470,330]],
       npcs: [{ id: 'zhanhw', at: [309, 1215] }, { id: 'bianque', at: [860, 830] }],
-      portals: [{ to: 'village', name: '回恒山村', at: [40, 1430], arrive: [1700, 1340] }, { to: 'town', name: '去汉中郡', at: [1960, 110], arrive: [450, 790] }, { to: 'creek', name: '入清溪谷', at: [1480, 320], arrive: [1100, 1450] }],
+      portals: [{ to: 'village', name: '回恒山村', art: 'portal_array', at: [170, 1315], arrive: [320, 1285] }, { to: 'town', name: '去汉中郡', at: [1960, 110], arrive: [450, 790] }, { to: 'creek', name: '入清溪谷', at: [1480, 320], arrive: [1100, 1450] }],
       foes: [{ stage: 'hog', at: [560, 1060] }, { stage: 'roam', at: [1330, 505] }]
     },
     creek: {
