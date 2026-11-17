@@ -638,6 +638,12 @@ function loadMap(id, at) {
   world.style.width = M.W + 'px'; world.style.height = M.H + 'px';
   bgMap.src = IMG(def.img); bgMap.style.width = M.W + 'px'; bgMap.style.height = M.H + 'px'; bgMap.alt = def.alt || def.name;
   world.querySelectorAll('.actor,.portal').forEach(e => e.remove());
+  world.querySelectorAll('.occ').forEach(e => e.remove());
+  ((AS.occ && AS.occ[id]) || []).forEach(o => {                 // 遮挡层：前景物件抠图，z-index = 落脚线 y，与角色同层按 y 排序
+    const a = I(o.x, o.y), b = I(o.w, o.h), e = document.createElement('img'); e.className = 'occ'; e.alt = ''; e.src = IMG(o.img);
+    e.style.cssText = 'left:' + a.x + 'px;top:' + a.y + 'px;width:' + b.x + 'px;height:' + b.y + 'px;z-index:' + Math.round(I(0, o.base).y);
+    world.appendChild(e);
+  });
   waterSetup();
   $('glows').innerHTML = '';
   { const fg = $('fog'); fg.innerHTML = '';                      // 动态雾：一批缓慢漂移、忽浓忽淡的大雾团
