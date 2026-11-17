@@ -638,37 +638,26 @@ function wheelSetup() {
   const cv = document.createElement('canvas'); cv.className = 'wheel'; cv.width = Math.round((x1 - x0) * sc); cv.height = Math.round((y1 - y0) * sc);
   cv.style.cssText = 'position:absolute;pointer-events:none;left:' + x0 * sc + 'px;top:' + y0 * sc + 'px;z-index:0';
   world.insertBefore(cv, world.children[1] || null);
-  const spr = new Image(); spr.src = IMG('wheel');
-  const W = { cv, cx: cv.getContext('2d'), sc, box: w.box, w, spr, back: null, ang: 0.3, last: -1, drawn: false };
-  spr.onload = () => { const b = document.createElement('canvas'); b.width = spr.naturalWidth; b.height = spr.naturalHeight;   // 背面：同一张图压暗，错位叠在后面，做出轮子的厚度
-    const c = b.getContext('2d'); c.drawImage(spr, 0, 0); c.globalCompositeOperation = 'source-atop'; c.fillStyle = 'rgba(40,22,8,.55)'; c.fillRect(0, 0, b.width, b.height); W.back = b; W.drawn = false; };
-  M.wheel = W;
+  M.wheel = { cv, cx: cv.getContext('2d'), sc, box: w.box, w, ang: 0, last: -1 };
 }
 function wheelStep(t) {
-  const W = M.wheel; if (!W || !W.back) return;
-  const anim = CFG.water && !reduce && !document.hidden;
-  if (!anim && W.drawn) return;
+  const W = M.wheel; if (!W || !CFG.water || reduce || document.hidden) { if (W && W.dirty) { W.cx.clearRect(0, 0, W.cv.width, W.cv.height); W.dirty = false; } return; }
   const [x0, y0, x1, y1] = W.box, sc = W.sc;
-  if (x1 * sc < cam.x || x0 * sc > cam.x + 720 || y1 * sc < cam.y || y0 * sc > cam.y + 1280) { W.last = -1; return; }   // 不在画面里就不画
-  if (anim) { if (t - W.last < 0.05) return; const dt = W.last < 0 ? 0.05 : t - W.last; W.last = t; W.ang = (W.ang + W.w.speed * dt) % (Math.PI * 2); }
-  const w = W.w, cx = W.cx, R = w.R, phi = w.phi * Math.PI / 180;
+  if (x1 * sc < cam.x || x0 * sc > cam.x + 720 || y1 * sc < cam.y || y0 * sc > cam.y + 1280) return;      // 不在画面里就不画
+  if (t - W.last < 0.05) return; const dt = W.last < 0 ? 0.05 : t - W.last; W.last = t;
+  const img = bgMap; if (!img.complete || !img.naturalWidth) return;
+  const w = W.w, cx = W.cx; W.ang = (W.ang + w.speed * dt) % (Math.PI * 2);
+  const phi = w.phi * Math.PI / 180, k = w.clip || 0.88;
+  const base = () => { cx.setTransform(1, 0, 0, 1, 0, 0); cx.scale(sc, sc); cx.translate(-x0, -y0); };
   cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, W.cv.width, W.cv.height);
-  const draw = (img, dx) => { cx.save(); cx.setTransform(sc, 0, 0, sc, -x0 * sc, -y0 * sc); cx.translate(w.H[0] + dx, w.H[1]); cx.rotate(phi); cx.scale(w.sx, 1); cx.rotate(W.ang);
-    cx.drawImage(img, -R, -R, 2 * R, 2 * R); cx.restore(); };
-  if (w.legs) { cx.save(); cx.setTransform(sc, 0, 0, sc, -x0 * sc, -y0 * sc); cx.lineCap = 'round';      // 轴架：两根斜撑
-    w.legs.forEach(l => { cx.strokeStyle = '#3a2410'; cx.lineWidth = l[4] + 2; cx.beginPath(); cx.moveTo(l[0], l[1]); cx.lineTo(l[2], l[3]); cx.stroke();
-      cx.strokeStyle = '#8a5a2c'; cx.lineWidth = l[4]; cx.beginPath(); cx.moveTo(l[0], l[1]); cx.lineTo(l[2], l[3]); cx.stroke();
-      cx.strokeStyle = '#b98544'; cx.lineWidth = l[4] * 0.3; cx.beginPath(); cx.moveTo(l[0] - 1, l[1]); cx.lineTo(l[2] - 1, l[3]); cx.stroke(); });
-    cx.restore(); }
-  const th = w.thick || 10; for (let i = th; i > 0; i--) draw(W.back, -i);
-  draw(W.spr, 0);
-  if (w.water) { cx.save(); cx.globalCompositeOperation = 'source-atop'; cx.setTransform(sc, 0, 0, sc, -x0 * sc, -y0 * sc);      // 泡在水里的部分：压一层青绿
-    const g = cx.createLinearGradient(0, w.water, 0, w.water + 30); g.addColorStop(0, 'rgba(30,150,150,0)'); g.addColorStop(1, 'rgba(30,150,150,.5)');
-    cx.fillStyle = g; cx.fillRect(x0, w.water, x1 - x0, y1 - w.water); cx.restore();
-    cx.save(); cx.setTransform(sc, 0, 0, sc, -x0 * sc, -y0 * sc); cx.strokeStyle = 'rgba(235,255,255,.55)'; cx.lineWidth = 1.6;           // 入水处的浪花
-    for (let i = 0; i < 3; i++) { const ph = (t * 0.9 + i / 3) % 1; cx.globalAlpha = (1 - ph) * .8; cx.beginPath(); cx.ellipse(w.H[0] - 6 + i * 4, w.water + 2, 22 + ph * 26, 4 + ph * 6, 0, 0, Math.PI * 2); cx.stroke(); }
-    cx.restore(); }
-  W.drawn = true;
+  cx.save(); base(); cx.beginPath(); cx.ellipse(w.E[0], w.E[1], w.ah * k, w.av * k, phi, 0, Math.PI * 2); cx.clip();
+  cx.translate(w.H[0], w.H[1]); cx.rotate(phi); cx.scale(w.ah, w.av); cx.rotate(W.ang); cx.scale(1 / w.ah, 1 / w.av); cx.rotate(-phi); cx.translate(-w.H[0], -w.H[1]);
+  cx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, img.naturalWidth * (M.def.iw / img.naturalWidth), img.naturalHeight * (M.def.iw / img.naturalWidth)); cx.restore();
+  if (w.hub) { cx.save(); base(); cx.beginPath(); cx.ellipse(w.H[0], w.H[1], w.hub * 0.8, w.hub, phi, 0, Math.PI * 2); cx.clip();      // 轮毂不转
+    cx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, M.def.iw, M.def.ih); cx.restore(); }
+  if (w.leg) { cx.save(); base(); cx.beginPath(); w.leg.forEach((p, i) => i ? cx.lineTo(p[0], p[1]) : cx.moveTo(p[0], p[1])); cx.closePath(); cx.clip();      // 支架不转：把原图盖回去
+    cx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, M.def.iw, M.def.ih); cx.restore(); }
+  W.dirty = true;
 }
 function loadMap(id, at) {
   const def = D.maps[id];
