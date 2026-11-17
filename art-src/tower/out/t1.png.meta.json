@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "out": "art-src/tower/out/t1.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "2048x1536",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 504,
+      "elapsed": 195.7,
+      "error": "{'code': 'upstream_connect_timeout', 'message': 'Upstream preparation exceeded the opening time limit', 'type': 'server_error'}"
+    },
+    {
+      "attempt": 2,
+      "status": 200,
+      "elapsed": 165.2,
+      "error": null
+    }
+  ]
+}

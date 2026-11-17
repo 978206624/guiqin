@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "out": "art-src/tower/out/t4.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "2048x1536",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 504,
+      "elapsed": 183.9,
+      "error": "{'code': 'upstream_connect_timeout', 'message': 'Upstream preparation exceeded the opening time limit', 'type': 'server_error'}"
+    },
+    {
+      "attempt": 2,
+      "status": 0,
+      "elapsed": 121.7,
+      "error": "ConnectionResetError: [Errno 104] Connection reset by peer"
+    },
+    {
+      "attempt": 3,
+      "status": 200,
+      "elapsed": 167.9,
+      "error": null
+    }
+  ]
+}

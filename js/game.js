@@ -453,6 +453,9 @@ function openSmith(tab) {
   openModal('王记铁匠铺', tabs + forgeView(smithTabNow));
 }
 const ACTS = {
+  towerGo() { towerEnterFloor(towerFloor()); },
+  towerNext() { const f = M.def.tower; if (f < 7 && (S.tower | 0) >= f * 10) towerEnterFloor(f + 1); },
+  towerLeave() { $('modal').hidden = true; modalOnClose = null; const t = D.maps.town; loadMap('town', toMap(t, 850, 610)); save(); toast('走出了玄兵塔'); },
   petUse(id) { if (!ownPet(id)) return; S.petAct = id; petSel = id; save(); applyPetLook(); toast(D.petDex[id].name + ' 出战'); openPet(); },
   ssExch(id) {
     const dx = D.petDex[id];
@@ -660,11 +663,12 @@ function loadMap(id, at) {
     M.npcs[n.id] = a; M.list.push(a);
   });
   (def.portals || []).forEach(p => M.list.push(makePortal(p)));
-  (def.foes || []).forEach(f => {
-    const st = D.stages.find(s => s.id === f.stage);
+  const foeList = def.tower ? (def.slots || []).map((at, i) => ({ stage: 'blxt_' + ((def.tower - 1) * 10 + i + 1), at, face: i === 9 ? 1 : 1 })).filter(f => +f.stage.slice(5) <= (S.tower | 0) + 1) : (def.foes || []);   // 玄兵塔：只显示本层已通关的守卫和下一名
+  foeList.forEach(f => {
+    const st = D.stages.find(s => s.id === f.stage), done = st.tower && st.n <= (S.tower | 0);
     const lead = st.enemies.includes('boss') ? 'boss' : st.enemies[0];
-    const a = makeActor('foe', 'foe_' + st.id, D.enemies[lead].sprite, st.name, I(f.at[0], f.at[1]), { color: '#ff9a8a', title: '建议 ' + st.rec + ' 级', titleColor: '#ffd56a', face: f.face || 1 });
-    a.stage = st; M.list.push(a);
+    const a = makeActor('foe', 'foe_' + st.id, D.enemies[lead].sprite, st.name, I(f.at[0], f.at[1]), done ? { color: '#9aa4b4', title: '已通关', titleColor: '#8fd0a0', face: f.face || 1 } : { color: '#ff9a8a', title: (st.tower && st.n % 10 === 0 ? '首领 ' : '') + '建议 ' + st.rec + ' 级', titleColor: '#ffd56a', face: f.face || 1 });
+    a.stage = st; a.done = done; if (done) a.img.style.filter = 'grayscale(.55) brightness(.85)'; M.list.push(a);
   });
   buildGrid(); drawMiniDots(); wxSnap();
   const p = at && inside(at) ? at : I(def.start[0], def.start[1]);
@@ -827,12 +831,12 @@ function wpClamp() {
   WP.x = Math.min(0, Math.max(720 - iw, WP.x)); WP.y = Math.min(0, Math.max(1280 - ih, WP.y));
   $('wmapPan').style.transform = 'translate3d(' + WP.x.toFixed(1) + 'px,' + WP.y.toFixed(1) + 'px,0)';
 }
-function wpCenter(id) { const d = D.maps[id]; WP.x = 360 - d.world[0]; WP.y = 640 - d.world[1] + 40; wpClamp(); }
+function wpCenter(id) { let d = D.maps[id]; if (!d.world) d = D.maps[d.home] || D.maps.town; WP.x = 360 - d.world[0]; WP.y = 640 - d.world[1] + 40; wpClamp(); }
 function openWorld() {
   if (B.active) return;
   stop(); wander = false; autoBtn.classList.remove('on');
   const img = $('wmapImg'); img.src = IMG('world'); img.style.width = AS.size.world[0] + 'px'; img.style.height = AS.size.world[1] + 'px';
-  $('wmapNodes').innerHTML = Object.keys(D.maps).map(id => {
+  $('wmapNodes').innerHTML = Object.keys(D.maps).filter(id => D.maps[id].world).map(id => {
     const d = D.maps[id], here = id === M.id;
     return '<button type="button" class="wnode' + (here ? ' here' : '') + (d.sect ? ' sect' : '') + '" data-go="' + id + '" style="left:' + d.world[0] + 'px;top:' + d.world[1] + 'px">' + d.name +
       '<small>' + (here ? '你在这里' : d.note) + '</small></button>';
@@ -1053,16 +1057,37 @@ function talk(n) {
     if (info.shop === 'smith') openSmith('forge');
     else if (info.shop) openShop(info.shop);
     else if (info.act === 'ssEnvoy') openEnvoy();
+    else if (info.act === 'towerEnter') openTowerEnter();
+    else if (info.act === 'towerTp') openTowerTp();
     else if (info.act === 'joinSect') joinDaoTalk();
     else if (info.act === 'pickHall') pickHallTalk(info.hall);
     else if (info.act === 'arena') openModal('竞技场', '<p class="center">五对五模拟对战（不影响存档）。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">上擂台</button>　<button type="button" class="tbtn" data-act="close">再看看</button></p>');
     else if (info.rest) { const st = stats(); if (S.hp < st.maxHp || S.mp < st.maxMp) { S.hp = st.maxHp; S.mp = st.maxMp; save(); refresh(); toast(info.restMsg || '歇了一会儿，气血法力回满'); } }
   });
 }
+// ---------- 百炼玄兵塔 ----------
+// 进度 S.tower = 最高通关守卫编号（0～70）。所在层 = ceil(进度/10)，整十进度停在刚通关的那层，要手动上楼。
+const towerFloor = () => { const p = S.tower | 0; return Math.max(1, Math.min(7, Math.ceil(p / 10))); };
+function openTowerEnter() {
+  const T = D.tower, p = S.tower | 0, f = towerFloor();
+  if (S.lv < T.minLv) { openModal('百炼玄兵塔', '<p class="center">塔里的守卫不是闹着玩的。<br>等你到 <b>' + T.minLv + ' 级</b> 再来（你现在 ' + S.lv + ' 级）。</p><p class="center"><button type="button" class="tbtn" data-act="close">知道了</button></p>'); return; }
+  openModal('百炼玄兵塔', '<p class="center">已通关守卫 <b>' + p + ' / 70</b>　' + (p >= 70 ? '全塔通关' : '当前所在：第 ' + f + ' 层 · ' + T.floors[f - 1].name) + '<br><small style="color:var(--muted)">每层十名守卫，按顺序挑战；第十名是本层首领，打败后才能上楼。</small></p>' +
+    '<p class="center"><button type="button" class="tbtn red" data-act="towerGo">进入玄兵塔</button>　<button type="button" class="tbtn" data-act="close">以后再说</button></p>');
+}
+function towerEnterFloor(f, arrive) {
+  const id = 'tower' + f, dest = D.maps[id]; $('modal').hidden = true; modalOnClose = null;
+  loadMap(id, arrive ? toMap(dest, arrive[0], arrive[1]) : null); save(); toast('来到 ' + dest.name);
+}
+function openTowerTp() {
+  const f = M.def.tower, p = S.tower | 0, up = f < 7 && p >= f * 10;
+  openModal('塔内传送师', '<p class="center">' + (up ? '本层首领已破，上楼的路开了。' : f >= 7 && p >= 70 ? '塔已经通了。你想出去，我送你。' : '要上楼，先打败本层的首领（第 ' + f + ' 层第十名守卫）。') + '</p>' +
+    '<p class="center">' + (up ? '<button type="button" class="tbtn red" data-act="towerNext">前往第 ' + (f + 1) + ' 层</button>　' : '') + '<button type="button" class="tbtn" data-act="towerLeave">离开玄兵塔</button>　<button type="button" class="tbtn" data-act="close">再等等</button></p>');
+}
 // 地图上的敌人：走过去后弹出确认
 function openFoe(a) {
   const q0 = D.quests[S.step];
   if (a.stage.story && q0 && q0.stage === a.stage.id && q0.pre && q0.pre.length && S.preSeen !== S.step) { S.preSeen = S.step; save(); showPages(q0.pre, () => openFoe(a)); return; }
+  if (a.done) { openModal(a.stage.name, '<p class="center">这名守卫你已经打败了，不能重复挑战。</p><p class="center"><button type="button" class="tbtn" data-act="close">知道了</button></p>'); return; }
   const st = a.stage, names = st.enemies.map(e => D.enemies[e].name).join('、');
   const needSt = st.need && !S.cleared.includes(st.need) ? D.stages.find(s => s.id === st.need) : null;
   let h;
@@ -1267,7 +1292,7 @@ function wxPick(mapId, not) {
   for (const k in w) { r -= w[k]; if (r <= 0) return k; } return 'clear';
 }
 const wxRoll = (mapId, not) => ({ kind: wxPick(mapId, not), until: Date.now() + (WXD.span[0] + Math.random() * (WXD.span[1] - WXD.span[0])) * 1000 });
-const wxKind = () => wxLock || (wxSt[M.id] && wxSt[M.id].kind) || 'clear';
+const wxKind = () => (M && M.def.indoor) ? 'clear' : wxLock || (wxSt[M.id] && wxSt[M.id].kind) || 'clear';   // 室内（玄兵塔）永远是晴，不下雨雪
 function wxUpdate(announce) {          // 到期就换；换了就刷新图标并提示
   if (!M) return;
   if (!wxSt[M.id]) wxSt[M.id] = wxRoll(M.id);
@@ -2175,6 +2200,7 @@ function finish() {
     const r = { exp: 0, coin: 0, items: {} };
     st.enemies.forEach(id => { const e = D.enemies[id]; r.exp += e.exp; r.coin += e.coin; e.drops.forEach(d => { if (Math.random() < d[1]) r.items[d[0]] = (r.items[d[0]] || 0) + 1; }); });
     if (!S.cleared.includes(st.id)) S.cleared.push(st.id);
+    let towerLine = ''; if (st.tower && st.n > (S.tower | 0)) { S.tower = st.n; towerLine = st.n % 10 === 0 ? (st.n === 70 ? '百炼玄兵塔全部通关！' : '本层首领已破，可以找塔内传送师上楼。') : '玄兵塔进度 ' + st.n + '/70'; }
     const q = D.quests[S.step]; let questDone = false, killLine = '';
     if (q && (q.type === 'fight' || q.type === 'kill') && q.stage === st.id) {
       let done = true;
@@ -2188,6 +2214,7 @@ function finish() {
     if (drops.length) h += '<br>获得 ' + drops.map(id => '<b>' + D.items[id].name + ' ×' + r.items[id] + '</b>').join('、');
     if (ups) h += '<br><b>升级！</b>' + lv0 + ' 级 → ' + S.lv + ' 级，气血法力回满';
     if (killLine) h += '<br><span style="color:var(--jade)">' + killLine + '</span>';
+    if (towerLine) h += '<br><span style="color:var(--jade)">' + towerLine + '</span>';
     if (questDone) h += '<br><span style="color:var(--jade)">任务完成：' + q.title + '</span>';
     h += '</div>';
     sys('击败' + st.name + '的敌人：' + rewardText(r));
@@ -2205,7 +2232,8 @@ function leaveBattle() {
   B.active = false; stage.classList.remove('fight'); $('units').innerHTML = ''; B.units = []; { const sb = $('sndBtn'); if (sb) sb.remove(); }
   if (!arena) {
     // 打赢的敌人从地图上消失（重新进图会再出现）；打输回城
-    if (B.over === 'win' && B.foe) { B.foe.el.remove(); M.list = M.list.filter(a => a !== B.foe); }
+    if (B.over === 'win' && B.foe && B.foe.stage.tower) loadMap(M.id, { x: player.pos.x, y: player.pos.y });      // 玄兵塔：守卫留在原地（变灰），下一名守卫现身
+    else if (B.over === 'win' && B.foe) { B.foe.el.remove(); M.list = M.list.filter(a => a !== B.foe); }
     if (B.over === 'lose') loadMap(M.def.home || M.id);
   }
   B.foe = null;

@@ -331,7 +331,8 @@ window.DATA = {
     smith:  { name: '王铁匠', idle: '打铁还需自身硬。兵器铠甲要锻造升星，还是想在孔里镶宝石，都交给老夫。', shop: 'smith' },
     girl:   { name: '逍遥子', title: '【百花谷】', color: '#dca8ff', titleColor: '#ffa8d0', idle: '今晚灯会的灯谜好难……你也是来猜谜的吗？' },
     arenaman: { name: '擂台官', title: '【竞技场】', color: '#ff9a8a', sprite: 'f_blade', head: 'head_m_spear', idle: '擂台已经备好，五对五，人宠齐上。要不要上去练练手？', act: 'arena' },
-    towerman: { name: '守塔人', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'f_tao', head: 'head_m_mage', idle: '玄兵塔共九层，一层比一层凶险。塔门暂时还不能开，等你再强一些。' },
+    towerman: { name: '守塔人', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'f_tao', head: 'head_m_mage', act: 'towerEnter', idle: '百炼玄兵塔一共七层，每层十名守卫，都是百炼成精的神兵法宝。打败本层首领，才能上下一层。' },
+    towertp:  { name: '塔内传送师', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'kk_npc07', head: 'head_kk_npc07', act: 'towerTp', idle: '每层的首领一倒，我就能送你上楼。想歇一歇，也可以送你出塔。' },
     trader:   { name: '掌柜',   title: '【寄卖行】', color: '#ffe08a', sprite: 'f_healer', head: 'head_vendor', shop: 'trader', idle: '百宝摊上的项链、戒指、法宝、护符，都是各路好货，少侠随便看。' },
     // 道家驻地（太虚之林）的三位：形象取自 kunkunxunqin（门主 10000463 / 琴魔堂主 10000464 / 天音堂主 10000465）
     dao_menzhu: { name: '道家门主', title: '【道家】', color: '#bfe8ff', sprite: 'kk_npc57', head: 'head_kk_npc57', act: 'joinSect', idle: '道法自然，无为而无不为。太虚之林乃本门驻地。十级以上、与道有缘者，可在此拜入道家，再去堂主处择天音或琴魔一堂。' },
@@ -679,4 +680,49 @@ window.DATA.petSeq = {
     desc: '浑身燃着烈焰的帝君，一柄巨斧劈开天火，脚下炎环不灭。', mult: { hp: 1.0, atk: 1.0, def: 0.9, spd: 0.9 },
     act: [['ss_th', 1], ['ss_dy', 1], ['ss_hit', 1]], pas: { baoti: 1, baotiStart: 5, atkMul: 1.3, revive: 0.6, reviveText: '混元霸体', hurtAtk: { step: 0.1, max: 10 } },
     pasList: [['烈战狂歌', '开场获得 5 层霸体，攻击提升 30%。'], ['混元霸体', '每回合获得 1 层霸体（最多 5 层），每层使受到的伤害 -10%；致死时恢复 60% 生命（一场一次）。'], ['九域神威', '每受到一次伤害，攻击提升 10%，最多叠加 10 次。']] });
+})();
+
+// ---- 百炼玄兵塔：7 层 × 10 名守卫（第 10 名是本层首领）。守卫名字取自原服 blxt_1～blxt_70（封神法宝）。----
+;(function () {
+  const D = window.DATA;
+  const names = ["离火剑", "散瘟鞭", "落宝金钱", "列瘟印", "紫金铃", "撞心杵", "风火轮", "酱油瓶", "乾坤针", "斩仙飞刀", "风袋", "梅花镖", "六根清净竹", "雾露乾坤网", "戳目珠", "照妖鉴", "长生根", "伤不旗", "逆鳞枪", "宝莲灯", "万里起云烟", "钻心钉", "万鸦壶", "紫金钵", "定风珠", "魔神甲", "穿天弩", "咆哮梯", "金光锉", "五行旗", "乱心尘", "阴阳二气瓶", "劈地珠", "杏黄旗", "阴阳刃", "穿心锁", "三尖两刃枪", "浮云", "金霞冠", "伏羲琴", "落魂钟", "焰光旗", "化血神刀", "日月珠", "定海珠", "破军", "开天珠", "混元锤", "火星帖", "翻天印", "四象塔", "天荡", "降魔杵", "乾坤圈", "如意乾坤袋", "捆仙绳", "招妖幡", "杯具", "水火锋", "苍刑逆天枪", "黑砂", "混元幡", "乾坤弓", "落魄镜", "听谛印", "照天印", "遁龙桩", "鸭梨", "缚龙索", "混沌钟"];
+  const floors = [
+    { name: '炼器大殿', desc: '炉火不熄的炼器大殿，兵器架上插满百炼的神兵。' },
+    { name: '云玉阁', desc: '浮在云海里的玉石楼阁，风里带着莲香。' },
+    { name: '幽冥魔殿', desc: '紫焰幽幽的黑曜石殿，乌鸦的黑羽落了一地。' },
+    { name: '阴阳八卦殿', desc: '地上嵌着巨大的太极八卦，一黑一白，此消彼长。' },
+    { name: '日月星辰殿', desc: '一半是金日，一半是银月，头顶星光流转。' },
+    { name: '乾坤金塔', desc: '红绸金柱，佛光流转，每一口钟都有人高。' },
+    { name: '混沌天阙', desc: '塔顶悬在混沌星海之中，一口古钟镇着整座塔。' }
+  ];
+  D.tower = { minLv: 15, floors, names };
+  // 7 张塔层地图：坐标取自 1448×1086 的原图，换算成 2000×1500。每层一张不同的图，布局一致（左下入口、中间大厅、上方首领台）。
+  const K = 2000 / 1448, c = p => [Math.round(p[0] * K), Math.round(p[1] * K)];
+  const base = {
+    poly: [[220, 420], [480, 320], [640, 310], [1050, 310], [1250, 340], [1350, 420], [1370, 560], [1250, 700], [1030, 860], [800, 950], [600, 930], [440, 880], [330, 800], [180, 700], [70, 560]],
+    dais: [[620, 190], [1040, 190], [1060, 330], [620, 330]],
+    grid: [[560, 690], [790, 690], [1020, 690], [560, 560], [790, 560], [1020, 560], [560, 430], [790, 430], [1020, 430]],
+    boss: [800, 230], start: [520, 840], tp: [420, 800]
+  };
+  const over = {
+    3: { boss: [790, 200] }, 4: { boss: [760, 175], dais: [[640, 130], [900, 130], [920, 330], [620, 330]] }, 5: { boss: [740, 215] }, 7: { boss: [850, 255] }
+  };
+  floors.forEach((fl, i) => {
+    const f = i + 1, s = Object.assign({}, base, over[f] || {});
+    D.maps['tower' + f] = { name: '玄兵塔·' + ['一', '二', '三', '四', '五', '六', '七'][i] + '层', note: fl.name, home: 'town', img: 'bg_tower' + f, mini: 'mini_tower' + f, iw: 2000, ih: 1500, scale: 1.2, k: 1,
+      indoor: true, tower: f, start: c(s.start), alt: fl.desc, roads: [], blocks: [], glows: [],
+      walk: [s.poly.map(c), s.dais.map(c)], slots: s.grid.concat([s.boss]).map(c), npcs: [{ id: 'towertp', at: c(s.tp) }] };
+  });
+  const pool = ['grunt', 'f_spear', 'f_tao', 'f_panther'], mSpr = ['boar', 'wolf', 'f_tortoise', 'f_dragon', 'boar', 'wolf', 'f_dragon'];
+  const H = { grunt: 108, f_spear: 136, f_tao: 132, f_panther: 92, boss: 150 };
+  for (let f = 1; f <= 7; f++) D.enemies['blxt_m' + f] = { name: ['火', '云', '幽', '阴阳', '星', '金', '混沌'][f - 1] + '灵', sprite: mSpr[f - 1], pet: true, h: 70, hp: 0, atk: 0, def: 0, spd: 0, exp: 0, coin: 0, drops: [] };
+  for (let n = 1; n <= 70; n++) {
+    const f = Math.ceil(n / 10), boss = n % 10 === 0, spr = boss ? 'boss' : pool[n % pool.length];
+    const hp = Math.round(900 + 140 * n), atk = Math.round(110 + 5.2 * n), def = Math.round(26 + 1.8 * n), spd = 82 + Math.round(n * 0.5), k = boss ? [2.4, 1.25, 1.2] : [1, 1, 1];
+    D.enemies['blxt_' + n] = { name: names[n - 1], sprite: spr, h: H[spr], hp: Math.round(hp * k[0]), atk: Math.round(atk * k[1]), def: Math.round(def * k[2]), spd, exp: 300, coin: boss ? 400 : 120,
+      drops: boss ? [['ore', 1], ['mp_potion', 1], ['hp_potion', 1]] : [['hp_potion', 0.5]], boss };
+    const m = D.enemies['blxt_m' + f]; if (n % 10 === 1) { m.hp = Math.round(hp * 0.4); m.atk = Math.round(atk * 0.6); m.def = Math.round(def * 0.7); m.spd = spd + 8; }
+    D.stages.push({ id: 'blxt_' + n, tower: true, n, floor: f, name: names[n - 1], rec: Math.round(14 + n * 0.55),
+      enemies: ['blxt_' + n, 'blxt_m' + f, 'blxt_m' + f], desc: '玄兵塔第' + f + '层的守卫「' + names[n - 1] + '」' + (boss ? '，是本层首领。' : '。') });
+  }
 })();

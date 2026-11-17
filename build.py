@@ -72,6 +72,8 @@ o=Image.open(G+'/wolfvalley.jpg').convert('RGB'); o.save(f'{AD}/bg_wolfvalley.jp
 o=Image.open(G+'/tx_forest.png').convert('RGB'); o.save(f'{AD}/bg_taixuforest.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_taixuforest.jpg',quality=80)
 o=Image.open(G+'/tx_peak.png').convert('RGB'); o.save(f'{AD}/bg_taixupeak.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_taixupeak.jpg',quality=80)
 o=Image.open(G+'/tx_valley.png').convert('RGB'); o.save(f'{AD}/bg_taixuvalley.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_taixuvalley.jpg',quality=80)
+for _k in range(1,8):    # 百炼玄兵塔 1～7 层
+    o=Image.open(G+f'/tower{_k}.jpg').convert('RGB'); o.save(f'{AD}/bg_tower{_k}.jpg',quality=95); o.resize((512,round(512*o.height/o.width)),Image.LANCZOS).save(f'{AD}/mini_tower{_k}.jpg',quality=80)
 b2=Image.open(G+'/battle2.png').convert('RGB'); cw2=round(b2.height*9/16); x2=(b2.width-cw2)//2
 b2.crop((x2,0,x2+cw2,b2.height)).save(f'{AD}/bg_battle2.jpg',quality=88,optimize=True)
 
@@ -357,8 +359,8 @@ b.crop((x0,0,x0+cw,b.height)).save(f'{AD}/bg_battle.jpg',quality=88,optimize=Tru
 
 from PIL import ImageFilter
 # 多文件版（assets/）用高清质量；单文件版有 16MB 上限，拼 HTML 时再把大图按 LOWQ 重压一遍（见下面 uri()）
-HQ=dict(bg_town=82,bg_village=80,bg_wild=80,world=82,bg_battle=80,bg_battle2=80,login=82,bg_taixuforest=80,bg_taixupeak=80,bg_taixuvalley=80,bg_outskirts=80,bg_creek=80,bg_mist=80,bg_pine=80,bg_wolfvalley=80)
-LOWQ=dict(bg_town=24,bg_village=60,bg_wild=78,world=40,bg_battle=72,bg_battle2=72,login=74,bg_taixuforest=74,bg_taixupeak=74,bg_taixuvalley=74,bg_outskirts=70,bg_creek=70,bg_mist=70,bg_pine=56,bg_wolfvalley=78)
+HQ=dict(bg_town=82,bg_village=80,bg_wild=80,world=82,bg_battle=80,bg_battle2=80,login=82,bg_taixuforest=80,bg_taixupeak=80,bg_taixuvalley=80,bg_outskirts=80,bg_creek=80,bg_mist=80,bg_pine=80,bg_wolfvalley=80,bg_tower1=80,bg_tower2=80,bg_tower3=80,bg_tower4=80,bg_tower5=80,bg_tower6=80,bg_tower7=80)
+LOWQ=dict(bg_town=24,bg_village=60,bg_wild=78,world=40,bg_battle=72,bg_battle2=72,login=74,bg_taixuforest=74,bg_taixupeak=74,bg_taixuvalley=74,bg_outskirts=70,bg_creek=70,bg_mist=70,bg_pine=56,bg_wolfvalley=78,bg_tower1=64,bg_tower2=64,bg_tower3=64,bg_tower4=64,bg_tower5=64,bg_tower6=64,bg_tower7=64)
 for n,q in HQ.items():
     p=f'{AD}/{n}.jpg'
     if not os.path.exists(p): continue

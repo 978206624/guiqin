@@ -1,0 +1,4 @@
+{"attempt": 1, "status": 0, "elapsed": 12.4, "error": "URLError: <urlopen error [Errno 104] Connection reset by peer>"}
+{"attempt": 2, "status": 504, "elapsed": 192.3, "error": "{'code': 'upstream_connect_timeout', 'message': 'Upstream preparation exceeded the opening time limit', 'type': 'server_error'}"}
+{"attempt": 3, "status": 200, "elapsed": 169.3, "error": null}
+SAVED art-src/tower/out/t6.png

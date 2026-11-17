@@ -1,0 +1,3 @@
+{"attempt": 1, "status": 0, "elapsed": 117.9, "error": "ConnectionResetError: [Errno 104] Connection reset by peer"}
+{"attempt": 2, "status": 200, "elapsed": 77.0, "error": null}
+SAVED art-src/tower/out/t7.png
