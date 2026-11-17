@@ -366,6 +366,7 @@ window.DATA = {
   //   home     在这张图战败后被送回哪里               battleBg  战斗背景
   maps: {
     village: {
+      butterflies: 9,
       name: '恒山村', img: 'bg_village', mini: 'mini_village', iw: 2000, ih: 1500, scale: 1.0, k: 1, start: [930, 690],
       alt: '溪水环绕的山村：茅草屋、拱桥、水车、凉亭和村长的瓦顶大屋，青石台阶一路通向山上',
       world: [888, 710], note: '新手村', home: 'village', battleBg: 'bg_battle2',

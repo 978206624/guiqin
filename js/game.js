@@ -638,7 +638,7 @@ function loadMap(id, at) {
   world.style.width = M.W + 'px'; world.style.height = M.H + 'px';
   bgMap.src = IMG(def.img); bgMap.style.width = M.W + 'px'; bgMap.style.height = M.H + 'px'; bgMap.alt = def.alt || def.name;
   world.querySelectorAll('.actor,.portal').forEach(e => e.remove());
-  waterSetup();
+  waterSetup(); bfSetup();
   $('glows').innerHTML = '';
   { const fg = $('fog'); fg.innerHTML = '';                      // 动态雾：一批缓慢漂移、忽浓忽淡的大雾团
     if (def.fog) { const n = def.fog.n || 26, W = M.W, H = M.H; let seed = 7;
@@ -1505,6 +1505,52 @@ function waterDraw(dt, t) {
     }
 }
 
+// ---------- 蝴蝶：在可走区域里飞来飞去（def.butterflies = 数量）。晴天、阴天、雾天都有，下雨/暴风/下雪时淡出 ----------
+const BF = { el: null, list: [], vis: 1 };
+const BF_COLS = [['#ffd84a', '#f08a24'], ['#ffffff', '#b9cdee'], ['#7fc2ff', '#3a6fd0'], ['#ffa5c8', '#e0558f'], ['#ffe9a0', '#d9a441']];
+function bfSetup() {
+  if (BF.el) { BF.el.remove(); BF.el = null; } BF.list = [];
+  const n = M.def.butterflies; if (!n || reduce) return;
+  if (!document.getElementById('bfStyle')) { const st = document.createElement('style'); st.id = 'bfStyle';
+    st.textContent = '#bfly{position:absolute;left:0;top:0;width:0;height:0;z-index:5000;pointer-events:none}#bfly .bf,#bfly .bs{position:absolute;left:0;top:0;will-change:transform}#bfly .bf svg{display:block;overflow:visible}#bfly .bw{transform-box:fill-box;transform-origin:50% 50%;animation:bflap .16s ease-in-out infinite alternate}#bfly .bs{width:24px;height:8px;margin:-4px 0 0 -12px;border-radius:50%;background:rgba(20,30,10,.22);filter:blur(1.5px)}@keyframes bflap{from{transform:scaleX(1)}to{transform:scaleX(.18)}}';
+    document.head.appendChild(st); }
+  const box = document.createElement('div'); box.id = 'bfly'; world.appendChild(box); BF.el = box;
+  const pick = (cx, cy, r) => { for (let k = 0; k < 40; k++) { const p = { x: cx + (Math.random() - .5) * 2 * r, y: cy + (Math.random() - .5) * 2 * r }; if (inside(p)) return p; } return null; };
+  for (let i = 0; i < n; i++) {
+    let p = null; for (let k = 0; k < 200 && !p; k++) { const q = { x: Math.random() * M.W, y: Math.random() * M.H }; if (inside(q)) p = q; }
+    if (!p) continue;
+    const [c1, c2] = BF_COLS[i % BF_COLS.length], sz = 27 + Math.random() * 11, sh = document.createElement('i'); sh.className = 'bs';
+    const e = document.createElement('div'); e.className = 'bf';
+    e.innerHTML = '<svg width="' + sz + '" height="' + sz * .8 + '" viewBox="-10 -8 20 16" style="margin:' + (-sz * .4) + 'px 0 0 ' + (-sz / 2) + 'px"><g class="bw" style="animation-duration:' + (.12 + Math.random() * .08).toFixed(2) + 's;animation-delay:' + (-Math.random()).toFixed(2) + 's">' +
+      '<path d="M0-1C-3-8-10-8-9-3-8 0-4 0 0 0Z" fill="' + c1 + '" stroke="' + c2 + '" stroke-width=".8"/><path d="M0-1C3-8 10-8 9-3 8 0 4 0 0 0Z" fill="' + c1 + '" stroke="' + c2 + '" stroke-width=".8"/>' +
+      '<path d="M0 0C-4 1-8 5-5 7-2 8 0 4 0 0Z" fill="' + c2 + '"/><path d="M0 0C4 1 8 5 5 7 2 8 0 4 0 0Z" fill="' + c2 + '"/></g><ellipse cx="0" cy="0" rx="1" ry="4.5" fill="#3a2a1a"/></svg>';
+    box.appendChild(sh); box.appendChild(e);
+    BF.list.push({ e, sh, x: p.x, y: p.y, vx: 0, vy: 0, tx: p.x, ty: p.y, sp: 38 + Math.random() * 34, ph: Math.random() * 10, rest: Math.random() * 2, pick });
+  }
+  BF.vis = 1;
+}
+function bfStep(dt, t) {
+  if (!BF.el) return;
+  const hide = Math.min(1, (wxLv.rain + wxLv.storm + wxLv.snow) * 1.8), v = 1 - hide;   // 雾天不隐藏（雾层本身会把它们蒙淡）
+  if (Math.abs(v - BF.vis) > .005) { BF.vis = v; BF.el.style.opacity = v.toFixed(2); BF.el.style.display = v < .02 ? 'none' : ''; }
+  if (v < .02) return;
+  for (const b of BF.list) {
+    b.rest -= dt;
+    if (b.rest <= 0 && Math.hypot(b.tx - b.x, b.ty - b.y) < 16) {          // 到了目标：偶尔停一会儿（盘旋），再选下一处
+      b.rest = Math.random() < .35 ? .6 + Math.random() * 1.6 : 0;
+      const p = b.pick(b.x, b.y, 280); if (p) { b.tx = p.x; b.ty = p.y; }
+    }
+    const dx = b.tx - b.x, dy = b.ty - b.y, L = Math.hypot(dx, dy) || 1, hov = b.rest > 0, k = 1 - Math.exp(-2.2 * dt);
+    const wob = Math.sin(t * 2.3 + b.ph) * 26;                              // 飞行时左右摇摆，不走直线
+    const wx = hov ? Math.sin(t * 1.7 + b.ph) * 14 : dx / L * b.sp - dy / L * wob, wy = hov ? Math.cos(t * 1.3 + b.ph) * 10 : dy / L * b.sp + dx / L * wob;
+    b.vx += (wx - b.vx) * k; b.vy += (wy - b.vy) * k; const nx = b.x + b.vx * dt, ny = b.y + b.vy * dt;
+    if (inside({ x: nx, y: ny })) { b.x = nx; b.y = ny; } else { b.tx = b.x; b.ty = b.y; b.rest = 0; }
+    const bob = Math.sin(t * 5 + b.ph) * 3 - 24;                           // 离地 24px 左右，上下起伏
+    const tilt = Math.max(-18, Math.min(18, b.vx * .35));
+    b.e.style.transform = 'translate(' + b.x.toFixed(1) + 'px,' + (b.y + bob).toFixed(1) + 'px) rotate(' + tilt.toFixed(0) + 'deg)';
+    b.sh.style.transform = 'translate(' + b.x.toFixed(1) + 'px,' + (b.y + 4).toFixed(1) + 'px)';
+  }
+}
 // 遮挡虚化：角色躲在前景物件（屋顶、栏杆）后面时变半透明。def.fade = [{ poly: [[x,y]…], base }]（地图数据坐标）；
 // 角色脚在 base 之上（更靠后）且身体与多边形有重叠时虚化。
 const fadePolys = {};
@@ -1530,6 +1576,7 @@ function frame(now) {
     stepPlayer(dt); stepFox(dt);
     placePlayer(); place(fox, t); for (const a of M.list) if (a.kind !== 'portal' && a.kind !== 'spot') place(a, t);
     seeThru(player); seeThru(fox); for (const a of M.list) if (a.kind === 'npc' || a.kind === 'foe') seeThru(a);
+    bfStep(dt, t);
     ring.style.transform = 'translate(' + player.pos.x.toFixed(1) + 'px,' + player.pos.y.toFixed(1) + 'px)';
     // 镜头：平滑跟随，不超出地图边缘
     const ct = camTarget(), k = reduce ? 1 : 1 - Math.exp(-7 * dt);
