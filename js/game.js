@@ -880,7 +880,7 @@ function openScene() {
     '<div class="sd me" id="smapMe" style="left:' + pct(player.pos.x, M.W) + ';top:' + pct(player.pos.y, M.H) + '"><i></i></div>';
   $('smapDots').innerHTML = dots;
   const kindName = { npc: '人物', portal: '出口', foe: '敌人' };
-  $('smapList').innerHTML = M.list.map((a, i) => '<button type="button" class="' + (a.mark ? 'q' : '') + '" data-i="' + i + '"><small>' + kindName[a.kind] + '</small>' + a.name + (a.mark ? ' ！' : '') + '</button>').join('');
+  $('smapList').innerHTML = '<div class="smlegend"><span><b style="background:#ffd24a"></b>人物</span><span><b style="background:#ff6a5a"></b>敌人</span><span><b style="background:#5ec8ff;border-radius:3px"></b>出口</span><span><b style="background:#fff;border-color:#e8362e"></b>任务</span></div>' + M.list.map((a, i) => '<button type="button" class="' + (a.mark ? 'q' : '') + '" data-i="' + i + '"><small>' + kindName[a.kind] + '</small>' + a.name + (a.mark ? ' ！' : '') + '</button>').join('');
   $('smap').hidden = false;
   const bx = $('smapBox'), lst = $('smapList'), room = 1280 - 150 - 140, used = bx.offsetHeight + 20 + lst.offsetHeight, top = 150 + Math.max(0, (room - used) / 2 - 20);
   bx.style.top = top + 'px'; lst.style.top = (top + bx.offsetHeight + 20) + 'px';
