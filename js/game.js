@@ -690,7 +690,7 @@ function onBtn(key, label, b) {
   else if (key === 'auto') { wander = !wander; wanderWait = 0; autoBtn.classList.toggle('on', wander); if (!wander) stop(); toast(wander ? '开始挂机闲逛，再点一次停止' : '停止挂机'); }
   else if (key === 'potion') { if (!S.items.hp_potion) toast('没有金创药了，找货郎买点吧'); else usePotion('hp_potion'); }
   else if (key === 'gift') {
-    if (!S.ssGift) { S.ssGift = true; S.petOwn = Object.assign(S.petOwn || {}, { ss_1227: true, ss_1221: true }); S.petAct = 'ss_1227'; addItem('ss_soul', 20); save(); refresh(); applyPetLook(); toast('神兽体验福利：青龙仙童、逆天魔龙已入队，在宠物面板切换出战；另送神兽之魂 ×20'); }
+    if (!S.ssGift2) { S.ssGift2 = true; S.ssGift = true; S.petOwn = Object.assign(S.petOwn || {}, { ss_1221: true, ss_1222: true, ss_1223: true, ss_1224: true, ss_1225: true, ss_1226: true, ss_1227: true }); S.petAct = S.petAct && S.petAct !== 'fox' ? S.petAct : 'ss_1227'; save(); refresh(); applyPetLook(); toast('神兽体验福利：七只神兽已全部入队，在宠物面板切换出战'); }
     else if (S.gift) toast('今日福利已领取');
     else { S.gift = true; grant({ coin: 200, items: { hp_potion: 2 } }); toast('领取福利：银两 +200，金创药 ×2'); const d = b.querySelector('.dot'); if (d) d.hidden = true; }
   }
