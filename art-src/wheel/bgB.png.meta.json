@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "out": "bgB.png",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "size": "auto",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "elapsed": 70.9,
+      "error": null
+    }
+  ]
+}
