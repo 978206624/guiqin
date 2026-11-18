@@ -72,5 +72,16 @@ namespace GuiQin
     {
         public Dictionary<string, string> img;
         public Dictionary<string, float[]> size;
+        public Dictionary<string, PetMeta> pet;          // 神兽战斗图集：键是战斗精灵名（b_ss_bs20 …）
     }
+
+    // 神兽逐帧图集（原作高清帧）：cols×rows 个格子，每格 cw×ch；ox 是格子里“脚底中点”的横坐标，by 是脚底离格子底边的高度；H 是一格对应的“站立高度”，
+    // 战斗里按 单位高度 / H 缩放。seq：动作名 → [[帧号, 毫秒], …]；rel：动作名 → 出招（释放）帧在序列里的下标。
+    public class PetMeta
+    {
+        public string sheet; public int cols, rows; public float cw, ch, ox, by, H;
+        public Dictionary<string, List<float[]>> seq; public Dictionary<string, int> rel; public PfxMeta pfx;
+    }
+    // 技能弹道特效图集：n 帧横排，每帧 cw×ch；map：技能 → 要循环的帧号；sc：技能 → 缩放
+    public class PfxMeta { public string sheet; public int n; public float cw, ch; public Dictionary<string, int[]> map; public Dictionary<string, float> sc; }
 }

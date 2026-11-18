@@ -26,6 +26,7 @@ namespace GuiQin.Battle
             public Vector2 Pos, Home, Off; public int Hp, MaxHp, Mp; public bool Alive = true; public float W, H, Phase;
             public RectTransform Label; public RectTransform Fill; public Text St; public Dictionary<string, int> Sts = new Dictionary<string, int>();
             public float Tint;
+            public PetAnim Pa;                       // 神兽逐帧动画（有图集的单位才有）
         }
         class Fl { public Text T; public Vector3 World; public float Age, Life; }
 
@@ -104,6 +105,12 @@ namespace GuiQin.Battle
             var b = new GameObject("body"); b.transform.SetParent(u.Go.transform, false); u.BodyT = b.transform;
             u.Body = b.AddComponent<SpriteRenderer>(); u.Body.sprite = sprite;
             u.BodyT.localScale = new Vector3((v.flip ? -1f : 1f) * scale, scale, 1f);
+            PetMeta pm;
+            if (v.row == "pet" && GameData.Assets.pet != null && GameData.Assets.pet.TryGetValue(v.sprite, out pm))
+            {
+                var pa = PetAnim.Create(pm, v.h);
+                if (pa != null) { u.Pa = pa; u.Body.sprite = pa.Frame((int)pm.seq["idle"][0][0]); u.BodyT.localScale = new Vector3((v.flip ? -1f : 1f) * pa.K, pa.K, 1f); }
+            }
             // 名牌 + 血条 + 状态
             var lab = Ui.Rect("lab_" + v.id, labels.transform); lab.sizeDelta = new Vector2(120, 50); lab.pivot = new Vector2(0.5f, 0f); u.Label = lab;
             if (v.row == "person")
@@ -283,6 +290,16 @@ namespace GuiQin.Battle
                             if (e.skill != "attack" && e.skill != "bite" && u != null && s != null) Banner(u.V.name + " · " + s.name, 0.9f);
                             var t0 = e.ts != null && e.ts.Length > 0 ? U(e.ts[0]) : null;
                             bool offensive = t0 != null && u != null && t0.V.side != u.V.side;
+                            string pseq = u != null && t0 != null ? PetSeqFor(u, e.skill) : null;
+                            if (pseq != null)
+                            {
+                                // 神兽有自己的逐帧招式：原地出招，到释放帧放弹道，弹道到了再结算后面的伤害事件
+                                yield return new WaitForSeconds(0.06f);
+                                bool rel = false; StartCoroutine(PetPlay(u, pseq, () => rel = true));
+                                while (!rel) yield return null;
+                                float dly = PetFx(u, e.skill, t0); if (dly > 0f) yield return new WaitForSeconds(dly * 0.85f);
+                                break;
+                            }
                             if (offensive)
                             {
                                 float k = e.ts.Length > 1 ? 0.4f : 0.7f; yield return Move(u, Vector2.Lerp(u.Home, t0.Home, k), 0.16f); away = true;
@@ -300,13 +317,14 @@ namespace GuiQin.Battle
                             Float(u, (e.crit ? "暴击 " : "") + "-" + e.v, e.crit ? "crit" : e.v >= u.MaxHp * 0.25f ? "big" : "");
                             Shake(e.crit ? 0.09f : 0.04f, e.crit ? 0.34f : 0.22f);
                             StartCoroutine(Flash(u, new Color(1f, 0.35f, 0.35f)));
+                            if (u.Pa != null) StartCoroutine(PetPlay(u, "hit", null));
                             if (actor != null) StartCoroutine(Knock(u, actor, e.crit ? 30f : 15f));
                             yield return new WaitForSeconds(0.28f);
                         }
                         break;
                     case "dot": if (u != null) { SetHp(u, e.hp); Float(u, string.IsNullOrEmpty(e.text) ? "-" + e.v : e.text + " -" + e.v, ""); yield return new WaitForSeconds(0.25f); } break;
                     case "heal": if (u != null) { SetHp(u, e.hp); Float(u, "+" + e.v, "heal"); Burst(u, new Color(0.4f, 1f, 0.6f), 0.3f, 1f, 0.4f, true); yield return new WaitForSeconds(0.2f); } break;
-                    case "miss": if (u != null) { Float(u, e.text, "miss"); StartCoroutine(Dodge(u, actor)); yield return new WaitForSeconds(0.2f); } break;
+                    case "miss": if (u != null) { Float(u, e.text, "miss"); StartCoroutine(Dodge(u, actor)); if (u.Pa != null) StartCoroutine(PetPlay(u, "dodge", null)); yield return new WaitForSeconds(0.2f); } break;
                     case "float": if (u != null) Float(u, e.text, e.kind); break;
                     case "mp": if (u != null) { u.Mp = e.mp; UpdateStat(); } break;
                     case "status": if (u != null) { u.Sts[e.st] = e.turns; RefreshSt(u); } break;
@@ -320,6 +338,69 @@ namespace GuiQin.Battle
             }
             if (away) { yield return Move(actor, actor.Home, 0.2f); }
             yield return new WaitForSeconds(0.1f);
+        }
+
+        // ---------------- 神兽逐帧动画 ----------------
+        // 这一招该播哪段序列：data.petSeq 里按精灵名 + 技能名配；没配的话，普攻和“神兽技”用 atk；都没有就不用逐帧（走通用冲刺）
+        string PetSeqFor(BU u, string skill)
+        {
+            var pa = u.Pa; if (pa == null) return null;
+            var tbl = GameData.Raw["petSeq"]; var t = tbl != null ? tbl[u.V.sprite] : null;
+            string s = t != null && t[skill] != null ? (string)t[skill] : null;
+            if (s != null && pa.M.seq.ContainsKey(s)) return s;
+            var sd = SkillOf(skill);
+            return pa.M.seq.ContainsKey("atk") && (skill == "attack" || (sd != null && sd.ss)) ? "atk" : null;
+        }
+
+        // 播一段帧序列；到释放帧调 onRel；被新的动作顶掉时（Gen 变了）也会补调一次，免得外面一直等
+        IEnumerator PetPlay(BU u, string name, Action onRel)
+        {
+            var p = u.Pa; List<float[]> s;
+            if (p == null || !p.M.seq.TryGetValue(name, out s)) { if (onRel != null) onRel(); yield break; }
+            int g = ++p.Gen; p.Playing = true;
+            int rel = p.M.rel != null && p.M.rel.ContainsKey(name) ? p.M.rel[name] : -1;
+            bool fired = false;
+            for (int i = 0; i < s.Count; i++)
+            {
+                if (p.Gen != g || u.Body == null) { if (onRel != null && !fired) onRel(); yield break; }
+                u.Body.sprite = p.Frame((int)s[i][0]);
+                if (i == rel && onRel != null) { onRel(); fired = true; }
+                yield return new WaitForSeconds(s[i][1] / 1000f);
+            }
+            if (onRel != null && !fired) onRel();
+            if (p.Gen == g) p.Playing = false;
+        }
+
+        // 弹道特效：原图朝右，按 施法者→目标 的方向旋转，飞向目标。返回飞行时间（秒），没有特效返回 0
+        float PetFx(BU u, string skill, BU t)
+        {
+            var m = u.Pa != null ? u.Pa.M.pfx : null; int[] fr;
+            if (m == null || m.map == null || !m.map.TryGetValue(skill, out fr) || fr.Length == 0) return 0f;
+            var frames = PetAnim.Pfx(m); if (frames == null) return 0f;
+            float sc = m.sc != null && m.sc.ContainsKey(skill) ? m.sc[skill] : 1f, k = u.Pa.K * sc;
+            Vector2 sp = u.Pos + u.Off;
+            Vector2 s0 = new Vector2(sp.x - u.H * 0.12f, sp.y - u.H * 0.55f), e0 = new Vector2(t.Pos.x, t.Pos.y - t.H * 0.5f);
+            float dist = (e0 - s0).magnitude, dur = Mathf.Clamp(dist * 1.1f, 160f, 320f) / 1000f;
+            StartCoroutine(PfxRoutine(frames, fr, s0, e0, k, m.cw * k, dur));
+            return dur;
+        }
+
+        IEnumerator PfxRoutine(Sprite[] frames, int[] fr, Vector2 s0, Vector2 e0, float k, float w, float dur)
+        {
+            var go = new GameObject("pfx"); go.transform.SetParent(root, false);
+            var sr = go.AddComponent<SpriteRenderer>(); sr.sortingOrder = 30000;
+            Vector2 d = e0 - s0; float dist = d.magnitude; Vector2 dir = dist > 0.01f ? d / dist : Vector2.right;
+            go.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(-d.y, d.x) * Mathf.Rad2Deg);      // 舞台 y 向下，世界 y 向上
+            go.transform.localScale = new Vector3(k, k, 1f);
+            float travel = Mathf.Max(0f, dist - w * 0.6f);
+            for (float t = 0f; t < dur; t += Time.deltaTime)
+            {
+                sr.sprite = frames[Mathf.Clamp(fr[Mathf.FloorToInt(t / 0.07f) % fr.Length], 0, frames.Length - 1)];
+                go.transform.localPosition = ToLocal(s0 + dir * travel * Mathf.Pow(t / dur, 1.5f));
+                yield return null;
+            }
+            for (float t = 0f; t < 0.16f; t += Time.deltaTime) { sr.color = new Color(1, 1, 1, 1f - t / 0.16f); yield return null; }
+            Destroy(go);
         }
 
         SkillDef SkillOf(string id) { SkillDef s; return id != null && BattleFactory.Skills.TryGetValue(id, out s) ? s : null; }
@@ -434,6 +515,7 @@ namespace GuiQin.Battle
                 Vector2 p = u.Pos + u.Off; u.Go.transform.localPosition = ToLocal(p);
                 int order = Mathf.RoundToInt(p.y) + (u.Pos != u.Home ? 1500 : 0);
                 u.Body.sortingOrder = order; u.Shadow.sortingOrder = order - 1;
+                if (u.Pa != null && !u.Pa.Playing) u.Body.sprite = u.Pa.IdleSprite(dt);
                 float bob = u.Alive ? Mathf.Sin(Time.time * 2.2f + u.Phase) * 0.012f : 0f;
                 var ls = u.BodyT.localScale; u.BodyT.localScale = new Vector3(ls.x, Mathf.Sign(ls.y) * Mathf.Abs(ls.x) * (1f + bob), 1f);
                 if (u.Label.gameObject.activeSelf)
