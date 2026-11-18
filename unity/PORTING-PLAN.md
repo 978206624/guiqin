@@ -6,7 +6,7 @@
 | 阶段 | 内容（网页版位置） | Unity 模块 | 状态 |
 |---|---|---|---|
 | R1 | 地图与行走：底图、可走判定、A* 寻路、点击/拖动行走、镜头、传送点、NPC 站位与对话、敌人站位、道家视频帧动画（game.js 543–815 / 1227–1331） | `MapRuntime`、`GameController`、`Actors`、`GameUi` | 已写完，待在 Unity 里验证 |
-| R2 | 存档与属性、主线剧情「节拍」、任务显示与完成、NPC 对话分支（game.js 38–132 / 957–1225） | `SaveData`/`PlayerState`、`StoryRunner`、`QuestUi` | 未开始 |
+| R2 | ~~本地存档~~（取消，状态由后端管）；主线剧情「节拍」、任务显示、NPC 对话分支（game.js 38–132 / 957–1225），全部由服务端决定、客户端显示 | `Net/*`（已完成接口层）、`StoryRunner`、`QuestUi` | 后端接口层已写（见 [docs/BACKEND-DESIGN.md](../docs/BACKEND-DESIGN.md)）；剧情/任务未开始 |
 | R3 | 回合制战斗：敌我布阵、出手顺序、伤害/暴击/闪避、技能与状态、宠物、结算（game.js 1690–2350） | `Battle/*` | 未开始 |
 | R4 | 背包 / 装备 / 强化 / 宝石 / 锻造、商店、玄兵塔、竞技场、门派选择（game.js 150–542 / 1141–1173） | `Inventory/*`、`ShopUi`、`ForgeUi`、`TowerUi` | 未开始 |
 | R5 | 世界地图传送、天气、动态雾、流水水面（js/water.js + export/unity-water）、蝴蝶、落花 | `WorldMapUi`、`WeatherSystem`/`WeatherUi`、`MapFx`、`WaterFx` + `GuiQinWater.shader` | 已写完，待在 Unity 里验证 |
@@ -35,6 +35,7 @@
 
 ## 暂时不做 / 取舍
 
-- 任务锁（`needQuest`/`needStep`）：R2 前先忽略，`GameController.IgnoreQuestLocks`。
+- 任务锁（`needQuest`/`needStep`）：由服务端判；`MockBackend` 一律放行。
+- 不做本地存档：进游戏时从后端取角色状态（`MockBackend` 状态只在内存里）。
 - 商店/锻造/塔/竞技场/门派 NPC：对话结束后只弹一条「待移植」提示。
 - 美术：网页版素材原样用；高清替换回 `art-src/`。

@@ -2,18 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using GuiQin.Net;
 
 namespace GuiQin
 {
-    [Serializable]
-    public class SaveData { public string map = "village"; public float x = -1f, y = -1f; public string cls = "dao_ty"; }
-
     // 主控：相机 / 界面 / 地图装载 / 点击行走 / 对话 / 传送。对应网页版 game.js 的“地图与行走”整块。
     public class GameController : MonoBehaviour
     {
         const float Speed = 230f;
-        const string SaveKey = "guiqin.save.v1";
-        public static bool IgnoreQuestLocks = true;      // 任务系统还没移植：传送点的任务锁先不生效
 
         Camera cam; Transform worldRoot; Canvas tagCanvas, uiCanvas;
         MapRuntime map; GameObject mapRoot;
@@ -25,7 +21,8 @@ namespace GuiQin
         WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi;
         MapFx mapFx; WaterFx waterFx;
         readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
-        SaveData save; string[] looks;
+        string[] looks;
+        IGameBackend net; RoleState role; bool entered;
         SpriteRenderer mark; float markT = 99f;
         bool holding, downOnUi; float holdAt; Vector2 lastHoldPos;
         float time;
@@ -41,11 +38,42 @@ namespace GuiQin
             var ls = new List<string>();
             foreach (var k in GameData.Assets.size.Keys) if (k.StartsWith("walk_f_")) ls.Add(k.Substring(7));
             ls.Sort(); looks = ls.ToArray();
-            save = LoadSave();
             worldRoot = new GameObject("World").transform;
             CreatePlayerAndPet();
-            Vector2? at = save.x >= 0 ? new Vector2(save.x, save.y) : (Vector2?)null;
-            LoadMap(GameData.Maps.ContainsKey(save.map) ? save.map : "village", at);
+        }
+
+        // 进游戏：登录 → 取角色 → 进入角色所在的地图。状态都来自后端，客户端不存档。
+        async void Start() { await EnterWorld(); }
+
+        async System.Threading.Tasks.Task EnterWorld()
+        {
+            entered = false;
+            if (net != null) net.Close();
+            net = BackendFactory.Create();
+            net.OnPush += OnPush; net.OnDisconnected += why => toast.Show(why);
+            var lr = await net.Login(new LoginReq { account = SystemInfo.deviceUniqueIdentifier, device = SystemInfo.deviceModel, platform = Application.platform.ToString(), clientVer = Application.version });
+            if (!lr.Ok || lr.data.roles == null || lr.data.roles.Count == 0) { toast.Show("登录失败：" + lr.msg); return; }
+            var er = await net.EnterGame(lr.data.roles[0].id);
+            if (!er.Ok) { toast.Show("进入游戏失败：" + er.msg); return; }
+            role = er.data.role;
+            player.DisplayName = role.name; player.SetLook(role.cls); player.SetTag();
+            MapDef d; if (!GameData.Maps.TryGetValue(role.map, out d)) role.map = "village";
+            LoadMap(role.map, StageAt(role.map, role.x, role.y));
+            entered = true;
+        }
+
+        // 数据坐标（服务端存的）→ 舞台像素；x<0 表示出生点
+        static Vector2? StageAt(string mapId, float x, float y)
+        {
+            MapDef d;
+            if (x < 0f || !GameData.Maps.TryGetValue(mapId, out d)) return null;
+            return new Vector2(x * d.scale * d.k, y * d.scale * d.k);
+        }
+
+        void OnPush(string cmd, Newtonsoft.Json.Linq.JToken data)
+        {
+            if (cmd == Cmd.PushKick) { toast.Show("你已被下线：" + (data != null ? (string)data["reason"] : "")); entered = false; }
+            // push.map / push.weather / push.role：多人同屏、服务端天气、属性变化，后续阶段接
         }
 
         // ---------------- 搭建 ----------------
@@ -77,7 +105,7 @@ namespace GuiQin
             hud = new HudUi(uiCanvas.transform, () => menu.Toggle(), OpenWeather, OpenWorld);
             dialog = new DialogUi(uiCanvas.transform);
             toast = new ToastUi(uiCanvas.transform);
-            menu = new DebugMenuUi(uiCanvas.transform, id => LoadMap(id, null), NextLook, ResetSave);
+            menu = new DebugMenuUi(uiCanvas.transform, id => GoWorld(id), NextLook, ResetRole);
             wxUi = new WeatherUi(uiCanvas.transform, wx, () => map != null ? map.Def.name : "");
             worldUi = new WorldMapUi(uiCanvas.transform, GoWorld, () => map != null ? map.Id : "village");
             wx.Changed += (k, announce) => { hud.SetWeather(WeatherSystem.NameOf(k)); if (announce) toast.Show("天气转为 " + WeatherSystem.NameOf(k)); };
@@ -90,7 +118,7 @@ namespace GuiQin
             player = Actor.Make<PlayerActor>("player", worldRoot, null, Vector2.zero, 50f);
             player.Kind = ActorKind.Player; player.Id = "player"; player.DisplayName = "云中客"; player.Title = "【游侠】";
             player.NameColor = new Color(0.54f, 1f, 0.69f); player.Hop = 7f;
-            player.SetLook(save.cls);
+            player.SetLook("dao_ty");
             player.Tag = new TagLabel(tagCanvas.transform); player.SetTag();
 
             var sz = Art.Size("fox");
@@ -103,31 +131,20 @@ namespace GuiQin
             fox.Tag = new TagLabel(tagCanvas.transform); fox.SetTag();
         }
 
-        // ---------------- 存档 ----------------
-        SaveData LoadSave()
+        // ---------------- 角色（状态在后端）----------------
+        void ResetRole()
         {
-            try { var s = PlayerPrefs.GetString(SaveKey, ""); if (!string.IsNullOrEmpty(s)) { var d = JsonUtility.FromJson<SaveData>(s); if (d != null) return d; } }
-            catch (Exception e) { Debug.LogWarning("读档失败：" + e.Message); }
-            return new SaveData();
-        }
-
-        void SaveGame()
-        {
-            save.map = map.Id; save.x = player.Pos.x; save.y = player.Pos.y; save.cls = player.ClassId;
-            PlayerPrefs.SetString(SaveKey, JsonUtility.ToJson(save)); PlayerPrefs.Save();
-        }
-
-        void ResetSave()
-        {
-            PlayerPrefs.DeleteKey(SaveKey); save = new SaveData();
-            player.SetLook(save.cls); LoadMap("village", null);
+            var m = net as MockBackend;
+            if (m == null) { toast.Show("只有本地演示后端能重置"); return; }
+            m.ResetRole(); var _ = EnterWorld();
         }
 
         void NextLook()
         {
             if (looks.Length == 0) return;
             int i = Array.IndexOf(looks, player.ClassId); player.SetLook(looks[(i + 1) % looks.Length]);
-            player.SetTag(); toast.Show("外观：" + player.ClassId); SaveGame();
+            player.SetTag(); toast.Show("外观：" + player.ClassId);
+            if (net != null) net.SetLook(player.ClassId);
         }
 
         // ---------------- 载入地图 ----------------
@@ -136,12 +153,14 @@ namespace GuiQin
         void OpenWeather() { if (!wxUi.Visible) { menu.Close(); worldUi.Close(); wxUi.Open(); } else wxUi.Close(); }
         void OpenWorld() { Stop(); menu.Close(); wxUi.Close(); worldUi.Open(); }
 
-        // 世界地图点名传送：同一张图只提示，不重载
-        void GoWorld(string id)
+        // 世界地图点名传送：同一张图只提示；其它由服务端判定（等级 / 费用），通过了才切图
+        async void GoWorld(string id)
         {
-            MapDef d; if (!GameData.Maps.TryGetValue(id, out d)) return;
+            MapDef d; if (!GameData.Maps.TryGetValue(id, out d) || !entered) return;
             if (map != null && id == map.Id) { toast.Show("你已经在" + d.name); return; }
-            LoadMap(id, null); toast.Show("传送到 " + d.name);
+            var r = await net.Teleport(id);
+            if (!r.Ok || !r.data.ok) { toast.Show(r.Ok ? (r.data.msg ?? "现在不能传送") : r.msg); return; }
+            LoadMap(r.data.map, StageAt(r.data.map, r.data.x, r.data.y)); toast.Show("传送到 " + d.name);
         }
 
         void ClearMap()
@@ -182,7 +201,6 @@ namespace GuiQin
             hud.SetPlace(def.name);
             wx.SetMap(map);
             SnapCamera();
-            SaveGame();
         }
 
         void AddNpc(NpcPlace n)
@@ -270,7 +288,7 @@ namespace GuiQin
         void Arrive()
         {
             var n = talkTarget; bool near = n != null && Vector2.Distance(n.Pos, player.Pos) < 150f;
-            Stop(); SaveGame();
+            Stop(); ReportPos();
             if (!near) return;
             if (n.Kind != ActorKind.Portal) { player.Face = n.Pos.x >= player.Pos.x ? 1 : -1; player.Dir = n.Pos.y < player.Pos.y - 24f ? 'b' : 'f'; }
             if (n.Kind == ActorKind.Portal) Travel(n.Portal);
@@ -278,14 +296,30 @@ namespace GuiQin
             else Talk(n);
         }
 
-        void Travel(PortalDef p)
+        // 走传送阵：任务锁 / 等级由服务端判，客户端只显示结果（PortalDef 里的 needQuest 等字段服务端也有一份）
+        async void Travel(PortalDef p)
         {
-            bool locked = p.needQuest != null || p.needStep.HasValue;
-            if (locked && !IgnoreQuestLocks) { toast.Show(string.IsNullOrEmpty(p.lockMsg) ? "现在还不能过去" : p.lockMsg); return; }
-            MapDef dest;
-            if (!GameData.Maps.TryGetValue(p.to, out dest)) { toast.Show("目的地不存在：" + p.to); return; }
-            LoadMap(p.to, new Vector2(p.arrive[0] * dest.scale * dest.k, p.arrive[1] * dest.scale * dest.k));
+            string from = map.Id;
+            var r = await net.Portal(from, p.to);
+            if (!r.Ok) { toast.Show(r.msg); return; }
+            if (!r.data.ok) { toast.Show(!string.IsNullOrEmpty(r.data.msg) ? r.data.msg : (string.IsNullOrEmpty(p.lockMsg) ? "现在还不能过去" : p.lockMsg)); return; }
+            if (map == null || map.Id != from) return;                       // 等待期间已经换图了
+            MapDef dest = GameData.Maps[r.data.map];
+            LoadMap(r.data.map, StageAt(r.data.map, r.data.x, r.data.y));
             toast.Show("来到 " + dest.name);
+        }
+
+        // 把当前位置报给服务端（数据坐标）。服务端用同一份碰撞数据校验；不合法会把角色拉回它认为的位置。
+        async void ReportPos()
+        {
+            if (net == null || !entered || map == null) return;
+            var req = new MoveReq { map = map.Id, to = new[] { player.Pos.x / map.Sc, player.Pos.y / map.Sc } };
+            var r = await net.Move(req);
+            if (r.Ok && !r.data.ok && map != null && map.Id == req.map)
+            {
+                var back = new Vector2(r.data.x * map.Sc, r.data.y * map.Sc);
+                if (map.Inside(back)) { Stop(); player.Pos = back; toast.Show("位置已校正"); }
+            }
         }
 
         void Talk(Actor n)
@@ -397,6 +431,8 @@ namespace GuiQin
         void Update()
         {
             float dt = Mathf.Min(Time.deltaTime, 0.05f); time += dt;
+            if (net != null) net.Tick();
+            if (map == null) { toast.Tick(dt); return; }                // 还在登录 / 进图，场景没建好
             HandleInput();
             StepPlayer(dt); StepFox(dt);
             var target = CamTarget();
