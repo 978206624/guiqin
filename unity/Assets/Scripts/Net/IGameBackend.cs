@@ -51,6 +51,11 @@ namespace GuiQin.Net
         Task<Result<GuiQin.Chat.ChatResp>> ChatSend(GuiQin.Chat.ChatSendReq req);
         Task<Result<GuiQin.Chat.ChatHistResp>> ChatHistory();
         Task<Result<GuiQin.Chat.ChatResp>> ChatGuild(bool join);
+        Task<Result<GuiQin.Chat.FriendResp>> FriendList();
+        Task<Result<GuiQin.Chat.FriendResp>> FriendAdd(string peer);
+        Task<Result<GuiQin.Chat.FriendResp>> FriendDel(string peer);
+        Task<Result<GuiQin.Chat.PartyResp>> PartyInvite(string peer);
+        Task<Result<GuiQin.Chat.PartyResp>> PartyLeave();
 
         Task<Result<BattleStartResp>> BattleStart(string stageId);
         Task<Result<BattleRoundResp>> BattleAct(string battleId, BattleCmd cmd);

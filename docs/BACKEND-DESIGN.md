@@ -94,7 +94,10 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 | `battle.resume` | 请求 | 取进行中战斗的快照 |
 | `train.do` | 请求 | 技能修炼 `{who: menzhu/hall, id}`：服务端判师父教不教、人物等级、银两、等级上限 |
 | `gift.daily` | 请求 | 每日福利（走 `BagResp`）：银两 + 金创药，按服务端日期（北京时间）一天一次 |
-| `chat.send` / `chat.hist` / `chat.guild` | 请求 | 发言（频道权限、40 字、冷却 世界 6 秒 / 其它 1.5 秒、20 秒内重复不让发）/ 取最近 200 条历史 / 演示用加入退出帮派 |
+| `chat.send` / `chat.hist` / `chat.guild` | 请求 | 权限、40 字、敏感词过滤、世界 6 秒/帮派与队伍 1.5 秒/私聊 1 秒冷却、同频道或会话 20 秒内防重复；历史最近 200 条；演示加入或退出帮派 |
+| `friend.add` / `friend.del` / `friend.list` | 请求 | 增删用 `{peer}`，列表不带参数；返回 `{ok,msg,friends}`，上限取 `chat.friendLimit` |
+| `party.invite` / `party.leave` | 请求 | 邀请用 `{peer}`，离开不带参数；服务端检查重复与容量（含自己和待确认名额共 5 人），返回 `{ok,msg,party}` |
+| `push.party` | 推送 | 角色内单调递增的 `revision`，以及 `roleId,members,pending` 快照；`members` 不包含自己 |
 | `push.chat` | 推送 | 别人的发言、系统公告、私聊 |
 | `pet.use` / `pet.exch` / `pet.rite` / `pet.gift` | 请求 | 切换出战宠物 / 神兽之魂兑换神兽 / 神兽祭 / 神兽体验福利，返回最新宠物状态（`petAct`、`petOwn`、`bond`、`ssGift`、`coin`、背包） |
 | `push.kick` | 推送 | 被顶号 / 封禁 / 维护 |
@@ -263,3 +266,5 @@ story.json 的每个任务展平成“节拍”（talk 找人 / spot 采集点 /
 - 技能修炼：角色状态 `skl{技能id: 等级}`。有门派技能表的职业必须学过才能用；入门 / 选分堂自动送前两个技能 1 级；上限 `train.maxLv`=5，升级要求人物等级 = 技能解锁等级 + `upLv`×(n-1)，花费 `learnCoin`×解锁等级 / `upCoin`×n²。战斗里该技能威力和疗效 ×(1 + 0.12×(等级-1))，由服务端战斗引擎算。
 - 每日福利：`giftDay` 记上次领取日期，服务端按北京时间换日。
 - 聊天：客户端点任意一条别人的发言即私聊对方。表情图、物品链接、组队、好友列表还没做（后两者要多人在线服务）。Mock 里的路人发言 / 公告 / 私聊回话是模拟的，真服务器换成真人广播。
+
+聊天历史附带当前帮派、好友和队伍快照。每条 `ChatMsg` 的 `id` 在角色历史中单调递增，重连可按 ID 合并历史和实时推送，`roleId` 用于过滤切角色时迟到的消息。物品链接只由服务端从发言者背包生成，`links` 返回 `{start,length,itemId}`，范围以过滤后正文的 UTF-16 字符为单位。未通过校验的方括号内容仍按原文显示。奖励、升级、成功锻造等事件由服务端写入历史并用 `push.chat` 推送，`system` 是个人消息，`notice` 是区服公告。

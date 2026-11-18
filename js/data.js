@@ -253,7 +253,8 @@ window.DATA = {
   // 聊天：世界频道里的“路人”和系统公告都是前端模拟的，没有联网。换成真服务器时，把 js/chat.js 里的 simulate* 去掉、
   // 发送处改成发请求、收到消息时调用 CHAT.add('world', {...}) 即可。
   chat: {
-    cooldown: 6, maxLen: 40, history: 200,
+    cooldown: 6, maxLen: 40, history: 200, friendLimit: 50, partyLimit: 5,
+    ban: ['代充广告', '外挂出售', '私服广告'],
     bots: [
       { name: '沈听雪', cls: 'f_sword', lv: 32 }, { name: '陆长风', cls: 'm_sword', lv: 28 }, { name: '凌霄阁主', cls: 'm_mage', lv: 41 }, { name: '苏晚照', cls: 'f_heal', lv: 25 },
       { name: '燕归来', cls: 'm_spear', lv: 36 }, { name: '顾清歌', cls: 'f_bow', lv: 30 }, { name: '白无咎', cls: 'm_mage', lv: 22 }, { name: '叶知微', cls: 'f_heal', lv: 18 },

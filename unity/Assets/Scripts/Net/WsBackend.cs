@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using GuiQin.Battle;
 using GuiQin.Inventory;
 using GuiQin.Quest;
+using GuiQin.Chat;
 using GuiQin.Sect;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -223,7 +224,12 @@ namespace GuiQin.Net
         public Task<Result<BattleStartResp>> BattleStart(string stageId) { return Call<BattleStartResp>(Cmd.BattleStart, new BattleStartReq { stage = stageId }); }
         public Task<Result<GuiQin.Chat.ChatResp>> ChatSend(GuiQin.Chat.ChatSendReq req) { return Call<GuiQin.Chat.ChatResp>(GuiQin.Chat.ChatCmd.Send, req); }
         public Task<Result<GuiQin.Chat.ChatHistResp>> ChatHistory() { return Call<GuiQin.Chat.ChatHistResp>(GuiQin.Chat.ChatCmd.Hist, null); }
-        public Task<Result<GuiQin.Chat.ChatResp>> ChatGuild(bool join) { return Call<GuiQin.Chat.ChatResp>(GuiQin.Chat.ChatCmd.Guild, new GuiQin.Chat.ChatGuildReq { join = join }); }
+        public Task<Result<ChatResp>> ChatGuild(bool join) => Call<ChatResp>(ChatCmd.Guild, new ChatGuildReq { join = join });
+        public Task<Result<FriendResp>> FriendList() => Call<FriendResp>(Cmd.FriendList, null);
+        public Task<Result<FriendResp>> FriendAdd(string peer) => Call<FriendResp>(Cmd.FriendAdd, new ChatPeerReq { peer = peer });
+        public Task<Result<FriendResp>> FriendDel(string peer) => Call<FriendResp>(Cmd.FriendDel, new ChatPeerReq { peer = peer });
+        public Task<Result<PartyResp>> PartyInvite(string peer) => Call<PartyResp>(Cmd.PartyInvite, new ChatPeerReq { peer = peer });
+        public Task<Result<PartyResp>> PartyLeave() => Call<PartyResp>(Cmd.PartyLeave, null);
         public Task<Result<GuiQin.Train.TrainResp>> Train(string who, string id) { return Call<GuiQin.Train.TrainResp>(GuiQin.Train.TrainCmd.Do, new GuiQin.Train.TrainReq { who = who, id = id }); }
         public Task<Result<GuiQin.Pets.PetResp>> PetOp(string cmd, string id) { return Call<GuiQin.Pets.PetResp>(cmd, new GuiQin.Pets.PetReq { id = id }); }
         public Task<Result<BattleStartResp>> BattleResume() { return Call<BattleStartResp>(Cmd.BattleResume, null); }

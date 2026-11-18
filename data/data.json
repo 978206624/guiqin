@@ -5966,6 +5966,13 @@
   "cooldown": 6,
   "maxLen": 40,
   "history": 200,
+  "friendLimit": 50,
+  "partyLimit": 5,
+  "ban": [
+   "代充广告",
+   "外挂出售",
+   "私服广告"
+  ],
   "bots": [
    {
     "name": "沈听雪",

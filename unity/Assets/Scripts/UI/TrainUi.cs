@@ -1,3 +1,4 @@
+using GuiQin.Net;
 using System;
 using System.Threading.Tasks;
 using GuiQin.Train;

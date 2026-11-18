@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GuiQin.Battle;
+using GuiQin.Chat;
 using GuiQin.Inventory;
 using GuiQin.Quest;
 using GuiQin.Sect;
@@ -21,25 +22,59 @@ namespace GuiQin.Net
         public event Action<int> OnReconnecting { add { } remove { } }
         public event Action OnReconnected { add { } remove { } }
         public bool Reconnecting { get { return false; } }
-        GuiQin.Chat.ChatService chat;
-        GuiQin.Chat.ChatService Chat
+        readonly Dictionary<string, ChatService> chats = new Dictionary<string, ChatService>();
+        ChatService Chat => ChatFor(role);
+
+        ChatService ChatFor(RoleState owner)
         {
-            get
+            if (chats.TryGetValue(owner.id, out var chat)) return chat;
+            chat = new ChatService(owner);
+            chat.OnPush += m => { if (role?.id == owner.id) OnPush?.Invoke(ChatCmd.Push, JToken.FromObject(m)); };
+            chat.OnParty += p => { if (role?.id == owner.id) OnPush?.Invoke(Cmd.PushParty, JToken.FromObject(p)); };
+            chats.Add(owner.id, chat);
+            return chat;
+        }
+
+        public void Tick() { if (role != null) Chat.Tick(); }
+
+        Task<Result<T>> ChatCall<T>(Func<ChatService, T> call)
+        {
+            if (role == null) return Task.FromResult(Result<T>.Fail(Code.Unauthorized, "还没进游戏"));
+            return Reply(call(Chat));
+        }
+
+        public Task<Result<ChatResp>> ChatSend(ChatSendReq req) => ChatCall(c => c.Send(req));
+        public Task<Result<ChatHistResp>> ChatHistory() => ChatCall(c => c.History());
+        public Task<Result<ChatResp>> ChatGuild(bool join) => ChatCall(c => c.SetGuild(join));
+        public Task<Result<FriendResp>> FriendList() => ChatCall(c => c.Friends());
+        public Task<Result<FriendResp>> FriendAdd(string peer) => ChatCall(c => c.SetFriend(peer, true));
+        public Task<Result<FriendResp>> FriendDel(string peer) => ChatCall(c => c.SetFriend(peer, false));
+        public Task<Result<PartyResp>> PartyInvite(string peer) => ChatCall(c => c.Invite(peer));
+        public Task<Result<PartyResp>> PartyLeave() => ChatCall(c => c.Leave());
+
+        void ZoneNotice(string text)
+        {
+            foreach (var owner in Zone(enteredServer)) ChatFor(owner).Notice(text);
+        }
+
+        static string ItemName(string id) => (string)GameData.Raw["items"][id]?["name"] ?? id;
+
+        void ReportRewards(int oldLevel, int exp, int coin, Dictionary<string, int> items)
+        {
+            if (role.lv > oldLevel)
             {
-                if (chat == null) { chat = new GuiQin.Chat.ChatService(); chat.OnPush += m => { if (OnPush != null) OnPush(GuiQin.Chat.ChatCmd.Push, JToken.FromObject(m)); }; }
-                return chat;
+                Chat.SystemMessage("升到 " + role.lv + " 级！");
+                for (int lv = oldLevel + 1; lv <= role.lv; lv++)
+                    if (lv % 5 == 0) ZoneNotice("恭喜玩家「" + role.name + "」等级突破 " + lv + " 级！");
             }
+            var parts = new List<string>();
+            if (exp > 0) parts.Add("经验 +" + exp);
+            if (coin > 0) parts.Add("银两 +" + coin);
+            if (items != null)
+                foreach (var item in items) parts.Add(ItemName(item.Key) + " ×" + item.Value);
+            if (parts.Count > 0) Chat.SystemMessage("获得 " + string.Join("、", parts));
         }
 
-        public void Tick() { if (role != null) Chat.Tick(); }       // 进了游戏才有聊天：路人发言、公告、私聊问候都由它按时间冒出来
-
-        public async Task<Result<GuiQin.Chat.ChatResp>> ChatSend(GuiQin.Chat.ChatSendReq req)
-        {
-            await Task.Delay(LatencyMs); if (role == null) return Result<GuiQin.Chat.ChatResp>.Fail(Code.Unauthorized, "还没进游戏");
-            return Result<GuiQin.Chat.ChatResp>.Success(Chat.Send(role, req));
-        }
-        public Task<Result<GuiQin.Chat.ChatHistResp>> ChatHistory() { return Reply(Chat.History()); }
-        public Task<Result<GuiQin.Chat.ChatResp>> ChatGuild(bool join) { return Reply(Chat.SetGuild(join)); }
         public void Close() { }
 
         const int LatencyMs = 40;                  // 模拟一点网络延迟，免得客户端把“瞬间返回”当成理所当然
@@ -75,6 +110,7 @@ namespace GuiQin.Net
             var z = Zone(enteredServer); int i = z.FindIndex(r => r.id == role.id);
             string baseCls = (string)GameData.Raw["classes"][role.cls]["gender"] == "m" ? "novice_m" : "novice_f";
             role = NewRole(role.id, role.name, baseCls); if (i >= 0) z[i] = role;
+            if (chats.TryGetValue(role.id, out var chat)) chat.Bind(role);
         }
 
         // 返回给客户端的数据一律深拷贝：Mock 和真服务器一样，客户端拿到的是“副本”，不会和服务端状态共享引用
@@ -111,7 +147,7 @@ namespace GuiQin.Net
 
         public Task<Result<Empty>> RoleDelete(string roleId)
         {
-            foreach (var kv in zones) { int n = kv.Value.RemoveAll(r => r.id == roleId); if (n > 0) { if (role != null && role.id == roleId) role = null; return Reply(new Empty()); } }
+            foreach (var kv in zones) { int n = kv.Value.RemoveAll(r => r.id == roleId); if (n > 0) { chats.Remove(roleId); if (role != null && role.id == roleId) role = null; return Reply(new Empty()); } }
             return Task.FromResult(Result<Empty>.Fail(Code.Protocol, "没有这个角色"));
         }
 
@@ -171,7 +207,10 @@ namespace GuiQin.Net
         public Task<Result<QuestTalkResp>> QuestTalk(string npc)
         {
             if (battle != null) return Task.FromResult(Result<QuestTalkResp>.Fail(Code.InBattle, "战斗中"));
-            return Reply(new QuestService(role).Talk(npc));
+            int oldLevel = role.lv;
+            var result = new QuestService(role).Talk(npc);
+            if (result.ok && result.done) ReportRewards(oldLevel, result.exp, result.coin, result.items);
+            return Reply(result);
         }
 
         // ---------------- 背包 ----------------
@@ -181,6 +220,8 @@ namespace GuiQin.Net
             if (battle != null) return Result<BagResp>.Fail(Code.InBattle, "战斗中不能这样做");
             q = q ?? new BagOpReq();
             var svc = new InventoryService(role); bool ok;
+            int oldStar = -1;
+            if (cmd == BagCmd.Forge && q.slot != null && role.bag.gear.TryGetValue(q.slot, out var gear)) oldStar = gear.star;
             switch (cmd)
             {
                 case BagCmd.Get: ok = true; svc.Msg = null; break;
@@ -205,6 +246,10 @@ namespace GuiQin.Net
                 case BagCmd.Merge: ok = svc.Merge(q.id); break;
                 default: return Result<BagResp>.Fail(Code.Protocol, "未知命令 " + cmd);
             }
+            if (ok && (cmd == BagCmd.Forge || cmd == BagCmd.ShopBuy || cmd == BagCmd.Gift || cmd == BagCmd.Merge))
+                Chat.SystemMessage(svc.Msg);
+            if (cmd == BagCmd.Forge && ok && svc.Star >= 10 && svc.Star > oldStar && q.slot != null && role.bag.equip.TryGetValue(q.slot, out var forged))
+                ZoneNotice("恭喜玩家「" + role.name + "」将" + ItemName(forged) + "锻造至 " + svc.Star + " 星！");
             return Result<BagResp>.Success(new BagResp { ok = ok, msg = svc.Msg, bag = Clone(role.bag), coin = role.coin, hp = role.hp, mp = role.mp, star = svc.Star });
         }
 
@@ -269,6 +314,7 @@ namespace GuiQin.Net
             var rng = new System.Random();
             if (eng.Over == "win")
             {
+                int oldLevel = role.lv;
                 role.bond++;                      // 亲密度：打赢一场 +1
                 int exp = 0, coin = 0;
                 foreach (var id in b.Stage.enemies)
@@ -280,7 +326,6 @@ namespace GuiQin.Net
                 end.exp = exp; end.coin = coin;
                 List<string> lost;
                 end.levelUp = Rewards.Grant(role, exp, coin, null, out lost);
-                if (end.levelUp && role.lv % 5 == 0) Chat.Notice("恭喜玩家「" + role.name + "」等级突破 " + role.lv + " 级！");
                 // 任务推进：正好是当前任务的战斗拍就往前走（最后一拍的奖励一并发）
                 var qs = new QuestService(role); string killLine; QuestTalkResp done;
                 var beat = qs.OnWin(b.Stage, out killLine, out done);
@@ -293,6 +338,7 @@ namespace GuiQin.Net
                 if (b.Stage.tower && b.Stage.n > role.tower) { role.tower = b.Stage.n; end.note = (end.note != null ? end.note + "　" : "") + (b.Stage.n % 10 == 0 ? "本层首领已破，可以找塔内传送师上楼" : "玄兵塔进度 " + b.Stage.n + "/70"); }
                 end.step = role.step; end.cnt = role.cnt; end.tower = role.tower;
                 end.lv = role.lv; end.bond = role.bond;
+                ReportRewards(oldLevel, end.exp, end.coin, end.items);
                 int heal = new InventoryService(role).PouchHeal();      // 升级已回满时 hp = -1，不会再加
                 if (heal > 0) end.note = (end.note != null ? end.note + "　" : "") + "药囊回血 +" + heal;
             }

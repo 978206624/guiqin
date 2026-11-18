@@ -20,6 +20,8 @@ namespace GuiQin.Net
         public const string Teleport = "map.teleport";
         public const string BattleStart = "battle.start";
         public const string BattleCmd = "battle.cmd";
+        public const string FriendAdd = "friend.add", FriendDel = "friend.del", FriendList = "friend.list";
+        public const string PartyInvite = "party.invite", PartyLeave = "party.leave", PushParty = "push.party";
         // 服务端推送
         public const string PushKick = "push.kick";            // 被顶号 / 封禁 / 维护
         public const string PushMapState = "push.map";         // 地图内其它玩家、NPC 状态的增量（AOI）
