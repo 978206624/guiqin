@@ -9,6 +9,24 @@ namespace GuiQin.Battle
     public class BattleSession
     {
         public string Id, StageId; public BattleEngine Engine; public BattleView View; public StageDef Stage;
+
+        // 当前战场快照：开战时的静态信息 + 引擎里每个单位此刻的血 / 蓝 / 存活 / 状态。断线重连、重进游戏时发给客户端重建战场。
+        public BattleView Snapshot()
+        {
+            var v = new BattleView { id = View.id, title = View.title, mode = View.mode, bg = View.bg, skills = View.skills, turnSeconds = View.turnSeconds, items = View.items, round = Engine.Round };
+            v.units = View.units.Select(u =>
+            {
+                var b = Engine.Units.Find(x => x.Id == u.id);
+                var c = new UnitView { id = u.id, side = u.side, row = u.row, name = u.name, sprite = u.sprite, h = u.h, flip = u.flip, me = u.me, boss = u.boss, hp = u.hp, maxHp = u.maxHp, mp = u.mp, maxMp = u.maxMp };
+                if (b != null)
+                {
+                    c.hp = b.Hp; c.maxHp = b.MaxHp; c.mp = b.Mp; c.maxMp = b.MaxMp; c.dead = !b.Alive;
+                    c.sts = b.St.ToDictionary(kv => kv.Key, kv => kv.Value.turns);
+                }
+                return c;
+            }).ToList();
+            return v;
+        }
     }
 
     // 根据角色状态 + 关卡配置搭出战场：属性公式对应网页版 stats() / petStats() / levelStats()，敌人取 data.enemies。

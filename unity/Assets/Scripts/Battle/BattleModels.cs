@@ -31,6 +31,8 @@ namespace GuiQin.Battle
         public int id; public string side, row, name, sprite;
         public float h; public bool flip, me, boss;
         public int hp, maxHp, mp, maxMp;
+        public bool dead;                              // 断线重连 / 重进游戏时的快照：这个单位已经倒下
+        public Dictionary<string, int> sts;            // 快照：身上的状态（状态名 → 剩余回合）
     }
 
     public class SkillView { public string id, name, target; public int mp; public bool usable; public string note; }
@@ -41,6 +43,7 @@ namespace GuiQin.Battle
         public List<UnitView> units;
         public List<SkillView> skills;       // 主角可用的技能（给指令面板）
         public int turnSeconds = 30;
+        public int round;                                 // 快照：当前回合数（开战时为 0）
         public Dictionary<string, int> items;   // 背包里的药品（id → 数量），指令面板的“物品”用
     }
 

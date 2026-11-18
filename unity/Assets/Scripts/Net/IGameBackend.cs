@@ -14,7 +14,10 @@ namespace GuiQin.Net
     {
         bool Connected { get; }
         event Action<string, JToken> OnPush;         // (命令, 数据)：服务端主动推送
-        event Action<string> OnDisconnected;         // 连接断开（原因）
+        event Action<string> OnDisconnected;         // 连接彻底断开（重连放弃 / 会话失效 / 被顶号）：客户端要回登录界面
+        event Action<int> OnReconnecting;            // 网络掉线，开始第 n 次重连（0 = 刚掉线）：客户端盖一层“正在重连”
+        event Action OnReconnected;                  // 重连成功，请求已补发：客户端重新对一次状态（Resync）
+        bool Reconnecting { get; }
         void Tick();                                 // 每帧调用：派发收到的消息、处理超时、发心跳
         void Close();
 
@@ -42,6 +45,8 @@ namespace GuiQin.Net
         // 战斗：服务端结算。start 返回战场；cmd 提交主角指令，返回本回合全部事件（客户端按序播放）；打完时 over=true 并带结算
         Task<Result<BattleStartResp>> BattleStart(string stageId);
         Task<Result<BattleRoundResp>> BattleAct(string battleId, BattleCmd cmd);
+        // 重进游戏 / 被踢后重登时：取这个角色进行中的战斗快照（没有就 ok=false, code=NoBattle）
+        Task<Result<BattleStartResp>> BattleResume();
     }
 
     public static class BackendFactory

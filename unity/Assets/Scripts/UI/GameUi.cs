@@ -33,6 +33,8 @@ namespace GuiQin
             full = text ?? ""; shown = 0; body.text = ""; after = onClose; root.SetActive(true);
         }
 
+        public void Close() { root.SetActive(false); after = null; }          // 强行收起（掉线 / 被踢），不触发后续回调
+
         public void Tick(float dt)
         {
             if (!root.activeSelf || shown >= full.Length) return;

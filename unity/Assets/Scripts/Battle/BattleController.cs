@@ -128,6 +128,10 @@ namespace GuiQin.Battle
             u.St = Ui.Label("st", lab, "", 16, Color.white, TextAnchor.LowerCenter); u.St.supportRichText = true;
             Ui.Anchor(u.St.rectTransform, Vector2.zero, Vector2.one, new Vector2(-40, -10), new Vector2(40, 8));
             units[v.id] = u; SetHp(u, u.Hp);
+            // 重连 / 重进游戏时的快照：已倒下的直接隐藏，身上的状态原样挂回去
+            if (v.sts != null) foreach (var kv in v.sts) u.Sts[kv.Key] = kv.Value;
+            if (v.dead) { u.Alive = false; u.Sts.Clear(); u.Body.color = new Color(1, 1, 1, 0); u.Shadow.enabled = false; lab.gameObject.SetActive(false); }
+            else RefreshSt(u);
         }
 
         static void Shadow(Text t) { var o = t.gameObject.AddComponent<Outline>(); o.effectColor = new Color(0, 0, 0, 0.9f); o.effectDistance = new Vector2(1.5f, -1.5f); }

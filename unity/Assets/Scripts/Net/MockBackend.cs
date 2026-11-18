@@ -18,6 +18,9 @@ namespace GuiQin.Net
         public bool Connected { get { return true; } }
         public event Action<string, JToken> OnPush { add { } remove { } }
         public event Action<string> OnDisconnected { add { } remove { } }
+        public event Action<int> OnReconnecting { add { } remove { } }
+        public event Action OnReconnected { add { } remove { } }
+        public bool Reconnecting { get { return false; } }
         public void Tick() { }
         public void Close() { }
 
@@ -96,7 +99,7 @@ namespace GuiQin.Net
 
         public Task<Result<EnterResp>> EnterGame(string roleId)
         {
-            foreach (var kv in zones) { var r = kv.Value.Find(x => x.id == roleId); if (r != null) { role = r; enteredServer = kv.Key; battle = null; return Reply(new EnterResp { role = Clone(role) }); } }
+            foreach (var kv in zones) { var r = kv.Value.Find(x => x.id == roleId); if (r != null) { if (role != r) battle = null; role = r; enteredServer = kv.Key; return Reply(new EnterResp { role = Clone(role) }); } }
             return Task.FromResult(Result<EnterResp>.Fail(Code.Protocol, "没有这个角色"));
         }
 
@@ -196,6 +199,13 @@ namespace GuiQin.Net
             battle.View.items = inv.Potions();
             battle.Engine.ItemUse = id => { int h, m; return inv.UseInBattle(id, out h, out m) ? new[] { h, m } : null; };
             return Reply(new BattleStartResp { ok = true, battle = battle.View });
+        }
+
+        public Task<Result<BattleStartResp>> BattleResume()
+        {
+            if (battle == null) return Task.FromResult(Result<BattleStartResp>.Fail(Code.NoBattle, "没有进行中的战斗"));
+            var snap = battle.Snapshot(); snap.items = new InventoryService(role).Potions();
+            return Reply(new BattleStartResp { ok = true, battle = snap });
         }
 
         public async Task<Result<BattleRoundResp>> BattleAct(string battleId, BattleCmd cmd)

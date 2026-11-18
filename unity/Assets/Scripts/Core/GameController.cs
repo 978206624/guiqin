@@ -21,7 +21,7 @@ namespace GuiQin
         List<Vector2> route = new List<Vector2>();
         Actor talkTarget;
         DialogUi dialog; ToastUi toast; HudUi hud; SettingsUi menu; FrontUi front;
-        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; BagUi bagUi; QuestUi questUi; ModalUi modal; readonly HashSet<int> preSeen = new HashSet<int>();
+        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; BagUi bagUi; QuestUi questUi; ModalUi modal; GameObject netBanner; Text netText; readonly HashSet<int> preSeen = new HashSet<int>();
         MapFx mapFx; WaterFx waterFx;
         readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
         IGameBackend net; RoleState role; bool entered;
@@ -45,10 +45,39 @@ namespace GuiQin
         // 进游戏前先走登录 → 选区 → 角色界面（FrontUi）；进入角色后状态都来自后端，客户端不存档。
         void Start()
         {
-            net = BackendFactory.Create();
-            net.OnPush += OnPush; net.OnDisconnected += why => toast.Show(why);
+            NewNet();
             Settings.Changed += ApplySettings;
             ShowWorld(false); front.Open(false);
+        }
+
+        void NewNet()
+        {
+            if (net != null) net.Close();
+            net = BackendFactory.Create();
+            net.OnPush += OnPush; net.OnDisconnected += OnLost;
+            net.OnReconnecting += n => { netBanner.SetActive(true); netText.text = n == 0 ? "网络断开，正在重连…" : "网络断开，正在重连…（第 " + n + " 次）"; };
+            net.OnReconnected += () => { netBanner.SetActive(false); toast.Show("已重新连接"); Resync(); };
+        }
+
+        // 连接彻底断了（重连用尽 / 会话失效 / 被顶号）：丢掉当前场景，提示后回登录界面
+        void OnLost(string why)
+        {
+            netBanner.SetActive(false); entered = false;
+            if (battle != null) { battle.Dispose(); battle = null; }
+            ClearMap(); map = null; menu.Close(); wxUi.Close(); worldUi.Close(); bagUi.Close(); dialog.Close();
+            ShowWorld(false);
+            modal.Open("连接已断开", string.IsNullOrEmpty(why) ? "和服务器的连接断开了。" : why, new ModalUi.Btn("返回登录", () => { NewNet(); front.Open(false); }));
+        }
+
+        // 重连成功后对一次状态：重新取角色（服务端是准的），地图变了就重载。战斗中的请求靠“原 seq 补发”自己接上，不在这里重建战场。
+        async void Resync()
+        {
+            if (!entered || role == null) return;
+            var er = await net.EnterGame(role.id);
+            if (!er.Ok) { toast.Show("同步失败：" + er.msg); return; }
+            role = er.data.role; ApplyRoleLook();
+            if (battle == null && map != null && role.map != map.Id) LoadMap(role.map, StageAt(role.map, role.x, role.y));
+            await RefreshBag();
         }
 
         void ApplySettings()
@@ -68,6 +97,8 @@ namespace GuiQin
             MapDef d; if (!GameData.Maps.TryGetValue(role.map, out d)) role.map = "village";
             LoadMap(role.map, StageAt(role.map, role.x, role.y));
             entered = true; front.Hide(); ShowWorld(true);
+            var br = await net.BattleResume();                      // 上次退出 / 掉线时战斗还没打完：服务端给快照，接着打
+            if (br.Ok && br.data != null && br.data.ok) OpenBattle(br.data.battle, null);
             return null;
         }
 
@@ -100,7 +131,7 @@ namespace GuiQin
 
         void OnPush(string cmd, Newtonsoft.Json.Linq.JToken data)
         {
-            if (cmd == Cmd.PushKick) { toast.Show("你已被下线：" + (data != null ? (string)data["reason"] : "")); entered = false; }
+            if (cmd == Cmd.PushKick) OnLost("你已被下线：" + (data != null && data["reason"] != null ? (string)data["reason"] : "账号在别处登录"));
             // push.map / push.weather / push.role：多人同屏、服务端天气、属性变化，后续阶段接
         }
 
@@ -136,6 +167,10 @@ namespace GuiQin
             modal = new ModalUi(uiCanvas.transform);
             dialog = new DialogUi(uiCanvas.transform);
             toast = new ToastUi(uiCanvas.transform);
+            var nb = Ui.Box("netBanner", uiCanvas.transform, new Color(0.05f, 0.05f, 0.1f, 0.82f)); netBanner = nb.gameObject;       // 掉线遮罩：挡住点击，只显示一行字
+            Ui.Anchor(nb.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            netText = Ui.Label("t", nb.transform, "", 34, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleCenter);
+            Ui.Anchor(netText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero); netBanner.SetActive(false);
             menu = new SettingsUi(uiCanvas.transform, SwitchRole, ResetRole);
             wxUi = new WeatherUi(uiCanvas.transform, wx, () => map != null ? map.Def.name : "");
             worldUi = new WorldMapUi(uiCanvas.transform, GoWorld, () => map != null ? map.Id : "village");
@@ -343,10 +378,15 @@ namespace GuiQin
             if (battle != null || foe.StageInfo == null || !entered) return;
             var r = await net.BattleStart(foe.StageInfo.id);
             if (!r.Ok || !r.data.ok) { toast.Show(r.Ok ? (r.data.msg ?? "现在不能开战") : r.msg); return; }
+            OpenBattle(r.data.battle, foe);
+        }
+
+        void OpenBattle(BattleView view, Actor foe)
+        {
             Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); bagUi.Close();
             ShowWorld(false);
-            string bid = r.data.battle.id;
-            battle = BattleController.Begin(cam, uiCanvas.transform, r.data.battle, cmd => net.BattleAct(bid, cmd), end => EndBattle(end, foe), msg => toast.Show(msg));
+            string bid = view.id;
+            battle = BattleController.Begin(cam, uiCanvas.transform, view, cmd => net.BattleAct(bid, cmd), end => EndBattle(end, foe), msg => toast.Show(msg));
         }
 
         void ShowWorld(bool on)

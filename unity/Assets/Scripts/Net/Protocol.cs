@@ -10,6 +10,8 @@ namespace GuiQin.Net
     public static class Cmd
     {
         public const string Ping = "sys.ping";
+        public const string Resume = "auth.resume";                 // 断线重连：带 session 恢复登录态，服务端回放 / 幂等处理未确认的请求
+        public const string BattleResume = "battle.resume";         // 重进游戏时取进行中的战斗快照
         public const string Login = "auth.login";
         public const string EnterGame = "role.enter";
         public const string ServerList = "server.list", RoleList = "role.list", RoleCreate = "role.create", RoleDelete = "role.delete";
@@ -89,6 +91,7 @@ namespace GuiQin.Net
     public class TeleportReq { public string to; }
     public class MapChangeResp { public bool ok; public string msg, map; public float x = -1f, y = -1f; }
 
+    public class ResumeReq { public string session; public int lastSeq; }
     public class LookReq { public string cls; }
     public class Empty { }
 }

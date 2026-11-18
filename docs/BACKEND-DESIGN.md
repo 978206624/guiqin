@@ -89,7 +89,9 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 | `map.move` | 请求 | 上报行走目的地 / 到达点，服务端校验，不合法回 `ok=false` + 应回到的位置 |
 | `map.portal` | 请求 | 走传送阵（服务端判 `needQuest`/`needStep`/等级） |
 | `map.teleport` | 请求 | 世界地图传送（服务端判等级 / 费用） |
-| `sys.ping` | 请求 | 心跳 |
+| `sys.ping` | 请求 | 心跳（带 seq，服务端回 pong） |
+| `auth.resume` | 请求 | 断线重连，带 session 恢复登录态 |
+| `battle.resume` | 请求 | 取进行中战斗的快照 |
 | `push.kick` | 推送 | 被顶号 / 封禁 / 维护 |
 
 战斗（R3，客户端接口 + 参考实现已写，`Battle/` 目录）：
@@ -233,3 +235,12 @@ story.json 的每个任务展平成“节拍”（talk 找人 / spot 采集点 /
 - 设置（水面 / 蝴蝶 / 天气特效 / 屏幕震动 / 战斗倍速）是设备偏好，存 `PlayerPrefs`，不属于游戏进度，不上服务端。
 - “切换角色”：退出当前地图回到角色列表（战斗中禁用）；“重新开始”仅本地演示后端可用。
 - `MockBackend` 按区保存角色：`zones[serverId]`，12 个区，每区 3 个角色。
+
+## 断线重连 / 战斗续传（R6，已写客户端）
+
+- 掉线判定：socket 关闭 / 异常，或已登录后 35 秒收不到任何包（心跳带 seq，服务端必须回 pong）。
+- 重连：退避 1/2/4/8/15/15/15/15 秒，最多 8 次。连上先发 `auth.resume{session,lastSeq}`；成功后把未收到回包的请求**用原 seq 补发**。服务端必须按 (session, seq) 缓存最近一批回包，命中就直接回缓存，不重复执行（防止重复扣费 / 发奖 / 出手）。
+- `auth.resume` 回 401 = 会话过期；`push.kick` = 被顶号 / 封禁；重连用尽 —— 三种都不再重连，客户端 `OnDisconnected` 回登录界面。
+- 客户端表现：掉线盖一层“网络断开，正在重连…（第 n 次）”；重连成功后 `Resync`（重新 `role.enter` 取权威状态，地图变了就重载）。
+- `battle.resume`：返回进行中战斗的快照（`BattleView.round`，每个单位的 hp/mp/`dead`/`sts`）。客户端在 `role.enter` 成功后调用，有就直接接着打；没有 → `code=4001`。同一进程内的重连不重建战场，靠补发的 `battle.cmd` 自然接上。
+- 服务端回合超时：玩家掉线 / 不操作超过 `turnSeconds`，服务端按“自动战斗”出手并推进，保证 `battle.resume` 总是最新状态。
