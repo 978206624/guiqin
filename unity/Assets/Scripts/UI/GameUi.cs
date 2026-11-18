@@ -100,8 +100,8 @@ namespace GuiQin
             plate.raycastTarget = false;
             WebUi.At(plate.rectTransform, 56, 24, 280, 92);
             face = Portrait("role", 10, 20, 96, onRole);
-            var pet = Portrait("pet", 335, 48, 62, onPet);
-            pet.sprite = Art.One("ph_ss_bs20", true);
+            petFace = Portrait("pet", 335, 48, 62, onPet);
+            petFace.sprite = Art.One("ph_ss_bs20", true);
             var badge = WebUi.Gradient("levelBadge", root, WebUi.C("#a12a20"), WebUi.C("#761913"), 12);
             WebUi.At(badge.rectTransform, 76, 88, 30, 30);
             level = Label("level", "", 14, WebUi.Light, 76, 88, 30, 30, TextAnchor.MiddleCenter);
@@ -217,6 +217,12 @@ namespace GuiQin
         static void SetBar(RectTransform fill, float value)
         {
             fill.anchorMax = new Vector2(Mathf.Clamp01(value), 1);
+        }
+
+        Image petFace;
+        public void SetPet(string headKey, string fallbackKey)      // HUD 宠物按钮：只显示头部（ph_ 开头），没有就用整图
+        {
+            string k = Art.Has(headKey) ? headKey : fallbackKey; petFace.sprite = Art.One(k, true); petFace.enabled = petFace.sprite != null;
         }
 
         public void SetRole(RoleState role, StatBlock stats)

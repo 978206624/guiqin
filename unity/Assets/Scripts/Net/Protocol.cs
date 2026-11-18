@@ -81,6 +81,10 @@ namespace GuiQin.Net
         public int step, cnt, tower;                  // 主线进度（节拍序号 / 清怪计数）、玄兵塔进度
         public List<string> cleared = new List<string>();   // 已通关的关卡
         public GuiQin.Inventory.BagState bag;         // 背包 / 装备 / 星级 / 宝石
+        public List<string> petOwn = new List<string>();   // 已拥有的神兽 id（灵狐出生自带，不在里面）
+        public string petAct = "fox";                 // 出战宠物
+        public int bond;                              // 亲密度：打赢一场 +1，升档后宠物气血 / 攻击提高
+        public bool ssGift;                           // 神兽体验福利是否领过
     }
     public class EnterResp { public RoleState role; }
 

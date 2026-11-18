@@ -201,6 +201,12 @@ namespace GuiQin.Net
             return Reply(new BattleStartResp { ok = true, battle = battle.View });
         }
 
+        public Task<Result<GuiQin.Pets.PetResp>> PetOp(string cmd, string id)
+        {
+            if (battle != null) return Task.FromResult(Result<GuiQin.Pets.PetResp>.Fail(Code.InBattle, "战斗中"));
+            return Reply(Clone(new GuiQin.Pets.PetService(role).Run(cmd, id)));        // 深拷贝：客户端别和服务端共用同一个背包对象
+        }
+
         public Task<Result<BattleStartResp>> BattleResume()
         {
             if (battle == null) return Task.FromResult(Result<BattleStartResp>.Fail(Code.NoBattle, "没有进行中的战斗"));
@@ -232,6 +238,7 @@ namespace GuiQin.Net
             var rng = new System.Random();
             if (eng.Over == "win")
             {
+                role.bond++;                      // 亲密度：打赢一场 +1
                 int exp = 0, coin = 0;
                 foreach (var id in b.Stage.enemies)
                 {
@@ -253,7 +260,7 @@ namespace GuiQin.Net
                 if (killLine != null) end.note = (end.note != null ? end.note + "　" : "") + killLine;
                 if (b.Stage.tower && b.Stage.n > role.tower) { role.tower = b.Stage.n; end.note = (end.note != null ? end.note + "　" : "") + (b.Stage.n % 10 == 0 ? "本层首领已破，可以找塔内传送师上楼" : "玄兵塔进度 " + b.Stage.n + "/70"); }
                 end.step = role.step; end.cnt = role.cnt; end.tower = role.tower;
-                end.lv = role.lv;
+                end.lv = role.lv; end.bond = role.bond;
                 int heal = new InventoryService(role).PouchHeal();      // 升级已回满时 hp = -1，不会再加
                 if (heal > 0) end.note = (end.note != null ? end.note + "　" : "") + "药囊回血 +" + heal;
             }

@@ -74,15 +74,14 @@ namespace GuiQin.Battle
             string sp = "b_" + role.cls; me.Sprite = Art.Has(sp) ? sp : "b_player";
             units.Add(me);
 
-            // 我方：出战宠物（目前固定玄晶天狐）
-            var dx = D["petDex"]["fox"]; var pm = dx["mult"] ?? D["pet"];
-            int pHp = Base(b, g, "hp", L, F(pm["hp"], 1f));
+            // 我方：出战宠物（灵狐或已拥有的神兽）；属性和亲密度加成走 PetService，和宠物面板显示的一致
+            string pid = GuiQin.Pets.PetService.ActiveId(role); var dx = D["petDex"][pid]; var ps = GuiQin.Pets.PetService.Stats(role, pid);
+            int pHp = ps.maxHp;
             var pet = new BUnit
             {
                 Id = nextId++, Side = "ally", Row = "pet", Name = (string)dx["name"], Sprite = (string)dx["sprite"], H = F(dx["h"], 62f),
                 Ai = dx["ai"] != null ? (string)dx["ai"] : "fox", MagicAtk = dx["mag"] != null && (bool)dx["mag"],
-                MaxHp = pHp, Hp = pHp, Atk = Base(b, g, "atk", L, F(pm["atk"], 1f)), Matk = Base(b, g, "matk", L, F(pm["atk"], 1f)),
-                Def = Base(b, g, "def", L, F(pm["def"], 1f)), Mdef = Base(b, g, "mdef", L, F(pm["def"], 1f)), Spd = Base(b, g, "spd", L, F(pm["spd"], 1f)), Crit = 10f, Dodge = 3f
+                MaxHp = pHp, Hp = pHp, Atk = ps.atk, Matk = ps.matk, Def = ps.def, Mdef = ps.mdef, Spd = ps.spd, Crit = 10f, Dodge = 3f
             };
             if (dx["act"] != null) pet.Kit = dx["act"].Select(a => new KeyValuePair<string, float>((string)a[0], (float)a[1])).ToList();
             if (dx["pas"] != null) pet.Pas = dx["pas"].ToObject<PasDef>();

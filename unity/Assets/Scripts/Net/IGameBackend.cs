@@ -43,6 +43,9 @@ namespace GuiQin.Net
         Task<Result<MapChangeResp>> Tower(string op);
 
         // 战斗：服务端结算。start 返回战场；cmd 提交主角指令，返回本回合全部事件（客户端按序播放）；打完时 over=true 并带结算
+        // 宠物：切换出战 / 神兽使者兑换 / 神兽祭 / 体验福利，命令名见 PetCmd。返回最新宠物状态
+        Task<Result<GuiQin.Pets.PetResp>> PetOp(string cmd, string id);
+
         Task<Result<BattleStartResp>> BattleStart(string stageId);
         Task<Result<BattleRoundResp>> BattleAct(string battleId, BattleCmd cmd);
         // 重进游戏 / 被踢后重登时：取这个角色进行中的战斗快照（没有就 ok=false, code=NoBattle）

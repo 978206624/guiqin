@@ -221,6 +221,7 @@ namespace GuiQin.Net
         public Task<Result<QuestTalkResp>> QuestTalk(string npc) { return Call<QuestTalkResp>(QuestCmd.Talk, new QuestTalkReq { npc = npc }); }
         public Task<Result<BagResp>> BagOp(string cmd, BagOpReq req) { return Call<BagResp>(cmd, req ?? new BagOpReq()); }
         public Task<Result<BattleStartResp>> BattleStart(string stageId) { return Call<BattleStartResp>(Cmd.BattleStart, new BattleStartReq { stage = stageId }); }
+        public Task<Result<GuiQin.Pets.PetResp>> PetOp(string cmd, string id) { return Call<GuiQin.Pets.PetResp>(cmd, new GuiQin.Pets.PetReq { id = id }); }
         public Task<Result<BattleStartResp>> BattleResume() { return Call<BattleStartResp>(Cmd.BattleResume, null); }
         public Task<Result<BattleRoundResp>> BattleAct(string battleId, BattleCmd cmd) { return Call<BattleRoundResp>(Cmd.BattleCmd, new BattleCmdReq { battleId = battleId, cmd = cmd }); }
     }

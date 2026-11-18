@@ -63,6 +63,7 @@ namespace GuiQin.Inventory
             AddItem(id, -1); return true;
         }
         public int ItemCount(string id) { return Count(id); }
+        public bool Take(string id, int n) { if (n <= 0 || Count(id) < n) return false; AddItem(id, -n); return true; }
 
         // 药囊：战斗打赢后自动回血，回复量 = 药囊自带气血（含星级加成）。护符先不做，坑位保留
         public int PouchHeal()

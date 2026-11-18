@@ -92,6 +92,7 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 | `sys.ping` | 请求 | 心跳（带 seq，服务端回 pong） |
 | `auth.resume` | 请求 | 断线重连，带 session 恢复登录态 |
 | `battle.resume` | 请求 | 取进行中战斗的快照 |
+| `pet.use` / `pet.exch` / `pet.rite` / `pet.gift` | 请求 | 切换出战宠物 / 神兽之魂兑换神兽 / 神兽祭 / 神兽体验福利，返回最新宠物状态（`petAct`、`petOwn`、`bond`、`ssGift`、`coin`、背包） |
 | `push.kick` | 推送 | 被顶号 / 封禁 / 维护 |
 
 战斗（R3，客户端接口 + 参考实现已写，`Battle/` 目录）：
@@ -244,3 +245,11 @@ story.json 的每个任务展平成“节拍”（talk 找人 / spot 采集点 /
 - 客户端表现：掉线盖一层“网络断开，正在重连…（第 n 次）”；重连成功后 `Resync`（重新 `role.enter` 取权威状态，地图变了就重载）。
 - `battle.resume`：返回进行中战斗的快照（`BattleView.round`，每个单位的 hp/mp/`dead`/`sts`）。客户端在 `role.enter` 成功后调用，有就直接接着打；没有 → `code=4001`。同一进程内的重连不重建战场，靠补发的 `battle.cmd` 自然接上。
 - 服务端回合超时：玩家掉线 / 不操作超过 `turnSeconds`，服务端按“自动战斗”出手并推进，保证 `battle.resume` 总是最新状态。
+
+## 宠物 / 神兽（R7，已写参考实现）
+
+- 角色状态新增 `petOwn`（已拥有的神兽 id）、`petAct`（出战宠物）、`bond`（亲密度，打赢一场 +1）、`ssGift`（体验福利是否领过）。灵狐出生自带。
+- 宠物属性 = 主人裸属性公式 × `petDex[id].mult`（没有就用 `pet`），亲密度每升一档气血 / 攻击 +3%；战斗开场和宠物面板用同一个公式（`PetService.Stats`）。
+- 兑换：`ssCost` 个神兽之魂换一只（服务端扣魂、加入 `petOwn`、设为出战）；神兽祭：花 `ssRite.coin` 银两，随机得 `min~max` 个魂（背包满则拒绝）。
+- 服务端必须校验：宠物是否拥有、魂 / 银两够不够、战斗中不能操作；`pet.gift` 一个角色只能领一次。
+- 战斗：出战的神兽带自己的技能表 `act` 和被动 `pas`（`ai: "ss"`），战斗结果 `BattleEnd.bond` 带回最新亲密度。

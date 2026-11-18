@@ -67,7 +67,7 @@ namespace GuiQin.Battle
     public class BattleEnd
     {
         public string result;                 // win / lose / flee
-        public int round, exp, coin, lv;
+        public int round, exp, coin, lv, bond;
         public bool levelUp;
         public Dictionary<string, int> items = new Dictionary<string, int>();
         public string respawnMap;             // 战败回到的地图

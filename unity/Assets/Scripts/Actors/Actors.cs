@@ -126,7 +126,7 @@ namespace GuiQin
     public class PetActor : Actor
     {
         public Sprite SpriteF, SpriteB;
-        public float BackScale = 1f;                 // 背影图比正面图大一点，按身高缩回去
+        public float FrontScale = 1f, BackScale = 1f;      // 正面 / 背影图各自缩到想要的身高（神兽立绘比灵狐大得多）
         public char Dir = 'f';
 
         public override void Animate(float t)
@@ -134,7 +134,7 @@ namespace GuiQin
             base.Animate(t);
             bool back = Dir == 'b' && SpriteB != null;
             Body.sprite = back ? SpriteB : SpriteF;
-            var s = bodyT.localScale; float k = back ? BackScale : 1f;
+            var s = bodyT.localScale; float k = back ? BackScale : FrontScale;
             bodyT.localScale = new Vector3((Dir == 'b' ? -Face : Face) * k, s.y * k, 1f);
         }
     }
