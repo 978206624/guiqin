@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using GuiQin.Battle;
 using GuiQin.Inventory;
 using GuiQin.Quest;
+using GuiQin.Sect;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -127,6 +128,9 @@ namespace GuiQin.Net
         public Task<Result<MapChangeResp>> Portal(string from, string to) { return Call<MapChangeResp>(Cmd.Portal, new PortalReq { from = from, to = to }); }
         public Task<Result<MapChangeResp>> Teleport(string to) { return Call<MapChangeResp>(Cmd.Teleport, new TeleportReq { to = to }); }
         public Task<Result<Empty>> SetLook(string cls) { return Call<Empty>(Cmd.SetLook, new LookReq { cls = cls }); }
+        public Task<Result<SectResp>> SectJoin(string sect) { return Call<SectResp>(SectCmd.Join, new SectReq { sect = sect }); }
+        public Task<Result<SectResp>> SectHall(string hall) { return Call<SectResp>(SectCmd.Hall, new SectReq { hall = hall }); }
+        public Task<Result<MapChangeResp>> Tower(string op) { return Call<MapChangeResp>("tower." + op, null); }
         public Task<Result<QuestTalkResp>> QuestTalk(string npc) { return Call<QuestTalkResp>(QuestCmd.Talk, new QuestTalkReq { npc = npc }); }
         public Task<Result<BagResp>> BagOp(string cmd, BagOpReq req) { return Call<BagResp>(cmd, req ?? new BagOpReq()); }
         public Task<Result<BattleStartResp>> BattleStart(string stageId) { return Call<BattleStartResp>(Cmd.BattleStart, new BattleStartReq { stage = stageId }); }

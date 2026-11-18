@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using GuiQin.Battle;
 using GuiQin.Inventory;
 using GuiQin.Quest;
+using GuiQin.Sect;
+using GuiQin.Tower;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -70,6 +72,25 @@ namespace GuiQin.Net
 
         public Task<Result<Empty>> SetLook(string cls) { role.cls = cls; return Reply(new Empty()); }
 
+        // ---------------- 门派 / 玄兵塔 ----------------
+        public Task<Result<SectResp>> SectJoin(string sect) { if (battle != null) return Task.FromResult(Result<SectResp>.Fail(Code.InBattle, "战斗中")); return Reply(new SectService(role).Join(sect)); }
+        public Task<Result<SectResp>> SectHall(string hall) { if (battle != null) return Task.FromResult(Result<SectResp>.Fail(Code.InBattle, "战斗中")); return Reply(new SectService(role).Hall(hall)); }
+
+        public Task<Result<MapChangeResp>> Tower(string op)
+        {
+            if (battle != null) return Task.FromResult(Result<MapChangeResp>.Fail(Code.InBattle, "战斗中"));
+            var ts = new TowerService(role); string msg, dest = null;
+            switch (op)
+            {
+                case "enter": dest = ts.Enter(out msg); break;
+                case "next": dest = ts.Next(out msg); break;
+                case "leave": if (ts.Leave(out msg)) return Change("town", new[] { 850f, 610f }); break;
+                default: return Task.FromResult(Result<MapChangeResp>.Fail(Code.Protocol, "未知命令 tower." + op));
+            }
+            if (dest == null) return Reply(new MapChangeResp { ok = false, msg = msg, map = role.map });
+            return Change(dest, null);
+        }
+
         // ---------------- 任务 ----------------
         public Task<Result<QuestTalkResp>> QuestTalk(string npc)
         {
@@ -87,6 +108,7 @@ namespace GuiQin.Net
             switch (cmd)
             {
                 case BagCmd.Get: ok = true; svc.Msg = null; break;
+                case BagCmd.Rest: { var st = RoleStats.Compute(role.cls, role.lv, role.bag); bool need = role.hp >= 0 && role.hp < st.maxHp || role.mp >= 0 && role.mp < st.maxMp; role.hp = -1; role.mp = -1; ok = true; svc.Msg = need ? "歇了一会儿，气血法力回满" : null; break; }
                 case BagCmd.Use: ok = svc.Use(q.id); break;
                 case BagCmd.Equip: ok = svc.Equip(q.id); break;
                 case BagCmd.Unequip: ok = svc.Unequip(q.slot); break;
@@ -140,7 +162,7 @@ namespace GuiQin.Net
         BattleEnd Settle(BattleSession b)
         {
             var eng = b.Engine; var p = eng.Player;
-            var end = new BattleEnd { result = eng.Over, round = eng.Round, lv = role.lv, step = role.step, cnt = role.cnt };
+            var end = new BattleEnd { result = eng.Over, round = eng.Round, lv = role.lv, step = role.step, cnt = role.cnt, tower = role.tower };
             role.hp = Math.Max(1, p.Hp); role.mp = p.Mp;
             var rng = new Random();
             if (eng.Over == "win")
@@ -165,7 +187,7 @@ namespace GuiQin.Net
                 }
                 if (killLine != null) end.note = (end.note != null ? end.note + "　" : "") + killLine;
                 if (b.Stage.tower && b.Stage.n > role.tower) { role.tower = b.Stage.n; end.note = (end.note != null ? end.note + "　" : "") + (b.Stage.n % 10 == 0 ? "本层首领已破，可以找塔内传送师上楼" : "玄兵塔进度 " + b.Stage.n + "/70"); }
-                end.step = role.step; end.cnt = role.cnt;
+                end.step = role.step; end.cnt = role.cnt; end.tower = role.tower;
                 end.lv = role.lv;
                 int heal = new InventoryService(role).PouchHeal();      // 升级已回满时 hp = -1，不会再加
                 if (heal > 0) end.note = (end.note != null ? end.note + "　" : "") + "药囊回血 +" + heal;

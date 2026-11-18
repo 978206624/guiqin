@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using GuiQin.Battle;
 using GuiQin.Inventory;
 using GuiQin.Quest;
+using GuiQin.Sect;
 using Newtonsoft.Json.Linq;
 
 namespace GuiQin.Net
@@ -29,6 +30,12 @@ namespace GuiQin.Net
 
         // 任务：和 NPC / 采集点说话。当前任务对得上就推进一拍（最后一拍发奖励）；对不上 ok=false，客户端走普通对话
         Task<Result<QuestTalkResp>> QuestTalk(string npc);
+
+        // 门派：入门 / 选分堂，服务端判等级与“不可改选”，返回新职业
+        Task<Result<SectResp>> SectJoin(string sect);
+        Task<Result<SectResp>> SectHall(string hall);
+        // 玄兵塔：op = enter（按进度进对应层）/ next（上一层）/ leave（回城）
+        Task<Result<MapChangeResp>> Tower(string op);
 
         // 战斗：服务端结算。start 返回战场；cmd 提交主角指令，返回本回合全部事件（客户端按序播放）；打完时 over=true 并带结算
         Task<Result<BattleStartResp>> BattleStart(string stageId);

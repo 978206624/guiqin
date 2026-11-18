@@ -67,6 +67,7 @@ namespace GuiQin.Net
         public int lv;
         public float x = -1f, y = -1f;
         public int exp, coin, hp = -1, mp = -1;       // hp / mp 为 -1 表示满
+        public string sect = "";                      // 门派：""（未入门）/ dao / mo
         public int step, cnt, tower;                  // 主线进度（节拍序号 / 清怪计数）、玄兵塔进度
         public List<string> cleared = new List<string>();   // 已通关的关卡
         public GuiQin.Inventory.BagState bag;         // 背包 / 装备 / 星级 / 宝石

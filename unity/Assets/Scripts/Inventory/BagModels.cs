@@ -30,5 +30,6 @@ namespace GuiQin.Inventory
         public const string Inlay = "forge.inlay";
         public const string Uninlay = "forge.uninlay";
         public const string Merge = "forge.merge";
+        public const string Rest = "role.rest";        // 找客栈老板 / 阿秀歇脚：气血法力回满
     }
 }

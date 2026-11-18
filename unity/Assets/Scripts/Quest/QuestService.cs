@@ -43,6 +43,11 @@ namespace GuiQin.Quest
                 var b = Current;
                 if (b == null || (b.type != "fight" && b.type != "kill") || b.stage != st.id) return "现在还不是和他动手的时候";
             }
+            if (st.tower)
+            {
+                if (st.n <= role.tower) return "这名守卫你已经打败了，不能重复挑战。";
+                if (st.n > role.tower + 1) return "要按顺序挑战守卫。";
+            }
             if (!string.IsNullOrEmpty(st.need) && !role.cleared.Contains(st.need))
             {
                 StageDef need; string nm = GameData.Stages.TryGetValue(st.need, out need) ? need.name : st.need;

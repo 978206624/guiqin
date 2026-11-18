@@ -69,6 +69,7 @@ namespace GuiQin.Battle
         public Dictionary<string, int> items = new Dictionary<string, int>();
         public string respawnMap;             // 战败回到的地图
         public string note;                   // 附加提示（任务 / 塔进度等）
+        public int tower;                     // 玄兵塔进度（最高通关守卫编号）
         public int step, cnt;                 // 结算后的主线进度（客户端据此刷新任务栏，并判断刚完成的是哪一拍）
         public bool questDone; public string questTitle;   // 刚好完成了一个任务
     }

@@ -25,6 +25,7 @@ namespace GuiQin
         public SpriteRenderer Body, Shadow;
         public TagLabel Tag;
         public int Sb = -1;                      // >=0：剧情临时演员（首领 / 采集点），值是它对应的节拍序号
+        public bool Done;                        // 玄兵塔里已通关的守卫（变灰，不能再打）
         public bool Hidden;                      // 剧情里和首领同名的 NPC：战斗前后只显示一个
         public bool Marked;                      // 头顶感叹号（任务）
         public StageDef StageInfo;               // 敌人：对应的关卡

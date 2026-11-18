@@ -21,7 +21,7 @@ namespace GuiQin
         List<Vector2> route = new List<Vector2>();
         Actor talkTarget;
         DialogUi dialog; ToastUi toast; HudUi hud; DebugMenuUi menu;
-        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; BagUi bagUi; QuestUi questUi; readonly HashSet<int> preSeen = new HashSet<int>();
+        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; BagUi bagUi; QuestUi questUi; ModalUi modal; readonly HashSet<int> preSeen = new HashSet<int>();
         MapFx mapFx; WaterFx waterFx;
         readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
         string[] looks;
@@ -60,7 +60,7 @@ namespace GuiQin
             var er = await net.EnterGame(lr.data.roles[0].id);
             if (!er.Ok) { toast.Show("进入游戏失败：" + er.msg); return; }
             role = er.data.role;
-            player.DisplayName = role.name; player.SetLook(role.cls); player.SetTag();
+            ApplyRoleLook();
             MapDef d; if (!GameData.Maps.TryGetValue(role.map, out d)) role.map = "village";
             LoadMap(role.map, StageAt(role.map, role.x, role.y));
             entered = true;
@@ -108,6 +108,7 @@ namespace GuiQin
             uiCanvas = Ui.MakeCanvas("UI", 10, transform);
             hud = new HudUi(uiCanvas.transform, () => menu.Toggle(), OpenWeather, OpenWorld, OpenBag);
             questUi = new QuestUi(uiCanvas.transform, QuestGo);
+            modal = new ModalUi(uiCanvas.transform);
             dialog = new DialogUi(uiCanvas.transform);
             toast = new ToastUi(uiCanvas.transform);
             menu = new DebugMenuUi(uiCanvas.transform, id => GoWorld(id), NextLook, ResetRole);
@@ -154,7 +155,7 @@ namespace GuiQin
         }
 
         // ---------------- 载入地图 ----------------
-        bool ModalOpen { get { return menu.Visible || wxUi.Visible || worldUi.Visible || bagUi.Visible; } }
+        bool ModalOpen { get { return menu.Visible || wxUi.Visible || worldUi.Visible || bagUi.Visible || modal.Visible; } }
 
         void OpenWeather() { if (!wxUi.Visible) { menu.Close(); worldUi.Close(); bagUi.Close(); wxUi.Open(); } else wxUi.Close(); }
         void OpenWorld() { Stop(); menu.Close(); wxUi.Close(); bagUi.Close(); worldUi.Open(); }
@@ -207,7 +208,8 @@ namespace GuiQin
             if (def.fade != null) foreach (var z in def.fade) { var poly = new Vector2[z.poly.Length]; for (int i = 0; i < poly.Length; i++) poly[i] = new Vector2(z.poly[i][0], z.poly[i][1]); fadePolys.Add(poly); }
             if (def.npcs != null) foreach (var n in def.npcs) AddNpc(n);
             if (def.portals != null) foreach (var p in def.portals) AddPortal(p);
-            if (def.foes != null) foreach (var f in def.foes) AddFoe(f);
+            if (def.tower > 0) AddTowerFoes(def);
+            else if (def.foes != null) foreach (var f in def.foes) AddFoe(f);
 
             Vector2 start = at.HasValue && map.Inside(at.Value) ? at.Value : map.ToMap(def.start);
             player.Pos = start; player.Face = 1; player.Dir = 'f'; player.Dist = 0;
@@ -249,7 +251,18 @@ namespace GuiQin
             list.Add(a);
         }
 
-        void AddFoe(FoePlace f)
+        // 玄兵塔：只显示本层已通关的守卫和下一名；已通关的变灰
+        void AddTowerFoes(MapDef def)
+        {
+            if (def.slots == null) return;
+            for (int i = 0; i < def.slots.Length; i++)
+            {
+                int n = (def.tower - 1) * 10 + i + 1; if (n > role.tower + 1) break;
+                AddFoe(new FoePlace { stage = "blxt_" + n, at = def.slots[i], face = 1 }, n <= role.tower);
+            }
+        }
+
+        void AddFoe(FoePlace f, bool done = false)
         {
             StageDef st; EnemyDef en;
             if (!GameData.Stages.TryGetValue(f.stage, out st)) { Debug.LogWarning("没有关卡：" + f.stage); return; }
@@ -259,8 +272,9 @@ namespace GuiQin
             if (sprite == null) { Debug.LogWarning("敌人缺图：" + en.sprite); return; }
             var sz = Art.Size(en.sprite);
             var a = Actor.Make<Actor>("foe_" + st.id, worldRoot, sprite, map.ToMap(f.at), sz != null ? sz[0] * 0.6f : 50f);
-            a.Kind = ActorKind.Foe; a.Id = "foe_" + st.id; a.StageInfo = st; a.DisplayName = st.name; a.Title = "建议 " + st.rec + " 级";
-            a.NameColor = new Color(1f, 0.6f, 0.54f); a.TitleColor = new Color(1f, 0.84f, 0.42f);
+            a.Kind = ActorKind.Foe; a.Id = "foe_" + st.id; a.StageInfo = st; a.DisplayName = st.name; a.Done = done;
+            a.Title = done ? "已通关" : (st.tower && st.n % 10 == 0 ? "首领 " : "") + "建议 " + st.rec + " 级";
+            a.NameColor = done ? new Color(0.6f, 0.64f, 0.71f) : new Color(1f, 0.6f, 0.54f); a.TitleColor = done ? new Color(0.56f, 0.82f, 0.63f) : new Color(1f, 0.84f, 0.42f);
             a.Face = f.face == 0 ? 1 : f.face; a.H = sz != null ? sz[1] : 80f;
             a.Tag = new TagLabel(tagCanvas.transform); a.SetTag();
             list.Add(a);
@@ -337,9 +351,10 @@ namespace GuiQin
             battle.Dispose(); battle = null;
             ShowWorld(true);
             var beat = Cur; bool advanced = end.step != role.step;
-            role.lv = end.lv; role.step = end.step; role.cnt = end.cnt; RefreshBag();
+            role.lv = end.lv; role.step = end.step; role.cnt = end.cnt; role.tower = end.tower; RefreshBag();
             if (end.result == "lose" && !string.IsNullOrEmpty(end.respawnMap)) { LoadMap(end.respawnMap, null); toast.Show("战败，回到" + map.Def.name); return; }
             if (end.result == "win" && foe != null && foe.StageInfo != null && !foe.StageInfo.tower) { if (foe.Tag != null) foe.Tag.Destroy(); list.Remove(foe); Destroy(foe.gameObject); }
+            if (end.result == "win" && foe != null && foe.StageInfo != null && foe.StageInfo.tower) LoadMap(map.Id, player.Pos);      // 塔里：守卫留在原地变灰，下一名守卫现身
             SnapCamera();
             SyncStory(); RefreshQuest();
             if (advanced && beat != null)
@@ -460,6 +475,7 @@ namespace GuiQin
 
         void FoeClick(Actor foe)
         {
+            if (foe.Done) { toast.Show("这名守卫你已经打败了，不能重复挑战"); return; }
             var b = Cur;
             if (foe.StageInfo != null && foe.StageInfo.story && b != null && b.stage == foe.StageInfo.id && b.pre.Count > 0 && !preSeen.Contains(role.step))
             { preSeen.Add(role.step); ShowPages(b.pre, () => StartBattle(foe)); return; }
@@ -527,12 +543,102 @@ namespace GuiQin
             if (t != null) { GoTalk(t); toast.Show("自动寻路：" + t.DisplayName); }
         }
 
-        // 商店 / 锻造 / 塔 / 竞技场 / 门派：界面还没移植，先提示
+        // NPC 功能：商店 / 铁匠 / 休息 / 门派 / 玄兵塔。竞技场（要和别的玩家实时对战）、神兽使者、技能修炼还没做
         void AfterTalk(NpcInfo info)
         {
-            if (!string.IsNullOrEmpty(info.shop)) OpenShop(info.shop);
+            if (info.shop == "smith") OpenSmith();
+            else if (!string.IsNullOrEmpty(info.shop)) OpenShop(info.shop);
+            else if (info.act == "towerEnter") TowerEnterModal();
+            else if (info.act == "towerTp") TowerTpModal();
+            else if (info.act == "joinSect") JoinSect("dao");
+            else if (info.act == "joinMo") JoinSect("mo");
+            else if (info.act == "pickHall" || info.act == "pickMoHall") PickHall(info.hall);
             else if (!string.IsNullOrEmpty(info.act)) toast.Show("功能待移植：" + info.act);
-            else if (info.rest) toast.Show(string.IsNullOrEmpty(info.restMsg) ? "歇了一会儿，气血法力回满" : info.restMsg);
+            else if (info.rest) Rest(info);
+        }
+
+        async void Rest(NpcInfo info)
+        {
+            var r = await net.BagOp(GuiQin.Inventory.BagCmd.Rest, null);
+            if (!r.Ok) { toast.Show(r.msg); return; }
+            role.hp = r.data.hp; role.mp = r.data.mp;
+            if (!string.IsNullOrEmpty(r.data.msg)) toast.Show(string.IsNullOrEmpty(info.restMsg) ? r.data.msg : info.restMsg);
+        }
+
+        async void OpenSmith() { Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Smith); }
+
+        // ---------------- 门派 ----------------
+        static Newtonsoft.Json.Linq.JToken Cls(string id) { return GameData.Raw["classes"][id]; }
+
+        void ApplyRoleLook()
+        {
+            player.DisplayName = role.name; player.SetLook(role.cls);
+            player.Title = "【" + GuiQin.Sect.SectService.ClsName(role.cls) + "】"; player.SetTag();
+        }
+
+        void JoinSect(string sect)
+        {
+            string name = sect == "mo" ? "墨家" : "道家", other = sect == "mo" ? "道家" : "墨家"; var c = Cls(role.cls);
+            if (!string.IsNullOrEmpty(role.sect))
+            {
+                if (role.sect != sect) toast.Show("你已拜入" + other + "，不可再入" + name);
+                else toast.Show(c["joinSect"] != null ? "" : (string)c["name"] == name + "弟子" ? "技能修炼待移植" : "分堂技能请找本堂堂主学习、升级");
+                return;
+            }
+            if (c["joinSect"] == null) { toast.Show("你已是门派弟子"); return; }
+            if (role.lv < GuiQin.Sect.SectService.SectLv) { toast.Show("需达到 " + GuiQin.Sect.SectService.SectLv + " 级方可入门（现在 " + role.lv + " 级）"); return; }
+            string say = sect == "mo" ? "墨巨子说：兼爱非攻，机关为用。入我门下，再去猛士、遁甲两位堂主处择一堂修行。" : "道家门主说：道法自然。入我门下，再去琴魔、天音两位堂主处择一堂修行。";
+            modal.Open("拜入" + name, say, new ModalUi.Btn("拜入" + name, () => DoSect(true, sect), true), new ModalUi.Btn("再想想", null));
+        }
+
+        void PickHall(string hall)
+        {
+            bool dao = hall == "qm" || hall == "ty"; string pre = dao ? "dao" : "mo", sectName = dao ? "道家" : "墨家";
+            string hname = hall == "qm" ? "琴魔" : hall == "ty" ? "天音" : hall == "ms" ? "猛士" : "遁甲"; var c = Cls(role.cls);
+            if (!string.IsNullOrEmpty(role.sect) && role.sect != pre) { toast.Show("你已拜入" + (dao ? "墨家" : "道家")); return; }
+            if (c["joinSect"] == null) { toast.Show((string)c["sect"] == sectName && (string)c["name"] == hname ? "技能修炼待移植" : "你已入另一堂，分堂不可改选"); return; }
+            if (role.sect != pre) { toast.Show("先去找" + (dao ? "道家门主" : "墨巨子") + "入门（" + GuiQin.Sect.SectService.SectLv + " 级）"); return; }
+            string id = GuiQin.Sect.SectService.HallClass(role.cls, hall); if (id == null) { toast.Show("这个堂不收你"); return; }
+            var d = Cls(id);
+            modal.Open("选择分堂", "<b>" + (string)d["name"] + "</b>（" + (string)d["weapon"] + "）\n<size=24>" + (string)d["desc"] + "</size>\n\n分堂选定后不能改选。",
+                new ModalUi.Btn("拜入" + hname, () => DoSect(false, hall), true), new ModalUi.Btn("再想想", null));
+        }
+
+        async void DoSect(bool join, string key)
+        {
+            var r = join ? await net.SectJoin(key) : await net.SectHall(key);
+            if (!r.Ok) { toast.Show(r.msg); return; }
+            if (!r.data.ok) { toast.Show(r.data.msg); return; }
+            role.cls = r.data.cls; role.sect = r.data.sect; role.hp = r.data.hp; role.mp = r.data.mp;
+            ApplyRoleLook(); toast.Show(r.data.msg);
+            if (join) { dialog.Open("提示", new Color(1f, 0.88f, 0.4f), null, key == "mo" ? "你拜入墨家，背起长剑。请去太虚之峰找猛士堂主或遁甲堂主选择分堂。" : "你拜入道家，背起箜篌。请去太虚之林找琴魔堂主或天音堂主选择分堂。", null); }
+        }
+
+        // ---------------- 玄兵塔 ----------------
+        void TowerEnterModal()
+        {
+            var T = GameData.Raw["tower"]; int p = role.tower, f = GuiQin.Tower.TowerService.FloorOf(p), min = GuiQin.Tower.TowerService.MinLv;
+            if (role.lv < min) { modal.Open("百炼玄兵塔", "塔里的守卫不是闹着玩的。\n等你到 <b>" + min + " 级</b> 再来（你现在 " + role.lv + " 级）。", new ModalUi.Btn("知道了", null)); return; }
+            modal.Open("百炼玄兵塔", "已通关守卫 <b>" + p + " / 70</b>　" + (p >= 70 ? "全塔通关" : "当前所在：第 " + f + " 层 · " + (string)T["floors"][f - 1]["name"]) + "\n<size=22>每层十名守卫，按顺序挑战；第十名是本层首领，打败后才能上楼。</size>",
+                new ModalUi.Btn("进入玄兵塔", () => TowerGo("enter"), true), new ModalUi.Btn("以后再说", null));
+        }
+
+        void TowerTpModal()
+        {
+            int f = map.Def.tower, p = role.tower; bool up = f < 7 && p >= f * 10;
+            var btns = new List<ModalUi.Btn>();
+            if (up) btns.Add(new ModalUi.Btn("前往第 " + (f + 1) + " 层", () => TowerGo("next"), true));
+            btns.Add(new ModalUi.Btn("离开玄兵塔", () => TowerGo("leave"))); btns.Add(new ModalUi.Btn("再等等", null));
+            modal.Open("塔内传送师", up ? "本层首领已破，上楼的路开了。" : f >= 7 && p >= 70 ? "塔已经通了。你想出去，我送你。" : "要上楼，先打败本层的首领（第 " + f + " 层第十名守卫）。", btns.ToArray());
+        }
+
+        async void TowerGo(string op)
+        {
+            var r = await net.Tower(op);
+            if (!r.Ok) { toast.Show(r.msg); return; }
+            if (!r.data.ok) { toast.Show(r.data.msg); return; }
+            LoadMap(r.data.map, StageAt(r.data.map, r.data.x, r.data.y));
+            toast.Show(op == "leave" ? "走出了玄兵塔" : "来到 " + map.Def.name);
         }
 
         void StepPlayer(float dt)
