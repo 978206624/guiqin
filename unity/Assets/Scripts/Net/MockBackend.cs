@@ -185,8 +185,16 @@ namespace GuiQin.Net
 
 
         // ---------------- 门派 / 玄兵塔 ----------------
-        public Task<Result<SectResp>> SectJoin(string sect) { if (battle != null) return Task.FromResult(Result<SectResp>.Fail(Code.InBattle, "战斗中")); return Reply(new SectService(role).Join(sect)); }
-        public Task<Result<SectResp>> SectHall(string hall) { if (battle != null) return Task.FromResult(Result<SectResp>.Fail(Code.InBattle, "战斗中")); return Reply(new SectService(role).Hall(hall)); }
+        public Task<Result<SectResp>> SectJoin(string sect) => SectChat(s => s.Join(sect));
+        public Task<Result<SectResp>> SectHall(string hall) => SectChat(s => s.Hall(hall));
+
+        Task<Result<SectResp>> SectChat(Func<SectService, SectResp> change)
+        {
+            if (battle != null) return Task.FromResult(Result<SectResp>.Fail(Code.InBattle, "战斗中"));
+            var result = change(new SectService(role));
+            if (result.ok) Chat.SystemMessage(result.msg);
+            return Reply(result);
+        }
 
         public Task<Result<MapChangeResp>> Tower(string op)
         {
@@ -209,7 +217,11 @@ namespace GuiQin.Net
             if (battle != null) return Task.FromResult(Result<QuestTalkResp>.Fail(Code.InBattle, "战斗中"));
             int oldLevel = role.lv;
             var result = new QuestService(role).Talk(npc);
-            if (result.ok && result.done) ReportRewards(oldLevel, result.exp, result.coin, result.items);
+            if (result.ok && result.done)
+            {
+                Chat.SystemMessage("完成了主线任务");
+                ReportRewards(oldLevel, result.exp, result.coin, result.items);
+            }
             return Reply(result);
         }
 

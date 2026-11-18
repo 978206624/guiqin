@@ -62,7 +62,6 @@ namespace GuiQin
     public class ToastUi
     {
         readonly Text t; readonly CanvasGroup g; float left;
-        public event Action<string> Reported;
 
         public ToastUi(Transform parent)
         {
@@ -74,7 +73,7 @@ namespace GuiQin
             Ui.Anchor(t.rectTransform, Vector2.zero, Vector2.one, new Vector2(12, 0), new Vector2(-12, 0));
         }
 
-        public void Show(string s) { t.text = s; left = 1.8f; g.alpha = 1; Reported?.Invoke(s); }
+        public void Show(string s) { t.text = s; left = 1.8f; g.alpha = 1; }
         public void Tick(float dt) { if (left > 0) { left -= dt; g.alpha = Mathf.Clamp01(left / 0.4f); } }
     }
 
@@ -85,8 +84,8 @@ namespace GuiQin
         const float MiniScale = 0.09f;
         Vector2 miniSize;
         readonly CanvasGroup hudInput;
-        readonly Text systemLog;
-        readonly System.Collections.Generic.Queue<string> messages = new();
+        readonly RectTransform systemLog;
+        readonly GameObject unreadDot;
         readonly Text place, weather, name, level, sect, power, coin, hpText, mpText;
         readonly Image face, mini;
 
@@ -156,12 +155,21 @@ namespace GuiQin
             var log = WebUi.Panel("systemMessages", town);
             var logBtn = log.gameObject.AddComponent<Button>(); logBtn.targetGraphic = log; logBtn.transition = Selectable.Transition.None; logBtn.onClick.AddListener(() => onKey("chat"));       // 点这块打开聊天
             WebUi.At(log.rectTransform, 10, 1146, 446, 122);
-            var heading = Ui.Label("heading", log.transform, "系统消息", 15, WebUi.Light, TextAnchor.MiddleLeft);
-            WebUi.At(heading.rectTransform, 12, 6, 420, 21);
-            systemLog = Ui.Label("log", log.transform, "", 15, WebUi.Text, TextAnchor.UpperLeft);
-            systemLog.supportRichText = false;
-            systemLog.verticalOverflow = VerticalWrapMode.Truncate;
-            WebUi.At(systemLog.rectTransform, 12, 31, 420, 80);
+            systemLog = Ui.Rect("log", log.transform);
+            systemLog.gameObject.AddComponent<RectMask2D>();
+            WebUi.At(systemLog, 12, 8, 420, 72);
+            var inputHint = WebUi.Gradient("chatHint", log.transform, WebUi.C("#ffffff27"), WebUi.C("#ffffff18"), 12);
+            WebUi.At(inputHint.rectTransform, 12, 86, 422, 26);
+            var hint = Ui.Label("hint", inputHint.transform, "点这里聊天…", 13, WebUi.Muted, TextAnchor.MiddleLeft);
+            WebUi.At(hint.rectTransform, 16, 0, 390, 26);
+            var border = Ui.Box("chatDot", log.transform, Color.white);
+            border.sprite = WebUi.Circle(); border.raycastTarget = false;
+            WebUi.At(border.rectTransform, 424, 8, 14, 14);
+            var dot = Ui.Box("dot", border.transform, WebUi.C("#e8362e"));
+            dot.sprite = WebUi.Circle(); dot.raycastTarget = false;
+            WebUi.At(dot.rectTransform, 2, 2, 10, 10);
+            unreadDot = border.gameObject;
+            unreadDot.SetActive(false);
         }
 
         Image Portrait(string id, float x, float y, float size, Action open)
@@ -274,18 +282,10 @@ namespace GuiQin
             SetBar(mpFill, mp / (float)Mathf.Max(1, maxMp));
         }
 
-        public void AddMessage(string text)
+        public void SetChatPreview(System.Collections.Generic.IReadOnlyList<GuiQin.Chat.ChatMsg> lines, bool unread)
         {
-            if (string.IsNullOrEmpty(text)) return;
-            if (messages.Count == 3) messages.Dequeue();
-            messages.Enqueue(text.Replace("\n", " "));
-            systemLog.text = string.Join("\n", messages);
-        }
-
-        public void ClearMessages()
-        {
-            messages.Clear();
-            systemLog.text = "";
+            ChatUi.DrawMini(systemLog, lines);
+            unreadDot.SetActive(unread);
         }
 
         public static int Power(StatBlock s) => Mathf.RoundToInt(s.atk * 6 + s.matk * 4 + s.def * 5 + s.mdef * 3

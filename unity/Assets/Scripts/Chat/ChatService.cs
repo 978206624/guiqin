@@ -40,7 +40,12 @@ namespace GuiQin.Chat
 
         string Pick(JToken values) => (string)values[rng.Next(values.Count())];
         string PickBot() => (string)D["bots"][rng.Next(D["bots"].Count())]["name"];
-        string Fill(string text) => text.Replace("{name}", role.name).Replace("{bot}", PickBot());
+        string Fill(string text)
+        {
+            // 模拟服务端当前没同步城镇天气，闲聊使用晴天文案。
+            return text.Replace("{name}", role.name).Replace("{bot}", PickBot())
+                .Replace("{weather}天气", "晴天").Replace("{weather}", "晴");
+        }
         static JToken Bot(string name) => D["bots"].FirstOrDefault(b => (string)b["name"] == name);
         static bool Known(string name) => !string.IsNullOrEmpty(name) && (Bot(name) != null || D["guildMembers"].Any(b => (string)b == name));
         static ChatPerson Person(string name)
@@ -164,7 +169,7 @@ namespace GuiQin.Chat
             if (ch == "guild" && guild == null) return Fail("你还没有加入帮派");
             if (ch == "party" && party.Count == 0) return Fail("你还没有队伍");
             if (ch == "pm" && (!Known(q.peer) || q.peer == role.name)) return Fail("找不到这个玩家");
-            foreach (var term in D["ban"])
+            foreach (var term in D["ban"] ?? new JArray())
             {
                 string word = (string)term;
                 if (!string.IsNullOrEmpty(word)) text = Regex.Replace(text, Regex.Escape(word), new string('*', word.Length), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);

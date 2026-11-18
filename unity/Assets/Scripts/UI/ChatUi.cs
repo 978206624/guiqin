@@ -6,217 +6,455 @@ using GuiQin.Chat;
 using GuiQin.Net;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace GuiQin
 {
-    // 聊天：综合 / 世界 / 帮派 / 队伍 / 私聊 / 系统 六个页签 + 顶部滚动公告条。对应网页版 chat.js。
-    // 发言规则（频道权限、字数、冷却、防刷屏）全在服务端判，客户端只负责显示和提交；别人的发言走 push.chat。
-    // 暂未做：表情图、物品链接、点名字弹菜单（现在点一条消息就私聊发言人）、组队 / 好友（要多人在线服务）。
-    public class ChatUi
+    // 使用网页版底部聊天面板的坐标。客户端只保存当前会话的显示状态。
+    public partial class ChatUi
     {
-        static readonly string[][] Tabs = { new[] { "all", "综合" }, new[] { "world", "世界" }, new[] { "guild", "帮派" }, new[] { "party", "队伍" }, new[] { "pm", "私聊" }, new[] { "system", "系统" } };
-        static readonly Dictionary<string, string[]> Ch = new Dictionary<string, string[]>   // 频道 → {标签, 颜色, 页签}
+        static readonly string[][] Tabs = { new[] { "all", "综合" }, new[] { "world", "世界" }, new[] { "guild", "帮派" },
+            new[] { "party", "队伍" }, new[] { "pm", "私聊" }, new[] { "system", "系统" } };
+        static readonly Dictionary<string, (string label, string color, string tab)> Channels = new()
         {
-            { "world", new[] { "世界", "#7ad7ff", "world" } }, { "guild", new[] { "帮派", "#7fe07f", "guild" } }, { "party", new[] { "队伍", "#ffb36b", "party" } },
-            { "pm", new[] { "私聊", "#ff8ad4", "pm" } }, { "system", new[] { "系统", "#ff7a5a", "system" } }, { "notice", new[] { "公告", "#ffb020", "system" } },
+            { "world", ("世界", "#7ad7ff", "world") }, { "guild", ("帮派", "#7fe07f", "guild") },
+            { "party", ("队伍", "#ffb36b", "party") }, { "pm", ("私聊", "#ff8ad4", "pm") },
+            { "system", ("系统", "#ff7a5a", "system") }, { "notice", ("公告", "#ffb020", "system") },
         };
 
-        readonly GameObject root; readonly RectTransform box, listContent; readonly ScrollRect scroll;
-        readonly Func<IGameBackend> net; readonly Func<RoleState> getRole; readonly Action<string> mini, toast;
-        readonly GameObject noticeBar; readonly Text noticeText; float noticeT;
-        readonly List<ChatMsg> hist = new List<ChatMsg>(); readonly Dictionary<string, int> unread = new Dictionary<string, int>();
-        readonly List<string> peers = new List<string>();
-        string tab = "all", sendCh = "world", pmPeer, guild; int members; bool busy, stick;
-        Transform tabsRow, stripRow; InputField input; Text hint, chPill; Button sendBtn;
+        readonly GameObject root, noticeBar;
+        readonly RectTransform stage, sheet, tabsRow, stripRow, listView, listContent;
+        readonly ScrollRect scroll;
+        readonly Text noticeText, hint, chLabel;
+        readonly Button channelButton, sendButton, emojiButton, itemButton;
+        readonly InputField input;
+        readonly Func<IGameBackend> net;
+        readonly Func<RoleState> getRole;
+        readonly Action<IReadOnlyList<ChatMsg>, bool> mini;
+        readonly SortedDictionary<int, ChatMsg> history = new();
+        readonly HashSet<int> unread = new();
+        readonly Dictionary<int, RectTransform> rendered = new();
+        readonly Queue<string> notices = new();
+        readonly List<string> peers = new();
+        List<ChatPerson> friends = new();
+        PartyState party = new PartyState();
+        RectTransform emptyRow;
+        string roleId, tab = "all", sendCh = "world", pmPeer, guild;
+        int members, generation, lastRetired, socialVersion, historyRequest;
+        bool busy, loaded, friendsView;
+        const int NoticeTrackWidth = 515;
+        float noticeX, noticeWidth, noticeGap;
 
-        public bool Visible { get { return root.activeSelf; } }
+        public bool Visible => root.activeSelf;
+        public PartyState CurrentParty => party;
 
-        public ChatUi(Transform parent, Func<IGameBackend> net, Func<RoleState> role, Action<string> mini, Action<string> toast)
+        public ChatUi(RectTransform parent, Func<IGameBackend> net, Func<RoleState> role,
+            Action<IReadOnlyList<ChatMsg>, bool> mini)
         {
-            this.net = net; getRole = role; this.mini = mini; this.toast = toast;
-            var dim = Ui.Box("chatUi", parent, WebUi.Dim); root = dim.gameObject;
+            this.net = net; getRole = role; this.mini = mini;
+            stage = parent;
+            var dim = Ui.Box("chatUi", parent, WebUi.C("#08041273")); root = dim.gameObject;
             Ui.Anchor(dim.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            var panel = WebUi.Panel("box", dim.transform); box = panel.rectTransform; WebUi.At(box, 24, 150, 672, 1000);
-            var title = Ui.Label("title", box, "聊天", 32, WebUi.Amber, TextAnchor.MiddleCenter); WebUi.Title(title); WebUi.At(title.rectTransform, 0, 6, 672, 52);
-            var close = WebUi.Close(box, Close); WebUi.At((RectTransform)close.transform, 618, 10, 40, 40);
-            tabsRow = Ui.Rect("tabs", box); WebUi.At((RectTransform)tabsRow, 4, 64, 664, 46);
-            stripRow = Ui.Rect("strip", box); WebUi.At((RectTransform)stripRow, 12, 114, 648, 76);
-            var vp = Ui.Box("vp", box, WebUi.C("#0a061466")); vp.gameObject.AddComponent<RectMask2D>(); WebUi.At(vp.rectTransform, 12, 196, 648, 690);
-            listContent = Ui.Rect("content", vp.transform);
-            listContent.anchorMin = new Vector2(0, 1); listContent.anchorMax = new Vector2(1, 1); listContent.pivot = new Vector2(0.5f, 1); listContent.offsetMin = new Vector2(8, 0); listContent.offsetMax = new Vector2(-8, 0);
-            var lg = listContent.gameObject.AddComponent<VerticalLayoutGroup>(); lg.spacing = 8; lg.childControlWidth = true; lg.childControlHeight = true; lg.childForceExpandHeight = false; lg.padding = new RectOffset(0, 0, 8, 8);
+            var closeDim = dim.gameObject.AddComponent<Button>(); closeDim.targetGraphic = dim;
+            closeDim.transition = Selectable.Transition.None; closeDim.onClick.AddListener(Close);
+            sheet = WebUi.Panel("sheet", dim.transform).rectTransform;
+            WebUi.At(sheet, 0, 470, 720, 810);
+            tabsRow = Ui.Rect("tabs", sheet); WebUi.At(tabsRow, 16, 12, 584, 44);
+            var divider = Ui.Box("headerLine", sheet, WebUi.C("#e2b04a59"));
+            divider.raycastTarget = false; WebUi.At(divider.rectTransform, 0, 64, 720, 1);
+            var close = WebUi.Close(sheet, Close);
+            WebUi.Dress(close.image, WebUi.C("#2b1b42"), WebUi.C("#241a3c"), WebUi.Gold, 20);
+            WebUi.At((RectTransform)close.transform, 660, 12, 44, 44);
+            stripRow = Ui.Rect("strip", sheet);
+            scroll = MakeVerticalScroll("messages", sheet, out listView, out listContent);
+            var layout = listContent.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.childControlWidth = true; layout.childControlHeight = true; layout.childForceExpandHeight = false;
+            layout.padding = new RectOffset(0, 0, 6, 6);
             listContent.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            scroll = vp.gameObject.AddComponent<ScrollRect>(); scroll.content = listContent; scroll.viewport = vp.rectTransform; scroll.horizontal = false; scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 30f;
-            var pill = Ui.Btn("ch", box, "世界", 20, Color.clear, () => { if (tab == "all" && guild != null) { sendCh = sendCh == "world" ? "guild" : "world"; Redraw(); } });
-            WebUi.Dress(pill.image, WebUi.C("#22183a"), WebUi.C("#120c20"), WebUi.Gold, 8); chPill = pill.GetComponentInChildren<Text>(); WebUi.At((RectTransform)pill.transform, 12, 896, 90, 56);
-            input = Ui.Input("msg", box, "说点什么（最多 40 个字）", 22, false, 40); WebUi.At((RectTransform)input.transform, 110, 896, 434, 56);
-            sendBtn = Ui.Btn("send", box, "发送", 24, Color.clear, Send); WebUi.Dress(sendBtn.image, WebUi.Red, WebUi.C("#5a1418"), WebUi.Gold, 8); sendBtn.GetComponentInChildren<Text>().color = WebUi.Light; WebUi.At((RectTransform)sendBtn.transform, 552, 896, 108, 56);
-            hint = Ui.Label("hint", box, "", 15, WebUi.C("#ff9a8a"), TextAnchor.MiddleCenter); WebUi.At(hint.rectTransform, 12, 958, 648, 32);
-            // 顶部滚动公告条（世界地图上才显示）
-            var nb = WebUi.Gradient("notice", parent, WebUi.C("#241a3ce6"), WebUi.C("#140d24e6"), 14); noticeBar = nb.gameObject; WebUi.At(nb.rectTransform, 140, 150, 440, 38);
-            noticeText = Ui.Label("t", nb.transform, "", 16, WebUi.C("#ffb020"), TextAnchor.MiddleCenter); noticeText.horizontalOverflow = HorizontalWrapMode.Overflow; Ui.Anchor(noticeText.rectTransform, Vector2.zero, Vector2.one, new Vector2(10, 0), new Vector2(-10, 0));
+            hint = Label("hint", sheet, "", 15, WebUi.C("#ff9a8a"), 18, 716, 684, 25);
+            channelButton = Small("channel", sheet, "世界", 17, 12, 750, 60, 36, CycleChannel);
+            chLabel = channelButton.GetComponentInChildren<Text>();
+            input = Ui.Input("input", sheet, "说点什么", 20, false, (int)GameData.Raw["chat"]["maxLen"]);
+            WebUi.At((RectTransform)input.transform, 180, 746, 454, 44);
+            WebUi.Dress(input.GetComponent<Image>(), WebUi.C("#ffffff19"), WebUi.C("#ffffff19"), WebUi.C("#e2b04a59"), 20);
+            emojiButton = Small("emoji", sheet, "", 17, 80, 747, 42, 42, () => TogglePicker("emoji"));
+            var smile = Ui.Box("pickerIcon", emojiButton.transform, Color.white);
+            smile.sprite = ChatEmotes.Get("笑"); smile.raycastTarget = false;
+            WebUi.At(smile.rectTransform, 9, 10, 24, 24);
+            itemButton = Small("item", sheet, "物品", 13, 130, 747, 42, 42, () => TogglePicker("item"));
+            WebUi.Dress(emojiButton.image, WebUi.C("#322744"), WebUi.C("#201830"), WebUi.C("#e2b04a66"), 20);
+            WebUi.Dress(itemButton.image, WebUi.C("#322744"), WebUi.C("#201830"), WebUi.C("#e2b04a66"), 20);
+            sendButton = Small("send", sheet, "发送", 19, 642, 746, 66, 44, Send, WebUi.Purple);
+            input.onEndEdit.AddListener(_ =>
+            {
+                // 失焦只收起光标，回车才发送。移动端保留显式发送按钮。
+                if (ReturnPressed()) Send();
+            });
+
+            var bar = WebUi.Panel("notice", parent); noticeBar = bar.gameObject;
+            bar.raycastTarget = false;
+            bar.transform.SetSiblingIndex(root.transform.GetSiblingIndex());
+            WebUi.Dress(bar, WebUi.C("#782814db"), WebUi.C("#1e1028d1"), WebUi.C("#ffb020b3"), 18);
+            WebUi.At(bar.rectTransform, 20, 318, 600, 38);
+            var tag = WebUi.Gradient("tag", bar.transform, WebUi.Amber, WebUi.C("#ffb020"), 10);
+            WebUi.At(tag.rectTransform, 12, 8, 48, 22);
+            Label("label", tag.transform, "公告", 15, WebUi.C("#2a1405"), 0, 0, 48, 22, TextAnchor.MiddleCenter);
+            var clip = Ui.Rect("track", bar.transform);
+            WebUi.At(clip, 70, 0, NoticeTrackWidth, 38); clip.gameObject.AddComponent<RectMask2D>();
+            noticeText = Label("text", clip, "", 18, WebUi.Light, 0, 0, NoticeTrackWidth, 38);
+            noticeText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            BuildInteractions();
             noticeBar.SetActive(false); root.SetActive(false);
         }
 
-        // ---------------- 数据 ----------------
+        static bool ReturnPressed()
+        {
+#if ENABLE_INPUT_SYSTEM
+            var kb = UnityEngine.InputSystem.Keyboard.current;
+            return kb != null && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame);
+#else
+            return Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter);
+#endif
+        }
+
+        public void BindRole(string id)
+        {
+            generation++;
+            roleId = id; lastRetired = 0; loaded = false; busy = false;
+            history.Clear(); unread.Clear(); peers.Clear(); notices.Clear();
+            friends.Clear(); party = new PartyState(); guild = null; members = 0;
+            noticeText.text = ""; noticeGap = 0; noticeBar.SetActive(false);
+            pmPeer = null; tab = "all"; sendCh = "world"; input.text = "";
+            Close(); UpdateMini(); ClearMessages();
+        }
+
         public async Task LoadHistory()
         {
-            var r = await net().ChatHistory(); hist.Clear(); unread.Clear(); peers.Clear();
-            if (!r.Ok) return;
-            guild = r.data.guild; members = r.data.members;
-            foreach (var m in r.data.msgs) { hist.Add(m); if (m.ch == "pm" && !string.IsNullOrEmpty(m.peer) && !peers.Contains(m.peer)) peers.Add(m.peer); }
+            var backend = net();
+            int scope = generation, social = socialVersion, request = ++historyRequest;
+            var response = await backend.ChatHistory();
+            if (!IsCurrent(scope, backend) || request != historyRequest || !response.Ok || response.data == null) return;
+            var data = response.data;
+            if (social == socialVersion)
+            {
+                guild = data.guild; members = data.members;
+                friends = data.friends ?? new List<ChatPerson>();
+            }
+            ApplyParty(data.party, false);
+            bool wasLoaded = loaded;
+            foreach (var m in (data.msgs ?? new List<ChatMsg>()).Where(m => m != null).OrderBy(m => m.id))
+                Remember(m, wasLoaded, wasLoaded);
+            loaded = true;
+            if (!wasLoaded && notices.Count == 0)
+            {
+                var latest = history.Values.LastOrDefault(m => m.ch == "notice");
+                if (latest != null) QueueNotice(latest.text);
+            }
+            UpdateMini();
+            if (Visible) Redraw(true);
+        }
+
+        bool IsCurrent(int scope, IGameBackend backend) => roleId != null && scope == generation && net() == backend;
+
+        bool Remember(ChatMsg m, bool markUnread, bool announce)
+        {
+            if (roleId == null || m == null || m.ch == null || !Channels.ContainsKey(m.ch) || m.id <= lastRetired
+                || (!string.IsNullOrEmpty(m.roleId) && m.roleId != roleId) || history.ContainsKey(m.id)) return false;
+            history.Add(m.id, m);
+            if (m.ch == "pm" && !string.IsNullOrEmpty(m.peer) && !peers.Contains(m.peer)) peers.Add(m.peer);
+            if (markUnread && !m.self && !(Visible && !friendsView && Matches(m, tab)))
+                unread.Add(m.id);
+            if (announce && m.ch == "notice") QueueNotice(m.text);
+            while (history.Count > 200)
+            {
+                var oldest = history.Keys.First();
+                history.Remove(oldest); unread.Remove(oldest); lastRetired = oldest;
+            }
+            return true;
         }
 
         public void Add(ChatMsg m)
         {
-            hist.Add(m); while (hist.Count > 200) hist.RemoveAt(0);
-            if (m.ch == "pm" && !string.IsNullOrEmpty(m.peer) && !peers.Contains(m.peer)) peers.Add(m.peer);
-            string home = Ch[m.ch][2]; bool shown = Visible && (tab == "all" || InTab(m, tab));
-            if (!shown && !m.self) { Inc(home); if (m.ch == "pm") Inc("pm:" + m.peer); }
-            if (m.ch == "notice") { noticeText.text = m.text; noticeT = 9f; }
-            mini(Line(m, true));
-            if (Visible) { stick = m.self || NearBottom(); Redraw(); }
+            if (!Remember(m, true, true)) return;
+            UpdateMini();
+            if (Visible) Redraw(m.self || scroll.verticalNormalizedPosition < 0.10f);
         }
 
-        void Inc(string k) { int n; unread.TryGetValue(k, out n); unread[k] = n + 1; }
-        bool NearBottom() { return scroll.verticalNormalizedPosition < 0.08f; }
+        public void ApplyParty(PartyState state) => ApplyParty(state, true);
+        void ApplyParty(PartyState state, bool redraw)
+        {
+            if (roleId == null || state == null || state.revision < party.revision
+                || (!string.IsNullOrEmpty(state.roleId) && state.roleId != roleId)) return;
+            state.members ??= new List<ChatPerson>();
+            state.pending ??= new List<string>();
+            bool joined = party.members.Count == 0 && state.members.Count > 0;
+            party = state;
+            if (joined) sendCh = "party";
+            if (sendCh == "party" && party.members.Count == 0) sendCh = "world";
+            if (redraw && Visible) Redraw(false);
+        }
+
+        void QueueNotice(string value)
+        {
+            if (!string.IsNullOrEmpty(value) && notices.Count < 4) notices.Enqueue(value);
+        }
 
         public void Tick(float dt, bool worldVisible)
         {
-            if (noticeT > 0f) noticeT -= dt;
-            noticeBar.SetActive(worldVisible && noticeT > 0f && !Visible);
-        }
-
-        static bool InTab(ChatMsg m, string t, string peer = null)
-        {
-            if (t == "all") return true;
-            if (t == "pm") return m.ch == "pm" && m.peer == peer;
-            return Ch[m.ch][2] == t;
-        }
-
-        static string Esc(string s) { return (s ?? "").Replace("<", "＜").Replace(">", "＞"); }
-        static string Line(ChatMsg m, bool brief = false)
-        {
-            string[] c = Ch[m.ch]; string h = "<color=" + c[1] + ">[" + c[0] + "]</color> ";
-            if (m.ch == "notice" || m.ch == "system") return h + Esc(m.text);
-            if (m.ch == "pm") h += m.self ? "你对 " + Esc(m.peer) + " 说：" : Esc(m.from) + " 对你说：";
-            else
+            bool canShow = worldVisible && roleId != null;
+            if (canShow)
             {
-                h += (m.self ? "<color=#8ff08a>" + Esc(m.from) + "</color>" : Esc(m.from));
-                if (!brief) { var cl = GameData.Raw["classes"][m.cls ?? ""]; h += "<size=13><color=#a99db4> " + (cl != null ? (string)cl["name"] : "") + " " + m.lv + "级</color></size>"; }
-                h += "：";
+                noticeGap -= dt;
+                if (noticeText.text.Length == 0 && notices.Count > 0 && noticeGap <= 0)
+                {
+                    noticeText.text = notices.Dequeue();
+                    noticeWidth = Mathf.Max(1, noticeText.preferredWidth + 10);
+                    noticeX = NoticeTrackWidth;
+                }
+                if (noticeText.text.Length > 0)
+                {
+                    WebUi.At(noticeText.rectTransform, noticeX, 0, noticeWidth, 38);
+                    noticeX -= 70 * dt;
+                    if (noticeX < -noticeWidth) { noticeText.text = ""; noticeGap = 0.6f; }
+                }
             }
-            return h + Esc(m.text);
+            bool active = canShow && noticeText.text.Length > 0;
+            if (noticeBar.activeSelf != active) noticeBar.SetActive(active);
         }
 
-        // ---------------- 面板 ----------------
-        public void Open(string t)
-        {
-            if (!string.IsNullOrEmpty(t)) tab = t;
-            if (tab == "pm" && pmPeer == null) pmPeer = peers.Count > 0 ? peers[0] : null;
-            root.SetActive(true); hint.text = ""; ClearUnread(); stick = true; Redraw();
-        }
-        public void Close() { root.SetActive(false); }
+        bool Matches(ChatMsg m, string category) => category == "all" ||
+            (category == "pm" ? m.ch == "pm" && m.peer == pmPeer : Channels[m.ch].tab == category);
 
-        void ClearUnread()
+        IEnumerable<ChatMsg> UnreadMessages => history.Values.Where(m => unread.Contains(m.id));
+        int PeerUnread(string name) => UnreadMessages.Count(m => m.ch == "pm" && m.peer == name);
+        bool TabUnread(string key) => key == "all" ? unread.Count > 0 : UnreadMessages.Any(m => Channels[m.ch].tab == key);
+
+        void MarkRead()
         {
-            if (tab == "all") unread.Clear(); else { unread.Remove(tab); if (tab == "pm" && pmPeer != null) unread.Remove("pm:" + pmPeer); }
+            if (friendsView) return;
+            foreach (var m in history.Values)
+                if (Matches(m, tab)) unread.Remove(m.id);
+            UpdateMini();
+        }
+
+        internal static void DrawMini(RectTransform parent, IReadOnlyList<ChatMsg> messages)
+        {
+            Clear(parent);
+            for (int i = 0; i < messages.Count; i++)
+            {
+                var m = messages[i];
+                var style = Channels[m.ch];
+                ChatLineUi.DrawMini(parent, m, style.label, WebUi.C(style.color), i);
+            }
+        }
+
+        void UpdateMini()
+        {
+            mini(history.Values.Skip(Math.Max(0, history.Count - 3)).ToList(), unread.Count > 0);
+        }
+
+        public void Open(string key)
+        {
+            if (roleId == null) return;
+            friendsView = key == "friends";
+            tab = friendsView ? "pm" : key ?? "all";
+            if (tab == "pm" && pmPeer == null) pmPeer = PeerNames().FirstOrDefault();
+            root.SetActive(true); hint.text = ""; HideOverlays();
+            MarkRead(); Redraw(true);
+            if (friendsView) RefreshFriends();
+        }
+
+        public void Close()
+        {
+            if (picker != null) HideOverlays();
+            input.DeactivateInputField();
+            root.SetActive(false);
         }
 
         string CurSend()
         {
-            if (tab == "pm") return pmPeer != null ? "pm" : null;
-            if (tab == "system" || tab == "party") return null;
-            if (tab == "guild") return guild != null ? "guild" : null;
-            if (tab == "world") return "world";
-            return sendCh == "guild" && guild != null ? "guild" : "world";
+            if (friendsView || tab == "system") return null;
+            if (tab == "pm") return pmPeer == null ? null : tab;
+            if (tab == "guild") return guild == null ? null : tab;
+            if (tab == "party") return party.members.Count > 0 ? tab : null;
+            if (tab == "world") return tab;
+            if (sendCh == "guild" && guild == null || sendCh == "party" && party.members.Count == 0) return "world";
+            return sendCh;
         }
 
-        void Clear(Transform t) { for (int i = t.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(t.GetChild(i).gameObject); }
-
-        Button Small(Transform parent, string label, int size, float x, float y, float w, float h, bool on, Action click, bool red = false)
+        void CycleChannel()
         {
-            var b = Ui.Btn("b_" + label, parent, label, size, Color.clear, () => click());
-            Color top = red ? WebUi.Red : on ? WebUi.C("#8a5a14") : WebUi.C("#3b2a5c"), bot = red ? WebUi.C("#5a1418") : on ? WebUi.C("#5a3a0c") : WebUi.C("#1d1433");
-            WebUi.Dress(b.image, top, bot, on ? WebUi.Amber : WebUi.Gold, 8); b.GetComponentInChildren<Text>().color = on ? WebUi.Light : WebUi.Text;
-            WebUi.At((RectTransform)b.transform, x, y, w, h); return b;
+            if (tab != "all") return;
+            var allowed = new List<string> { "world" };
+            if (guild != null) allowed.Add("guild");
+            if (party.members.Count > 0) allowed.Add("party");
+            sendCh = allowed[(allowed.IndexOf(CurSend()) + 1) % allowed.Count];
+            DrawInput();
         }
 
-        void Redraw()
+        void DrawInput()
         {
-            // 页签
+            string ch = CurSend();
+            bool writable = ch != null;
+            input.interactable = sendButton.interactable = emojiButton.interactable = itemButton.interactable = writable;
+            channelButton.interactable = writable && tab == "all";
+            chLabel.text = ch == null ? "—" : Channels[ch].label;
+            chLabel.color = ch == null ? WebUi.Muted : WebUi.C(Channels[ch].color);
+            WebUi.Dress(channelButton.image, WebUi.C("#0d0a18"), WebUi.C("#0d0a18"), chLabel.color, 17);
+            ((Text)input.placeholder).text = tab == "system" ? "系统频道只能看，不能发言" :
+                friendsView ? "选择好友开始私聊" : writable ? "说点什么（最多 " + input.characterLimit + " 个字）" :
+                tab == "pm" ? "先选一个私聊对象" : tab == "guild" ? "加入帮派后才能说话" : "组队后才能说话";
+        }
+
+        void Redraw(bool bottom)
+        {
+            if (!Visible) return;
             Clear(tabsRow);
             for (int i = 0; i < Tabs.Length; i++)
             {
-                string t = Tabs[i][0]; var b = Small(tabsRow, Tabs[i][1], 18, i * 111, 0, 104, 44, t == tab, () => { tab = t; if (t == "pm" && pmPeer == null && peers.Count > 0) pmPeer = peers[0]; ClearUnread(); stick = true; Redraw(); });
-                int n; if ((unread.TryGetValue(t, out n) && n > 0)) { var dot = Ui.Box("dot", b.transform, WebUi.C("#ff3b30")); dot.sprite = WebUi.Circle(); dot.raycastTarget = false; WebUi.At(dot.rectTransform, 88, 4, 12, 12); }
+                string key = Tabs[i][0];
+                bool selected = !friendsView && tab == key;
+                var button = Small("tab_" + key, tabsRow, Tabs[i][1], 18, i * 72, 3, 64, 37, () => Open(key));
+                WebUi.Dress(button.image, selected ? WebUi.C("#3b2a5c") : WebUi.C("#ffffff0c"),
+                    selected ? WebUi.C("#1d1433") : WebUi.C("#ffffff0c"),
+                    selected ? WebUi.Gold : WebUi.C("#e2b04a59"), 18);
+                button.GetComponentInChildren<Text>().color = selected ? WebUi.Light : WebUi.Muted;
+                if (TabUnread(key)) Dot(button.transform, 54, 0, 10);
             }
-            // 条：帮派 / 私聊对象
-            Clear(stripRow);
-            if (tab == "guild")
+            int stripHeight = DrawStrip();
+            if (stripHeight > 0)
             {
-                if (guild != null) { Lbl(stripRow, "「" + guild + "」　成员 " + members + " 人", 18, 0, 0, 480, 76, WebUi.Light); Small(stripRow, "退出帮派", 18, 500, 14, 140, 48, false, () => GuildOp(false)); }
-                else { Lbl(stripRow, "你还没有加入帮派。帮派频道只有帮派成员能看到。（演示：直接加入一个现成的帮派）", 15, 0, 0, 490, 76, WebUi.Muted); Small(stripRow, "加入帮派", 18, 500, 14, 140, 48, false, () => GuildOp(true), true); }
+                var border = Ui.Box("stripLine", stripRow, WebUi.C("#e2b04a42"));
+                border.raycastTarget = false; WebUi.At(border.rectTransform, 0, stripHeight - 1, 720, 1);
             }
-            else if (tab == "party") Lbl(stripRow, "你还没有队伍。组队需要多人在线服务，暂未开放。", 16, 0, 0, 648, 76, WebUi.Muted);
-            else if (tab == "pm")
+            WebUi.At(stripRow, 0, 64, 720, stripHeight);
+            WebUi.At(listView, 0, 64 + stripHeight, 720, 650 - stripHeight);
+            DrawInput();
+            DrawList(bottom);
+        }
+
+        void DrawList(bool bottom)
+        {
+            if (friendsView) { ClearMessages(); DrawFriendRows(); bottom = false; }
+            else
             {
-                if (peers.Count == 0) Lbl(stripRow, "点聊天里的任意一条别人的发言，就能私聊发言的人。", 16, 0, 0, 648, 76, WebUi.Muted);
-                for (int i = 0; i < peers.Count && i < 5; i++)
+                for (int i = listContent.childCount - 1; i >= 0; i--)
                 {
-                    string p = peers[i]; int n; unread.TryGetValue("pm:" + p, out n);
-                    Small(stripRow, p + (n > 0 ? " •" : ""), 16, i * 130, 14, 124, 48, p == pmPeer, () => { pmPeer = p; unread.Remove("pm:" + p); stick = true; Redraw(); });
+                    var child = listContent.GetChild(i);
+                    if (child.name != "friendRows" || !child.gameObject.activeSelf) continue;
+                    child.gameObject.SetActive(false); Object.Destroy(child.gameObject);
                 }
-            }
-            // 输入区
-            string ch = CurSend(); bool ro = ch == null;
-            input.interactable = !ro; sendBtn.interactable = !ro;
-            ((Text)input.placeholder).text = tab == "system" ? "系统频道只能看，不能发言" : ro ? (tab == "pm" ? "先选一个私聊对象" : tab == "guild" ? "加入帮派后才能说话" : "组队后才能说话") : "说点什么（最多 40 个字）";
-            chPill.text = ch == null ? "—" : ch == "pm" ? "私聊" : Ch[ch][0];
-            // 列表
-            Clear(listContent);
-            var ms = hist.Where(m => InTab(m, tab, pmPeer)).ToList();
-            if (ms.Count == 0) { var e = Ui.Label("empty", listContent, "还没有消息。", 18, WebUi.Muted, TextAnchor.MiddleCenter); var le = e.gameObject.AddComponent<LayoutElement>(); le.minHeight = 80; }
-            foreach (var m in ms)
-            {
-                var t = Ui.Label("m", listContent, Line(m) + "  <size=12><color=#6f6580>" + DateTimeOffset.FromUnixTimeMilliseconds(m.t).ToLocalTime().ToString("HH:mm") + "</color></size>", 18, WebUi.Text, TextAnchor.UpperLeft);
-                t.supportRichText = true; t.lineSpacing = 1.1f;
-                if (!m.self && !string.IsNullOrEmpty(m.from) && m.ch != "pm" || (m.ch == "pm" && !m.self))
+                var selected = history.Values.Where(m => Matches(m, tab)).ToList();
+                var ids = new HashSet<int>(selected.Select(m => m.id));
+                foreach (var id in rendered.Keys.Where(id => !ids.Contains(id)).ToArray())
                 {
-                    string who = m.ch == "pm" ? m.peer : m.from; t.raycastTarget = true; var b = t.gameObject.AddComponent<Button>(); b.targetGraphic = t; b.transition = Selectable.Transition.None;
-                    b.onClick.AddListener(() => { if (string.IsNullOrEmpty(who)) return; pmPeer = who; if (!peers.Contains(who)) peers.Add(who); tab = "pm"; unread.Remove("pm:" + who); stick = true; Redraw(); });
+                    var old = rendered[id].gameObject; old.SetActive(false); Object.Destroy(old); rendered.Remove(id);
+                }
+                if (emptyRow != null) { emptyRow.gameObject.SetActive(false); Object.Destroy(emptyRow.gameObject); emptyRow = null; }
+                if (selected.Count == 0)
+                {
+                    emptyRow = Label("empty", listContent, "还没有消息", 18, WebUi.Muted, 0, 0, 720, 95, TextAnchor.MiddleCenter).rectTransform;
+                    emptyRow.gameObject.AddComponent<LayoutElement>().preferredHeight = 95;
+                }
+                int index = 0;
+                foreach (var m in selected)
+                {
+                    if (!rendered.TryGetValue(m.id, out var row))
+                    {
+                        var channel = Channels[m.ch];
+                        row = ChatLineUi.Draw(listContent, m, channel.label, WebUi.C(channel.color), ShowNameMenu, ShowItem);
+                        rendered.Add(m.id, row);
+                    }
+                    row.SetSiblingIndex(index++);
                 }
             }
             LayoutRebuilder.ForceRebuildLayoutImmediate(listContent);
-            if (stick) { Canvas.ForceUpdateCanvases(); scroll.verticalNormalizedPosition = 0f; stick = false; }
+            if (bottom || friendsView)
+            {
+                Canvas.ForceUpdateCanvases();
+                scroll.verticalNormalizedPosition = friendsView ? 1f : 0f;
+            }
         }
 
-        Text Lbl(Transform parent, string s, int size, float x, float y, float w, float h, Color c)
-        {
-            var t = Ui.Label("t", parent, s, size, c, TextAnchor.MiddleLeft); t.supportRichText = true; WebUi.At(t.rectTransform, x, y, w, h); return t;
-        }
-
-        async void GuildOp(bool join)
-        {
-            if (busy) return; busy = true;
-            try { var r = await net().ChatGuild(join); if (!r.Ok) { toast(r.msg); return; } guild = r.data.guild; members = r.data.members; if (!string.IsNullOrEmpty(r.data.msg)) toast(r.data.msg); }
-            finally { busy = false; }
-            if (Visible) Redraw();
-        }
+        void ClearMessages() { Clear(listContent); rendered.Clear(); emptyRow = null; }
 
         async void Send()
         {
-            string ch = CurSend(); if (ch == null || busy) return;
-            string text = input.text.Trim(); if (text.Length == 0) { hint.text = "说点什么吧"; return; }
+            string ch = CurSend();
+            if (busy || ch == null) return;
+            string text = input.text.Trim();
+            if (text.Length == 0) { hint.text = "说点什么吧"; return; }
+            await SendText(ch, text, true);
+        }
+
+        async Task SendText(string ch, string text, bool clear)
+        {
+            if (busy || roleId == null) return;
+            int scope = generation;
+            var backend = net();
             busy = true; hint.text = "";
             try
             {
-                var r = await net().ChatSend(new ChatSendReq { ch = ch, text = text, peer = ch == "pm" ? pmPeer : null });
-                if (!r.Ok) { hint.text = r.msg; return; }
-                if (!r.data.ok) { hint.text = r.data.msg; return; }
-                input.text = ""; Add(r.data.sent);
+                var result = await backend.ChatSend(new ChatSendReq { ch = ch, text = text, peer = ch == "pm" ? pmPeer : null });
+                if (!IsCurrent(scope, backend)) return;
+                if (!result.Ok || result.data == null || !result.data.ok)
+                {
+                    hint.text = result.Ok ? result.data?.msg ?? "发送失败" : result.msg;
+                    return;
+                }
+                if (clear && input.text.Trim() == text) input.text = "";
+                Add(result.data.sent);
             }
-            finally { busy = false; }
+            finally { if (IsCurrent(scope, backend)) busy = false; }
+        }
+
+        static void Clear(Transform parent)
+        {
+            for (int i = parent.childCount - 1; i >= 0; i--)
+            {
+                var go = parent.GetChild(i).gameObject;
+                go.SetActive(false); Object.Destroy(go);
+            }
+        }
+
+        static Text Label(string id, Transform parent, string value, int size, Color color, float x, float y, float w, float h,
+            TextAnchor alignment = TextAnchor.MiddleLeft)
+        {
+            var label = Ui.Label(id, parent, value, size, color, alignment);
+            label.supportRichText = false;
+            WebUi.At(label.rectTransform, x, y, w, h);
+            return label;
+        }
+
+        static Button Small(string id, Transform parent, string label, int size, float x, float y, float w, float h, Action click, Color? tone = null)
+        {
+            var button = Ui.Btn(id, parent, label, size, tone ?? WebUi.Purple, () => click());
+            button.GetComponentInChildren<Text>().supportRichText = false;
+            WebUi.At((RectTransform)button.transform, x, y, w, h);
+            return button;
+        }
+
+        static void Dot(Transform parent, float x, float y, float size)
+        {
+            var border = Ui.Box("unread", parent, Color.white);
+            border.sprite = WebUi.Circle(); border.raycastTarget = false;
+            WebUi.At(border.rectTransform, x, y, size, size);
+            var dot = Ui.Box("red", border.transform, WebUi.C("#e8362e"));
+            dot.sprite = WebUi.Circle(); dot.raycastTarget = false;
+            WebUi.At(dot.rectTransform, 1.5f, 1.5f, size - 3, size - 3);
+        }
+
+        static ScrollRect MakeVerticalScroll(string id, Transform parent, out RectTransform view, out RectTransform content)
+        {
+            var area = Ui.Box(id, parent, Color.clear);
+            view = area.rectTransform; area.gameObject.AddComponent<RectMask2D>();
+            content = Ui.Rect("content", view);
+            content.pivot = Vector2.up;
+            Ui.Anchor(content, Vector2.up, Vector2.one, Vector2.zero, Vector2.zero);
+            var sc = area.gameObject.AddComponent<ScrollRect>();
+            sc.content = content; sc.viewport = view; sc.horizontal = false;
+            sc.movementType = ScrollRect.MovementType.Clamped;
+            return sc;
         }
     }
 }
