@@ -12,7 +12,7 @@ namespace GuiQin.Net
         public const string Ping = "sys.ping";
         public const string Login = "auth.login";
         public const string EnterGame = "role.enter";
-        public const string SetLook = "role.look";
+        public const string ServerList = "server.list", RoleList = "role.list", RoleCreate = "role.create", RoleDelete = "role.delete";
         public const string Move = "map.move";
         public const string Portal = "map.portal";
         public const string Teleport = "map.teleport";
@@ -56,9 +56,17 @@ namespace GuiQin.Net
     // ------------------------------ 数据 ------------------------------
     // 位置一律是“地图数据坐标”（舞台像素 / scale*k），服务端不用知道客户端的缩放；x、y 为 -1 表示“出生点”。
 
-    public class LoginReq { public string account, token, device, platform, clientVer, dataHash; }
+    // 账号登录（走 HTTPS 网关，WebSocket 连上后再带 token 恢复）；密码只在 TLS 里传，服务端存哈希。游客试玩：account 为空，服务端发一个临时账号。
+    public class LoginReq { public string account, password, token, device, platform, clientVer, dataHash; public bool guest; }
     public class RoleBrief { public string id, name, cls; public int lv; public string map; }
-    public class LoginResp { public string session; public List<RoleBrief> roles; public long serverTime; }
+    public class ServerInfo { public string id, name, status; public int no, roles; }        // status: new / ok / busy / hot / down；roles：这个账号在该区的角色数
+    public class LoginResp { public string session, last; public List<ServerInfo> servers; public long serverTime; }   // last：上次进的区
+
+    public class RoleListReq { public string server; }
+    public class RoleListResp { public List<RoleBrief> roles = new List<RoleBrief>(); }
+    public class RoleCreateReq { public string server, name, cls; }
+    public class RoleCreateResp { public bool ok; public string msg; public RoleBrief role; }
+    public class RoleDeleteReq { public string roleId; }
 
     public class EnterReq { public string roleId; }
     public class RoleState

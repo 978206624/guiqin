@@ -172,7 +172,9 @@ namespace GuiQin
             softB.End(); whiteB.End(); flakeB.End();
         }
 
-        public void SetVisible(bool v) { foreach (var b in new[] { softB, whiteB, flakeB }) b.SetVisible(v); }
+        bool visible = true;
+        public void SetVisible(bool v) { visible = v; ApplyFx(); }
+        public void ApplyFx() { foreach (var b in new[] { softB, whiteB, flakeB }) b.SetVisible(visible && Settings.WeatherFx); }
 
         public void Destroy()
         {

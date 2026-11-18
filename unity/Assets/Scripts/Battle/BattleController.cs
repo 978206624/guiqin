@@ -49,13 +49,16 @@ namespace GuiQin.Battle
             var b = go.AddComponent<BattleController>();
             b.cam = cam; b.view = view; b.send = send; b.onDone = onDone; b.toast = toast; b.Active = true;
             b.Build(uiParent);
+            Time.timeScale = Settings.Speed;                 // 战斗速度：整个战斗按倍速跑（回合倒计时用的是真实时间，不受影响）
             b.StartCoroutine(b.Loop());
             return b;
         }
 
+        void OnDestroy() { Time.timeScale = 1f; }
+
         public void Dispose()
         {
-            Active = false;
+            Active = false; Time.timeScale = 1f;
             if (labels != null) Destroy(labels.gameObject);
             if (ui != null) Destroy(ui.gameObject);
             Destroy(gameObject);
@@ -252,7 +255,7 @@ namespace GuiQin.Battle
                     float left = view.turnSeconds;
                     while (chosen == null && Active)
                     {
-                        left -= Time.deltaTime; clockText.text = Mathf.Max(0, Mathf.CeilToInt(left)).ToString();
+                        left -= Time.unscaledDeltaTime; clockText.text = Mathf.Max(0, Mathf.CeilToInt(left)).ToString();
                         if (left <= 0f) Choose(new BattleCmd { type = "auto" });
                         yield return null;
                     }
@@ -462,7 +465,7 @@ namespace GuiQin.Battle
             Destroy(go);
         }
 
-        void Shake(float power, float dur) { shakePower = power; shakeT = dur; }
+        void Shake(float power, float dur) { if (!Settings.Shake) return; shakePower = power; shakeT = dur; }
         void Banner(string text, float dur) { bannerText.text = text; bannerT = dur; }
 
         void SetHp(BU u, int hp)

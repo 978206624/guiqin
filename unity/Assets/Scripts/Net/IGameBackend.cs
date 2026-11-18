@@ -19,11 +19,13 @@ namespace GuiQin.Net
         void Close();
 
         Task<Result<LoginResp>> Login(LoginReq req);
+        Task<Result<RoleListResp>> RoleList(string server);
+        Task<Result<RoleCreateResp>> RoleCreate(string server, string name, string cls);   // 名字长度 / 重名 / 每区三个角色 / 职业是否开放：都由服务端判
+        Task<Result<Empty>> RoleDelete(string roleId);
         Task<Result<EnterResp>> EnterGame(string roleId);
         Task<Result<MoveResp>> Move(MoveReq req);
         Task<Result<MapChangeResp>> Portal(string from, string to);     // 走传送阵：服务端判任务锁 / 等级
         Task<Result<MapChangeResp>> Teleport(string to);                // 世界地图传送：服务端判等级 / 扣费
-        Task<Result<Empty>> SetLook(string cls);
 
         // 背包 / 装备 / 商店 / 锻造 / 宝石：命令名见 BagCmd，参数用 BagOpReq 的哪几个字段见 InventoryService。返回最新背包（整包覆盖客户端）
         Task<Result<BagResp>> BagOp(string cmd, BagOpReq req);

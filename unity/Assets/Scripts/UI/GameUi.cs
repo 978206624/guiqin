@@ -86,7 +86,7 @@ namespace GuiQin
             Ui.Anchor(bb.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-358, -30), new Vector2(-272, 30));
             var wm = Ui.Btn("world", bar.transform, "世界", 26, new Color(0.45f, 0.3f, 0.12f, 0.95f), () => onWorld());
             Ui.Anchor(wm.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-262, -30), new Vector2(-166, 30));
-            var b = Ui.Btn("menu", bar.transform, "菜单", 26, new Color(0.25f, 0.22f, 0.4f, 0.95f), () => onMenu());
+            var b = Ui.Btn("menu", bar.transform, "设置", 26, new Color(0.25f, 0.22f, 0.4f, 0.95f), () => onMenu());
             Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-150, -30), new Vector2(-16, 30));
         }
         public void SetPlace(string s) { place.text = s; }
@@ -109,36 +109,5 @@ namespace GuiQin
         }
         public void Set(string title, string goal, string chapter) { label.text = "<color=#ffe066><b>" + title + "</b></color>\n" + goal; side.text = chapter; }
         public void SetVisible(bool v) { go.SetActive(v); }
-    }
-
-    // 调试菜单：切地图、切角色外观、重置存档
-    public class DebugMenuUi
-    {
-        readonly GameObject root;
-        public DebugMenuUi(Transform parent, Action<string> goMap, Action nextLook, Action resetSave)
-        {
-            var bg = Ui.Box("debugMenu", parent, new Color(0.04f, 0.04f, 0.08f, 0.94f)); root = bg.gameObject;
-            Ui.Anchor(bg.rectTransform, new Vector2(0, 0), new Vector2(1, 1), new Vector2(40, 140), new Vector2(-40, -110));
-            var title = Ui.Label("title", bg.transform, "菜单（移植过程中的临时入口）", 30, new Color(1f, 0.92f, 0.65f), TextAnchor.UpperCenter);
-            Ui.Anchor(title.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -60), new Vector2(0, -12));
-            int i = 0;
-            foreach (var id in GameData.MapOrder)
-            {
-                GameData.Maps.TryGetValue(id, out var def); if (def == null) continue;
-                string mid = id; int col = i % 2, row = i / 2; i++;
-                var b = Ui.Btn("map_" + id, bg.transform, def.name, 28, new Color(0.22f, 0.3f, 0.45f, 1f), () => { root.SetActive(false); goMap(mid); });
-                Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(0, 1), new Vector2(24 + col * 300, -140 - row * 80), new Vector2(24 + col * 300 + 280, -140 - row * 80 + 66));
-            }
-            var look = Ui.Btn("look", bg.transform, "换角色外观", 28, new Color(0.45f, 0.3f, 0.25f, 1f), () => nextLook());
-            Ui.Anchor(look.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(24, 100), new Vector2(304, 166));
-            var rs = Ui.Btn("reset", bg.transform, "重置存档", 28, new Color(0.5f, 0.2f, 0.2f, 1f), () => { root.SetActive(false); resetSave(); });
-            Ui.Anchor(rs.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(324, 100), new Vector2(604, 166));
-            var close = Ui.Btn("close", bg.transform, "关闭", 28, new Color(0.3f, 0.3f, 0.34f, 1f), () => root.SetActive(false));
-            Ui.Anchor(close.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(24, 20), new Vector2(604, 86));
-            root.SetActive(false);
-        }
-        public void Toggle() { root.SetActive(!root.activeSelf); }
-        public void Close() { root.SetActive(false); }
-        public bool Visible { get { return root.activeSelf; } }
     }
 }

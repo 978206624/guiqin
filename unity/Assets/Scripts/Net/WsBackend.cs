@@ -123,11 +123,13 @@ namespace GuiQin.Net
         }
 
         public Task<Result<LoginResp>> Login(LoginReq req) { return Call<LoginResp>(Cmd.Login, req); }
+        public Task<Result<RoleListResp>> RoleList(string server) { return Call<RoleListResp>(Cmd.RoleList, new RoleListReq { server = server }); }
+        public Task<Result<RoleCreateResp>> RoleCreate(string server, string name, string cls) { return Call<RoleCreateResp>(Cmd.RoleCreate, new RoleCreateReq { server = server, name = name, cls = cls }); }
+        public Task<Result<Empty>> RoleDelete(string roleId) { return Call<Empty>(Cmd.RoleDelete, new RoleDeleteReq { roleId = roleId }); }
         public Task<Result<EnterResp>> EnterGame(string roleId) { return Call<EnterResp>(Cmd.EnterGame, new EnterReq { roleId = roleId }); }
         public Task<Result<MoveResp>> Move(MoveReq req) { return Call<MoveResp>(Cmd.Move, req); }
         public Task<Result<MapChangeResp>> Portal(string from, string to) { return Call<MapChangeResp>(Cmd.Portal, new PortalReq { from = from, to = to }); }
         public Task<Result<MapChangeResp>> Teleport(string to) { return Call<MapChangeResp>(Cmd.Teleport, new TeleportReq { to = to }); }
-        public Task<Result<Empty>> SetLook(string cls) { return Call<Empty>(Cmd.SetLook, new LookReq { cls = cls }); }
         public Task<Result<SectResp>> SectJoin(string sect) { return Call<SectResp>(SectCmd.Join, new SectReq { sect = sect }); }
         public Task<Result<SectResp>> SectHall(string hall) { return Call<SectResp>(SectCmd.Hall, new SectReq { hall = hall }); }
         public Task<Result<MapChangeResp>> Tower(string op) { return Call<MapChangeResp>("tower." + op, null); }

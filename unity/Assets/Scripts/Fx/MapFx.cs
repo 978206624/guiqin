@@ -167,7 +167,9 @@ namespace GuiQin
 
         static Vector2 Rot(Vector2 v, float deg) { float r = deg * Mathf.Deg2Rad, c = Mathf.Cos(r), s = Mathf.Sin(r); return new Vector2(v.x * c - v.y * s, v.x * s + v.y * c); }
 
-        public void SetVisible(bool v) { foreach (var b in new[] { glowB, fogB, petalB, bfB, bsB }) b.SetVisible(v); }
+        bool visible = true;
+        public void SetVisible(bool v) { visible = v; foreach (var b in new[] { glowB, fogB, petalB, bsB }) b.SetVisible(v); ApplyButterflies(); }
+        public void ApplyButterflies() { bfB.SetVisible(visible && Settings.Butterflies); }
 
         public void Destroy()
         {

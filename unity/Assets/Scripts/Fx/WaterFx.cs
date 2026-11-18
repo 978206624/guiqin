@@ -182,6 +182,8 @@ namespace GuiQin
             leafB.End();
         }
 
+        public void SetVisible(bool v) { if (go != null) go.SetActive(v); foreach (var b in new[] { ringB, softB, whiteB, leafB }) if (b != null) b.SetVisible(v); }
+
         public void Destroy()
         {
             foreach (var b in new[] { ringB, softB, whiteB, leafB }) if (b != null && b.Go != null) Object.Destroy(b.Go);

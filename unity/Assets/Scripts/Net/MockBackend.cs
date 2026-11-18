@@ -22,10 +22,39 @@ namespace GuiQin.Net
         public void Close() { }
 
         const int LatencyMs = 40;                  // 模拟一点网络延迟，免得客户端把“瞬间返回”当成理所当然
-        RoleState role = NewRole();
+        RoleState role;                            // 当前进了游戏的角色（EnterGame 之后才有）
 
-        static RoleState NewRole() { return new RoleState { id = "r1", name = "云中客", cls = "dao_ty", lv = 1, map = "village", x = -1f, y = -1f, coin = (int)GameData.Raw["start"]["coin"], bag = InventoryService.NewBag() }; }
-        public void ResetRole() { role = NewRole(); }
+        // ---- 账号 / 区服 / 角色（内存里；真服务器在数据库里）----
+        static readonly ServerInfo[] Servers =
+        {
+            new ServerInfo { id = "s12", no = 12, name = "函谷关", status = "new" }, new ServerInfo { id = "s11", no = 11, name = "骊山", status = "ok" },
+            new ServerInfo { id = "s10", no = 10, name = "阿房", status = "busy" }, new ServerInfo { id = "s9", no = 9, name = "云梦泽", status = "ok" },
+            new ServerInfo { id = "s8", no = 8, name = "巴蜀", status = "busy" }, new ServerInfo { id = "s7", no = 7, name = "陇西", status = "ok" },
+            new ServerInfo { id = "s6", no = 6, name = "邯郸", status = "down" }, new ServerInfo { id = "s5", no = 5, name = "琅琊", status = "ok" },
+            new ServerInfo { id = "s4", no = 4, name = "大梁", status = "busy" }, new ServerInfo { id = "s3", no = 3, name = "郢都", status = "hot" },
+            new ServerInfo { id = "s2", no = 2, name = "临淄", status = "hot" }, new ServerInfo { id = "s1", no = 1, name = "咸阳", status = "hot" }
+        };
+        const int MaxRoles = 3;
+        readonly Dictionary<string, List<RoleState>> zones = new Dictionary<string, List<RoleState>>();
+        string lastServer, enteredServer;
+
+        List<RoleState> Zone(string sid) { List<RoleState> l; if (!zones.TryGetValue(sid, out l)) zones[sid] = l = new List<RoleState>(); return l; }
+
+        static RoleState NewRole(string id, string name, string cls)
+        {
+            var st = GameData.Raw["start"];
+            return new RoleState { id = id, name = name, cls = cls, lv = (int)st["lv"], map = (string)st["map"], x = -1f, y = -1f, coin = (int)st["coin"], bag = InventoryService.NewBag() };
+        }
+        static RoleBrief Brief(RoleState r) { return new RoleBrief { id = r.id, name = r.name, cls = r.cls, lv = r.lv, map = r.map }; }
+
+        // 重新开始：同一个角色回到出生状态（职业回到新手）。只给本地演示后端用；真服务器没有这个命令
+        public void ResetRole()
+        {
+            if (role == null) return;
+            var z = Zone(enteredServer); int i = z.FindIndex(r => r.id == role.id);
+            string baseCls = (string)GameData.Raw["classes"][role.cls]["gender"] == "m" ? "novice_m" : "novice_f";
+            role = NewRole(role.id, role.name, baseCls); if (i >= 0) z[i] = role;
+        }
 
         // 返回给客户端的数据一律深拷贝：Mock 和真服务器一样，客户端拿到的是“副本”，不会和服务端状态共享引用
         static T Clone<T>(T o) { return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(Newtonsoft.Json.JsonConvert.SerializeObject(o)); }
@@ -34,15 +63,42 @@ namespace GuiQin.Net
 
         public Task<Result<LoginResp>> Login(LoginReq req)
         {
-            return Reply(new LoginResp
-            {
-                session = "mock-session",
-                serverTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                roles = new List<RoleBrief> { new RoleBrief { id = role.id, name = role.name, cls = role.cls, lv = role.lv, map = role.map } }
-            });
+            // 真服务器在这里校验账号密码（或游客设备号），返回 session。Mock 谁都放行。
+            var list = new List<ServerInfo>();
+            foreach (var s in Servers) list.Add(new ServerInfo { id = s.id, no = s.no, name = s.name, status = s.status, roles = Zone(s.id).Count });
+            return Reply(new LoginResp { session = "mock-session", last = lastServer, servers = list, serverTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
         }
 
-        public Task<Result<EnterResp>> EnterGame(string roleId) { return Reply(new EnterResp { role = Clone(role) }); }
+        public Task<Result<RoleListResp>> RoleList(string server)
+        {
+            var r = new RoleListResp(); foreach (var x in Zone(server)) r.roles.Add(Brief(x));
+            lastServer = server; return Reply(r);
+        }
+
+        public Task<Result<RoleCreateResp>> RoleCreate(string server, string name, string cls)
+        {
+            var z = Zone(server); name = (name ?? "").Trim();
+            Func<string, Task<Result<RoleCreateResp>>> no = m => Reply(new RoleCreateResp { ok = false, msg = m });
+            if (z.Count >= MaxRoles) return no("每个区最多创建 " + MaxRoles + " 个角色");
+            if (name.Length < 2 || name.Length > 6) return no("名字要 2 到 6 个字");
+            if (z.Exists(r => r.name == name)) return no("这个名字已经用过了");
+            var c = GameData.Raw["classes"][cls];
+            if (c == null || c["hidden"] != null && (bool)c["hidden"]) return no("这个职业还没开放");
+            var role0 = NewRole(server + "-" + Guid.NewGuid().ToString("N").Substring(0, 8), name, cls); z.Add(role0);
+            return Reply(new RoleCreateResp { ok = true, role = Brief(role0) });
+        }
+
+        public Task<Result<Empty>> RoleDelete(string roleId)
+        {
+            foreach (var kv in zones) { int n = kv.Value.RemoveAll(r => r.id == roleId); if (n > 0) { if (role != null && role.id == roleId) role = null; return Reply(new Empty()); } }
+            return Task.FromResult(Result<Empty>.Fail(Code.Protocol, "没有这个角色"));
+        }
+
+        public Task<Result<EnterResp>> EnterGame(string roleId)
+        {
+            foreach (var kv in zones) { var r = kv.Value.Find(x => x.id == roleId); if (r != null) { role = r; enteredServer = kv.Key; battle = null; return Reply(new EnterResp { role = Clone(role) }); } }
+            return Task.FromResult(Result<EnterResp>.Fail(Code.Protocol, "没有这个角色"));
+        }
 
         public Task<Result<MoveResp>> Move(MoveReq req)
         {
@@ -70,7 +126,6 @@ namespace GuiQin.Net
 
         public Task<Result<MapChangeResp>> Teleport(string to) { return Change(to, null); }
 
-        public Task<Result<Empty>> SetLook(string cls) { role.cls = cls; return Reply(new Empty()); }
 
         // ---------------- 门派 / 玄兵塔 ----------------
         public Task<Result<SectResp>> SectJoin(string sect) { if (battle != null) return Task.FromResult(Result<SectResp>.Fail(Code.InBattle, "战斗中")); return Reply(new SectService(role).Join(sect)); }

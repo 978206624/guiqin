@@ -20,11 +20,10 @@ namespace GuiQin
         readonly List<Actor> list = new List<Actor>();
         List<Vector2> route = new List<Vector2>();
         Actor talkTarget;
-        DialogUi dialog; ToastUi toast; HudUi hud; DebugMenuUi menu;
+        DialogUi dialog; ToastUi toast; HudUi hud; SettingsUi menu; FrontUi front;
         WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; BagUi bagUi; QuestUi questUi; ModalUi modal; readonly HashSet<int> preSeen = new HashSet<int>();
         MapFx mapFx; WaterFx waterFx;
         readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
-        string[] looks;
         IGameBackend net; RoleState role; bool entered;
         BattleController battle;
         SpriteRenderer mark; float markT = 99f;
@@ -39,31 +38,56 @@ namespace GuiQin
             BuildCamera(); BuildEventSystem();
             wx = new WeatherSystem(cam);
             BuildUi();
-            var ls = new List<string>();
-            foreach (var k in GameData.Assets.size.Keys) if (k.StartsWith("walk_f_")) ls.Add(k.Substring(7));
-            ls.Sort(); looks = ls.ToArray();
             worldRoot = new GameObject("World").transform;
             CreatePlayerAndPet();
         }
 
-        // 进游戏：登录 → 取角色 → 进入角色所在的地图。状态都来自后端，客户端不存档。
-        async void Start() { await EnterWorld(); }
-
-        async System.Threading.Tasks.Task EnterWorld()
+        // 进游戏前先走登录 → 选区 → 角色界面（FrontUi）；进入角色后状态都来自后端，客户端不存档。
+        void Start()
         {
-            entered = false;
-            if (net != null) net.Close();
             net = BackendFactory.Create();
             net.OnPush += OnPush; net.OnDisconnected += why => toast.Show(why);
-            var lr = await net.Login(new LoginReq { account = SystemInfo.deviceUniqueIdentifier, device = SystemInfo.deviceModel, platform = Application.platform.ToString(), clientVer = Application.version });
-            if (!lr.Ok || lr.data.roles == null || lr.data.roles.Count == 0) { toast.Show("登录失败：" + lr.msg); return; }
-            var er = await net.EnterGame(lr.data.roles[0].id);
-            if (!er.Ok) { toast.Show("进入游戏失败：" + er.msg); return; }
+            Settings.Changed += ApplySettings;
+            ShowWorld(false); front.Open(false);
+        }
+
+        void ApplySettings()
+        {
+            if (waterFx != null) waterFx.SetVisible(Settings.Water);
+            if (mapFx != null) mapFx.ApplyButterflies();
+            wx.ApplyFx();
+        }
+
+        // 角色界面点“进入游戏”：返回 null 表示成功，否则是要显示给玩家的错误文字
+        async System.Threading.Tasks.Task<string> EnterRole(string roleId)
+        {
+            var er = await net.EnterGame(roleId);
+            if (!er.Ok) return "进入游戏失败：" + er.msg;
             role = er.data.role;
             ApplyRoleLook();
             MapDef d; if (!GameData.Maps.TryGetValue(role.map, out d)) role.map = "village";
             LoadMap(role.map, StageAt(role.map, role.x, role.y));
-            entered = true;
+            entered = true; front.Hide(); ShowWorld(true);
+            return null;
+        }
+
+        // 游戏里“切换角色”：退出当前场景，回到角色列表（战斗中不允许）
+        void SwitchRole()
+        {
+            if (battle != null) { toast.Show("战斗中不能切换角色"); return; }
+            menu.Close(); Stop(); entered = false; ClearMap(); map = null;
+            ShowWorld(false); front.Open(true);
+        }
+
+        void ResetRole()
+        {
+            menu.Close();
+            modal.Open("重新开始", "当前角色的等级、装备、任务进度会全部清空，回到新手状态。\n<size=22>（仅本地演示后端可用）</size>", new ModalUi.Btn("重新开始", () =>
+            {
+                var m = net as MockBackend;
+                if (m == null) { toast.Show("只有本地演示后端能重置"); return; }
+                m.ResetRole(); SwitchRole();
+            }, true), new ModalUi.Btn("再想想", null));
         }
 
         // 数据坐标（服务端存的）→ 舞台像素；x<0 表示出生点
@@ -108,10 +132,11 @@ namespace GuiQin
             uiCanvas = Ui.MakeCanvas("UI", 10, transform);
             hud = new HudUi(uiCanvas.transform, () => menu.Toggle(), OpenWeather, OpenWorld, OpenBag);
             questUi = new QuestUi(uiCanvas.transform, QuestGo);
+            front = new FrontUi(uiCanvas.transform, () => modal, () => net, EnterRole);
             modal = new ModalUi(uiCanvas.transform);
             dialog = new DialogUi(uiCanvas.transform);
             toast = new ToastUi(uiCanvas.transform);
-            menu = new DebugMenuUi(uiCanvas.transform, id => GoWorld(id), NextLook, ResetRole);
+            menu = new SettingsUi(uiCanvas.transform, SwitchRole, ResetRole);
             wxUi = new WeatherUi(uiCanvas.transform, wx, () => map != null ? map.Def.name : "");
             worldUi = new WorldMapUi(uiCanvas.transform, GoWorld, () => map != null ? map.Id : "village");
             bagUi = new BagUi(uiCanvas.transform, (c, q) => net.BagOp(c, q), () => role, m => toast.Show(m), () => { });
@@ -123,9 +148,8 @@ namespace GuiQin
         void CreatePlayerAndPet()
         {
             player = Actor.Make<PlayerActor>("player", worldRoot, null, Vector2.zero, 50f);
-            player.Kind = ActorKind.Player; player.Id = "player"; player.DisplayName = "云中客"; player.Title = "【游侠】";
+            player.Kind = ActorKind.Player; player.Id = "player"; player.DisplayName = ""; player.Title = "";
             player.NameColor = new Color(0.54f, 1f, 0.69f); player.Hop = 7f;
-            player.SetLook("dao_ty");
             player.Tag = new TagLabel(tagCanvas.transform); player.SetTag();
 
             var sz = Art.Size("fox");
@@ -136,22 +160,6 @@ namespace GuiQin
             fox.H = sz != null ? sz[1] : 50f;
             var szb = Art.Size("b_fox"); if (szb != null) fox.BackScale = (fox.H + 4f) / szb[1];
             fox.Tag = new TagLabel(tagCanvas.transform); fox.SetTag();
-        }
-
-        // ---------------- 角色（状态在后端）----------------
-        void ResetRole()
-        {
-            var m = net as MockBackend;
-            if (m == null) { toast.Show("只有本地演示后端能重置"); return; }
-            m.ResetRole(); var _ = EnterWorld();
-        }
-
-        void NextLook()
-        {
-            if (looks.Length == 0) return;
-            int i = Array.IndexOf(looks, player.ClassId); player.SetLook(looks[(i + 1) % looks.Length]);
-            player.SetTag(); toast.Show("外观：" + player.ClassId);
-            if (net != null) net.SetLook(player.ClassId);
         }
 
         // ---------------- 载入地图 ----------------
@@ -204,6 +212,7 @@ namespace GuiQin
             }
             waterFx = WaterFx.Create(mapRoot.transform, id, map);
             mapFx = new MapFx(mapRoot.transform, cam.transform, map, cam);
+            ApplySettings();
             fadePolys.Clear();
             if (def.fade != null) foreach (var z in def.fade) { var poly = new Vector2[z.poly.Length]; for (int i = 0; i < poly.Length; i++) poly[i] = new Vector2(z.poly[i][0], z.poly[i][1]); fadePolys.Add(poly); }
             if (def.npcs != null) foreach (var n in def.npcs) AddNpc(n);

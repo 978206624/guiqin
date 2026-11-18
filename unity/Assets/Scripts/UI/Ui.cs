@@ -61,6 +61,19 @@ namespace GuiQin
             return t;
         }
 
+        // 单行输入框（旧版 InputField，带占位字；password=true 时显示成圆点）
+        public static InputField Input(string name, Transform parent, string placeholder, int size, bool password = false, int limit = 0)
+        {
+            var im = Box(name, parent, new Color(0.1f, 0.11f, 0.18f, 0.95f)); var f = im.gameObject.AddComponent<InputField>(); f.targetGraphic = im;
+            var t = Label("text", im.transform, "", size, Color.white, TextAnchor.MiddleLeft); t.horizontalOverflow = HorizontalWrapMode.Overflow; t.supportRichText = false;
+            Anchor(t.rectTransform, Vector2.zero, Vector2.one, new Vector2(16, 4), new Vector2(-16, -4));
+            var ph = Label("ph", im.transform, placeholder, size, new Color(0.55f, 0.58f, 0.7f), TextAnchor.MiddleLeft); ph.fontStyle = FontStyle.Italic;
+            Anchor(ph.rectTransform, Vector2.zero, Vector2.one, new Vector2(16, 4), new Vector2(-16, -4));
+            f.textComponent = t; f.placeholder = ph; f.lineType = InputField.LineType.SingleLine; f.characterLimit = limit;
+            if (password) f.contentType = InputField.ContentType.Password;
+            return f;
+        }
+
         public static Button Btn(string name, Transform parent, string label, int size, Color bg, UnityAction onClick)
         {
             var im = Box(name, parent, bg); var b = im.gameObject.AddComponent<Button>(); b.targetGraphic = im;
