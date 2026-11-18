@@ -85,6 +85,8 @@ namespace GuiQin.Net
         public string petAct = "fox";                 // 出战宠物
         public int bond;                              // 亲密度：打赢一场 +1，升档后宠物气血 / 攻击提高
         public bool ssGift;                           // 神兽体验福利是否领过
+        public string giftDay = "";                   // 每日福利上次领取的日期（服务端日期 yyyy-MM-dd）
+        public Dictionary<string, int> skl = new Dictionary<string, int>();   // 技能修炼：技能 id → 等级
     }
     public class EnterResp { public RoleState role; }
 

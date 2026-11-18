@@ -30,6 +30,7 @@ namespace GuiQin.Battle
         public readonly List<BUnit> Units; public BUnit Player;
         public int Round; public string Over;
         public readonly List<string> PlayerSkills = new List<string>();       // 主角当前能用的技能
+        public Dictionary<string, int> SkillLv;                               // 主角各技能的修炼等级（只有门派职业有）；每升 1 级威力 / 疗效 +12%
         public readonly List<KeyValuePair<string, string>> PlayerAuto = new List<KeyValuePair<string, string>>();   // 职业自动规则 [(技能, 条件)]
         readonly Dictionary<string, SkillDef> skills; readonly Random rng;
         List<BattleEvent> ev;
@@ -139,6 +140,7 @@ namespace GuiQin.Battle
             }
             if (act.type == "defend") { u.Defending = true; Add(new BattleEvent { t = "defend", u = u.Id }); return; }
             var s = Sk(act.skill); if (s == null) return;
+            if (u.Me && SkillLv != null) { int lv; SkillLv.TryGetValue(act.skill, out lv); float km = GuiQin.Train.TrainService.Mul(lv); if (km != 1f) s = s.Scaled(km); }
             BUnit chosen = act.target >= 0 ? Units.FirstOrDefault(x => x.Id == act.target) : null;
             if (s.mp > 0)
             {

@@ -22,7 +22,7 @@ namespace GuiQin
         List<Vector2> route = new List<Vector2>();
         Actor talkTarget;
         DialogUi dialog; ToastUi toast; HudUi hud; SettingsUi menu; FrontUi front;
-        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; SceneMapUi sceneUi; PetUi petUi; BagUi bagUi; QuestUi questUi; ModalUi modal; GameObject netBanner; Text netText; readonly HashSet<int> preSeen = new HashSet<int>();
+        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; SceneMapUi sceneUi; PetUi petUi; TrainUi trainUi; ChatUi chatUi; BagUi bagUi; QuestUi questUi; ModalUi modal; GameObject netBanner; Text netText; readonly HashSet<int> preSeen = new HashSet<int>();
         MapFx mapFx; WaterFx waterFx;
         readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
         IGameBackend net; RoleState role; bool entered;
@@ -65,7 +65,7 @@ namespace GuiQin
         {
             netBanner.SetActive(false); entered = false;
             if (battle != null) { battle.Dispose(); battle = null; }
-            ClearMap(); map = null; menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); petUi.Close(); bagUi.Close(); dialog.Close();
+            ClearMap(); map = null; menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); petUi.Close(); trainUi.Close(); chatUi.Close(); bagUi.Close(); dialog.Close();
             ShowWorld(false);
             modal.Open("连接已断开", string.IsNullOrEmpty(why) ? "和服务器的连接断开了。" : why, new ModalUi.Btn("返回登录", () => { NewNet(); front.Open(false); }));
         }
@@ -98,6 +98,7 @@ namespace GuiQin
             MapDef d; if (!GameData.Maps.TryGetValue(role.map, out d)) role.map = "village";
             hud.ClearMessages();
             LoadMap(role.map, StageAt(role.map, role.x, role.y));
+            await chatUi.LoadHistory();
             entered = true; front.Hide(); ShowWorld(true);
             var br = await net.BattleResume();                      // 上次退出 / 掉线时战斗还没打完：服务端给快照，接着打
             if (br.Ok && br.data != null && br.data.ok) OpenBattle(br.data.battle, null);
@@ -133,6 +134,7 @@ namespace GuiQin
 
         void OnPush(string cmd, Newtonsoft.Json.Linq.JToken data)
         {
+            if (cmd == GuiQin.Chat.ChatCmd.Push) { if (data != null) chatUi.Add(data.ToObject<GuiQin.Chat.ChatMsg>()); return; }
             if (cmd == Cmd.PushKick) OnLost("你已被下线：" + (data != null && data["reason"] != null ? (string)data["reason"] : "账号在别处登录"));
             // push.map / push.weather / push.role：多人同屏、服务端天气、属性变化，后续阶段接
         }
@@ -168,7 +170,7 @@ namespace GuiQin
             aspect.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;
             aspect.aspectRatio = 720f / 1280f;
             hud = new HudUi(uiStage, ToggleSettings, OpenWeather, OpenWorld, OpenBag,
-                OpenRole, OpenPet, OpenSceneMap);
+                OpenRole, OpenPet, OpenSceneMap, OnHudKey);
             questUi = new QuestUi(uiStage, QuestGo);
             front = new FrontUi(uiStage, () => modal, () => net, EnterRole);
             modal = new ModalUi(uiStage);
@@ -184,6 +186,8 @@ namespace GuiQin
             worldUi = new WorldMapUi(uiStage, GoWorld, () => map != null ? map.Id : "village");
             sceneUi = new SceneMapUi(uiStage, OpenWorld);
             petUi = new PetUi(uiStage, () => role, PetRun, m => toast.Show(m));
+            trainUi = new TrainUi(uiStage, () => role, TrainRun, m => toast.Show(m));
+            chatUi = new ChatUi(uiStage, () => net, () => role, hud.AddMessage, m => toast.Show(m));
             bagUi = new BagUi(uiStage, (c, q) => net.BagOp(c, q), () => role, m => toast.Show(m), RefreshHud);
             wx.Changed += (k, announce) => { hud.SetWeather(WeatherSystem.NameOf(k)); if (announce) toast.Show("天气转为 " + WeatherSystem.NameOf(k)); };
             var mk = new GameObject("clickMark"); mk.transform.SetParent(transform, false);
@@ -208,7 +212,7 @@ namespace GuiQin
         }
 
         // ---------------- 载入地图 ----------------
-        bool ModalOpen { get { return menu.Visible || wxUi.Visible || worldUi.Visible || sceneUi.Visible || petUi.Visible || bagUi.Visible || modal.Visible; } }
+        bool ModalOpen { get { return menu.Visible || wxUi.Visible || worldUi.Visible || sceneUi.Visible || petUi.Visible || trainUi.Visible || chatUi.Visible || bagUi.Visible || modal.Visible; } }
 
         void OpenWeather() { if (!wxUi.Visible) { menu.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close(); wxUi.Open(); } else wxUi.Close(); }
         void OpenWorld() { Stop(); menu.Close(); wxUi.Close(); bagUi.Close(); sceneUi.Close(); worldUi.Open(); }
@@ -229,7 +233,67 @@ namespace GuiQin
         void RefreshHud()
         {
             if (role == null) return;
+            hud.SetGiftDot(role.giftDay != ServerToday());
             hud.SetRole(role, GuiQin.Inventory.RoleStats.Compute(role.cls, role.lv, role.bag));
+        }
+
+        static string ServerToday() { return DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-dd"); }       // 每日福利按北京时间换日，和服务端一致
+
+        // ---------------- HUD 快捷入口 ----------------
+        bool wander; float wanderWait;
+
+        void OnHudKey(string key)
+        {
+            if (!entered || battle != null) return;
+            switch (key)
+            {
+                case "act": toast.Show("中秋灯会将在戌时三刻开始"); break;
+                case "gift": DailyGift(); break;
+                case "mall": Stop(); OpenShop("vendor"); break;
+                case "rank": modal.Open("竞技场", "五对五的实时对战，需要对战服务端支持，现在还没有开放。", new ModalUi.Btn("知道了", null)); break;
+                case "guild": OpenChat("guild"); break;
+                case "friend": OpenChat("pm"); break;
+                case "chat": OpenChat("all"); break;
+                case "auto": SetWander(!wander); toast.Show(wander ? "开始挂机闲逛，再点一次停止" : "停止挂机"); break;
+                case "ride": toast.Show("「坐骑」暂未开放"); break;
+                case "potion": QuickPotion(); break;
+            }
+        }
+
+        void OpenChat(string tab) { Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close(); chatUi.Open(tab); }
+
+        void SetWander(bool on) { bool was = wander; wander = on; wanderWait = 0f; hud.SetAuto(on); if (!on && was && player != null) Stop(); }
+
+        void StepWander(float dt)
+        {
+            if (!wander) return;
+            if (ModalOpen || dialog.Visible) { SetWander(false); return; }
+            if (player.Moving) return;
+            wanderWait -= dt;
+            if (wanderWait > 0f) return;
+            wanderWait = 0.6f + UnityEngine.Random.value * 0.8f;
+            var p = player.Pos + new Vector2(UnityEngine.Random.Range(-320f, 320f), UnityEngine.Random.Range(-260f, 260f));
+            if (map.Inside(p)) MoveTo(p, true);
+        }
+
+        async void DailyGift()
+        {
+            var r = await net.BagOp(GuiQin.Inventory.BagCmd.Gift, null);
+            if (!r.Ok) { toast.Show(r.msg); return; }
+            role.bag = r.data.bag; role.coin = r.data.coin;
+            if (r.data.ok) role.giftDay = ServerToday();
+            RefreshHud();
+            if (!string.IsNullOrEmpty(r.data.msg)) toast.Show(r.data.msg);
+        }
+
+        async void QuickPotion()
+        {
+            int n = 0; if (role != null && role.bag != null) role.bag.items.TryGetValue("hp_potion", out n);
+            if (n <= 0) { toast.Show("没有金创药了，找货郎买点吧"); return; }
+            var r = await net.BagOp(GuiQin.Inventory.BagCmd.Use, new GuiQin.Inventory.BagOpReq { id = "hp_potion" });
+            if (!r.Ok) { toast.Show(r.msg); return; }
+            role.bag = r.data.bag; role.coin = r.data.coin; role.hp = r.data.hp; role.mp = r.data.mp; RefreshHud();
+            if (!string.IsNullOrEmpty(r.data.msg)) toast.Show(r.data.msg);
         }
 
         void OpenRole()
@@ -264,6 +328,17 @@ namespace GuiQin
             ApplyPetLook(); RefreshHud();
             return d.msg;
         }
+
+        // 技能修炼：找门主 / 堂主。动作发给后端，结果（技能等级、银两）合进角色
+        async System.Threading.Tasks.Task<string> TrainRun(string who, string id)
+        {
+            var r = await net.Train(who, id);
+            if (!r.Ok) return r.msg;
+            role.skl = r.data.skl; role.coin = r.data.coin; RefreshHud();
+            return r.data.msg;
+        }
+
+        void OpenTrain(string who) { Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close(); trainUi.Open(who); }
 
         async void OpenEnvoy()
         {
@@ -320,7 +395,7 @@ namespace GuiQin
 
         void LoadMap(string id, Vector2? at)
         {
-            ClearMap();
+            ClearMap(); SetWander(false);
             var def = GameData.Maps[id];
             map = new MapRuntime(id, def);
             mapRoot = new GameObject("map_" + id);
@@ -470,7 +545,8 @@ namespace GuiQin
 
         void OpenBattle(BattleView view, Actor foe)
         {
-            Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); petUi.Close(); bagUi.Close();
+            Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); petUi.Close(); trainUi.Close(); bagUi.Close();
+            SetWander(false); chatUi.Close();
             ShowWorld(false);
             hud.SetBattleVisible();
             string bid = view.id;
@@ -732,7 +808,8 @@ namespace GuiQin
             if (!string.IsNullOrEmpty(role.sect))
             {
                 if (role.sect != sect) toast.Show("你已拜入" + other + "，不可再入" + name);
-                else toast.Show(c["joinSect"] != null ? "" : (string)c["name"] == name + "弟子" ? "技能修炼待移植" : "分堂技能请找本堂堂主学习、升级");
+                else if ((string)c["name"] == name + "弟子") OpenTrain("menzhu");
+                else toast.Show("分堂技能请找本堂堂主学习、升级");
                 return;
             }
             if (c["joinSect"] == null) { toast.Show("你已是门派弟子"); return; }
@@ -746,7 +823,7 @@ namespace GuiQin
             bool dao = hall == "qm" || hall == "ty"; string pre = dao ? "dao" : "mo", sectName = dao ? "道家" : "墨家";
             string hname = hall == "qm" ? "琴魔" : hall == "ty" ? "天音" : hall == "ms" ? "猛士" : "遁甲"; var c = Cls(role.cls);
             if (!string.IsNullOrEmpty(role.sect) && role.sect != pre) { toast.Show("你已拜入" + (dao ? "墨家" : "道家")); return; }
-            if (c["joinSect"] == null) { toast.Show((string)c["sect"] == sectName && (string)c["name"] == hname ? "技能修炼待移植" : "你已入另一堂，分堂不可改选"); return; }
+            if (c["joinSect"] == null) { if ((string)c["sect"] == sectName && (string)c["name"] == hname) OpenTrain("hall"); else toast.Show("你已入另一堂，分堂不可改选"); return; }
             if (role.sect != pre) { toast.Show("先去找" + (dao ? "道家门主" : "墨巨子") + "入门（" + GuiQin.Sect.SectService.SectLv + " 级）"); return; }
             string id = GuiQin.Sect.SectService.HallClass(role.cls, hall); if (id == null) { toast.Show("这个堂不收你"); return; }
             var d = Cls(id);
@@ -836,6 +913,7 @@ namespace GuiQin
             if (PointerInput.Down)
             {
                 downOnUi = PointerInput.OverUi();
+                if (!downOnUi) SetWander(false);                          // 自己点地图 = 接管，挂机停
                 holding = !downOnUi && !dialog.Visible;
                 holdAt = time; lastHoldPos = PointerInput.Pos;
             }
@@ -886,9 +964,11 @@ namespace GuiQin
         {
             float dt = Mathf.Min(Time.deltaTime, 0.05f); time += dt;
             if (net != null) net.Tick();
+            chatUi.Tick(dt, entered && battle == null && map != null);
             if (battle != null) { toast.Tick(dt); return; }                // 战斗中：地图那边整个停住
             if (map == null) { toast.Tick(dt); return; }                // 还在登录 / 进图，场景没建好
             HandleInput();
+            StepWander(dt);
             StepPlayer(dt); StepFox(dt);
             hud.SetPosition(player.Pos);
             var target = CamTarget();

@@ -45,6 +45,12 @@ namespace GuiQin.Net
         // 战斗：服务端结算。start 返回战场；cmd 提交主角指令，返回本回合全部事件（客户端按序播放）；打完时 over=true 并带结算
         // 宠物：切换出战 / 神兽使者兑换 / 神兽祭 / 体验福利，命令名见 PetCmd。返回最新宠物状态
         Task<Result<GuiQin.Pets.PetResp>> PetOp(string cmd, string id);
+        // 技能修炼：who = menzhu / hall，id = 技能。服务端判等级 / 银两 / 师父是否教这个，返回最新技能等级和银两
+        Task<Result<GuiQin.Train.TrainResp>> Train(string who, string id);
+        // 聊天：发言（频道 / 字数 / 冷却 / 防刷屏由服务端判）、取历史记录、帮派加入退出。别人的发言走 OnPush("push.chat")
+        Task<Result<GuiQin.Chat.ChatResp>> ChatSend(GuiQin.Chat.ChatSendReq req);
+        Task<Result<GuiQin.Chat.ChatHistResp>> ChatHistory();
+        Task<Result<GuiQin.Chat.ChatResp>> ChatGuild(bool join);
 
         Task<Result<BattleStartResp>> BattleStart(string stageId);
         Task<Result<BattleRoundResp>> BattleAct(string battleId, BattleCmd cmd);

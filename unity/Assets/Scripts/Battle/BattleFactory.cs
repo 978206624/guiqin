@@ -75,13 +75,13 @@ namespace GuiQin.Battle
             units.Add(me);
 
             // 我方：出战宠物（灵狐或已拥有的神兽）；属性和亲密度加成走 PetService，和宠物面板显示的一致
-            string pid = GuiQin.Pets.PetService.ActiveId(role); var dx = D["petDex"][pid]; var ps = GuiQin.Pets.PetService.Stats(role, pid);
-            int pHp = ps.maxHp;
+            string pid = GuiQin.Pets.PetService.ActiveId(role); var dx = D["petDex"][pid]; var pst = GuiQin.Pets.PetService.Stats(role, pid);
+            int pHp = pst.maxHp;
             var pet = new BUnit
             {
                 Id = nextId++, Side = "ally", Row = "pet", Name = (string)dx["name"], Sprite = (string)dx["sprite"], H = F(dx["h"], 62f),
                 Ai = dx["ai"] != null ? (string)dx["ai"] : "fox", MagicAtk = dx["mag"] != null && (bool)dx["mag"],
-                MaxHp = pHp, Hp = pHp, Atk = ps.atk, Matk = ps.matk, Def = ps.def, Mdef = ps.mdef, Spd = ps.spd, Crit = 10f, Dodge = 3f
+                MaxHp = pHp, Hp = pHp, Atk = pst.atk, Matk = pst.matk, Def = pst.def, Mdef = pst.mdef, Spd = pst.spd, Crit = 10f, Dodge = 3f
             };
             if (dx["act"] != null) pet.Kit = dx["act"].Select(a => new KeyValuePair<string, float>((string)a[0], (float)a[1])).ToList();
             if (dx["pas"] != null) pet.Pas = dx["pas"].ToObject<PasDef>();
@@ -90,14 +90,18 @@ namespace GuiQin.Battle
             var eng = new BattleEngine(units, Skills, seed);
             // 主角可用技能：门派职业用自己的技能表，新手用通用表；等级不够的不能用
             var list = cls["skills"] != null ? cls["skills"].Select(x => (string)x).ToList() : D["playerSkills"].Select(x => (string)x).ToList();
-            foreach (var id in list) if (Skills.ContainsKey(id) && Skills[id].lv <= L) eng.PlayerSkills.Add(id);
+            // 门派职业的技能要“学过”才能用（技能修炼）；新手的通用技能仍按人物等级解锁
+            bool table = cls["skills"] != null; GuiQin.Train.TrainService.EnsureSkl(role);
+            Func<string, bool> usable = id => Skills.ContainsKey(id) && (table ? GuiQin.Train.TrainService.Level(role, id) > 0 : Skills[id].lv <= L);
+            foreach (var id in list) if (usable(id)) eng.PlayerSkills.Add(id);
+            if (table) eng.SkillLv = new Dictionary<string, int>(role.skl);
             if (cls["auto"] != null) foreach (var a in cls["auto"]) eng.PlayerAuto.Add(new KeyValuePair<string, string>((string)a[0], (string)a[1]));
 
             var view = new BattleView
             {
                 id = Guid.NewGuid().ToString("N").Substring(0, 8), title = st.name, mode = "pve", bg = null,
                 units = units.Select(u => new UnitView { id = u.Id, side = u.Side, row = u.Row, name = u.Name, sprite = u.Sprite, h = u.H, flip = u.Flip, me = u.Me, boss = u.Boss, hp = u.Hp, maxHp = u.MaxHp, mp = u.Mp, maxMp = u.MaxMp }).ToList(),
-                skills = list.Where(id => Skills.ContainsKey(id)).Select(id => new SkillView { id = id, name = Skills[id].name, target = (Skills[id].heal > 0 || Skills[id].healPow > 0 || Skills[id].revive > 0) && (Skills[id].target ?? "one") == "one" ? "ally" : (Skills[id].target ?? "one"), mp = (int)Skills[id].mp, usable = Skills[id].lv <= L, note = Skills[id].lv <= L ? null : Skills[id].lv + " 级解锁" }).ToList()
+                skills = list.Where(id => Skills.ContainsKey(id)).Select(id => new SkillView { id = id, name = Skills[id].name + (table && usable(id) ? " Lv." + GuiQin.Train.TrainService.Level(role, id) : ""), target = (Skills[id].heal > 0 || Skills[id].healPow > 0 || Skills[id].revive > 0) && (Skills[id].target ?? "one") == "one" ? "ally" : (Skills[id].target ?? "one"), mp = (int)Skills[id].mp, usable = usable(id), note = usable(id) ? null : (table ? "未学习" : Skills[id].lv + " 级解锁") }).ToList()
             };
             return new BattleSession { Id = view.id, StageId = st.id, Engine = eng, View = view, Stage = st };
         }

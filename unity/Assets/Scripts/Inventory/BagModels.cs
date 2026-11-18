@@ -30,6 +30,7 @@ namespace GuiQin.Inventory
         public const string Inlay = "forge.inlay";
         public const string Uninlay = "forge.uninlay";
         public const string Merge = "forge.merge";
+        public const string Gift = "gift.daily";       // 每日福利：银两 + 金创药，一天一次（服务端按日期判）
         public const string Rest = "role.rest";        // 找客栈老板 / 阿秀歇脚：气血法力回满
     }
 }

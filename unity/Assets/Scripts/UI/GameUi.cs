@@ -91,7 +91,7 @@ namespace GuiQin
         readonly Image face, mini;
 
         public HudUi(Transform parent, Action onMenu, Action onWeather, Action onWorld, Action onBag,
-            Action onRole, Action onPet, Action onScene)
+            Action onRole, Action onPet, Action onScene, Action<string> onKey)
         {
             root = Ui.Rect("hud", parent);
             Ui.Anchor(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -138,11 +138,23 @@ namespace GuiQin
             weather = MapButton("weather", "晴", 520, 152, 40, onWeather);
             coin = TownLabel("coin", "", 14, WebUi.Amber, 566, 188, 138, 24);
             WebUi.Edge(coin);
+            // 右侧一列快捷入口（和网页版同样的顺序、位置）：活动 福利 商城 竞技 背包 帮派 好友 设置
+            Shortcut("act", "活动", "icon_act", 219, () => onKey("act"));
+            Shortcut("gift", "福利", "icon_gift", 295, () => onKey("gift"));
+            giftDot = Ui.Box("dot", town, WebUi.C("#ff3b30")); giftDot.sprite = WebUi.Circle(); giftDot.raycastTarget = false; WebUi.At(giftDot.rectTransform, 688, 297, 14, 14);
+            Shortcut("mall", "商城", "icon_mall", 371, () => onKey("mall"));
+            Shortcut("rank", "竞技", "icon_rank", 447, () => onKey("rank"));
             Shortcut("bag", "背包", "icon_bag", 523, onBag);
+            Shortcut("guild", "帮派", "icon_guild", 599, () => onKey("guild"));
+            Shortcut("friend", "好友", "icon_friend", 675, () => onKey("friend"));
             Shortcut("settings", "设置", "icon_gear", 751, onMenu);
+            // 右下角：自动挂机（大）、坐骑、金创药快捷键
+            autoBtn = RoundIcon("auto", "icon_auto", 609, 1143, 86, () => onKey("auto"));
+            RoundIcon("ride", "icon_ride", 534, 1186, 56, () => onKey("ride"));
+            RoundIcon("potion", "icon_potion", 566, 1116, 56, () => onKey("potion"));
 
             var log = WebUi.Panel("systemMessages", town);
-            log.raycastTarget = false;
+            var logBtn = log.gameObject.AddComponent<Button>(); logBtn.targetGraphic = log; logBtn.transition = Selectable.Transition.None; logBtn.onClick.AddListener(() => onKey("chat"));       // 点这块打开聊天
             WebUi.At(log.rectTransform, 10, 1146, 446, 122);
             var heading = Ui.Label("heading", log.transform, "系统消息", 15, WebUi.Light, TextAnchor.MiddleLeft);
             WebUi.At(heading.rectTransform, 12, 6, 420, 21);
@@ -191,6 +203,20 @@ namespace GuiQin
             label.color = WebUi.C("#4a2a10");
             label.resizeTextForBestFit = true; label.resizeTextMinSize = 12; label.resizeTextMaxSize = 20;
             return label;
+        }
+
+        Image giftDot, autoBtn;
+        public void SetGiftDot(bool on) { if (giftDot != null) giftDot.enabled = on; }
+        public void SetAuto(bool on) { if (autoBtn != null) autoBtn.color = on ? WebUi.Amber : WebUi.Gold; }
+
+        Image RoundIcon(string id, string icon, float x, float y, float size, Action click)
+        {
+            var button = Ui.Btn(id, town, "", 14, Color.clear, () => click());
+            WebUi.At((RectTransform)button.transform, x, y, size, size);
+            var ring = Ui.Box("ring", button.transform, WebUi.Gold); ring.sprite = WebUi.Circle(); ring.raycastTarget = false;
+            WebUi.At(ring.rectTransform, 0, 0, size, size);
+            var img = WebUi.Icon("icon", button.transform, icon); WebUi.At(img.rectTransform, 4, 4, size - 8, size - 8);
+            return ring;
         }
 
         void Shortcut(string id, string title, string icon, float y, Action open)

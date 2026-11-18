@@ -33,6 +33,7 @@ namespace GuiQin.Sect
         SectResp Done(string cls, string msg)
         {
             role.cls = cls; role.hp = -1; role.mp = -1;                      // 换职业气血法力回满
+            GuiQin.Train.TrainService.GrantInit(role, cls);                  // 入门送前两个技能 1 级
             return new SectResp { ok = true, msg = msg, cls = cls, sect = role.sect, hp = -1, mp = -1 };
         }
 

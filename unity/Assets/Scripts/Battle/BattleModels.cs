@@ -15,6 +15,9 @@ namespace GuiQin.Battle
         public int lv, cd, hits, absorb, guard, shield, fear, mark, slow, vuln, selfVuln, rage, critUp, mfear;
         public bool magic, fire, melee, cleanse, critAtk, baoti, curse, ss;
         public BleedDef bleed; public HotDef hot; public TeamBuffDef teamBuff;
+
+        // 技能修炼等级带来的威力 / 疗效加成：返回一份缩放后的副本，不动原表
+        public SkillDef Scaled(float k) { var c = (SkillDef)MemberwiseClone(); c.power *= k; c.heal *= k; c.healPow *= k; return c; }
     }
 
     public class PasDef
