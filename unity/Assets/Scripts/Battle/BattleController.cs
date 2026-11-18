@@ -488,6 +488,7 @@ namespace GuiQin.Battle
             }
             else if (end.result == "lose") body.Append("你被抬回了城里。\n找人歇一歇可以回满气血，等级不够就先打前面的敌人。");
             else body.Append("你带着玄晶天狐退开了几步。");
+            if (end.questDone) body.Append("\n任务完成：" + end.questTitle);
             if (!string.IsNullOrEmpty(end.note)) body.Append("\n" + end.note);
             body.Append("\n\n共 " + end.round + " 回合");
             var tx = Ui.Label("body", bg.transform, body.ToString(), 28, new Color(0.9f, 0.93f, 1f), TextAnchor.UpperCenter);

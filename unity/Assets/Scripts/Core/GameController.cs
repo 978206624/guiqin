@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using GuiQin.Net;
+using System.Linq;
 using GuiQin.Battle;
+using GuiQin.Quest;
 
 namespace GuiQin
 {
@@ -19,7 +21,7 @@ namespace GuiQin
         List<Vector2> route = new List<Vector2>();
         Actor talkTarget;
         DialogUi dialog; ToastUi toast; HudUi hud; DebugMenuUi menu;
-        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; BagUi bagUi;
+        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; BagUi bagUi; QuestUi questUi; readonly HashSet<int> preSeen = new HashSet<int>();
         MapFx mapFx; WaterFx waterFx;
         readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
         string[] looks;
@@ -105,6 +107,7 @@ namespace GuiQin
             tagCanvas.GetComponent<UnityEngine.UI.GraphicRaycaster>().enabled = false;
             uiCanvas = Ui.MakeCanvas("UI", 10, transform);
             hud = new HudUi(uiCanvas.transform, () => menu.Toggle(), OpenWeather, OpenWorld, OpenBag);
+            questUi = new QuestUi(uiCanvas.transform, QuestGo);
             dialog = new DialogUi(uiCanvas.transform);
             toast = new ToastUi(uiCanvas.transform);
             menu = new DebugMenuUi(uiCanvas.transform, id => GoWorld(id), NextLook, ResetRole);
@@ -214,6 +217,7 @@ namespace GuiQin
             hud.SetPlace(def.name);
             wx.SetMap(map);
             SnapCamera();
+            SyncStory(); RefreshQuest();
         }
 
         void AddNpc(NpcPlace n)
@@ -305,7 +309,7 @@ namespace GuiQin
             if (!near) return;
             if (n.Kind != ActorKind.Portal) { player.Face = n.Pos.x >= player.Pos.x ? 1 : -1; player.Dir = n.Pos.y < player.Pos.y - 24f ? 'b' : 'f'; }
             if (n.Kind == ActorKind.Portal) Travel(n.Portal);
-            else if (n.Kind == ActorKind.Foe) StartBattle(n);
+            else if (n.Kind == ActorKind.Foe) FoeClick(n);
             else Talk(n);
         }
 
@@ -325,17 +329,26 @@ namespace GuiQin
         void ShowWorld(bool on)
         {
             worldRoot.gameObject.SetActive(on); if (mapRoot != null) mapRoot.SetActive(on);
-            tagCanvas.gameObject.SetActive(on); hud.SetVisible(on); wx.SetVisible(on); if (mapFx != null) mapFx.SetVisible(on);
+            tagCanvas.gameObject.SetActive(on); hud.SetVisible(on); questUi.SetVisible(on); wx.SetVisible(on); if (mapFx != null) mapFx.SetVisible(on);
         }
 
         void EndBattle(BattleEnd end, Actor foe)
         {
             battle.Dispose(); battle = null;
             ShowWorld(true);
-            role.lv = end.lv; RefreshBag();
+            var beat = Cur; bool advanced = end.step != role.step;
+            role.lv = end.lv; role.step = end.step; role.cnt = end.cnt; RefreshBag();
             if (end.result == "lose" && !string.IsNullOrEmpty(end.respawnMap)) { LoadMap(end.respawnMap, null); toast.Show("战败，回到" + map.Def.name); return; }
             if (end.result == "win" && foe != null && foe.StageInfo != null && !foe.StageInfo.tower) { if (foe.Tag != null) foe.Tag.Destroy(); list.Remove(foe); Destroy(foe.gameObject); }
             SnapCamera();
+            SyncStory(); RefreshQuest();
+            if (advanced && beat != null)
+            {
+                var pages = new List<string[]>();
+                if (beat.last) { pages.AddRange(beat.outro); var nx = Cur; if (nx != null && nx.first && !nx.IsTalk) pages.AddRange(nx.accept); }
+                toast.Show(Cur != null ? "任务更新：" + Cur.goal : "第一章已完成，后续剧情敬请期待");
+                if (pages.Count > 0) ShowPages(pages, null);
+            }
         }
 
         // 走传送阵：任务锁 / 等级由服务端判，客户端只显示结果（PortalDef 里的 needQuest 等字段服务端也有一份）
@@ -364,12 +377,154 @@ namespace GuiQin
             }
         }
 
-        void Talk(Actor n)
+        // 和 NPC / 采集点说话：当前任务指向它 → 向服务端报“我找到他了”，服务端判定后推进；否则就是普通对话
+        async void Talk(Actor n)
+        {
+            var b = Cur;
+            if (b != null && b.IsTalk && b.npc == n.Id)
+            {
+                var r = await net.QuestTalk(n.Id);
+                if (!r.Ok) { toast.Show(r.msg); return; }
+                if (r.data.ok) { OnQuestBeat(b, r.data); return; }
+            }
+            TalkIdle(n);
+        }
+
+        void TalkIdle(Actor n)
         {
             var info = n.Info;
             string key = !string.IsNullOrEmpty(info.head) ? info.head : "head_" + n.Id;
             string text = string.IsNullOrEmpty(info.idle) ? "……" : info.idle;
             dialog.Open(n.DisplayName, n.NameColor, Art.One(key, true), text, () => AfterTalk(info));
+        }
+
+        // ---------------- 主线任务 ----------------
+        Beat Cur { get { return StoryBeats.At(role != null ? role.step : 0); } }
+
+        Sprite FaceOf(string who)
+        {
+            if (who == "你") { string k = "head_" + role.cls; return Art.One(Art.Has(k) ? k : "head_player", true); }
+            foreach (var kv in GameData.Npcs)
+                if (!kv.Value.spot && kv.Value.name == who) return Art.One(!string.IsNullOrEmpty(kv.Value.head) ? kv.Value.head : "head_" + kv.Key, true);
+            var sp = GameData.Raw["speakers"] != null ? GameData.Raw["speakers"][who] : null;
+            return sp != null && sp.Type == Newtonsoft.Json.Linq.JTokenType.String ? Art.One((string)sp, true) : null;
+        }
+
+        // 连着播一组对白，点一下下一句；播完调 done
+        void ShowPages(List<string[]> pages, Action done)
+        {
+            int i = 0; Action next = null;
+            next = () =>
+            {
+                if (i >= pages.Count) { if (done != null) done(); return; }
+                var pg = pages[i++]; bool me = pg[0] == "你";
+                dialog.Open(me ? role.name : pg[0], me ? new Color(0.54f, 1f, 0.69f) : new Color(1f, 0.88f, 0.4f), FaceOf(pg[0]), pg[1], next);
+            };
+            next();
+        }
+
+        void ApplyProgress(int step, int cnt, int lv, bool levelUp)
+        {
+            role.step = step; role.cnt = cnt; if (lv > 0) role.lv = lv; if (levelUp) { role.hp = -1; role.mp = -1; }
+        }
+
+        void OnQuestBeat(Beat b, QuestTalkResp d)
+        {
+            ApplyProgress(d.step, d.cnt, d.lv, d.levelUp);
+            var pages = new List<string[]>(); if (b.first) pages.AddRange(b.accept); pages.AddRange(b.pages);
+            ShowPages(pages, () => FinishBeat(b, d));
+        }
+
+        static string RewardText(int exp, int coin, Dictionary<string, int> items)
+        {
+            var parts = new List<string>(); if (exp > 0) parts.Add("经验 +" + exp); if (coin > 0) parts.Add("银两 +" + coin);
+            if (items != null) foreach (var kv in items) { var it = GameData.Raw["items"][kv.Key]; parts.Add((it != null ? (string)it["name"] : kv.Key) + " ×" + kv.Value); }
+            return string.Join("，", parts.ToArray());
+        }
+
+        void FinishBeat(Beat b, QuestTalkResp d)
+        {
+            SyncStory(); RefreshQuest();
+            var pages = new List<string[]>();
+            if (d.done)
+            {
+                pages.AddRange(b.outro);
+                var nx = Cur; if (nx != null && nx.first && !nx.IsTalk) pages.AddRange(nx.accept);        // 下一个任务不是“找人”：顺带播它的接取对白
+                toast.Show(d.levelUp ? "升到 " + role.lv + " 级！气血法力已回满" : "完成「" + b.title + "」：" + RewardText(d.exp, d.coin, d.items));
+                var _ = RefreshBag();
+            }
+            else toast.Show(Cur != null ? "任务更新：" + Cur.goal : "第一章已完成，后续剧情敬请期待");
+            if (!string.IsNullOrEmpty(d.msg)) toast.Show(d.msg);
+            if (pages.Count > 0) ShowPages(pages, null);
+        }
+
+        void FoeClick(Actor foe)
+        {
+            var b = Cur;
+            if (foe.StageInfo != null && foe.StageInfo.story && b != null && b.stage == foe.StageInfo.id && b.pre.Count > 0 && !preSeen.Contains(role.step))
+            { preSeen.Add(role.step); ShowPages(b.pre, () => StartBattle(foe)); return; }
+            StartBattle(foe);
+        }
+
+        // 剧情首领 / 采集点：只在对应任务进行到那一拍时出现在地图上；和首领同名的 NPC 同时藏起来
+        void SyncStory()
+        {
+            if (map == null || role == null) return;
+            var q = Cur;
+            StageDef fs = null; if (q != null && q.type == "fight" && q.map == map.Id) GameData.Stages.TryGetValue(q.stage, out fs);
+            foreach (var a in list) if (a.Kind == ActorKind.Npc && a.Sb < 0) { bool hide = fs != null && a.DisplayName == fs.name; a.Hidden = hide; a.gameObject.SetActive(!hide); }
+            foreach (var a in list.Where(x => x.Sb >= 0 && !(q != null && x.Sb == role.step)).ToList()) { if (a.Tag != null) a.Tag.Destroy(); list.Remove(a); Destroy(a.gameObject); }
+            if (q == null || q.map != map.Id || list.Any(a => a.Sb == role.step)) return;
+            if (q.type == "fight" || q.type == "kill")
+            {
+                int n0 = list.Count; AddFoe(new FoePlace { stage = q.stage, at = q.at, face = 1 });
+                if (list.Count > n0) list[list.Count - 1].Sb = role.step;
+            }
+            else if (q.type == "spot")
+            {
+                var a = Actor.Make<Actor>("spot_" + q.npc, worldRoot, Art.Dot(), map.ToMap(q.at), 0f);
+                a.Body.color = new Color(0.62f, 0.94f, 1f, 0.85f); a.Shadow.enabled = false;
+                a.Kind = ActorKind.Npc; a.Id = q.npc; a.Info = GameData.Npcs[q.npc]; a.DisplayName = q.spot; a.NameColor = new Color(0.62f, 0.94f, 1f); a.H = 40f; a.Sb = role.step;
+                a.Tag = new TagLabel(tagCanvas.transform); a.SetTag(); list.Add(a);
+            }
+        }
+
+        // 任务目标：目标在本图就是那个人；不在本图，指向通往那张图的传送阵
+        Actor QuestTarget()
+        {
+            var q = Cur; if (q == null || map == null) return null;
+            Actor a = q.IsTalk ? list.Find(x => x.Kind == ActorKind.Npc && x.Id == q.npc && x.gameObject.activeSelf) : list.Find(x => x.Sb == role.step);
+            return a ?? HopTo(q.map);
+        }
+
+        Actor HopTo(string target)
+        {
+            if (string.IsNullOrEmpty(target) || target == map.Id) return null;
+            var from = new Dictionary<string, string> { { map.Id, null } }; var queue = new Queue<string>(); queue.Enqueue(map.Id);
+            while (queue.Count > 0)
+            {
+                string m = queue.Dequeue();
+                if (m == target) { string c = m; while (from[c] != map.Id) c = from[c]; return list.Find(a => a.Kind == ActorKind.Portal && a.Portal.to == c); }
+                MapDef md; if (!GameData.Maps.TryGetValue(m, out md) || md.portals == null) continue;
+                foreach (var p in md.portals) if (!from.ContainsKey(p.to)) { from[p.to] = m; queue.Enqueue(p.to); }
+            }
+            return null;
+        }
+
+        void RefreshQuest()
+        {
+            if (role == null) return;
+            var q = Cur;
+            questUi.Set(q != null ? q.title : "江湖路远", q != null ? q.goal + (q.type == "kill" ? "（" + Mathf.Min(role.cnt, q.n) + "/" + q.n + "）" : "") : "第一章已完成，去各处历练升级吧", q != null ? q.chapter : "待续");
+            var tgt = QuestTarget();
+            foreach (var a in list) { bool m = a == tgt; if (a.Marked != m) { a.Marked = m; a.SetTag(); } }
+        }
+
+        void QuestGo()
+        {
+            if (ModalOpen || dialog.Visible || battle != null || !entered) return;
+            var t = QuestTarget() ?? list.Find(a => a.Kind == ActorKind.Portal);
+            if (t != null) { GoTalk(t); toast.Show("自动寻路：" + t.DisplayName); }
         }
 
         // 商店 / 锻造 / 塔 / 竞技场 / 门派：界面还没移植，先提示
@@ -448,6 +603,7 @@ namespace GuiQin
             Actor hit = null;
             foreach (var n in list)
             {
+                if (!n.gameObject.activeSelf) continue;
                 float h = n.Kind == ActorKind.Portal ? n.H : n.H * 1.35f;
                 if (Mathf.Abs(p.x - n.Pos.x) < 54f && p.y < n.Pos.y + 20f && p.y > n.Pos.y - h - 40f) hit = n;
             }
@@ -534,7 +690,7 @@ namespace GuiQin
             var top = Stage.ToWorld(a.Pos) + new Vector3(0f, (a.H + 6f) / Art.PX, 0f);
             Vector3 sp = cam.WorldToScreenPoint(top);
             bool vis = sp.z > 0f && sp.x > -150f && sp.x < Screen.width + 150f && sp.y > -100f && sp.y < Screen.height + 150f;
-            a.Tag.SetVisible(vis);
+            a.Tag.SetVisible(vis && !a.Hidden);
             if (vis) a.Tag.Root.position = new Vector3(sp.x, sp.y, 0f);
         }
     }

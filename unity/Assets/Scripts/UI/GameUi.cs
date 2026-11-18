@@ -94,6 +94,23 @@ namespace GuiQin
         public void SetWeather(string s) { wxLabel.text = s; }
     }
 
+    // 任务栏：挂在顶栏下面，点一下自动寻路到任务目标
+    public class QuestUi
+    {
+        readonly GameObject go; readonly Text label, side;
+        public QuestUi(Transform parent, Action onGo)
+        {
+            var b = Ui.Btn("quest", parent, "", 24, new Color(0.05f, 0.05f, 0.09f, 0.62f), () => onGo()); go = b.gameObject;
+            Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(1, 1), new Vector2(16, -172), new Vector2(-16, -92));
+            label = b.GetComponentInChildren<Text>(); label.alignment = TextAnchor.MiddleLeft; label.supportRichText = true;
+            Ui.Anchor(label.rectTransform, Vector2.zero, Vector2.one, new Vector2(14, 0), new Vector2(-150, 0));
+            side = Ui.Label("side", b.transform, "", 20, new Color(0.7f, 0.75f, 0.9f), TextAnchor.MiddleRight);
+            Ui.Anchor(side.rectTransform, Vector2.zero, Vector2.one, new Vector2(0, 0), new Vector2(-12, 0));
+        }
+        public void Set(string title, string goal, string chapter) { label.text = "<color=#ffe066><b>" + title + "</b></color>\n" + goal; side.text = chapter; }
+        public void SetVisible(bool v) { go.SetActive(v); }
+    }
+
     // 调试菜单：切地图、切角色外观、重置存档
     public class DebugMenuUi
     {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using GuiQin.Battle;
 using GuiQin.Inventory;
+using GuiQin.Quest;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -24,6 +25,9 @@ namespace GuiQin.Net
         static RoleState NewRole() { return new RoleState { id = "r1", name = "云中客", cls = "dao_ty", lv = 1, map = "village", x = -1f, y = -1f, coin = (int)GameData.Raw["start"]["coin"], bag = InventoryService.NewBag() }; }
         public void ResetRole() { role = NewRole(); }
 
+        // 返回给客户端的数据一律深拷贝：Mock 和真服务器一样，客户端拿到的是“副本”，不会和服务端状态共享引用
+        static T Clone<T>(T o) { return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(Newtonsoft.Json.JsonConvert.SerializeObject(o)); }
+
         static async Task<Result<T>> Reply<T>(T data) { await Task.Delay(LatencyMs); return Result<T>.Success(data); }
 
         public Task<Result<LoginResp>> Login(LoginReq req)
@@ -36,7 +40,7 @@ namespace GuiQin.Net
             });
         }
 
-        public Task<Result<EnterResp>> EnterGame(string roleId) { return Reply(new EnterResp { role = role }); }
+        public Task<Result<EnterResp>> EnterGame(string roleId) { return Reply(new EnterResp { role = Clone(role) }); }
 
         public Task<Result<MoveResp>> Move(MoveReq req)
         {
@@ -54,16 +58,24 @@ namespace GuiQin.Net
 
         public Task<Result<MapChangeResp>> Portal(string from, string to)
         {
-            // 真服务器在这里查 PortalDef 的 needQuest / needStep / 等级，不满足就 ok=false + lockMsg。Mock 一律放行。
+            // 传送阵的任务锁在服务端判（needQuest → 对应任务第一拍的序号）。等级限制还没有。
             PortalDef p = null;
             MapDef fd;
             if (GameData.Maps.TryGetValue(from, out fd) && fd.portals != null) p = fd.portals.Find(q => q.to == to);
+            if (p != null) { var lk = new QuestService(role).CheckPortal(p); if (lk != null) return Reply(new MapChangeResp { ok = false, msg = lk, map = role.map }); }
             return Change(to, p != null ? p.arrive : null);
         }
 
         public Task<Result<MapChangeResp>> Teleport(string to) { return Change(to, null); }
 
         public Task<Result<Empty>> SetLook(string cls) { role.cls = cls; return Reply(new Empty()); }
+
+        // ---------------- 任务 ----------------
+        public Task<Result<QuestTalkResp>> QuestTalk(string npc)
+        {
+            if (battle != null) return Task.FromResult(Result<QuestTalkResp>.Fail(Code.InBattle, "战斗中"));
+            return Reply(new QuestService(role).Talk(npc));
+        }
 
         // ---------------- 背包 ----------------
         public async Task<Result<BagResp>> BagOp(string cmd, BagOpReq q)
@@ -88,7 +100,7 @@ namespace GuiQin.Net
                 case BagCmd.Merge: ok = svc.Merge(q.id); break;
                 default: return Result<BagResp>.Fail(Code.Protocol, "未知命令 " + cmd);
             }
-            return Result<BagResp>.Success(new BagResp { ok = ok, msg = svc.Msg, bag = role.bag, coin = role.coin, hp = role.hp, mp = role.mp, star = svc.Star });
+            return Result<BagResp>.Success(new BagResp { ok = ok, msg = svc.Msg, bag = Clone(role.bag), coin = role.coin, hp = role.hp, mp = role.mp, star = svc.Star });
         }
 
         // ---------------- 战斗（参考实现：服务端该做的事都在这里）----------------
@@ -99,7 +111,9 @@ namespace GuiQin.Net
             StageDef st;
             if (battle != null) return Task.FromResult(Result<BattleStartResp>.Fail(Code.InBattle, "已经在战斗中"));
             if (!GameData.Stages.TryGetValue(stageId, out st)) return Task.FromResult(Result<BattleStartResp>.Fail(Code.NoBattle, "这场战斗不存在"));
-            // 真服务器在这里还要校验：敌人是否在角色所在地图、前置关卡（st.need）、塔层数、体力……
+            // 真服务器在这里还要校验：敌人是否在角色所在地图、塔层数、体力……
+            var lock_ = new QuestService(role).CheckStage(st);
+            if (lock_ != null) return Reply(new BattleStartResp { ok = false, msg = lock_ });
             battle = BattleFactory.Create(role, st, Environment.TickCount);
             var inv = new InventoryService(role);
             battle.View.items = inv.Potions();
@@ -126,7 +140,7 @@ namespace GuiQin.Net
         BattleEnd Settle(BattleSession b)
         {
             var eng = b.Engine; var p = eng.Player;
-            var end = new BattleEnd { result = eng.Over, round = eng.Round, lv = role.lv };
+            var end = new BattleEnd { result = eng.Over, round = eng.Round, lv = role.lv, step = role.step, cnt = role.cnt };
             role.hp = Math.Max(1, p.Hp); role.mp = p.Mp;
             var rng = new Random();
             if (eng.Over == "win")
@@ -139,10 +153,19 @@ namespace GuiQin.Net
                     foreach (var d in e["drops"]) if (rng.NextDouble() < (double)d[1]) { string k = (string)d[0]; if (!new InventoryService(role).Give(k, 1)) { end.note = "背包已满，部分战利品丢失"; continue; } int n; end.items.TryGetValue(k, out n); end.items[k] = n + 1; }
                 }
                 end.exp = exp; end.coin = coin;
-                role.coin += coin; role.exp += exp;
-                int need = (int)GameData.Raw["expNeed"]["base"] + (int)GameData.Raw["expNeed"]["perLevel"] * role.lv;
-                while (role.exp >= need) { role.exp -= need; role.lv++; end.levelUp = true; need = (int)GameData.Raw["expNeed"]["base"] + (int)GameData.Raw["expNeed"]["perLevel"] * role.lv; }
-                if (end.levelUp) { role.hp = -1; role.mp = -1; }
+                List<string> lost;
+                end.levelUp = Rewards.Grant(role, exp, coin, null, out lost);
+                // 任务推进：正好是当前任务的战斗拍就往前走（最后一拍的奖励一并发）
+                var qs = new QuestService(role); string killLine; QuestTalkResp done;
+                var beat = qs.OnWin(b.Stage, out killLine, out done);
+                if (beat != null)
+                {
+                    end.levelUp |= done.levelUp;
+                    if (done.done) { end.questDone = true; end.questTitle = beat.title; end.exp += done.exp; end.coin += done.coin; foreach (var kv in done.items) { int n; end.items.TryGetValue(kv.Key, out n); end.items[kv.Key] = n + kv.Value; } }
+                }
+                if (killLine != null) end.note = (end.note != null ? end.note + "　" : "") + killLine;
+                if (b.Stage.tower && b.Stage.n > role.tower) { role.tower = b.Stage.n; end.note = (end.note != null ? end.note + "　" : "") + (b.Stage.n % 10 == 0 ? "本层首领已破，可以找塔内传送师上楼" : "玄兵塔进度 " + b.Stage.n + "/70"); }
+                end.step = role.step; end.cnt = role.cnt;
                 end.lv = role.lv;
                 int heal = new InventoryService(role).PouchHeal();      // 升级已回满时 hp = -1，不会再加
                 if (heal > 0) end.note = (end.note != null ? end.note + "　" : "") + "药囊回血 +" + heal;

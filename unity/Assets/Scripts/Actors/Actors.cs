@@ -24,6 +24,8 @@ namespace GuiQin
         public float Hop = 6f;                   // 走路时的上下起伏（舞台像素）
         public SpriteRenderer Body, Shadow;
         public TagLabel Tag;
+        public int Sb = -1;                      // >=0：剧情临时演员（首领 / 采集点），值是它对应的节拍序号
+        public bool Hidden;                      // 剧情里和首领同名的 NPC：战斗前后只显示一个
         public bool Marked;                      // 头顶感叹号（任务）
         public StageDef StageInfo;               // 敌人：对应的关卡
         public PortalDef Portal;

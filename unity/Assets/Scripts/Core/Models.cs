@@ -55,7 +55,8 @@ namespace GuiQin
     {
         public string id, name, desc;
         public int rec, n;
-        public bool tower;
+        public bool tower, story;
+        public string need;
         public List<string> enemies;
     }
 

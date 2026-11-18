@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using GuiQin.Battle;
 using GuiQin.Inventory;
+using GuiQin.Quest;
 using Newtonsoft.Json.Linq;
 
 namespace GuiQin.Net
@@ -25,6 +26,9 @@ namespace GuiQin.Net
 
         // 背包 / 装备 / 商店 / 锻造 / 宝石：命令名见 BagCmd，参数用 BagOpReq 的哪几个字段见 InventoryService。返回最新背包（整包覆盖客户端）
         Task<Result<BagResp>> BagOp(string cmd, BagOpReq req);
+
+        // 任务：和 NPC / 采集点说话。当前任务对得上就推进一拍（最后一拍发奖励）；对不上 ok=false，客户端走普通对话
+        Task<Result<QuestTalkResp>> QuestTalk(string npc);
 
         // 战斗：服务端结算。start 返回战场；cmd 提交主角指令，返回本回合全部事件（客户端按序播放）；打完时 over=true 并带结算
         Task<Result<BattleStartResp>> BattleStart(string stageId);

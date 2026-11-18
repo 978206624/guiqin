@@ -208,3 +208,16 @@ IGameBackend（Net/IGameBackend.cs）──┬─ MockBackend（本地内存；�
 回包统一是 `BagResp{ok,msg,bag,coin,hp,mp,star}`，客户端整包覆盖本地背包，不做增量合并（少一类同步 bug）。
 真服务器要在这里加：数据库事务、item_flow 流水、锻造随机数用服务端种子、同一玩家命令串行化。
 属性公式（职业×等级+心法+装备×星级+宝石）在 `RoleStats`，客户端只用来显示，战斗里的属性由服务端开战时算。
+
+## 任务 / 主线剧情（R2，已写参考实现）
+
+story.json 的每个任务展平成“节拍”（talk 找人 / spot 采集点 / fight 首领战 / kill 清怪），`role.step` 就是节拍序号，`role.cnt` 是清怪计数，`role.cleared` 是已通关关卡。展平规则客户端和服务端共用（`StoryBeats`）：客户端用它显示任务栏和对白，服务端用它判定。
+
+| 命令 | 请求 | 服务端判定 | 回包 |
+|---|---|---|---|
+| quest.talk | npc | 当前拍是 talk/spot 且 npc 对得上 → step++；任务最后一拍发奖励（经验/银两/物品，可能升级） | QuestTalkResp{ok,step,cnt,lv,exp,coin,items,levelUp,done}；ok=false 表示和任务无关，客户端走普通对话 |
+| map.portal | from,to | 传送阵 needQuest → `step >= 该任务第一拍序号`，否则 ok=false + lockMsg | MapChangeResp |
+| battle.start | stage | 剧情关卡只在对应拍开放；`need` 前置关卡必须已通关 | BattleStartResp{ok,msg} |
+| battle.cmd（结算时） | – | 打赢 → 记通关；正好是当前战斗拍就推进（kill 累计），最后一拍的任务奖励并入战斗奖励；玄兵塔进度 | BattleEnd 带 step / cnt / questDone / questTitle |
+
+对白（pages / pre / accept / outro）只在客户端放，服务端不下发——对白不影响判定。战斗前的“pre”对白每拍只播一次（客户端内存记，不进存档，错过无所谓）。

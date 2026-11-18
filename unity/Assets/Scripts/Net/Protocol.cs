@@ -30,7 +30,7 @@ namespace GuiQin.Net
         public const int Ok = 0;
         public const int Network = -1, Timeout = -2, Protocol = -3;
         public const int Unauthorized = 401, Banned = 403, VersionTooOld = 426, Busy = 429, Server = 500;
-        public const int QuestLocked = 2001, LevelTooLow = 2002, BadMap = 2003;
+        public const int QuestLocked = 2001, LevelTooLow = 2002, BadMap = 2003, StageLocked = 2004;
         public const int BadMove = 3001;
         public const int NoBattle = 4001, InBattle = 4002;
     }
@@ -67,6 +67,8 @@ namespace GuiQin.Net
         public int lv;
         public float x = -1f, y = -1f;
         public int exp, coin, hp = -1, mp = -1;       // hp / mp 为 -1 表示满
+        public int step, cnt, tower;                  // 主线进度（节拍序号 / 清怪计数）、玄兵塔进度
+        public List<string> cleared = new List<string>();   // 已通关的关卡
         public GuiQin.Inventory.BagState bag;         // 背包 / 装备 / 星级 / 宝石
     }
     public class EnterResp { public RoleState role; }
