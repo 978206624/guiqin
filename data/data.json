@@ -47,6 +47,11 @@
    "name": "传说",
    "color": "#ffc857",
    "stars": 5
+  },
+  "5": {
+   "name": "神兽",
+   "color": "#ff8a5a",
+   "stars": 5
   }
  },
  "bondTiers": [
@@ -73,11 +78,13 @@
  ],
  "petDex": {
   "fox": {
-   "name": "灵狐",
-   "sprite": "b_fox",
-   "q": 2,
+   "name": "玄晶天狐",
+   "sprite": "b_ss_bs20",
+   "show": "pd_ss_bs20",
+   "h": 112,
+   "q": 3,
    "kind": "灵兽 · 近战",
-   "desc": "九尾灵狐的幼崽，通人性，会在主人身边寸步不离。",
+   "desc": "白毛九尾、颈缠青色灵带的天狐，足下燃着狐火，通人性，会在主人身边寸步不离。",
    "skills": [
     "bite",
     "foxfire"
@@ -155,6 +162,352 @@
    "kind": "神兽 · 法术",
    "desc": "传说中的赤色小龙，吐息如火，是万中无一的灵宠。",
    "how": "节日活动限定"
+  },
+  "ss_1227": {
+   "q": 5,
+   "ss": true,
+   "ai": "ss",
+   "own": false,
+   "how": "集齐神兽之魂，到神兽使者处兑换",
+   "name": "青龙仙童",
+   "adv": "苍龙仙童",
+   "sprite": "b_ss_1227",
+   "show": "pd_ss_1227",
+   "h": 142,
+   "kind": "神兽 · 物攻 · 迅捷",
+   "desc": "青龙座下的仙童，发间青鬃随水汽翻飞，周身缠着一缕龙灵。",
+   "mult": {
+    "hp": 0.75,
+    "atk": 0.9,
+    "def": 0.7,
+    "spd": 1.35
+   },
+   "act": [
+    [
+     "ss_kl",
+     1
+    ],
+    [
+     "ss_sl_bw",
+     0.5
+    ],
+    [
+     "ss_hit",
+     1
+    ]
+   ],
+   "pas": {
+    "atkMul": 1.35,
+    "vsFear": 1.3,
+    "dbl": 0.15,
+    "revive": 0.6,
+    "take": 0.6
+   },
+   "pasList": [
+    [
+     "龙族本能",
+     "对恐惧状态目标伤害提升 30%，自身攻击提升 35%。"
+    ],
+    [
+     "神龙祝福",
+     "致死时恢复 60% 生命（一场一次），每次攻击 15% 几率双倍伤害。"
+    ],
+    [
+     "龙鳞护体",
+     "降低所受伤害（演示版 -40%）。原作：降低 60% 受伤，死亡后降低所有敌方物防。"
+    ]
+   ]
+  },
+  "ss_1221": {
+   "q": 5,
+   "ss": true,
+   "ai": "ss",
+   "own": false,
+   "how": "集齐神兽之魂，到神兽使者处兑换",
+   "name": "逆天魔龙",
+   "adv": "灭天魔龙",
+   "sprite": "b_ss_1221",
+   "show": "pd_ss_1221",
+   "h": 158,
+   "kind": "神兽 · 物攻 · 耐久",
+   "desc": "逆天而行的魔龙，紫鬃蓝鳞，盘踞云端，吐息间天象皆变。",
+   "mult": {
+    "hp": 0.9,
+    "atk": 0.8,
+    "def": 0.9,
+    "spd": 1.3
+   },
+   "act": [
+    [
+     "ss_qk",
+     0.6
+    ],
+    [
+     "ss_hit",
+     1
+    ]
+   ],
+   "pas": {
+    "lowAtk": 0.2,
+    "ownerAtk": 0.2
+   },
+   "pasList": [
+    [
+     "万魔归宗",
+     "生命低于 30% 时，提升自身 20% 的攻击。"
+    ],
+    [
+     "邪龙附体",
+     "死亡时为主人增加 20% 的攻击力。"
+    ]
+   ]
+  },
+  "ss_1222": {
+   "q": 5,
+   "ss": true,
+   "ai": "ss",
+   "own": false,
+   "how": "集齐神兽之魂，到神兽使者处兑换",
+   "name": "惑天玄姬",
+   "adv": "祸天狐仙",
+   "sprite": "b_ss_1222",
+   "show": "pd_ss_1222",
+   "h": 160,
+   "kind": "神兽 · 物攻 · 迅捷",
+   "desc": "九尾狐族的玄姬，立于紫色法阵之上，卷轴所指之处，万剑齐发。",
+   "mult": {
+    "hp": 0.7,
+    "atk": 0.95,
+    "def": 0.6,
+    "spd": 1.2
+   },
+   "act": [
+    [
+     "ss_sy",
+     1
+    ],
+    [
+     "ss_hit",
+     1
+    ]
+   ],
+   "pas": {
+    "dmgUp": 0.3,
+    "deathWard": 1
+   },
+   "pasList": [
+    [
+     "万剑归宗",
+     "造成的伤害额外提升 30%。"
+    ],
+    [
+     "绝杀咒印",
+     "受到致死伤害时保留 1 点生命并无敌一回合，之后伤害提升 50%（一场一次）。"
+    ]
+   ]
+  },
+  "ss_1223": {
+   "q": 5,
+   "ss": true,
+   "ai": "ss",
+   "own": false,
+   "how": "集齐神兽之魂，到神兽使者处兑换",
+   "name": "小青娘子",
+   "adv": "千年青蛇",
+   "sprite": "b_ss_1223",
+   "show": "pd_ss_1223",
+   "h": 150,
+   "kind": "神兽 · 法攻 · 控制",
+   "mag": true,
+   "desc": "蛇身人面的青衣娘子，手持葫芦灯，吐息如焰，眼波能定人魂魄。",
+   "mult": {
+    "hp": 0.85,
+    "atk": 1,
+    "def": 0.7,
+    "spd": 1.1
+   },
+   "act": [
+    [
+     "ss_tsy",
+     1
+    ],
+    [
+     "ss_sx",
+     1
+    ],
+    [
+     "ss_hit",
+     1
+    ]
+   ],
+   "pas": {
+    "lethalStun": 1
+   },
+   "pasList": [
+    [
+     "蛊心定影",
+     "受到致死伤害时，使对方定身一回合，期间其受到的伤害翻倍（一场一次；演示版中她自己仍会倒下）。"
+    ]
+   ]
+  },
+  "ss_1224": {
+   "q": 5,
+   "ss": true,
+   "ai": "ss",
+   "own": false,
+   "how": "集齐神兽之魂，到神兽使者处兑换",
+   "name": "九天玄女",
+   "adv": "九天圣女",
+   "sprite": "b_ss_1224",
+   "show": "pd_ss_1224",
+   "h": 150,
+   "kind": "神兽 · 法攻 · 辅助",
+   "mag": true,
+   "desc": "头戴金焰光环的玄女，红袍广袖，挥袖间魔光如潮。",
+   "mult": {
+    "hp": 0.9,
+    "atk": 0.85,
+    "def": 0.8,
+    "spd": 1
+   },
+   "act": [
+    [
+     "ss_ts",
+     1
+    ],
+    [
+     "ss_hit",
+     1
+    ]
+   ],
+   "pas": {
+    "take": 0.6,
+    "dodgeUp": 20,
+    "revive": 1,
+    "reviveAtk": 0.2,
+    "reviveText": "移魂转命"
+   },
+   "pasList": [
+    [
+     "九天魔甲",
+     "受到的伤害减少 40%，闪避提高 20%。"
+    ],
+    [
+     "移魂转命",
+     "致死时恢复全部生命并提升 20% 法攻（一场一次）。"
+    ]
+   ]
+  },
+  "ss_1225": {
+   "q": 5,
+   "ss": true,
+   "ai": "ss",
+   "own": false,
+   "how": "集齐神兽之魂，到神兽使者处兑换",
+   "name": "龙翔天兵",
+   "adv": "龙翔神将",
+   "sprite": "b_ss_1225",
+   "show": "pd_ss_1225",
+   "h": 150,
+   "kind": "神兽 · 物攻 · 坚韧",
+   "desc": "金甲红缨的天兵，长枪所指，火焰随行。",
+   "mult": {
+    "hp": 0.85,
+    "atk": 0.9,
+    "def": 0.9,
+    "spd": 1
+   },
+   "act": [
+    [
+     "ss_zw",
+     1
+    ],
+    [
+     "ss_sg",
+     1
+    ],
+    [
+     "ss_hit",
+     1
+    ]
+   ],
+   "pas": {
+    "dbl": 0.2,
+    "hurtStack": {
+     "step": 0.1,
+     "max": 4
+    }
+   },
+   "pasList": [
+    [
+     "神鬼俱焚",
+     "每次攻击有 20% 几率造成双倍伤害。"
+    ],
+    [
+     "仙魔真诀",
+     "每受到一次伤害，伤害减免提高 10%，最多叠加 4 次。"
+    ]
+   ]
+  },
+  "ss_1226": {
+   "q": 5,
+   "ss": true,
+   "ai": "ss",
+   "own": false,
+   "how": "集齐神兽之魂，到神兽使者处兑换",
+   "name": "龙翔帝君",
+   "adv": "龙翔大帝",
+   "sprite": "b_ss_1226",
+   "show": "pd_ss_1226",
+   "h": 165,
+   "kind": "神兽 · 法攻 · 霸体",
+   "mag": true,
+   "desc": "浑身燃着烈焰的帝君，一柄巨斧劈开天火，脚下炎环不灭。",
+   "mult": {
+    "hp": 1,
+    "atk": 1,
+    "def": 0.9,
+    "spd": 0.9
+   },
+   "act": [
+    [
+     "ss_th",
+     1
+    ],
+    [
+     "ss_dy",
+     1
+    ],
+    [
+     "ss_hit",
+     1
+    ]
+   ],
+   "pas": {
+    "baoti": 1,
+    "baotiStart": 5,
+    "atkMul": 1.3,
+    "revive": 0.6,
+    "reviveText": "混元霸体",
+    "hurtAtk": {
+     "step": 0.1,
+     "max": 10
+    }
+   },
+   "pasList": [
+    [
+     "烈战狂歌",
+     "开场获得 5 层霸体，攻击提升 30%。"
+    ],
+    [
+     "混元霸体",
+     "每回合获得 1 层霸体（最多 5 层），每层使受到的伤害 -10%；致死时恢复 60% 生命（一场一次）。"
+    ],
+    [
+     "九域神威",
+     "每受到一次伤害，攻击提升 10%，最多叠加 10 次。"
+    ]
+   ]
   }
  },
  "quality": {
@@ -870,6 +1223,346 @@
     ],
     [
      "dangmo_fs",
+     "always"
+    ]
+   ]
+  },
+  "mo_ms": {
+   "hidden": true,
+   "name": "猛士",
+   "sect": "墨家",
+   "gender": "f",
+   "role": "近战 · 双刃斧",
+   "weapon": "双刃斧",
+   "desc": "墨家猛士堂，双刃斧开山劈岭。流血、易伤、拿命换伤害，血线越险，出手越狠。",
+   "stats": {
+    "攻击": 5,
+    "防御": 2,
+    "速度": 3,
+    "法术": 1,
+    "气血": 3
+   },
+   "mod": {
+    "atk": 1.35,
+    "matk": 0.6,
+    "def": 0.95,
+    "mdef": 0.8,
+    "hp": 1.05,
+    "mp": 0.9
+   },
+   "heart": {
+    "name": "杀气决",
+    "desc": "每级提升物攻 3 点（原作：力量成长）",
+    "perLv": {
+     "atk": 3
+    }
+   },
+   "skills": [
+    "menghu_ms",
+    "potian_ms",
+    "lianzhan",
+    "xueji",
+    "kuanglong"
+   ],
+   "auto": [
+    [
+     "kuanglong",
+     "rageOK"
+    ],
+    [
+     "xueji",
+     "bleeding"
+    ],
+    [
+     "lianzhan",
+     "hpHigh"
+    ],
+    [
+     "potian_ms",
+     "noVuln"
+    ],
+    [
+     "menghu_ms",
+     "always"
+    ]
+   ]
+  },
+  "mo_dj": {
+   "hidden": true,
+   "name": "遁甲",
+   "sect": "墨家",
+   "gender": "f",
+   "role": "近战 · 剑盾",
+   "weapon": "剑盾",
+   "desc": "墨家遁甲堂，剑盾成阵。破甲、鼓舞、吸血，既扛得住也带得动队伍。",
+   "stats": {
+    "攻击": 3,
+    "防御": 5,
+    "速度": 2,
+    "法术": 1,
+    "气血": 5
+   },
+   "mod": {
+    "atk": 1.05,
+    "matk": 0.6,
+    "def": 1.3,
+    "mdef": 1,
+    "hp": 1.25,
+    "mp": 0.95
+   },
+   "heart": {
+    "name": "运气决",
+    "desc": "每级提升物防 4 点、法防 2 点（原作：体质、精神）",
+    "perLv": {
+     "def": 4,
+     "mdef": 2
+    }
+   },
+   "skills": [
+    "menghu_dj",
+    "potian_dj",
+    "pojia",
+    "zhanhun",
+    "cuogu"
+   ],
+   "auto": [
+    [
+     "zhanhun",
+     "teamStart"
+    ],
+    [
+     "cuogu",
+     "selfHurt"
+    ],
+    [
+     "pojia",
+     "noVuln"
+    ],
+    [
+     "potian_dj",
+     "many"
+    ],
+    [
+     "menghu_dj",
+     "always"
+    ]
+   ]
+  },
+  "mo_dz": {
+   "name": "墨家弟子",
+   "gender": "f",
+   "role": "近战 · 剑",
+   "weapon": "长剑",
+   "joinSect": [
+    "mo_ms",
+    "mo_dj"
+   ],
+   "desc": "已拜入墨家、尚未选分堂的弟子，背负长剑。去猛士堂主或遁甲堂主处选定分堂。",
+   "stats": {
+    "攻击": 3,
+    "防御": 3,
+    "速度": 3,
+    "法术": 3,
+    "气血": 3
+   },
+   "sect": "墨家",
+   "hidden": true,
+   "skills": [
+    "menghu_zs",
+    "potian_zs"
+   ],
+   "mod": {
+    "atk": 1.1,
+    "matk": 0.8,
+    "def": 1.05,
+    "mdef": 0.9,
+    "hp": 1.1,
+    "mp": 1
+   },
+   "heart": {
+    "name": "墨家心法",
+    "desc": "每级提升物攻 2 点",
+    "perLv": {
+     "atk": 2
+    }
+   },
+   "auto": [
+    [
+     "potian_zs",
+     "noVuln"
+    ],
+    [
+     "menghu_zs",
+     "always"
+    ]
+   ]
+  },
+  "mo_ms_m": {
+   "hidden": true,
+   "name": "猛士",
+   "sect": "墨家",
+   "gender": "m",
+   "role": "近战 · 双刃斧",
+   "weapon": "双刃斧",
+   "desc": "墨家猛士堂，双刃斧开山劈岭。流血、易伤、拿命换伤害，血线越险，出手越狠。",
+   "stats": {
+    "攻击": 5,
+    "防御": 2,
+    "速度": 3,
+    "法术": 1,
+    "气血": 3
+   },
+   "mod": {
+    "atk": 1.35,
+    "matk": 0.6,
+    "def": 0.95,
+    "mdef": 0.8,
+    "hp": 1.05,
+    "mp": 0.9
+   },
+   "heart": {
+    "name": "杀气决",
+    "desc": "每级提升物攻 3 点（原作：力量成长）",
+    "perLv": {
+     "atk": 3
+    }
+   },
+   "skills": [
+    "menghu_ms",
+    "potian_ms",
+    "lianzhan",
+    "xueji",
+    "kuanglong"
+   ],
+   "auto": [
+    [
+     "kuanglong",
+     "rageOK"
+    ],
+    [
+     "xueji",
+     "bleeding"
+    ],
+    [
+     "lianzhan",
+     "hpHigh"
+    ],
+    [
+     "potian_ms",
+     "noVuln"
+    ],
+    [
+     "menghu_ms",
+     "always"
+    ]
+   ]
+  },
+  "mo_dj_m": {
+   "hidden": true,
+   "name": "遁甲",
+   "sect": "墨家",
+   "gender": "m",
+   "role": "近战 · 剑盾",
+   "weapon": "剑盾",
+   "desc": "墨家遁甲堂，剑盾成阵。破甲、鼓舞、吸血，既扛得住也带得动队伍。",
+   "stats": {
+    "攻击": 3,
+    "防御": 5,
+    "速度": 2,
+    "法术": 1,
+    "气血": 5
+   },
+   "mod": {
+    "atk": 1.05,
+    "matk": 0.6,
+    "def": 1.3,
+    "mdef": 1,
+    "hp": 1.25,
+    "mp": 0.95
+   },
+   "heart": {
+    "name": "运气决",
+    "desc": "每级提升物防 4 点、法防 2 点（原作：体质、精神）",
+    "perLv": {
+     "def": 4,
+     "mdef": 2
+    }
+   },
+   "skills": [
+    "menghu_dj",
+    "potian_dj",
+    "pojia",
+    "zhanhun",
+    "cuogu"
+   ],
+   "auto": [
+    [
+     "zhanhun",
+     "teamStart"
+    ],
+    [
+     "cuogu",
+     "selfHurt"
+    ],
+    [
+     "pojia",
+     "noVuln"
+    ],
+    [
+     "potian_dj",
+     "many"
+    ],
+    [
+     "menghu_dj",
+     "always"
+    ]
+   ]
+  },
+  "mo_dz_m": {
+   "name": "墨家弟子",
+   "gender": "m",
+   "role": "近战 · 剑",
+   "weapon": "长剑",
+   "joinSect": [
+    "mo_ms_m",
+    "mo_dj_m"
+   ],
+   "desc": "已拜入墨家、尚未选分堂的弟子，背负长剑。去猛士堂主或遁甲堂主处选定分堂。",
+   "stats": {
+    "攻击": 3,
+    "防御": 3,
+    "速度": 3,
+    "法术": 3,
+    "气血": 3
+   },
+   "sect": "墨家",
+   "hidden": true,
+   "skills": [
+    "menghu_zs",
+    "potian_zs"
+   ],
+   "mod": {
+    "atk": 1.1,
+    "matk": 0.8,
+    "def": 1.05,
+    "mdef": 0.9,
+    "hp": 1.1,
+    "mp": 1
+   },
+   "heart": {
+    "name": "墨家心法",
+    "desc": "每级提升物攻 2 点",
+    "perLv": {
+     "atk": 2
+    }
+   },
+   "auto": [
+    [
+     "potian_zs",
+     "noVuln"
+    ],
+    [
+     "menghu_zs",
      "always"
     ]
    ]
@@ -1744,6 +2437,14 @@
    "lv": 5,
    "price": 12000,
    "desc": "镶嵌在装备孔里，暴击 +7%。三颗同阶同种可以合成下一阶。"
+  },
+  "ss_soul": {
+   "name": "神兽之魂",
+   "icon": "jade_charm",
+   "q": 4,
+   "type": "mat",
+   "price": 10,
+   "desc": "神兽遗落世间的精魂，集齐后可到神兽使者处兑换神兽（原作需要 99 个，演示版 10 个）。"
   }
  },
  "skills": {
@@ -1820,6 +2521,140 @@
    "magic": true,
    "lv": 10,
    "desc": "单体伤害，并使目标出手速度和闪避下降 2 回合。"
+  },
+  "menghu_zs": {
+   "name": "猛虎纵",
+   "mp": 30,
+   "power": 1.15,
+   "target": "one",
+   "melee": true,
+   "lv": 1,
+   "desc": "纵身扑击，对单体造成物理伤害。"
+  },
+  "potian_zs": {
+   "name": "破天吼",
+   "mp": 45,
+   "power": 0.9,
+   "target": "one",
+   "melee": true,
+   "vuln": 3,
+   "cd": 1,
+   "lv": 1,
+   "desc": "一声长啸，使目标 3 回合内受到的伤害 +30%。"
+  },
+  "menghu_ms": {
+   "name": "猛虎纵",
+   "mp": 35,
+   "power": 1.3,
+   "target": "one",
+   "melee": true,
+   "bleed": {
+    "turns": 3,
+    "pct": 0.05
+   },
+   "lv": 1,
+   "desc": "纵身重击，并使目标流血 3 回合，每回合损失 5% 气血。"
+  },
+  "potian_ms": {
+   "name": "破天吼",
+   "mp": 50,
+   "power": 1,
+   "target": "one",
+   "melee": true,
+   "vuln": 4,
+   "cd": 1,
+   "lv": 3,
+   "desc": "重创单体，并使其 4 回合内受到的伤害 +30%。"
+  },
+  "lianzhan": {
+   "name": "连斩",
+   "mp": 70,
+   "power": 1.95,
+   "target": "one",
+   "melee": true,
+   "selfCost": 0.05,
+   "selfVuln": 1,
+   "cd": 1,
+   "lv": 5,
+   "desc": "三连斩合计 195% 伤害，自身损失 5% 气血，且下回合受伤 +30%。"
+  },
+  "xueji": {
+   "name": "血祭",
+   "mp": 70,
+   "power": 1.45,
+   "vsBleed": 1.7,
+   "target": "one",
+   "melee": true,
+   "selfCost": 0.08,
+   "lv": 8,
+   "desc": "燃血一击，损失 8% 气血；对流血的敌人伤害 ×1.7。"
+  },
+  "kuanglong": {
+   "name": "狂龙吼",
+   "mp": 90,
+   "target": "self",
+   "melee": true,
+   "rage": 2,
+   "cd": 1,
+   "lv": 10,
+   "desc": "舍弃 80% 防御，换取 2 回合伤害 +60%。"
+  },
+  "menghu_dj": {
+   "name": "猛虎纵",
+   "mp": 30,
+   "power": 1.15,
+   "target": "one",
+   "melee": true,
+   "lv": 1,
+   "desc": "纵身扑击，对单体造成物理伤害。"
+  },
+  "potian_dj": {
+   "name": "破天吼",
+   "mp": 70,
+   "power": 0.65,
+   "target": "all",
+   "melee": true,
+   "vuln": 4,
+   "cd": 1,
+   "lv": 3,
+   "desc": "吼声震慑全体敌人，伤害并使其 4 回合内受伤 +30%。"
+  },
+  "pojia": {
+   "name": "破甲",
+   "mp": 55,
+   "power": 1.2,
+   "defDown": 0.3,
+   "vuln": 3,
+   "target": "one",
+   "melee": true,
+   "lv": 5,
+   "desc": "破甲一击，降低目标 30% 防御，并使其 3 回合内受伤 +30%。"
+  },
+  "zhanhun": {
+   "name": "战魂歌",
+   "mp": 100,
+   "target": "allies",
+   "melee": true,
+   "teamBuff": {
+    "turns": 3,
+    "dmg": 0.2,
+    "shield": true
+   },
+   "cd": 3,
+   "lv": 8,
+   "desc": "鼓舞全队：3 回合内伤害 +20%，所受伤害 -30%。"
+  },
+  "cuogu": {
+   "name": "挫骨",
+   "mp": 75,
+   "power": 1.3,
+   "lifesteal": 0.3,
+   "selfCost": 0.04,
+   "target": "one",
+   "melee": true,
+   "cd": 1,
+   "lv": 10,
+   "desc": "挫骨重击，损失 4% 气血；按伤害的 30% 吸取气血。"
   },
   "dangmo_ty": {
    "name": "荡魔曲",
@@ -1944,6 +2779,122 @@
    "mp": 0,
    "power": 1.3,
    "target": "all"
+  },
+  "ss_hit": {
+   "name": "神兽冲击",
+   "mp": 0,
+   "power": 1.1,
+   "target": "one",
+   "ss": true,
+   "des": "以 110% 攻击冲击一名敌人。"
+  },
+  "ss_sl_bw": {
+   "name": "神龙摆尾",
+   "mp": 0,
+   "power": 2.5,
+   "target": "one",
+   "fear": 1,
+   "ss": true,
+   "des": "对目标造成 250% 攻击伤害，使对方恐惧（降低物防，叠加 3 层）。"
+  },
+  "ss_kl": {
+   "name": "亢龙有悔",
+   "mp": 0,
+   "power": 4,
+   "target": "one",
+   "cd": 5,
+   "ss": true,
+   "des": "对目标造成 400% 攻击伤害，冷却 5 回合。（原作附带燃烧目标魔法）"
+  },
+  "ss_qk": {
+   "name": "乾坤逆转",
+   "mp": 0,
+   "power": 1.65,
+   "target": "one",
+   "cd": 5,
+   "selfCost": 0.15,
+   "ss": true,
+   "des": "消耗 15% 最大血量，按 150% 转为物攻，以物攻 110% 对单体造成伤害，冷却 5 回合。"
+  },
+  "ss_sy": {
+   "name": "碎元剑诀",
+   "mp": 0,
+   "power": 2,
+   "target": "one",
+   "hpCut": 0.05,
+   "ss": true,
+   "des": "对目标造成 200% 攻击伤害，并削减对方 5% 生命上限。"
+  },
+  "ss_sx": {
+   "name": "蛇啸焚天",
+   "mp": 0,
+   "power": 2.5,
+   "magic": true,
+   "target": "one",
+   "mfear": 1,
+   "ss": true,
+   "des": "对目标造成 250% 法术伤害，并使其「离魂」：法防降低 10%，持续 3 回合，最多叠加 3 层。"
+  },
+  "ss_tsy": {
+   "name": "天蛇噬血",
+   "mp": 0,
+   "power": 4,
+   "magic": true,
+   "target": "one",
+   "cd": 5,
+   "guard": 2,
+   "ss": true,
+   "des": "对目标造成 400% 法术伤害，自身获得 2 次抵挡（免疫 2 次伤害），冷却 5 回合。（原作另有离魂转血量，演示版省略）"
+  },
+  "ss_ts": {
+   "name": "天魔噬魂",
+   "mp": 0,
+   "power": 0.8,
+   "magic": true,
+   "target": "all",
+   "defDown": 0.3,
+   "ss": true,
+   "des": "对全体敌人造成 80% 法术伤害，并使其物防降低 30%，持续 3 回合。"
+  },
+  "ss_sg": {
+   "name": "双龙逆天",
+   "mp": 0,
+   "power": 1.8,
+   "target": "one",
+   "critUp": 50,
+   "critAtk": true,
+   "ss": true,
+   "des": "暴击率提高 50%，以 180% 攻击斩向单体；暴击后自身攻击提升 15%，最多叠加 3 次。"
+  },
+  "ss_zw": {
+   "name": "真武御体",
+   "mp": 0,
+   "target": "self",
+   "cd": 5,
+   "absorb": 2,
+   "ss": true,
+   "des": "给自己加持血盾：接下来 2 次受到的伤害转化为治疗。冷却 5 回合。"
+  },
+  "ss_th": {
+   "name": "天火燎原",
+   "mp": 0,
+   "power": 4,
+   "magic": true,
+   "target": "one",
+   "cd": 5,
+   "baoti": true,
+   "ss": true,
+   "des": "对目标造成 400% 法术伤害，并消耗全部「霸体」层数，每层使伤害提升 10%。冷却 5 回合。"
+  },
+  "ss_dy": {
+   "name": "都天炎爆",
+   "mp": 0,
+   "power": 2.5,
+   "magic": true,
+   "target": "one",
+   "curse": true,
+   "ss": true,
+   "des": "对目标造成 250% 法术伤害，使其陷入「天罚」：受到伤害 +10%、攻击 -10%，持续 2 回合，最多叠加 2 层。"
   }
  },
  "playerSkills": [
@@ -2243,6 +3194,1413 @@
     ],
     [
      "mp_potion",
+     1
+    ]
+   ],
+   "boss": true
+  },
+  "blxt_m1": {
+   "name": "火灵",
+   "sprite": "boar",
+   "pet": true,
+   "h": 70,
+   "hp": 416,
+   "atk": 69,
+   "def": 20,
+   "spd": 91,
+   "exp": 0,
+   "coin": 0,
+   "drops": []
+  },
+  "blxt_m2": {
+   "name": "云灵",
+   "sprite": "wolf",
+   "pet": true,
+   "h": 70,
+   "hp": 976,
+   "atk": 100,
+   "def": 32,
+   "spd": 96,
+   "exp": 0,
+   "coin": 0,
+   "drops": []
+  },
+  "blxt_m3": {
+   "name": "幽灵",
+   "sprite": "f_tortoise",
+   "pet": true,
+   "h": 70,
+   "hp": 1536,
+   "atk": 131,
+   "def": 45,
+   "spd": 101,
+   "exp": 0,
+   "coin": 0,
+   "drops": []
+  },
+  "blxt_m4": {
+   "name": "阴阳灵",
+   "sprite": "f_dragon",
+   "pet": true,
+   "h": 70,
+   "hp": 2096,
+   "atk": 163,
+   "def": 57,
+   "spd": 106,
+   "exp": 0,
+   "coin": 0,
+   "drops": []
+  },
+  "blxt_m5": {
+   "name": "星灵",
+   "sprite": "boar",
+   "pet": true,
+   "h": 70,
+   "hp": 2656,
+   "atk": 194,
+   "def": 70,
+   "spd": 111,
+   "exp": 0,
+   "coin": 0,
+   "drops": []
+  },
+  "blxt_m6": {
+   "name": "金灵",
+   "sprite": "wolf",
+   "pet": true,
+   "h": 70,
+   "hp": 3216,
+   "atk": 225,
+   "def": 83,
+   "spd": 116,
+   "exp": 0,
+   "coin": 0,
+   "drops": []
+  },
+  "blxt_m7": {
+   "name": "混沌灵",
+   "sprite": "f_dragon",
+   "pet": true,
+   "h": 70,
+   "hp": 3776,
+   "atk": 256,
+   "def": 95,
+   "spd": 121,
+   "exp": 0,
+   "coin": 0,
+   "drops": []
+  },
+  "blxt_1": {
+   "name": "离火剑",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 1040,
+   "atk": 115,
+   "def": 28,
+   "spd": 83,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_2": {
+   "name": "散瘟鞭",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 1180,
+   "atk": 120,
+   "def": 30,
+   "spd": 83,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_3": {
+   "name": "落宝金钱",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 1320,
+   "atk": 126,
+   "def": 31,
+   "spd": 84,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_4": {
+   "name": "列瘟印",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 1460,
+   "atk": 131,
+   "def": 33,
+   "spd": 84,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_5": {
+   "name": "紫金铃",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 1600,
+   "atk": 136,
+   "def": 35,
+   "spd": 85,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_6": {
+   "name": "撞心杵",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 1740,
+   "atk": 141,
+   "def": 37,
+   "spd": 85,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_7": {
+   "name": "风火轮",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 1880,
+   "atk": 146,
+   "def": 39,
+   "spd": 86,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_8": {
+   "name": "酱油瓶",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 2020,
+   "atk": 152,
+   "def": 40,
+   "spd": 86,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_9": {
+   "name": "乾坤针",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 2160,
+   "atk": 157,
+   "def": 42,
+   "spd": 87,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_10": {
+   "name": "斩仙飞刀",
+   "sprite": "boss",
+   "h": 150,
+   "hp": 5520,
+   "atk": 203,
+   "def": 53,
+   "spd": 87,
+   "exp": 300,
+   "coin": 400,
+   "drops": [
+    [
+     "ore",
+     1
+    ],
+    [
+     "mp_potion",
+     1
+    ],
+    [
+     "hp_potion",
+     1
+    ]
+   ],
+   "boss": true
+  },
+  "blxt_11": {
+   "name": "风袋",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 2440,
+   "atk": 167,
+   "def": 46,
+   "spd": 88,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_12": {
+   "name": "梅花镖",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 2580,
+   "atk": 172,
+   "def": 48,
+   "spd": 88,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_13": {
+   "name": "六根清净竹",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 2720,
+   "atk": 178,
+   "def": 49,
+   "spd": 89,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_14": {
+   "name": "雾露乾坤网",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 2860,
+   "atk": 183,
+   "def": 51,
+   "spd": 89,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_15": {
+   "name": "戳目珠",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 3000,
+   "atk": 188,
+   "def": 53,
+   "spd": 90,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_16": {
+   "name": "照妖鉴",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 3140,
+   "atk": 193,
+   "def": 55,
+   "spd": 90,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_17": {
+   "name": "长生根",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 3280,
+   "atk": 198,
+   "def": 57,
+   "spd": 91,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_18": {
+   "name": "伤不旗",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 3420,
+   "atk": 204,
+   "def": 58,
+   "spd": 91,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_19": {
+   "name": "逆鳞枪",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 3560,
+   "atk": 209,
+   "def": 60,
+   "spd": 92,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_20": {
+   "name": "宝莲灯",
+   "sprite": "boss",
+   "h": 150,
+   "hp": 8880,
+   "atk": 268,
+   "def": 74,
+   "spd": 92,
+   "exp": 300,
+   "coin": 400,
+   "drops": [
+    [
+     "ore",
+     1
+    ],
+    [
+     "mp_potion",
+     1
+    ],
+    [
+     "hp_potion",
+     1
+    ]
+   ],
+   "boss": true
+  },
+  "blxt_21": {
+   "name": "万里起云烟",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 3840,
+   "atk": 219,
+   "def": 64,
+   "spd": 93,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_22": {
+   "name": "钻心钉",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 3980,
+   "atk": 224,
+   "def": 66,
+   "spd": 93,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_23": {
+   "name": "万鸦壶",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 4120,
+   "atk": 230,
+   "def": 67,
+   "spd": 94,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_24": {
+   "name": "紫金钵",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 4260,
+   "atk": 235,
+   "def": 69,
+   "spd": 94,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_25": {
+   "name": "定风珠",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 4400,
+   "atk": 240,
+   "def": 71,
+   "spd": 95,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_26": {
+   "name": "魔神甲",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 4540,
+   "atk": 245,
+   "def": 73,
+   "spd": 95,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_27": {
+   "name": "穿天弩",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 4680,
+   "atk": 250,
+   "def": 75,
+   "spd": 96,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_28": {
+   "name": "咆哮梯",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 4820,
+   "atk": 256,
+   "def": 76,
+   "spd": 96,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_29": {
+   "name": "金光锉",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 4960,
+   "atk": 261,
+   "def": 78,
+   "spd": 97,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_30": {
+   "name": "五行旗",
+   "sprite": "boss",
+   "h": 150,
+   "hp": 12240,
+   "atk": 333,
+   "def": 96,
+   "spd": 97,
+   "exp": 300,
+   "coin": 400,
+   "drops": [
+    [
+     "ore",
+     1
+    ],
+    [
+     "mp_potion",
+     1
+    ],
+    [
+     "hp_potion",
+     1
+    ]
+   ],
+   "boss": true
+  },
+  "blxt_31": {
+   "name": "乱心尘",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 5240,
+   "atk": 271,
+   "def": 82,
+   "spd": 98,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_32": {
+   "name": "阴阳二气瓶",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 5380,
+   "atk": 276,
+   "def": 84,
+   "spd": 98,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_33": {
+   "name": "劈地珠",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 5520,
+   "atk": 282,
+   "def": 85,
+   "spd": 99,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_34": {
+   "name": "杏黄旗",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 5660,
+   "atk": 287,
+   "def": 87,
+   "spd": 99,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_35": {
+   "name": "阴阳刃",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 5800,
+   "atk": 292,
+   "def": 89,
+   "spd": 100,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_36": {
+   "name": "穿心锁",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 5940,
+   "atk": 297,
+   "def": 91,
+   "spd": 100,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_37": {
+   "name": "三尖两刃枪",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 6080,
+   "atk": 302,
+   "def": 93,
+   "spd": 101,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_38": {
+   "name": "浮云",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 6220,
+   "atk": 308,
+   "def": 94,
+   "spd": 101,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_39": {
+   "name": "金霞冠",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 6360,
+   "atk": 313,
+   "def": 96,
+   "spd": 102,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_40": {
+   "name": "伏羲琴",
+   "sprite": "boss",
+   "h": 150,
+   "hp": 15600,
+   "atk": 398,
+   "def": 118,
+   "spd": 102,
+   "exp": 300,
+   "coin": 400,
+   "drops": [
+    [
+     "ore",
+     1
+    ],
+    [
+     "mp_potion",
+     1
+    ],
+    [
+     "hp_potion",
+     1
+    ]
+   ],
+   "boss": true
+  },
+  "blxt_41": {
+   "name": "落魂钟",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 6640,
+   "atk": 323,
+   "def": 100,
+   "spd": 103,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_42": {
+   "name": "焰光旗",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 6780,
+   "atk": 328,
+   "def": 102,
+   "spd": 103,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_43": {
+   "name": "化血神刀",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 6920,
+   "atk": 334,
+   "def": 103,
+   "spd": 104,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_44": {
+   "name": "日月珠",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 7060,
+   "atk": 339,
+   "def": 105,
+   "spd": 104,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_45": {
+   "name": "定海珠",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 7200,
+   "atk": 344,
+   "def": 107,
+   "spd": 105,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_46": {
+   "name": "破军",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 7340,
+   "atk": 349,
+   "def": 109,
+   "spd": 105,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_47": {
+   "name": "开天珠",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 7480,
+   "atk": 354,
+   "def": 111,
+   "spd": 106,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_48": {
+   "name": "混元锤",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 7620,
+   "atk": 360,
+   "def": 112,
+   "spd": 106,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_49": {
+   "name": "火星帖",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 7760,
+   "atk": 365,
+   "def": 114,
+   "spd": 107,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_50": {
+   "name": "翻天印",
+   "sprite": "boss",
+   "h": 150,
+   "hp": 18960,
+   "atk": 463,
+   "def": 139,
+   "spd": 107,
+   "exp": 300,
+   "coin": 400,
+   "drops": [
+    [
+     "ore",
+     1
+    ],
+    [
+     "mp_potion",
+     1
+    ],
+    [
+     "hp_potion",
+     1
+    ]
+   ],
+   "boss": true
+  },
+  "blxt_51": {
+   "name": "四象塔",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 8040,
+   "atk": 375,
+   "def": 118,
+   "spd": 108,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_52": {
+   "name": "天荡",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 8180,
+   "atk": 380,
+   "def": 120,
+   "spd": 108,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_53": {
+   "name": "降魔杵",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 8320,
+   "atk": 386,
+   "def": 121,
+   "spd": 109,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_54": {
+   "name": "乾坤圈",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 8460,
+   "atk": 391,
+   "def": 123,
+   "spd": 109,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_55": {
+   "name": "如意乾坤袋",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 8600,
+   "atk": 396,
+   "def": 125,
+   "spd": 110,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_56": {
+   "name": "捆仙绳",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 8740,
+   "atk": 401,
+   "def": 127,
+   "spd": 110,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_57": {
+   "name": "招妖幡",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 8880,
+   "atk": 406,
+   "def": 129,
+   "spd": 111,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_58": {
+   "name": "杯具",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 9020,
+   "atk": 412,
+   "def": 130,
+   "spd": 111,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_59": {
+   "name": "水火锋",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 9160,
+   "atk": 417,
+   "def": 132,
+   "spd": 112,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_60": {
+   "name": "苍刑逆天枪",
+   "sprite": "boss",
+   "h": 150,
+   "hp": 22320,
+   "atk": 528,
+   "def": 161,
+   "spd": 112,
+   "exp": 300,
+   "coin": 400,
+   "drops": [
+    [
+     "ore",
+     1
+    ],
+    [
+     "mp_potion",
+     1
+    ],
+    [
+     "hp_potion",
+     1
+    ]
+   ],
+   "boss": true
+  },
+  "blxt_61": {
+   "name": "黑砂",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 9440,
+   "atk": 427,
+   "def": 136,
+   "spd": 113,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_62": {
+   "name": "混元幡",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 9580,
+   "atk": 432,
+   "def": 138,
+   "spd": 113,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_63": {
+   "name": "乾坤弓",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 9720,
+   "atk": 438,
+   "def": 139,
+   "spd": 114,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_64": {
+   "name": "落魄镜",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 9860,
+   "atk": 443,
+   "def": 141,
+   "spd": 114,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_65": {
+   "name": "听谛印",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 10000,
+   "atk": 448,
+   "def": 143,
+   "spd": 115,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_66": {
+   "name": "照天印",
+   "sprite": "f_tao",
+   "h": 132,
+   "hp": 10140,
+   "atk": 453,
+   "def": 145,
+   "spd": 115,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_67": {
+   "name": "遁龙桩",
+   "sprite": "f_panther",
+   "h": 92,
+   "hp": 10280,
+   "atk": 458,
+   "def": 147,
+   "spd": 116,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_68": {
+   "name": "鸭梨",
+   "sprite": "grunt",
+   "h": 108,
+   "hp": 10420,
+   "atk": 464,
+   "def": 148,
+   "spd": 116,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_69": {
+   "name": "缚龙索",
+   "sprite": "f_spear",
+   "h": 136,
+   "hp": 10560,
+   "atk": 469,
+   "def": 150,
+   "spd": 117,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "boss": false
+  },
+  "blxt_70": {
+   "name": "混沌钟",
+   "sprite": "boss",
+   "h": 150,
+   "hp": 25680,
+   "atk": 593,
+   "def": 182,
+   "spd": 117,
+   "exp": 300,
+   "coin": 400,
+   "drops": [
+    [
+     "ore",
+     1
+    ],
+    [
+     "mp_potion",
+     1
+    ],
+    [
+     "hp_potion",
      1
     ]
    ],
@@ -2550,6 +4908,986 @@
    ],
    "desc": "头目每三回合会使出横扫千军。",
    "need": "path"
+  },
+  {
+   "id": "blxt_1",
+   "tower": true,
+   "n": 1,
+   "floor": 1,
+   "name": "离火剑",
+   "rec": 15,
+   "enemies": [
+    "blxt_1",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「离火剑」。"
+  },
+  {
+   "id": "blxt_2",
+   "tower": true,
+   "n": 2,
+   "floor": 1,
+   "name": "散瘟鞭",
+   "rec": 15,
+   "enemies": [
+    "blxt_2",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「散瘟鞭」。"
+  },
+  {
+   "id": "blxt_3",
+   "tower": true,
+   "n": 3,
+   "floor": 1,
+   "name": "落宝金钱",
+   "rec": 16,
+   "enemies": [
+    "blxt_3",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「落宝金钱」。"
+  },
+  {
+   "id": "blxt_4",
+   "tower": true,
+   "n": 4,
+   "floor": 1,
+   "name": "列瘟印",
+   "rec": 16,
+   "enemies": [
+    "blxt_4",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「列瘟印」。"
+  },
+  {
+   "id": "blxt_5",
+   "tower": true,
+   "n": 5,
+   "floor": 1,
+   "name": "紫金铃",
+   "rec": 17,
+   "enemies": [
+    "blxt_5",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「紫金铃」。"
+  },
+  {
+   "id": "blxt_6",
+   "tower": true,
+   "n": 6,
+   "floor": 1,
+   "name": "撞心杵",
+   "rec": 17,
+   "enemies": [
+    "blxt_6",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「撞心杵」。"
+  },
+  {
+   "id": "blxt_7",
+   "tower": true,
+   "n": 7,
+   "floor": 1,
+   "name": "风火轮",
+   "rec": 18,
+   "enemies": [
+    "blxt_7",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「风火轮」。"
+  },
+  {
+   "id": "blxt_8",
+   "tower": true,
+   "n": 8,
+   "floor": 1,
+   "name": "酱油瓶",
+   "rec": 18,
+   "enemies": [
+    "blxt_8",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「酱油瓶」。"
+  },
+  {
+   "id": "blxt_9",
+   "tower": true,
+   "n": 9,
+   "floor": 1,
+   "name": "乾坤针",
+   "rec": 19,
+   "enemies": [
+    "blxt_9",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「乾坤针」。"
+  },
+  {
+   "id": "blxt_10",
+   "tower": true,
+   "n": 10,
+   "floor": 1,
+   "name": "斩仙飞刀",
+   "rec": 20,
+   "enemies": [
+    "blxt_10",
+    "blxt_m1",
+    "blxt_m1"
+   ],
+   "desc": "玄兵塔第1层的守卫「斩仙飞刀」，是本层首领。"
+  },
+  {
+   "id": "blxt_11",
+   "tower": true,
+   "n": 11,
+   "floor": 2,
+   "name": "风袋",
+   "rec": 20,
+   "enemies": [
+    "blxt_11",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「风袋」。"
+  },
+  {
+   "id": "blxt_12",
+   "tower": true,
+   "n": 12,
+   "floor": 2,
+   "name": "梅花镖",
+   "rec": 21,
+   "enemies": [
+    "blxt_12",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「梅花镖」。"
+  },
+  {
+   "id": "blxt_13",
+   "tower": true,
+   "n": 13,
+   "floor": 2,
+   "name": "六根清净竹",
+   "rec": 21,
+   "enemies": [
+    "blxt_13",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「六根清净竹」。"
+  },
+  {
+   "id": "blxt_14",
+   "tower": true,
+   "n": 14,
+   "floor": 2,
+   "name": "雾露乾坤网",
+   "rec": 22,
+   "enemies": [
+    "blxt_14",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「雾露乾坤网」。"
+  },
+  {
+   "id": "blxt_15",
+   "tower": true,
+   "n": 15,
+   "floor": 2,
+   "name": "戳目珠",
+   "rec": 22,
+   "enemies": [
+    "blxt_15",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「戳目珠」。"
+  },
+  {
+   "id": "blxt_16",
+   "tower": true,
+   "n": 16,
+   "floor": 2,
+   "name": "照妖鉴",
+   "rec": 23,
+   "enemies": [
+    "blxt_16",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「照妖鉴」。"
+  },
+  {
+   "id": "blxt_17",
+   "tower": true,
+   "n": 17,
+   "floor": 2,
+   "name": "长生根",
+   "rec": 23,
+   "enemies": [
+    "blxt_17",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「长生根」。"
+  },
+  {
+   "id": "blxt_18",
+   "tower": true,
+   "n": 18,
+   "floor": 2,
+   "name": "伤不旗",
+   "rec": 24,
+   "enemies": [
+    "blxt_18",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「伤不旗」。"
+  },
+  {
+   "id": "blxt_19",
+   "tower": true,
+   "n": 19,
+   "floor": 2,
+   "name": "逆鳞枪",
+   "rec": 24,
+   "enemies": [
+    "blxt_19",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「逆鳞枪」。"
+  },
+  {
+   "id": "blxt_20",
+   "tower": true,
+   "n": 20,
+   "floor": 2,
+   "name": "宝莲灯",
+   "rec": 25,
+   "enemies": [
+    "blxt_20",
+    "blxt_m2",
+    "blxt_m2"
+   ],
+   "desc": "玄兵塔第2层的守卫「宝莲灯」，是本层首领。"
+  },
+  {
+   "id": "blxt_21",
+   "tower": true,
+   "n": 21,
+   "floor": 3,
+   "name": "万里起云烟",
+   "rec": 26,
+   "enemies": [
+    "blxt_21",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「万里起云烟」。"
+  },
+  {
+   "id": "blxt_22",
+   "tower": true,
+   "n": 22,
+   "floor": 3,
+   "name": "钻心钉",
+   "rec": 26,
+   "enemies": [
+    "blxt_22",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「钻心钉」。"
+  },
+  {
+   "id": "blxt_23",
+   "tower": true,
+   "n": 23,
+   "floor": 3,
+   "name": "万鸦壶",
+   "rec": 27,
+   "enemies": [
+    "blxt_23",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「万鸦壶」。"
+  },
+  {
+   "id": "blxt_24",
+   "tower": true,
+   "n": 24,
+   "floor": 3,
+   "name": "紫金钵",
+   "rec": 27,
+   "enemies": [
+    "blxt_24",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「紫金钵」。"
+  },
+  {
+   "id": "blxt_25",
+   "tower": true,
+   "n": 25,
+   "floor": 3,
+   "name": "定风珠",
+   "rec": 28,
+   "enemies": [
+    "blxt_25",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「定风珠」。"
+  },
+  {
+   "id": "blxt_26",
+   "tower": true,
+   "n": 26,
+   "floor": 3,
+   "name": "魔神甲",
+   "rec": 28,
+   "enemies": [
+    "blxt_26",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「魔神甲」。"
+  },
+  {
+   "id": "blxt_27",
+   "tower": true,
+   "n": 27,
+   "floor": 3,
+   "name": "穿天弩",
+   "rec": 29,
+   "enemies": [
+    "blxt_27",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「穿天弩」。"
+  },
+  {
+   "id": "blxt_28",
+   "tower": true,
+   "n": 28,
+   "floor": 3,
+   "name": "咆哮梯",
+   "rec": 29,
+   "enemies": [
+    "blxt_28",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「咆哮梯」。"
+  },
+  {
+   "id": "blxt_29",
+   "tower": true,
+   "n": 29,
+   "floor": 3,
+   "name": "金光锉",
+   "rec": 30,
+   "enemies": [
+    "blxt_29",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「金光锉」。"
+  },
+  {
+   "id": "blxt_30",
+   "tower": true,
+   "n": 30,
+   "floor": 3,
+   "name": "五行旗",
+   "rec": 31,
+   "enemies": [
+    "blxt_30",
+    "blxt_m3",
+    "blxt_m3"
+   ],
+   "desc": "玄兵塔第3层的守卫「五行旗」，是本层首领。"
+  },
+  {
+   "id": "blxt_31",
+   "tower": true,
+   "n": 31,
+   "floor": 4,
+   "name": "乱心尘",
+   "rec": 31,
+   "enemies": [
+    "blxt_31",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「乱心尘」。"
+  },
+  {
+   "id": "blxt_32",
+   "tower": true,
+   "n": 32,
+   "floor": 4,
+   "name": "阴阳二气瓶",
+   "rec": 32,
+   "enemies": [
+    "blxt_32",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「阴阳二气瓶」。"
+  },
+  {
+   "id": "blxt_33",
+   "tower": true,
+   "n": 33,
+   "floor": 4,
+   "name": "劈地珠",
+   "rec": 32,
+   "enemies": [
+    "blxt_33",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「劈地珠」。"
+  },
+  {
+   "id": "blxt_34",
+   "tower": true,
+   "n": 34,
+   "floor": 4,
+   "name": "杏黄旗",
+   "rec": 33,
+   "enemies": [
+    "blxt_34",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「杏黄旗」。"
+  },
+  {
+   "id": "blxt_35",
+   "tower": true,
+   "n": 35,
+   "floor": 4,
+   "name": "阴阳刃",
+   "rec": 33,
+   "enemies": [
+    "blxt_35",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「阴阳刃」。"
+  },
+  {
+   "id": "blxt_36",
+   "tower": true,
+   "n": 36,
+   "floor": 4,
+   "name": "穿心锁",
+   "rec": 34,
+   "enemies": [
+    "blxt_36",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「穿心锁」。"
+  },
+  {
+   "id": "blxt_37",
+   "tower": true,
+   "n": 37,
+   "floor": 4,
+   "name": "三尖两刃枪",
+   "rec": 34,
+   "enemies": [
+    "blxt_37",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「三尖两刃枪」。"
+  },
+  {
+   "id": "blxt_38",
+   "tower": true,
+   "n": 38,
+   "floor": 4,
+   "name": "浮云",
+   "rec": 35,
+   "enemies": [
+    "blxt_38",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「浮云」。"
+  },
+  {
+   "id": "blxt_39",
+   "tower": true,
+   "n": 39,
+   "floor": 4,
+   "name": "金霞冠",
+   "rec": 35,
+   "enemies": [
+    "blxt_39",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「金霞冠」。"
+  },
+  {
+   "id": "blxt_40",
+   "tower": true,
+   "n": 40,
+   "floor": 4,
+   "name": "伏羲琴",
+   "rec": 36,
+   "enemies": [
+    "blxt_40",
+    "blxt_m4",
+    "blxt_m4"
+   ],
+   "desc": "玄兵塔第4层的守卫「伏羲琴」，是本层首领。"
+  },
+  {
+   "id": "blxt_41",
+   "tower": true,
+   "n": 41,
+   "floor": 5,
+   "name": "落魂钟",
+   "rec": 37,
+   "enemies": [
+    "blxt_41",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「落魂钟」。"
+  },
+  {
+   "id": "blxt_42",
+   "tower": true,
+   "n": 42,
+   "floor": 5,
+   "name": "焰光旗",
+   "rec": 37,
+   "enemies": [
+    "blxt_42",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「焰光旗」。"
+  },
+  {
+   "id": "blxt_43",
+   "tower": true,
+   "n": 43,
+   "floor": 5,
+   "name": "化血神刀",
+   "rec": 38,
+   "enemies": [
+    "blxt_43",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「化血神刀」。"
+  },
+  {
+   "id": "blxt_44",
+   "tower": true,
+   "n": 44,
+   "floor": 5,
+   "name": "日月珠",
+   "rec": 38,
+   "enemies": [
+    "blxt_44",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「日月珠」。"
+  },
+  {
+   "id": "blxt_45",
+   "tower": true,
+   "n": 45,
+   "floor": 5,
+   "name": "定海珠",
+   "rec": 39,
+   "enemies": [
+    "blxt_45",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「定海珠」。"
+  },
+  {
+   "id": "blxt_46",
+   "tower": true,
+   "n": 46,
+   "floor": 5,
+   "name": "破军",
+   "rec": 39,
+   "enemies": [
+    "blxt_46",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「破军」。"
+  },
+  {
+   "id": "blxt_47",
+   "tower": true,
+   "n": 47,
+   "floor": 5,
+   "name": "开天珠",
+   "rec": 40,
+   "enemies": [
+    "blxt_47",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「开天珠」。"
+  },
+  {
+   "id": "blxt_48",
+   "tower": true,
+   "n": 48,
+   "floor": 5,
+   "name": "混元锤",
+   "rec": 40,
+   "enemies": [
+    "blxt_48",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「混元锤」。"
+  },
+  {
+   "id": "blxt_49",
+   "tower": true,
+   "n": 49,
+   "floor": 5,
+   "name": "火星帖",
+   "rec": 41,
+   "enemies": [
+    "blxt_49",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「火星帖」。"
+  },
+  {
+   "id": "blxt_50",
+   "tower": true,
+   "n": 50,
+   "floor": 5,
+   "name": "翻天印",
+   "rec": 42,
+   "enemies": [
+    "blxt_50",
+    "blxt_m5",
+    "blxt_m5"
+   ],
+   "desc": "玄兵塔第5层的守卫「翻天印」，是本层首领。"
+  },
+  {
+   "id": "blxt_51",
+   "tower": true,
+   "n": 51,
+   "floor": 6,
+   "name": "四象塔",
+   "rec": 42,
+   "enemies": [
+    "blxt_51",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「四象塔」。"
+  },
+  {
+   "id": "blxt_52",
+   "tower": true,
+   "n": 52,
+   "floor": 6,
+   "name": "天荡",
+   "rec": 43,
+   "enemies": [
+    "blxt_52",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「天荡」。"
+  },
+  {
+   "id": "blxt_53",
+   "tower": true,
+   "n": 53,
+   "floor": 6,
+   "name": "降魔杵",
+   "rec": 43,
+   "enemies": [
+    "blxt_53",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「降魔杵」。"
+  },
+  {
+   "id": "blxt_54",
+   "tower": true,
+   "n": 54,
+   "floor": 6,
+   "name": "乾坤圈",
+   "rec": 44,
+   "enemies": [
+    "blxt_54",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「乾坤圈」。"
+  },
+  {
+   "id": "blxt_55",
+   "tower": true,
+   "n": 55,
+   "floor": 6,
+   "name": "如意乾坤袋",
+   "rec": 44,
+   "enemies": [
+    "blxt_55",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「如意乾坤袋」。"
+  },
+  {
+   "id": "blxt_56",
+   "tower": true,
+   "n": 56,
+   "floor": 6,
+   "name": "捆仙绳",
+   "rec": 45,
+   "enemies": [
+    "blxt_56",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「捆仙绳」。"
+  },
+  {
+   "id": "blxt_57",
+   "tower": true,
+   "n": 57,
+   "floor": 6,
+   "name": "招妖幡",
+   "rec": 45,
+   "enemies": [
+    "blxt_57",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「招妖幡」。"
+  },
+  {
+   "id": "blxt_58",
+   "tower": true,
+   "n": 58,
+   "floor": 6,
+   "name": "杯具",
+   "rec": 46,
+   "enemies": [
+    "blxt_58",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「杯具」。"
+  },
+  {
+   "id": "blxt_59",
+   "tower": true,
+   "n": 59,
+   "floor": 6,
+   "name": "水火锋",
+   "rec": 46,
+   "enemies": [
+    "blxt_59",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「水火锋」。"
+  },
+  {
+   "id": "blxt_60",
+   "tower": true,
+   "n": 60,
+   "floor": 6,
+   "name": "苍刑逆天枪",
+   "rec": 47,
+   "enemies": [
+    "blxt_60",
+    "blxt_m6",
+    "blxt_m6"
+   ],
+   "desc": "玄兵塔第6层的守卫「苍刑逆天枪」，是本层首领。"
+  },
+  {
+   "id": "blxt_61",
+   "tower": true,
+   "n": 61,
+   "floor": 7,
+   "name": "黑砂",
+   "rec": 48,
+   "enemies": [
+    "blxt_61",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「黑砂」。"
+  },
+  {
+   "id": "blxt_62",
+   "tower": true,
+   "n": 62,
+   "floor": 7,
+   "name": "混元幡",
+   "rec": 48,
+   "enemies": [
+    "blxt_62",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「混元幡」。"
+  },
+  {
+   "id": "blxt_63",
+   "tower": true,
+   "n": 63,
+   "floor": 7,
+   "name": "乾坤弓",
+   "rec": 49,
+   "enemies": [
+    "blxt_63",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「乾坤弓」。"
+  },
+  {
+   "id": "blxt_64",
+   "tower": true,
+   "n": 64,
+   "floor": 7,
+   "name": "落魄镜",
+   "rec": 49,
+   "enemies": [
+    "blxt_64",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「落魄镜」。"
+  },
+  {
+   "id": "blxt_65",
+   "tower": true,
+   "n": 65,
+   "floor": 7,
+   "name": "听谛印",
+   "rec": 50,
+   "enemies": [
+    "blxt_65",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「听谛印」。"
+  },
+  {
+   "id": "blxt_66",
+   "tower": true,
+   "n": 66,
+   "floor": 7,
+   "name": "照天印",
+   "rec": 50,
+   "enemies": [
+    "blxt_66",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「照天印」。"
+  },
+  {
+   "id": "blxt_67",
+   "tower": true,
+   "n": 67,
+   "floor": 7,
+   "name": "遁龙桩",
+   "rec": 51,
+   "enemies": [
+    "blxt_67",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「遁龙桩」。"
+  },
+  {
+   "id": "blxt_68",
+   "tower": true,
+   "n": 68,
+   "floor": 7,
+   "name": "鸭梨",
+   "rec": 51,
+   "enemies": [
+    "blxt_68",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「鸭梨」。"
+  },
+  {
+   "id": "blxt_69",
+   "tower": true,
+   "n": 69,
+   "floor": 7,
+   "name": "缚龙索",
+   "rec": 52,
+   "enemies": [
+    "blxt_69",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「缚龙索」。"
+  },
+  {
+   "id": "blxt_70",
+   "tower": true,
+   "n": 70,
+   "floor": 7,
+   "name": "混沌钟",
+   "rec": 53,
+   "enemies": [
+    "blxt_70",
+    "blxt_m7",
+    "blxt_m7"
+   ],
+   "desc": "玄兵塔第7层的守卫「混沌钟」，是本层首领。"
   }
  ],
  "quests": [],
@@ -2557,14 +5895,6 @@
   "clear": {
    "name": "晴",
    "desc": "天朗气清，适合赶路。"
-  },
-  "cloudy": {
-   "name": "多云",
-   "desc": "云层压得很低，光线有些暗。"
-  },
-  "fog": {
-   "name": "薄雾",
-   "desc": "雾气弥漫，远处的屋檐若隐若现。"
   },
   "rain": {
    "name": "小雨",
@@ -2585,68 +5915,48 @@
   "byMap": {
    "village": {
     "clear": 4,
-    "cloudy": 3,
-    "fog": 3,
     "rain": 2,
     "snow": 1
    },
    "town": {
     "clear": 5,
-    "cloudy": 2,
     "rain": 2,
     "storm": 1
    },
    "pine": {
     "clear": 4,
-    "cloudy": 3,
-    "rain": 2,
-    "fog": 1
+    "rain": 2
    },
    "wolfvalley": {
     "clear": 2,
-    "cloudy": 4,
-    "fog": 2,
     "storm": 2
    },
    "taixuforest": {
     "clear": 4,
-    "cloudy": 3,
-    "fog": 3,
     "rain": 2
    },
    "taixupeak": {
     "clear": 5,
-    "cloudy": 3,
     "rain": 1
    },
    "taixuvalley": {
     "clear": 2,
-    "cloudy": 3,
-    "fog": 4,
     "rain": 2
    },
    "mist": {
     "clear": 2,
-    "cloudy": 3,
-    "fog": 4,
     "rain": 2
    },
    "creek": {
     "clear": 4,
-    "cloudy": 2,
-    "fog": 3,
     "rain": 3
    },
    "outskirts": {
     "clear": 4,
-    "cloudy": 2,
-    "fog": 2,
     "rain": 2
    },
    "wild": {
     "clear": 3,
-    "cloudy": 2,
-    "fog": 3,
     "rain": 3,
     "storm": 1
    }
@@ -2740,7 +6050,7 @@
    "这{weather}天气，赶路真舒服",
    "{weather}天，窝在聚贤楼喝茶最合适了",
    "有没有人一起刷山贼寨？头目掉的东西不错[酷]",
-   "求问：灵狐怎么养？",
+   "求问：玄晶天狐怎么养？",
    "剑姬的连击是真的快，羡慕",
    "刚升到新等级，气血又涨了不少",
    "竞技场五对五，大家有推荐的阵容吗",
@@ -2870,6 +6180,8 @@
   },
   "axiu": {
    "name": "阿秀",
+   "sprite": "kk_axiu",
+   "head": "head_kk_axiu",
    "color": "#a8e6ff",
    "idle": "我刚采了草药，熬了一锅汤，少侠喝一碗再走吧。",
    "rest": true,
@@ -2908,16 +6220,36 @@
    "color": "#c9b8ff",
    "sprite": "f_tao",
    "head": "head_m_mage",
-   "idle": "玄兵塔共九层，一层比一层凶险。塔门暂时还不能开，等你再强一些。"
+   "act": "towerEnter",
+   "idle": "百炼玄兵塔一共七层，每层十名守卫，都是百炼成精的神兵法宝。打败本层首领，才能上下一层。"
+  },
+  "towertp": {
+   "name": "塔内传送师",
+   "title": "【玄兵塔】",
+   "color": "#c9b8ff",
+   "sprite": "kk_npc07",
+   "head": "head_kk_npc07",
+   "act": "towerTp",
+   "idle": "每层的首领一倒，我就能送你上楼。想歇一歇，也可以送你出塔。"
   },
   "trader": {
-   "name": "掌柜",
-   "title": "【寄卖行】",
+   "name": "寄卖商人",
+   "title": "【汉中郡】",
    "color": "#ffe08a",
-   "sprite": "f_healer",
-   "head": "head_vendor",
+   "sprite": "kk_npc_jmsr",
+   "head": "head_kk_npc_jmsr",
    "shop": "trader",
-   "idle": "百宝摊上的项链、戒指、法宝、护符，都是各路好货，少侠随便看。"
+   "idle": "寄卖行的买卖，讲的是个“诚”字。项链、戒指、法宝、护符，各路好货都在这儿挂着，少侠随便看。"
+  },
+  "pet_jz": {
+   "name": "斗宠小郡主",
+   "title": "【斗宠】",
+   "color": "#ffb8e0",
+   "titleColor": "#8fd0ff",
+   "sprite": "kk_npc20",
+   "head": "head_kk_npc20",
+   "act": "arena",
+   "idle": "本郡主的宠物可是汉中第一！你的宠物敢不敢跟它比一比？"
   },
   "dao_menzhu": {
    "name": "道家门主",
@@ -2954,7 +6286,28 @@
    "color": "#ffd9a0",
    "sprite": "f_spear",
    "head": "head_m_spear",
+   "act": "joinMo",
    "idle": "兼爱非攻，机关为用。太虚之峰的每一道机括，都是墨家弟子亲手所造。"
+  },
+  "mo_mengshi": {
+   "name": "猛士堂主",
+   "title": "【墨家·猛士】",
+   "color": "#ffd9a0",
+   "act": "pickMoHall",
+   "hall": "ms",
+   "sprite": "kk_mo_ms",
+   "head": "head_kk_mo_ms",
+   "idle": "猛士一脉，双刃开山。流血、易伤、拼命的打法，不怕疼的人才学得会。"
+  },
+  "mo_dunjia": {
+   "name": "遁甲堂主",
+   "title": "【墨家·遁甲】",
+   "color": "#ffd9a0",
+   "act": "pickMoHall",
+   "hall": "dj",
+   "sprite": "kk_mo_dj",
+   "head": "head_kk_mo_dj",
+   "idle": "遁甲一脉，剑盾为阵。破甲、鼓舞、吸血，站在最前面，也要让身后的人站得住。"
   },
   "taixu_yin": {
    "name": "邹长老",
@@ -3072,10 +6425,20 @@
    "color": "#ffffff",
    "idle": "金创药、回气丹，行走江湖少不了——少侠来点儿？",
    "shop": "vendor"
+  },
+  "ss_envoy": {
+   "name": "神兽使者",
+   "title": "【神兽】",
+   "color": "#ffb08a",
+   "sprite": "kk_npc07",
+   "head": "head_kk_npc07",
+   "act": "ssEnvoy",
+   "idle": "神兽遗魂散落人间，聚齐了魂魄，我便能替你唤来神兽。凡人也可以出银两办一场神兽祭，求天神赐下魂魄。"
   }
  },
  "maps": {
   "village": {
+   "butterflies": 9,
    "name": "恒山村",
    "img": "bg_village",
    "mini": "mini_village",
@@ -3326,6 +6689,61 @@
     }
    ],
    "blocks": [],
+   "fade": [
+    {
+     "poly": [
+      [
+       1700,
+       330
+      ],
+      [
+       1752,
+       330
+      ],
+      [
+       1762,
+       380
+      ],
+      [
+       1905,
+       440
+      ],
+      [
+       1908,
+       525
+      ],
+      [
+       1860,
+       562
+      ],
+      [
+       1790,
+       548
+      ],
+      [
+       1700,
+       565
+      ],
+      [
+       1612,
+       548
+      ],
+      [
+       1602,
+       500
+      ],
+      [
+       1602,
+       416
+      ],
+      [
+       1690,
+       375
+      ]
+     ],
+     "base": 565
+    }
+   ],
    "glows": [
     [
      1110,
@@ -3344,19 +6762,123 @@
      520
     ]
    ],
+   "opens": [
+    [
+     [
+      1310,
+      495
+     ],
+     [
+      1335,
+      515
+     ],
+     [
+      1415,
+      478
+     ],
+     [
+      1395,
+      452
+     ]
+    ],
+    [
+     [
+      1790,
+      1255
+     ],
+     [
+      1885,
+      1255
+     ],
+     [
+      1895,
+      1305
+     ],
+     [
+      1790,
+      1310
+     ]
+    ],
+    [
+     [
+      110,
+      1135
+     ],
+     [
+      105,
+      1075
+     ],
+     [
+      185,
+      1050
+     ],
+     [
+      200,
+      990
+     ],
+     [
+      260,
+      965
+     ],
+     [
+      470,
+      950
+     ],
+     [
+      570,
+      935
+     ],
+     [
+      585,
+      960
+     ],
+     [
+      395,
+      1040
+     ],
+     [
+      378,
+      1085
+     ],
+     [
+      385,
+      1170
+     ],
+     [
+      450,
+      1215
+     ],
+     [
+      330,
+      1235
+     ],
+     [
+      300,
+      1200
+     ],
+     [
+      225,
+      1125
+     ],
+     [
+      205,
+      1112
+     ]
+    ]
+   ],
    "npcs": [
     {
      "id": "elder",
      "at": [
-      1040,
-      545
+      1295,
+      405
      ]
     },
     {
      "id": "axiu",
      "at": [
-      1190,
-      845
+      1735,
+      1305
      ]
     }
    ],
@@ -3364,9 +6886,10 @@
     {
      "to": "outskirts",
      "name": "下山·恒山村郊",
+     "art": "portal_array",
      "at": [
-      1790,
-      1380
+      230,
+      1295
      ],
      "arrive": [
       140,
@@ -3412,6 +6935,28 @@
     1360
    ],
    "alt": "村外的荒野：土路穿过草地和树林，溪水上有踏脚石，路边有篝火圈、树桩、倒木和路牌",
+   "water": {
+    "dir": [
+     1,
+     0.6
+    ],
+    "speed": 16,
+    "zones": [
+     {
+      "rect": [
+       190,
+       140,
+       270,
+       250
+      ],
+      "dir": [
+       0.3,
+       1
+      ],
+      "speed": 45
+     }
+    ]
+   },
    "walk": [],
    "roads": [
     {
@@ -3542,15 +7087,15 @@
     {
      "id": "zhanhw",
      "at": [
-      480,
-      1040
+      470,
+      855
      ]
     },
     {
      "id": "bianque",
      "at": [
-      860,
-      830
+      1070,
+      685
      ]
     }
    ],
@@ -3558,13 +7103,14 @@
     {
      "to": "village",
      "name": "回恒山村",
+     "art": "portal_array",
      "at": [
-      40,
-      1430
+      170,
+      1315
      ],
      "arrive": [
-      1700,
-      1340
+      320,
+      1285
      ]
     },
     {
@@ -3628,6 +7174,54 @@
     1450
    ],
    "alt": "碧绿的溪谷：溪水带着几道小瀑布，木桥横跨溪流，红枫、竹林和荷塘相伴，石板路一路通向山上",
+   "water": {
+    "dir": [
+     -0.5,
+     1
+    ],
+    "speed": 20,
+    "zones": [
+     {
+      "rect": [
+       690,
+       0,
+       800,
+       120
+      ],
+      "dir": [
+       -0.1,
+       1
+      ],
+      "speed": 55
+     },
+     {
+      "rect": [
+       585,
+       145,
+       700,
+       255
+      ],
+      "dir": [
+       -0.1,
+       1
+      ],
+      "speed": 55
+     },
+     {
+      "rect": [
+       105,
+       600,
+       260,
+       747
+      ],
+      "dir": [
+       -0.2,
+       1
+      ],
+      "speed": 50
+     }
+    ]
+   },
    "walk": [],
    "roads": [
     {
@@ -3763,8 +7357,8 @@
     {
      "id": "jy_yin",
      "at": [
-      1560,
-      590
+      1480,
+      653
      ]
     },
     {
@@ -3841,6 +7435,41 @@
     "n": 34,
     "lo": 0.3,
     "hi": 0.85
+   },
+   "water": {
+    "dir": [
+     -1,
+     0.75
+    ],
+    "speed": 24,
+    "zones": [
+     {
+      "rect": [
+       170,
+       170,
+       260,
+       430
+      ],
+      "dir": [
+       0.15,
+       1
+      ],
+      "speed": 60
+     },
+     {
+      "rect": [
+       720,
+       0,
+       880,
+       110
+      ],
+      "dir": [
+       -0.4,
+       1
+      ],
+      "speed": 50
+     }
+    ]
    },
    "walk": [],
    "roads": [
@@ -4582,6 +8211,67 @@
     1000,
     620
    ],
+   "water": {
+    "dir": [
+     1,
+     0.4
+    ],
+    "speed": 12,
+    "zones": [
+     {
+      "rect": [
+       90,
+       60,
+       235,
+       295
+      ],
+      "dir": [
+       0.25,
+       1
+      ],
+      "speed": 55
+     },
+     {
+      "rect": [
+       465,
+       435,
+       560,
+       600
+      ],
+      "dir": [
+       0,
+       1
+      ],
+      "speed": 55
+     },
+     {
+      "rect": [
+       880,
+       225,
+       920,
+       305
+      ],
+      "dir": [
+       0,
+       1
+      ],
+      "speed": 50
+     },
+     {
+      "rect": [
+       0,
+       762,
+       1000,
+       810
+      ],
+      "dir": [
+       1,
+       -0.3
+      ],
+      "speed": 8
+     }
+    ]
+   },
    "alt": "山崖上的墨家驻地：木拱桥、机关石台、齿轮平台和凉亭散布在碧松与瀑布之间",
    "walk": [
     [
@@ -4944,8 +8634,22 @@
     {
      "id": "taixu_mo",
      "at": [
-      1460,
-      320
+      1455,
+      286
+     ]
+    },
+    {
+     "id": "mo_mengshi",
+     "at": [
+      1344,
+      372
+     ]
+    },
+    {
+     "id": "mo_dunjia",
+     "at": [
+      1576,
+      366
      ]
     }
    ],
@@ -4983,6 +8687,67 @@
     1040,
     950
    ],
+   "water": {
+    "dir": [
+     -1,
+     0.2
+    ],
+    "speed": 5,
+    "zones": [
+     {
+      "rect": [
+       15,
+       285,
+       110,
+       480
+      ],
+      "dir": [
+       0.1,
+       1
+      ],
+      "speed": 55
+     },
+     {
+      "rect": [
+       935,
+       275,
+       1000,
+       480
+      ],
+      "dir": [
+       -0.1,
+       1
+      ],
+      "speed": 55
+     },
+     {
+      "rect": [
+       585,
+       40,
+       615,
+       295
+      ],
+      "dir": [
+       0,
+       1
+      ],
+      "speed": 50
+     },
+     {
+      "rect": [
+       698,
+       0,
+       730,
+       110
+      ],
+      "dir": [
+       0,
+       1
+      ],
+      "speed": 50
+     }
+    ]
+   },
    "alt": "幽谷中的阴阳家驻地：八卦石台、方尖碑和莲池环绕，两侧飞瀑垂落",
    "walk": [
     [
@@ -5500,8 +9265,8 @@
     {
      "id": "waiter",
      "at": [
-      1360,
-      330
+      1384,
+      376
      ]
     },
     {
@@ -5528,15 +9293,29 @@
     {
      "id": "trader",
      "at": [
-      1690,
-      925
+      1720,
+      1060
      ]
     },
     {
      "id": "girl",
      "at": [
-      940,
-      625
+      1009,
+      600
+     ]
+    },
+    {
+     "id": "pet_jz",
+     "at": [
+      1470,
+      1230
+     ]
+    },
+    {
+     "id": "ss_envoy",
+     "at": [
+      1156,
+      1129
      ]
     }
    ],
@@ -5854,6 +9633,1084 @@
      ]
     }
    ]
+  },
+  "tower1": {
+   "name": "玄兵塔·一层",
+   "note": "炼器大殿",
+   "home": "town",
+   "img": "bg_tower1",
+   "mini": "mini_tower1",
+   "iw": 2000,
+   "ih": 1500,
+   "scale": 1.2,
+   "k": 1,
+   "indoor": true,
+   "tower": 1,
+   "start": [
+    718,
+    1160
+   ],
+   "alt": "炉火不熄的炼器大殿，兵器架上插满百炼的神兵。",
+   "roads": [],
+   "blocks": [],
+   "glows": [],
+   "walk": [
+    [
+     [
+      304,
+      580
+     ],
+     [
+      663,
+      442
+     ],
+     [
+      884,
+      428
+     ],
+     [
+      1450,
+      428
+     ],
+     [
+      1727,
+      470
+     ],
+     [
+      1865,
+      580
+     ],
+     [
+      1892,
+      773
+     ],
+     [
+      1727,
+      967
+     ],
+     [
+      1423,
+      1188
+     ],
+     [
+      1105,
+      1312
+     ],
+     [
+      829,
+      1285
+     ],
+     [
+      608,
+      1215
+     ],
+     [
+      456,
+      1105
+     ],
+     [
+      249,
+      967
+     ],
+     [
+      97,
+      773
+     ]
+    ],
+    [
+     [
+      856,
+      262
+     ],
+     [
+      1436,
+      262
+     ],
+     [
+      1464,
+      456
+     ],
+     [
+      856,
+      456
+     ]
+    ]
+   ],
+   "slots": [
+    [
+     773,
+     953
+    ],
+    [
+     1091,
+     953
+    ],
+    [
+     1409,
+     953
+    ],
+    [
+     773,
+     773
+    ],
+    [
+     1091,
+     773
+    ],
+    [
+     1409,
+     773
+    ],
+    [
+     773,
+     594
+    ],
+    [
+     1091,
+     594
+    ],
+    [
+     1409,
+     594
+    ],
+    [
+     1105,
+     318
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "towertp",
+     "at": [
+      580,
+      1105
+     ]
+    }
+   ]
+  },
+  "tower2": {
+   "name": "玄兵塔·二层",
+   "note": "云玉阁",
+   "home": "town",
+   "img": "bg_tower2",
+   "mini": "mini_tower2",
+   "iw": 2000,
+   "ih": 1500,
+   "scale": 1.2,
+   "k": 1,
+   "indoor": true,
+   "tower": 2,
+   "start": [
+    718,
+    1160
+   ],
+   "alt": "浮在云海里的玉石楼阁，风里带着莲香。",
+   "roads": [],
+   "blocks": [],
+   "glows": [],
+   "walk": [
+    [
+     [
+      304,
+      580
+     ],
+     [
+      663,
+      442
+     ],
+     [
+      884,
+      428
+     ],
+     [
+      1450,
+      428
+     ],
+     [
+      1727,
+      470
+     ],
+     [
+      1865,
+      580
+     ],
+     [
+      1892,
+      773
+     ],
+     [
+      1727,
+      967
+     ],
+     [
+      1423,
+      1188
+     ],
+     [
+      1105,
+      1312
+     ],
+     [
+      829,
+      1285
+     ],
+     [
+      608,
+      1215
+     ],
+     [
+      456,
+      1105
+     ],
+     [
+      249,
+      967
+     ],
+     [
+      97,
+      773
+     ]
+    ],
+    [
+     [
+      856,
+      262
+     ],
+     [
+      1436,
+      262
+     ],
+     [
+      1464,
+      456
+     ],
+     [
+      856,
+      456
+     ]
+    ]
+   ],
+   "slots": [
+    [
+     773,
+     953
+    ],
+    [
+     1091,
+     953
+    ],
+    [
+     1409,
+     953
+    ],
+    [
+     773,
+     773
+    ],
+    [
+     1091,
+     773
+    ],
+    [
+     1409,
+     773
+    ],
+    [
+     773,
+     594
+    ],
+    [
+     1091,
+     594
+    ],
+    [
+     1409,
+     594
+    ],
+    [
+     1105,
+     318
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "towertp",
+     "at": [
+      580,
+      1105
+     ]
+    }
+   ]
+  },
+  "tower3": {
+   "name": "玄兵塔·三层",
+   "note": "幽冥魔殿",
+   "home": "town",
+   "img": "bg_tower3",
+   "mini": "mini_tower3",
+   "iw": 2000,
+   "ih": 1500,
+   "scale": 1.2,
+   "k": 1,
+   "indoor": true,
+   "tower": 3,
+   "start": [
+    718,
+    1160
+   ],
+   "alt": "紫焰幽幽的黑曜石殿，乌鸦的黑羽落了一地。",
+   "roads": [],
+   "blocks": [],
+   "glows": [],
+   "walk": [
+    [
+     [
+      304,
+      580
+     ],
+     [
+      663,
+      442
+     ],
+     [
+      884,
+      428
+     ],
+     [
+      1450,
+      428
+     ],
+     [
+      1727,
+      470
+     ],
+     [
+      1865,
+      580
+     ],
+     [
+      1892,
+      773
+     ],
+     [
+      1727,
+      967
+     ],
+     [
+      1423,
+      1188
+     ],
+     [
+      1105,
+      1312
+     ],
+     [
+      829,
+      1285
+     ],
+     [
+      608,
+      1215
+     ],
+     [
+      456,
+      1105
+     ],
+     [
+      249,
+      967
+     ],
+     [
+      97,
+      773
+     ]
+    ],
+    [
+     [
+      856,
+      262
+     ],
+     [
+      1436,
+      262
+     ],
+     [
+      1464,
+      456
+     ],
+     [
+      856,
+      456
+     ]
+    ]
+   ],
+   "slots": [
+    [
+     773,
+     953
+    ],
+    [
+     1091,
+     953
+    ],
+    [
+     1409,
+     953
+    ],
+    [
+     773,
+     773
+    ],
+    [
+     1091,
+     773
+    ],
+    [
+     1409,
+     773
+    ],
+    [
+     773,
+     594
+    ],
+    [
+     1091,
+     594
+    ],
+    [
+     1409,
+     594
+    ],
+    [
+     1091,
+     276
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "towertp",
+     "at": [
+      580,
+      1105
+     ]
+    }
+   ]
+  },
+  "tower4": {
+   "name": "玄兵塔·四层",
+   "note": "阴阳八卦殿",
+   "home": "town",
+   "img": "bg_tower4",
+   "mini": "mini_tower4",
+   "iw": 2000,
+   "ih": 1500,
+   "scale": 1.2,
+   "k": 1,
+   "indoor": true,
+   "tower": 4,
+   "start": [
+    718,
+    1160
+   ],
+   "alt": "地上嵌着巨大的太极八卦，一黑一白，此消彼长。",
+   "roads": [],
+   "blocks": [],
+   "glows": [],
+   "walk": [
+    [
+     [
+      304,
+      580
+     ],
+     [
+      663,
+      442
+     ],
+     [
+      884,
+      428
+     ],
+     [
+      1450,
+      428
+     ],
+     [
+      1727,
+      470
+     ],
+     [
+      1865,
+      580
+     ],
+     [
+      1892,
+      773
+     ],
+     [
+      1727,
+      967
+     ],
+     [
+      1423,
+      1188
+     ],
+     [
+      1105,
+      1312
+     ],
+     [
+      829,
+      1285
+     ],
+     [
+      608,
+      1215
+     ],
+     [
+      456,
+      1105
+     ],
+     [
+      249,
+      967
+     ],
+     [
+      97,
+      773
+     ]
+    ],
+    [
+     [
+      884,
+      180
+     ],
+     [
+      1243,
+      180
+     ],
+     [
+      1271,
+      456
+     ],
+     [
+      856,
+      456
+     ]
+    ]
+   ],
+   "slots": [
+    [
+     773,
+     953
+    ],
+    [
+     1091,
+     953
+    ],
+    [
+     1409,
+     953
+    ],
+    [
+     773,
+     773
+    ],
+    [
+     1091,
+     773
+    ],
+    [
+     1409,
+     773
+    ],
+    [
+     773,
+     594
+    ],
+    [
+     1091,
+     594
+    ],
+    [
+     1409,
+     594
+    ],
+    [
+     1050,
+     242
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "towertp",
+     "at": [
+      580,
+      1105
+     ]
+    }
+   ]
+  },
+  "tower5": {
+   "name": "玄兵塔·五层",
+   "note": "日月星辰殿",
+   "home": "town",
+   "img": "bg_tower5",
+   "mini": "mini_tower5",
+   "iw": 2000,
+   "ih": 1500,
+   "scale": 1.2,
+   "k": 1,
+   "indoor": true,
+   "tower": 5,
+   "start": [
+    718,
+    1160
+   ],
+   "alt": "一半是金日，一半是银月，头顶星光流转。",
+   "roads": [],
+   "blocks": [],
+   "glows": [],
+   "walk": [
+    [
+     [
+      304,
+      580
+     ],
+     [
+      663,
+      442
+     ],
+     [
+      884,
+      428
+     ],
+     [
+      1450,
+      428
+     ],
+     [
+      1727,
+      470
+     ],
+     [
+      1865,
+      580
+     ],
+     [
+      1892,
+      773
+     ],
+     [
+      1727,
+      967
+     ],
+     [
+      1423,
+      1188
+     ],
+     [
+      1105,
+      1312
+     ],
+     [
+      829,
+      1285
+     ],
+     [
+      608,
+      1215
+     ],
+     [
+      456,
+      1105
+     ],
+     [
+      249,
+      967
+     ],
+     [
+      97,
+      773
+     ]
+    ],
+    [
+     [
+      856,
+      262
+     ],
+     [
+      1436,
+      262
+     ],
+     [
+      1464,
+      456
+     ],
+     [
+      856,
+      456
+     ]
+    ]
+   ],
+   "slots": [
+    [
+     773,
+     953
+    ],
+    [
+     1091,
+     953
+    ],
+    [
+     1409,
+     953
+    ],
+    [
+     773,
+     773
+    ],
+    [
+     1091,
+     773
+    ],
+    [
+     1409,
+     773
+    ],
+    [
+     773,
+     594
+    ],
+    [
+     1091,
+     594
+    ],
+    [
+     1409,
+     594
+    ],
+    [
+     1022,
+     297
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "towertp",
+     "at": [
+      580,
+      1105
+     ]
+    }
+   ]
+  },
+  "tower6": {
+   "name": "玄兵塔·六层",
+   "note": "乾坤金塔",
+   "home": "town",
+   "img": "bg_tower6",
+   "mini": "mini_tower6",
+   "iw": 2000,
+   "ih": 1500,
+   "scale": 1.2,
+   "k": 1,
+   "indoor": true,
+   "tower": 6,
+   "start": [
+    718,
+    1160
+   ],
+   "alt": "红绸金柱，佛光流转，每一口钟都有人高。",
+   "roads": [],
+   "blocks": [],
+   "glows": [],
+   "walk": [
+    [
+     [
+      304,
+      580
+     ],
+     [
+      663,
+      442
+     ],
+     [
+      884,
+      428
+     ],
+     [
+      1450,
+      428
+     ],
+     [
+      1727,
+      470
+     ],
+     [
+      1865,
+      580
+     ],
+     [
+      1892,
+      773
+     ],
+     [
+      1727,
+      967
+     ],
+     [
+      1423,
+      1188
+     ],
+     [
+      1105,
+      1312
+     ],
+     [
+      829,
+      1285
+     ],
+     [
+      608,
+      1215
+     ],
+     [
+      456,
+      1105
+     ],
+     [
+      249,
+      967
+     ],
+     [
+      97,
+      773
+     ]
+    ],
+    [
+     [
+      856,
+      262
+     ],
+     [
+      1436,
+      262
+     ],
+     [
+      1464,
+      456
+     ],
+     [
+      856,
+      456
+     ]
+    ]
+   ],
+   "slots": [
+    [
+     773,
+     953
+    ],
+    [
+     1091,
+     953
+    ],
+    [
+     1409,
+     953
+    ],
+    [
+     773,
+     773
+    ],
+    [
+     1091,
+     773
+    ],
+    [
+     1409,
+     773
+    ],
+    [
+     773,
+     594
+    ],
+    [
+     1091,
+     594
+    ],
+    [
+     1409,
+     594
+    ],
+    [
+     1105,
+     318
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "towertp",
+     "at": [
+      580,
+      1105
+     ]
+    }
+   ]
+  },
+  "tower7": {
+   "name": "玄兵塔·七层",
+   "note": "混沌天阙",
+   "home": "town",
+   "img": "bg_tower7",
+   "mini": "mini_tower7",
+   "iw": 2000,
+   "ih": 1500,
+   "scale": 1.2,
+   "k": 1,
+   "indoor": true,
+   "tower": 7,
+   "start": [
+    718,
+    1160
+   ],
+   "alt": "塔顶悬在混沌星海之中，一口古钟镇着整座塔。",
+   "roads": [],
+   "blocks": [],
+   "glows": [],
+   "walk": [
+    [
+     [
+      304,
+      580
+     ],
+     [
+      663,
+      442
+     ],
+     [
+      884,
+      428
+     ],
+     [
+      1450,
+      428
+     ],
+     [
+      1727,
+      470
+     ],
+     [
+      1865,
+      580
+     ],
+     [
+      1892,
+      773
+     ],
+     [
+      1727,
+      967
+     ],
+     [
+      1423,
+      1188
+     ],
+     [
+      1105,
+      1312
+     ],
+     [
+      829,
+      1285
+     ],
+     [
+      608,
+      1215
+     ],
+     [
+      456,
+      1105
+     ],
+     [
+      249,
+      967
+     ],
+     [
+      97,
+      773
+     ]
+    ],
+    [
+     [
+      856,
+      262
+     ],
+     [
+      1436,
+      262
+     ],
+     [
+      1464,
+      456
+     ],
+     [
+      856,
+      456
+     ]
+    ]
+   ],
+   "slots": [
+    [
+     773,
+     953
+    ],
+    [
+     1091,
+     953
+    ],
+    [
+     1409,
+     953
+    ],
+    [
+     773,
+     773
+    ],
+    [
+     1091,
+     773
+    ],
+    [
+     1409,
+     773
+    ],
+    [
+     773,
+     594
+    ],
+    [
+     1091,
+     594
+    ],
+    [
+     1409,
+     594
+    ],
+    [
+     1174,
+     352
+    ]
+   ],
+   "npcs": [
+    {
+     "id": "towertp",
+     "at": [
+      580,
+      1105
+     ]
+    }
+   ]
   }
  },
  "arena": {
@@ -5910,9 +10767,9 @@
      "atk": 1.1
     },
     "pet": {
-     "name": "灵狐",
-     "sprite": "b_fox",
-     "h": 62,
+     "name": "玄晶天狐",
+     "sprite": "b_ss_bs20",
+     "h": 112,
      "ai": "fox"
     }
    },
@@ -6132,6 +10989,137 @@
   "base": [
    "dangmo_fs",
    "lingmai_fs"
+  ],
+  "baseMo": [
+   "menghu_zs",
+   "potian_zs"
+  ]
+ },
+ "ssCost": 10,
+ "ssRite": {
+  "coin": 800,
+  "min": 1,
+  "max": 3
+ },
+ "petSeq": {
+  "b_ss_bs20": {
+   "attack": "atk",
+   "bite": "atk",
+   "foxfire": "atk"
+  },
+  "b_ss_1227": {
+   "ss_hit": "atk",
+   "ss_sl_bw": "sk2",
+   "ss_kl": "sk3"
+  },
+  "b_ss_1221": {
+   "ss_hit": "atk",
+   "ss_qk": "atk"
+  }
+ },
+ "tower": {
+  "minLv": 15,
+  "floors": [
+   {
+    "name": "炼器大殿",
+    "desc": "炉火不熄的炼器大殿，兵器架上插满百炼的神兵。"
+   },
+   {
+    "name": "云玉阁",
+    "desc": "浮在云海里的玉石楼阁，风里带着莲香。"
+   },
+   {
+    "name": "幽冥魔殿",
+    "desc": "紫焰幽幽的黑曜石殿，乌鸦的黑羽落了一地。"
+   },
+   {
+    "name": "阴阳八卦殿",
+    "desc": "地上嵌着巨大的太极八卦，一黑一白，此消彼长。"
+   },
+   {
+    "name": "日月星辰殿",
+    "desc": "一半是金日，一半是银月，头顶星光流转。"
+   },
+   {
+    "name": "乾坤金塔",
+    "desc": "红绸金柱，佛光流转，每一口钟都有人高。"
+   },
+   {
+    "name": "混沌天阙",
+    "desc": "塔顶悬在混沌星海之中，一口古钟镇着整座塔。"
+   }
+  ],
+  "names": [
+   "离火剑",
+   "散瘟鞭",
+   "落宝金钱",
+   "列瘟印",
+   "紫金铃",
+   "撞心杵",
+   "风火轮",
+   "酱油瓶",
+   "乾坤针",
+   "斩仙飞刀",
+   "风袋",
+   "梅花镖",
+   "六根清净竹",
+   "雾露乾坤网",
+   "戳目珠",
+   "照妖鉴",
+   "长生根",
+   "伤不旗",
+   "逆鳞枪",
+   "宝莲灯",
+   "万里起云烟",
+   "钻心钉",
+   "万鸦壶",
+   "紫金钵",
+   "定风珠",
+   "魔神甲",
+   "穿天弩",
+   "咆哮梯",
+   "金光锉",
+   "五行旗",
+   "乱心尘",
+   "阴阳二气瓶",
+   "劈地珠",
+   "杏黄旗",
+   "阴阳刃",
+   "穿心锁",
+   "三尖两刃枪",
+   "浮云",
+   "金霞冠",
+   "伏羲琴",
+   "落魂钟",
+   "焰光旗",
+   "化血神刀",
+   "日月珠",
+   "定海珠",
+   "破军",
+   "开天珠",
+   "混元锤",
+   "火星帖",
+   "翻天印",
+   "四象塔",
+   "天荡",
+   "降魔杵",
+   "乾坤圈",
+   "如意乾坤袋",
+   "捆仙绳",
+   "招妖幡",
+   "杯具",
+   "水火锋",
+   "苍刑逆天枪",
+   "黑砂",
+   "混元幡",
+   "乾坤弓",
+   "落魄镜",
+   "听谛印",
+   "照天印",
+   "遁龙桩",
+   "鸭梨",
+   "缚龙索",
+   "混沌钟"
   ]
  }
 }

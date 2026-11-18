@@ -17,19 +17,19 @@
  },
  "b_dao_qm": {
   "file": "assets/b_dao_qm.webp",
-  "bytes": 31662
+  "bytes": 34964
  },
  "b_dao_qm_m": {
   "file": "assets/b_dao_qm_m.webp",
-  "bytes": 22676
+  "bytes": 26920
  },
  "b_dao_ty": {
   "file": "assets/b_dao_ty.webp",
-  "bytes": 31778
+  "bytes": 35228
  },
  "b_dao_ty_m": {
   "file": "assets/b_dao_ty_m.webp",
-  "bytes": 23084
+  "bytes": 24518
  },
  "b_deer": {
   "file": "assets/b_deer.webp",
@@ -47,6 +47,30 @@
   "file": "assets/b_hawk.webp",
   "bytes": 17146
  },
+ "b_mo_dj": {
+  "file": "assets/b_mo_dj.webp",
+  "bytes": 27134
+ },
+ "b_mo_dj_m": {
+  "file": "assets/b_mo_dj_m.webp",
+  "bytes": 23450
+ },
+ "b_mo_dz": {
+  "file": "assets/b_mo_dz.webp",
+  "bytes": 26546
+ },
+ "b_mo_dz_m": {
+  "file": "assets/b_mo_dz_m.webp",
+  "bytes": 22784
+ },
+ "b_mo_ms": {
+  "file": "assets/b_mo_ms.webp",
+  "bytes": 31872
+ },
+ "b_mo_ms_m": {
+  "file": "assets/b_mo_ms_m.webp",
+  "bytes": 25580
+ },
  "b_novice_f": {
   "file": "assets/b_novice_f.webp",
   "bytes": 25782
@@ -63,6 +87,38 @@
   "file": "assets/b_rabbit.webp",
   "bytes": 6142
  },
+ "b_ss_1221": {
+  "file": "assets/b_ss_1221.webp",
+  "bytes": 80774
+ },
+ "b_ss_1222": {
+  "file": "assets/b_ss_1222.webp",
+  "bytes": 71216
+ },
+ "b_ss_1223": {
+  "file": "assets/b_ss_1223.webp",
+  "bytes": 99304
+ },
+ "b_ss_1224": {
+  "file": "assets/b_ss_1224.webp",
+  "bytes": 123920
+ },
+ "b_ss_1225": {
+  "file": "assets/b_ss_1225.webp",
+  "bytes": 61154
+ },
+ "b_ss_1226": {
+  "file": "assets/b_ss_1226.webp",
+  "bytes": 91666
+ },
+ "b_ss_1227": {
+  "file": "assets/b_ss_1227.webp",
+  "bytes": 74108
+ },
+ "b_ss_bs20": {
+  "file": "assets/b_ss_bs20.webp",
+  "bytes": 61562
+ },
  "b_tiger": {
   "file": "assets/b_tiger.webp",
   "bytes": 11062
@@ -75,57 +131,133 @@
   "file": "assets/b_yan.webp",
   "bytes": 21614
  },
+ "bc_dao_dz": {
+  "file": "assets/bc_dao_dz.webp",
+  "bytes": 137762
+ },
+ "bc_dao_dz_m": {
+  "file": "assets/bc_dao_dz_m.webp",
+  "bytes": 105634
+ },
+ "bc_dao_qm": {
+  "file": "assets/bc_dao_qm.webp",
+  "bytes": 152772
+ },
+ "bc_dao_qm_m": {
+  "file": "assets/bc_dao_qm_m.webp",
+  "bytes": 119266
+ },
+ "bc_dao_ty": {
+  "file": "assets/bc_dao_ty.webp",
+  "bytes": 145342
+ },
+ "bc_dao_ty_m": {
+  "file": "assets/bc_dao_ty_m.webp",
+  "bytes": 116514
+ },
+ "bc_mo_dj": {
+  "file": "assets/bc_mo_dj.webp",
+  "bytes": 120814
+ },
+ "bc_mo_dj_m": {
+  "file": "assets/bc_mo_dj_m.webp",
+  "bytes": 112348
+ },
+ "bc_mo_dz": {
+  "file": "assets/bc_mo_dz.webp",
+  "bytes": 105616
+ },
+ "bc_mo_dz_m": {
+  "file": "assets/bc_mo_dz_m.webp",
+  "bytes": 99112
+ },
+ "bc_mo_ms": {
+  "file": "assets/bc_mo_ms.webp",
+  "bytes": 107022
+ },
+ "bc_mo_ms_m": {
+  "file": "assets/bc_mo_ms_m.webp",
+  "bytes": 114800
+ },
  "bg_battle": {
   "file": "assets/bg_battle.webp",
-  "bytes": 149966
+  "bytes": 195182
  },
  "bg_battle2": {
   "file": "assets/bg_battle2.webp",
-  "bytes": 158444
+  "bytes": 200756
  },
  "bg_creek": {
   "file": "assets/bg_creek.webp",
-  "bytes": 384536
+  "bytes": 505578
  },
  "bg_mist": {
   "file": "assets/bg_mist.webp",
-  "bytes": 367572
+  "bytes": 470008
  },
  "bg_outskirts": {
   "file": "assets/bg_outskirts.webp",
-  "bytes": 357818
+  "bytes": 470086
  },
  "bg_pine": {
   "file": "assets/bg_pine.webp",
-  "bytes": 401500
+  "bytes": 652308
  },
  "bg_taixuforest": {
   "file": "assets/bg_taixuforest.webp",
-  "bytes": 252038
+  "bytes": 308442
  },
  "bg_taixupeak": {
   "file": "assets/bg_taixupeak.webp",
-  "bytes": 356752
+  "bytes": 446872
  },
  "bg_taixuvalley": {
   "file": "assets/bg_taixuvalley.webp",
-  "bytes": 264032
+  "bytes": 323470
+ },
+ "bg_tower1": {
+  "file": "assets/bg_tower1.webp",
+  "bytes": 214066
+ },
+ "bg_tower2": {
+  "file": "assets/bg_tower2.webp",
+  "bytes": 211090
+ },
+ "bg_tower3": {
+  "file": "assets/bg_tower3.webp",
+  "bytes": 175870
+ },
+ "bg_tower4": {
+  "file": "assets/bg_tower4.webp",
+  "bytes": 261982
+ },
+ "bg_tower5": {
+  "file": "assets/bg_tower5.webp",
+  "bytes": 262484
+ },
+ "bg_tower6": {
+  "file": "assets/bg_tower6.webp",
+  "bytes": 243000
+ },
+ "bg_tower7": {
+  "file": "assets/bg_tower7.webp",
+  "bytes": 277698
  },
  "bg_town": {
   "file": "assets/bg_town.webp",
-  "bytes": 2327802
+  "bytes": 5595148
  },
  "bg_village": {
   "file": "assets/bg_village.webp",
-  "bytes": 352624
+  "bytes": 595358
  },
  "bg_wild": {
   "file": "assets/bg_wild.webp",
-  "bytes": 341234
+  "bytes": 365756
  },
  "bg_wolfvalley": {
   "file": "assets/bg_wolfvalley.webp",
-  "bytes": 405484
+  "bytes": 442452
  },
  "boar": {
   "file": "assets/boar.webp",
@@ -134,6 +266,38 @@
  "boss": {
   "file": "assets/boss.webp",
   "bytes": 40796
+ },
+ "bp_ss_1221": {
+  "file": "assets/bp_ss_1221.webp",
+  "bytes": 833294
+ },
+ "bp_ss_1222": {
+  "file": "assets/bp_ss_1222.webp",
+  "bytes": 770408
+ },
+ "bp_ss_1223": {
+  "file": "assets/bp_ss_1223.webp",
+  "bytes": 1092090
+ },
+ "bp_ss_1224": {
+  "file": "assets/bp_ss_1224.webp",
+  "bytes": 1121690
+ },
+ "bp_ss_1225": {
+  "file": "assets/bp_ss_1225.webp",
+  "bytes": 707764
+ },
+ "bp_ss_1226": {
+  "file": "assets/bp_ss_1226.webp",
+  "bytes": 899830
+ },
+ "bp_ss_1227": {
+  "file": "assets/bp_ss_1227.webp",
+  "bytes": 838590
+ },
+ "bp_ss_bs20": {
+  "file": "assets/bp_ss_bs20.webp",
+  "bytes": 658862
  },
  "cls_dao_dz": {
   "file": "assets/cls_dao_dz.webp",
@@ -182,6 +346,30 @@
  "cls_m_sword": {
   "file": "assets/cls_m_sword.webp",
   "bytes": 21308
+ },
+ "cls_mo_dj": {
+  "file": "assets/cls_mo_dj.webp",
+  "bytes": 113888
+ },
+ "cls_mo_dj_m": {
+  "file": "assets/cls_mo_dj_m.webp",
+  "bytes": 81506
+ },
+ "cls_mo_dz": {
+  "file": "assets/cls_mo_dz.webp",
+  "bytes": 102970
+ },
+ "cls_mo_dz_m": {
+  "file": "assets/cls_mo_dz_m.webp",
+  "bytes": 78514
+ },
+ "cls_mo_ms": {
+  "file": "assets/cls_mo_ms.webp",
+  "bytes": 139862
+ },
+ "cls_mo_ms_m": {
+  "file": "assets/cls_mo_ms_m.webp",
+  "bytes": 109168
  },
  "cls_novice_f": {
   "file": "assets/cls_novice_f.webp",
@@ -243,6 +431,98 @@
   "file": "assets/fox.webp",
   "bytes": 6382
  },
+ "fx_chain": {
+  "file": "assets/fx_chain.webp",
+  "bytes": 292642
+ },
+ "fx_heal": {
+  "file": "assets/fx_heal.webp",
+  "bytes": 163334
+ },
+ "fx_mist": {
+  "file": "assets/fx_mist.webp",
+  "bytes": 260550
+ },
+ "fx_mo_blood": {
+  "file": "assets/fx_mo_blood.webp",
+  "bytes": 188198
+ },
+ "fx_mo_bone": {
+  "file": "assets/fx_mo_bone.webp",
+  "bytes": 189916
+ },
+ "fx_mo_dragon": {
+  "file": "assets/fx_mo_dragon.webp",
+  "bytes": 245380
+ },
+ "fx_mo_pojia": {
+  "file": "assets/fx_mo_pojia.webp",
+  "bytes": 182550
+ },
+ "fx_mo_roar": {
+  "file": "assets/fx_mo_roar.webp",
+  "bytes": 200290
+ },
+ "fx_mo_slash": {
+  "file": "assets/fx_mo_slash.webp",
+  "bytes": 159746
+ },
+ "fx_mo_song": {
+  "file": "assets/fx_mo_song.webp",
+  "bytes": 227866
+ },
+ "fx_mo_tiger": {
+  "file": "assets/fx_mo_tiger.webp",
+  "bytes": 212574
+ },
+ "fx_notes": {
+  "file": "assets/fx_notes.webp",
+  "bytes": 195994
+ },
+ "fx_revive": {
+  "file": "assets/fx_revive.webp",
+  "bytes": 185680
+ },
+ "fx_ring": {
+  "file": "assets/fx_ring.webp",
+  "bytes": 195614
+ },
+ "fx_soul": {
+  "file": "assets/fx_soul.webp",
+  "bytes": 169714
+ },
+ "fx_wave": {
+  "file": "assets/fx_wave.webp",
+  "bytes": 243490
+ },
+ "fxc_chain": {
+  "file": "assets/fxc_chain.webp",
+  "bytes": 304414
+ },
+ "fxc_heal": {
+  "file": "assets/fxc_heal.webp",
+  "bytes": 261566
+ },
+ "fxc_mist": {
+  "file": "assets/fxc_mist.webp",
+  "bytes": 359676
+ },
+ "fxc_notes": {
+  "file": "assets/fxc_notes.webp",
+  "bytes": 287576
+ },
+ "fxc_revive": {
+  "file": "assets/fxc_revive.webp",
+  "bytes": 313378
+ },
+ "fxc_soul": {
+  "file": "assets/fxc_soul.webp",
+  "bytes": 422596
+ },
+ "fxc_wave": {
+  "file": "assets/fxc_wave.webp",
+  "bytes": 398424
+ },
  "girl": {
   "file": "assets/girl.webp",
   "bytes": 14416
@@ -299,41 +579,61 @@
   "file": "assets/head_girl.webp",
   "bytes": 18028
  },
+ "head_kk_axiu": {
+  "file": "assets/head_kk_axiu.webp",
+  "bytes": 13336
+ },
+ "head_kk_mo_dj": {
+  "file": "assets/head_kk_mo_dj.webp",
+  "bytes": 15166
+ },
+ "head_kk_mo_ms": {
+  "file": "assets/head_kk_mo_ms.webp",
+  "bytes": 15080
+ },
  "head_kk_npc07": {
   "file": "assets/head_kk_npc07.webp",
-  "bytes": 12058
+  "bytes": 14770
  },
  "head_kk_npc13": {
   "file": "assets/head_kk_npc13.webp",
-  "bytes": 11424
+  "bytes": 11596
  },
  "head_kk_npc14": {
   "file": "assets/head_kk_npc14.webp",
-  "bytes": 10330
+  "bytes": 13402
+ },
+ "head_kk_npc20": {
+  "file": "assets/head_kk_npc20.webp",
+  "bytes": 12906
  },
  "head_kk_npc33": {
   "file": "assets/head_kk_npc33.webp",
-  "bytes": 12872
+  "bytes": 14828
  },
  "head_kk_npc45": {
   "file": "assets/head_kk_npc45.webp",
-  "bytes": 9976
+  "bytes": 18962
  },
  "head_kk_npc47": {
   "file": "assets/head_kk_npc47.webp",
-  "bytes": 8744
+  "bytes": 13978
  },
  "head_kk_npc57": {
   "file": "assets/head_kk_npc57.webp",
-  "bytes": 8662
+  "bytes": 19598
  },
  "head_kk_npc_cyblq": {
   "file": "assets/head_kk_npc_cyblq.webp",
-  "bytes": 7460
+  "bytes": 13204
+ },
+ "head_kk_npc_jmsr": {
+  "file": "assets/head_kk_npc_jmsr.webp",
+  "bytes": 12216
  },
  "head_kk_npc_zhw": {
   "file": "assets/head_kk_npc_zhw.webp",
-  "bytes": 9326
+  "bytes": 15032
  },
  "head_m_mage": {
   "file": "assets/head_m_mage.webp",
@@ -346,6 +646,30 @@
  "head_m_sword": {
   "file": "assets/head_m_sword.webp",
   "bytes": 7182
+ },
+ "head_mo_dj": {
+  "file": "assets/head_mo_dj.webp",
+  "bytes": 9546
+ },
+ "head_mo_dj_m": {
+  "file": "assets/head_mo_dj_m.webp",
+  "bytes": 9348
+ },
+ "head_mo_dz": {
+  "file": "assets/head_mo_dz.webp",
+  "bytes": 9268
+ },
+ "head_mo_dz_m": {
+  "file": "assets/head_mo_dz_m.webp",
+  "bytes": 9890
+ },
+ "head_mo_ms": {
+  "file": "assets/head_mo_ms.webp",
+  "bytes": 9390
+ },
+ "head_mo_ms_m": {
+  "file": "assets/head_mo_ms_m.webp",
+  "bytes": 8682
  },
  "head_novice_f": {
   "file": "assets/head_novice_f.webp",
@@ -643,6 +967,18 @@
   "file": "assets/item_wood_beads.webp",
   "bytes": 5570
  },
+ "kk_axiu": {
+  "file": "assets/kk_axiu.webp",
+  "bytes": 14888
+ },
+ "kk_mo_dj": {
+  "file": "assets/kk_mo_dj.webp",
+  "bytes": 34712
+ },
+ "kk_mo_ms": {
+  "file": "assets/kk_mo_ms.webp",
+  "bytes": 43774
+ },
  "kk_npc07": {
   "file": "assets/kk_npc07.webp",
   "bytes": 13950
@@ -654,6 +990,10 @@
  "kk_npc14": {
   "file": "assets/kk_npc14.webp",
   "bytes": 15580
+ },
+ "kk_npc20": {
+  "file": "assets/kk_npc20.webp",
+  "bytes": 20206
  },
  "kk_npc33": {
   "file": "assets/kk_npc33.webp",
@@ -675,13 +1015,21 @@
   "file": "assets/kk_npc_cyblq.webp",
   "bytes": 28720
  },
+ "kk_npc_jmsr": {
+  "file": "assets/kk_npc_jmsr.webp",
+  "bytes": 26732
+ },
  "kk_npc_zhw": {
   "file": "assets/kk_npc_zhw.webp",
   "bytes": 21262
  },
  "login": {
   "file": "assets/login.webp",
-  "bytes": 145638
+  "bytes": 200482
+ },
+ "mini": {
+  "file": "assets/mini.jpg",
+  "bytes": 18004
  },
  "mini_creek": {
   "file": "assets/mini_creek.jpg",
@@ -711,6 +1059,34 @@
   "file": "assets/mini_taixuvalley.jpg",
   "bytes": 54455
  },
+ "mini_tower1": {
+  "file": "assets/mini_tower1.jpg",
+  "bytes": 47259
+ },
+ "mini_tower2": {
+  "file": "assets/mini_tower2.jpg",
+  "bytes": 47952
+ },
+ "mini_tower3": {
+  "file": "assets/mini_tower3.jpg",
+  "bytes": 37045
+ },
+ "mini_tower4": {
+  "file": "assets/mini_tower4.jpg",
+  "bytes": 55298
+ },
+ "mini_tower5": {
+  "file": "assets/mini_tower5.jpg",
+  "bytes": 55257
+ },
+ "mini_tower6": {
+  "file": "assets/mini_tower6.jpg",
+  "bytes": 48771
+ },
+ "mini_tower7": {
+  "file": "assets/mini_tower7.jpg",
+  "bytes": 51208
+ },
  "mini_town": {
   "file": "assets/mini_town.jpg",
   "bytes": 64974
@@ -727,9 +1103,109 @@
   "file": "assets/mini_wolfvalley.jpg",
   "bytes": 54260
  },
+ "pd_ss_1221": {
+  "file": "assets/pd_ss_1221.webp",
+  "bytes": 53942
+ },
+ "pd_ss_1222": {
+  "file": "assets/pd_ss_1222.webp",
+  "bytes": 59866
+ },
+ "pd_ss_1223": {
+  "file": "assets/pd_ss_1223.webp",
+  "bytes": 56758
+ },
+ "pd_ss_1224": {
+  "file": "assets/pd_ss_1224.webp",
+  "bytes": 51656
+ },
+ "pd_ss_1225": {
+  "file": "assets/pd_ss_1225.webp",
+  "bytes": 46204
+ },
+ "pd_ss_1226": {
+  "file": "assets/pd_ss_1226.webp",
+  "bytes": 61818
+ },
+ "pd_ss_1227": {
+  "file": "assets/pd_ss_1227.webp",
+  "bytes": 42080
+ },
+ "pd_ss_bs20": {
+  "file": "assets/pd_ss_bs20.webp",
+  "bytes": 29572
+ },
+ "pfx_ss_1221": {
+  "file": "assets/pfx_ss_1221.webp",
+  "bytes": 49966
+ },
+ "pfx_ss_1222": {
+  "file": "assets/pfx_ss_1222.webp",
+  "bytes": 30862
+ },
+ "pfx_ss_1223": {
+  "file": "assets/pfx_ss_1223.webp",
+  "bytes": 93308
+ },
+ "pfx_ss_1224": {
+  "file": "assets/pfx_ss_1224.webp",
+  "bytes": 76918
+ },
+ "pfx_ss_1225": {
+  "file": "assets/pfx_ss_1225.webp",
+  "bytes": 1070
+ },
+ "pfx_ss_1226": {
+  "file": "assets/pfx_ss_1226.webp",
+  "bytes": 233458
+ },
+ "pfx_ss_1227": {
+  "file": "assets/pfx_ss_1227.webp",
+  "bytes": 50656
+ },
+ "pfx_ss_bs20": {
+  "file": "assets/pfx_ss_bs20.webp",
+  "bytes": 103912
+ },
+ "ph_ss_1221": {
+  "file": "assets/ph_ss_1221.webp",
+  "bytes": 17496
+ },
+ "ph_ss_1222": {
+  "file": "assets/ph_ss_1222.webp",
+  "bytes": 13118
+ },
+ "ph_ss_1223": {
+  "file": "assets/ph_ss_1223.webp",
+  "bytes": 15020
+ },
+ "ph_ss_1224": {
+  "file": "assets/ph_ss_1224.webp",
+  "bytes": 10288
+ },
+ "ph_ss_1225": {
+  "file": "assets/ph_ss_1225.webp",
+  "bytes": 14254
+ },
+ "ph_ss_1226": {
+  "file": "assets/ph_ss_1226.webp",
+  "bytes": 15118
+ },
+ "ph_ss_1227": {
+  "file": "assets/ph_ss_1227.webp",
+  "bytes": 13120
+ },
+ "ph_ss_bs20": {
+  "file": "assets/ph_ss_bs20.webp",
+  "bytes": 13072
+ },
  "player": {
   "file": "assets/player.webp",
   "bytes": 15726
+ },
+ "portal_array": {
+  "file": "assets/portal_array.webp",
+  "bytes": 33478
  },
  "smith": {
   "file": "assets/smith.webp",
@@ -749,27 +1225,51 @@
  },
  "walk_b_dao_dz": {
   "file": "assets/walk_b_dao_dz.webp",
-  "bytes": 89774
+  "bytes": 373074
  },
  "walk_b_dao_dz_m": {
   "file": "assets/walk_b_dao_dz_m.webp",
-  "bytes": 68406
+  "bytes": 200656
  },
  "walk_b_dao_qm": {
   "file": "assets/walk_b_dao_qm.webp",
-  "bytes": 96320
+  "bytes": 373074
  },
  "walk_b_dao_qm_m": {
   "file": "assets/walk_b_dao_qm_m.webp",
-  "bytes": 66884
+  "bytes": 200656
  },
  "walk_b_dao_ty": {
   "file": "assets/walk_b_dao_ty.webp",
-  "bytes": 101286
+  "bytes": 373074
  },
  "walk_b_dao_ty_m": {
   "file": "assets/walk_b_dao_ty_m.webp",
-  "bytes": 69396
+  "bytes": 200656
+ },
+ "walk_b_mo_dj": {
+  "file": "assets/walk_b_mo_dj.webp",
+  "bytes": 85126
+ },
+ "walk_b_mo_dj_m": {
+  "file": "assets/walk_b_mo_dj_m.webp",
+  "bytes": 77748
+ },
+ "walk_b_mo_dz": {
+  "file": "assets/walk_b_mo_dz.webp",
+  "bytes": 88618
+ },
+ "walk_b_mo_dz_m": {
+  "file": "assets/walk_b_mo_dz_m.webp",
+  "bytes": 72052
+ },
+ "walk_b_mo_ms": {
+  "file": "assets/walk_b_mo_ms.webp",
+  "bytes": 115322
+ },
+ "walk_b_mo_ms_m": {
+  "file": "assets/walk_b_mo_ms_m.webp",
+  "bytes": 84890
  },
  "walk_b_novice_f": {
   "file": "assets/walk_b_novice_f.webp",
@@ -785,27 +1285,51 @@
  },
  "walk_f_dao_dz": {
   "file": "assets/walk_f_dao_dz.webp",
-  "bytes": 102884
+  "bytes": 392304
  },
  "walk_f_dao_dz_m": {
   "file": "assets/walk_f_dao_dz_m.webp",
-  "bytes": 81136
+  "bytes": 233928
  },
  "walk_f_dao_qm": {
   "file": "assets/walk_f_dao_qm.webp",
-  "bytes": 113250
+  "bytes": 392304
  },
  "walk_f_dao_qm_m": {
   "file": "assets/walk_f_dao_qm_m.webp",
-  "bytes": 70848
+  "bytes": 233928
  },
  "walk_f_dao_ty": {
   "file": "assets/walk_f_dao_ty.webp",
-  "bytes": 112098
+  "bytes": 392304
  },
  "walk_f_dao_ty_m": {
   "file": "assets/walk_f_dao_ty_m.webp",
-  "bytes": 74090
+  "bytes": 233928
+ },
+ "walk_f_mo_dj": {
+  "file": "assets/walk_f_mo_dj.webp",
+  "bytes": 96746
+ },
+ "walk_f_mo_dj_m": {
+  "file": "assets/walk_f_mo_dj_m.webp",
+  "bytes": 82446
+ },
+ "walk_f_mo_dz": {
+  "file": "assets/walk_f_mo_dz.webp",
+  "bytes": 83782
+ },
+ "walk_f_mo_dz_m": {
+  "file": "assets/walk_f_mo_dz_m.webp",
+  "bytes": 74656
+ },
+ "walk_f_mo_ms": {
+  "file": "assets/walk_f_mo_ms.webp",
+  "bytes": 114720
+ },
+ "walk_f_mo_ms_m": {
+  "file": "assets/walk_f_mo_ms_m.webp",
+  "bytes": 99824
  },
  "walk_f_novice_f": {
   "file": "assets/walk_f_novice_f.webp",
@@ -815,12 +1339,16 @@
   "file": "assets/walk_f_novice_m.webp",
   "bytes": 74740
  },
+ "wheel": {
+  "file": "assets/wheel.webp",
+  "bytes": 82860
+ },
  "wolf": {
   "file": "assets/wolf.webp",
   "bytes": 15506
  },
  "world": {
   "file": "assets/world.webp",
-  "bytes": 822238
+  "bytes": 1604528
  }
 }
