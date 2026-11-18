@@ -122,9 +122,21 @@ namespace GuiQin.Battle
         }
 
         // ---------------- 出手 ----------------
+        public Func<string, int[]> ItemUse;      // 用掉一件药品：返回 [气血, 法力] 恢复量，没有 / 不能用返回 null（背包在服务端，由外面注入）
+
         void Perform(BUnit u, BattleCmd act)
         {
             if (act == null || act.type == "none" || !u.Alive) return;
+            if (act.type == "item")
+            {
+                var r = u.Me && ItemUse != null ? ItemUse(act.skill) : null;
+                if (r == null) { Float(u, "用不了", "miss"); return; }
+                var name = GameData.Raw["items"][act.skill] != null ? (string)GameData.Raw["items"][act.skill]["name"] : act.skill;
+                Float(u, name, "heal");
+                if (r[0] > 0) { int d = Math.Min(r[0], u.MaxHp - u.Hp); u.Hp += d; Add(new BattleEvent { t = "heal", u = u.Id, v = d, hp = u.Hp }); }
+                if (r[1] > 0) { u.Mp = Math.Min(u.MaxMp, u.Mp + r[1]); Add(new BattleEvent { t = "mp", u = u.Id, mp = u.Mp }); }
+                return;
+            }
             if (act.type == "defend") { u.Defending = true; Add(new BattleEvent { t = "defend", u = u.Id }); return; }
             var s = Sk(act.skill); if (s == null) return;
             BUnit chosen = act.target >= 0 ? Units.FirstOrDefault(x => x.Id == act.target) : null;

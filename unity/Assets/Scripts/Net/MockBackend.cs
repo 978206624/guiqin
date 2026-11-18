@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GuiQin.Battle;
+using GuiQin.Inventory;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ namespace GuiQin.Net
         const int LatencyMs = 40;                  // 模拟一点网络延迟，免得客户端把“瞬间返回”当成理所当然
         RoleState role = NewRole();
 
-        static RoleState NewRole() { return new RoleState { id = "r1", name = "云中客", cls = "dao_ty", lv = 1, map = "village", x = -1f, y = -1f }; }
+        static RoleState NewRole() { return new RoleState { id = "r1", name = "云中客", cls = "dao_ty", lv = 1, map = "village", x = -1f, y = -1f, coin = (int)GameData.Raw["start"]["coin"], bag = InventoryService.NewBag() }; }
         public void ResetRole() { role = NewRole(); }
 
         static async Task<Result<T>> Reply<T>(T data) { await Task.Delay(LatencyMs); return Result<T>.Success(data); }
@@ -64,6 +65,32 @@ namespace GuiQin.Net
 
         public Task<Result<Empty>> SetLook(string cls) { role.cls = cls; return Reply(new Empty()); }
 
+        // ---------------- 背包 ----------------
+        public async Task<Result<BagResp>> BagOp(string cmd, BagOpReq q)
+        {
+            await Task.Delay(LatencyMs);
+            if (battle != null) return Result<BagResp>.Fail(Code.InBattle, "战斗中不能这样做");
+            q = q ?? new BagOpReq();
+            var svc = new InventoryService(role); bool ok;
+            switch (cmd)
+            {
+                case BagCmd.Get: ok = true; svc.Msg = null; break;
+                case BagCmd.Use: ok = svc.Use(q.id); break;
+                case BagCmd.Equip: ok = svc.Equip(q.id); break;
+                case BagCmd.Unequip: ok = svc.Unequip(q.slot); break;
+                case BagCmd.Sell: ok = svc.Sell(q.id); break;
+                case BagCmd.Sort: ok = svc.Sort(); break;
+                case BagCmd.ShopBuy: ok = svc.Buy(q.shop, q.id); break;
+                case BagCmd.ShopSell: ok = svc.ShopSell(q.shop, q.id); break;
+                case BagCmd.Forge: ok = svc.Forge(q.slot, q.gem); break;
+                case BagCmd.Inlay: ok = svc.Inlay(q.slot, q.i, q.id); break;
+                case BagCmd.Uninlay: ok = svc.Uninlay(q.slot, q.i); break;
+                case BagCmd.Merge: ok = svc.Merge(q.id); break;
+                default: return Result<BagResp>.Fail(Code.Protocol, "未知命令 " + cmd);
+            }
+            return Result<BagResp>.Success(new BagResp { ok = ok, msg = svc.Msg, bag = role.bag, coin = role.coin, hp = role.hp, mp = role.mp, star = svc.Star });
+        }
+
         // ---------------- 战斗（参考实现：服务端该做的事都在这里）----------------
         BattleSession battle;
 
@@ -74,6 +101,9 @@ namespace GuiQin.Net
             if (!GameData.Stages.TryGetValue(stageId, out st)) return Task.FromResult(Result<BattleStartResp>.Fail(Code.NoBattle, "这场战斗不存在"));
             // 真服务器在这里还要校验：敌人是否在角色所在地图、前置关卡（st.need）、塔层数、体力……
             battle = BattleFactory.Create(role, st, Environment.TickCount);
+            var inv = new InventoryService(role);
+            battle.View.items = inv.Potions();
+            battle.Engine.ItemUse = id => { int h, m; return inv.UseInBattle(id, out h, out m) ? new[] { h, m } : null; };
             return Reply(new BattleStartResp { ok = true, battle = battle.View });
         }
 
@@ -106,7 +136,7 @@ namespace GuiQin.Net
                 {
                     var e = GameData.Raw["enemies"][id];
                     exp += (int)e["exp"]; coin += (int)e["coin"];
-                    foreach (var d in e["drops"]) if (rng.NextDouble() < (double)d[1]) { string k = (string)d[0]; int n; end.items.TryGetValue(k, out n); end.items[k] = n + 1; }
+                    foreach (var d in e["drops"]) if (rng.NextDouble() < (double)d[1]) { string k = (string)d[0]; if (!new InventoryService(role).Give(k, 1)) { end.note = "背包已满，部分战利品丢失"; continue; } int n; end.items.TryGetValue(k, out n); end.items[k] = n + 1; }
                 }
                 end.exp = exp; end.coin = coin;
                 role.coin += coin; role.exp += exp;

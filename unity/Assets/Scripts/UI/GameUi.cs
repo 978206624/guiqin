@@ -71,17 +71,19 @@ namespace GuiQin
     public class HudUi
     {
         readonly Text place, wxLabel; readonly GameObject barGo;
-        public HudUi(Transform parent, Action onMenu, Action onWeather, Action onWorld)
+        public HudUi(Transform parent, Action onMenu, Action onWeather, Action onWorld, Action onBag)
         {
             var bar = Ui.Box("hud", parent, new Color(0.05f, 0.05f, 0.08f, 0.55f));
             Ui.Anchor(bar.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -84), new Vector2(0, 0));
             bar.raycastTarget = false; barGo = bar.gameObject;
             var pb = Ui.Btn("placeBtn", bar.transform, "", 34, new Color(0, 0, 0, 0), () => onWorld());      // 透明按钮：点地名 = 开世界地图
-            Ui.Anchor(pb.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(130, 0), new Vector2(-270, 0));
+            Ui.Anchor(pb.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(130, 0), new Vector2(-370, 0));
             place = pb.GetComponentInChildren<Text>(); place.color = new Color(1f, 0.92f, 0.65f); place.raycastTarget = false;
             var wb = Ui.Btn("weather", bar.transform, "晴", 26, new Color(0.2f, 0.36f, 0.55f, 0.95f), () => onWeather());
             Ui.Anchor(wb.GetComponent<RectTransform>(), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(16, -30), new Vector2(116, 30));
             wxLabel = wb.GetComponentInChildren<Text>();
+            var bb = Ui.Btn("bag", bar.transform, "行囊", 26, new Color(0.15f, 0.42f, 0.3f, 0.95f), () => onBag());
+            Ui.Anchor(bb.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-358, -30), new Vector2(-272, 30));
             var wm = Ui.Btn("world", bar.transform, "世界", 26, new Color(0.45f, 0.3f, 0.12f, 0.95f), () => onWorld());
             Ui.Anchor(wm.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-262, -30), new Vector2(-166, 30));
             var b = Ui.Btn("menu", bar.transform, "菜单", 26, new Color(0.25f, 0.22f, 0.4f, 0.95f), () => onMenu());

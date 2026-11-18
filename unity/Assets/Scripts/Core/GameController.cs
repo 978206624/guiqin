@@ -19,7 +19,7 @@ namespace GuiQin
         List<Vector2> route = new List<Vector2>();
         Actor talkTarget;
         DialogUi dialog; ToastUi toast; HudUi hud; DebugMenuUi menu;
-        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi;
+        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; BagUi bagUi;
         MapFx mapFx; WaterFx waterFx;
         readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
         string[] looks;
@@ -104,12 +104,13 @@ namespace GuiQin
             tagCanvas = Ui.MakeCanvas("Tags", 0, transform);
             tagCanvas.GetComponent<UnityEngine.UI.GraphicRaycaster>().enabled = false;
             uiCanvas = Ui.MakeCanvas("UI", 10, transform);
-            hud = new HudUi(uiCanvas.transform, () => menu.Toggle(), OpenWeather, OpenWorld);
+            hud = new HudUi(uiCanvas.transform, () => menu.Toggle(), OpenWeather, OpenWorld, OpenBag);
             dialog = new DialogUi(uiCanvas.transform);
             toast = new ToastUi(uiCanvas.transform);
             menu = new DebugMenuUi(uiCanvas.transform, id => GoWorld(id), NextLook, ResetRole);
             wxUi = new WeatherUi(uiCanvas.transform, wx, () => map != null ? map.Def.name : "");
             worldUi = new WorldMapUi(uiCanvas.transform, GoWorld, () => map != null ? map.Id : "village");
+            bagUi = new BagUi(uiCanvas.transform, (c, q) => net.BagOp(c, q), () => role, m => toast.Show(m), () => { });
             wx.Changed += (k, announce) => { hud.SetWeather(WeatherSystem.NameOf(k)); if (announce) toast.Show("天气转为 " + WeatherSystem.NameOf(k)); };
             var mk = new GameObject("clickMark"); mk.transform.SetParent(transform, false);
             mark = mk.AddComponent<SpriteRenderer>(); mark.sprite = Art.Dot(); mark.color = new Color(1f, 0.9f, 0.4f, 0f); mark.sortingOrder = 30000;
@@ -150,10 +151,20 @@ namespace GuiQin
         }
 
         // ---------------- 载入地图 ----------------
-        bool ModalOpen { get { return menu.Visible || wxUi.Visible || worldUi.Visible; } }
+        bool ModalOpen { get { return menu.Visible || wxUi.Visible || worldUi.Visible || bagUi.Visible; } }
 
-        void OpenWeather() { if (!wxUi.Visible) { menu.Close(); worldUi.Close(); wxUi.Open(); } else wxUi.Close(); }
-        void OpenWorld() { Stop(); menu.Close(); wxUi.Close(); worldUi.Open(); }
+        void OpenWeather() { if (!wxUi.Visible) { menu.Close(); worldUi.Close(); bagUi.Close(); wxUi.Open(); } else wxUi.Close(); }
+        void OpenWorld() { Stop(); menu.Close(); wxUi.Close(); bagUi.Close(); worldUi.Open(); }
+
+        // 背包 / 商店：先向服务端要一份最新的（战斗、任务都会改背包），再打开
+        async void OpenBag() { if (bagUi.Visible) { bagUi.Close(); return; } Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Bag); }
+        async void OpenShop(string shop) { Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Shop, shop); }
+        async System.Threading.Tasks.Task RefreshBag()
+        {
+            var r = await net.BagOp(GuiQin.Inventory.BagCmd.Get, null);
+            if (!r.Ok || !r.data.ok) { if (!r.Ok) toast.Show(r.msg); return; }
+            role.bag = r.data.bag; role.coin = r.data.coin; role.hp = r.data.hp; role.mp = r.data.mp;
+        }
 
         // 世界地图点名传送：同一张图只提示；其它由服务端判定（等级 / 费用），通过了才切图
         async void GoWorld(string id)
@@ -305,7 +316,7 @@ namespace GuiQin
             if (battle != null || foe.StageInfo == null || !entered) return;
             var r = await net.BattleStart(foe.StageInfo.id);
             if (!r.Ok || !r.data.ok) { toast.Show(r.Ok ? (r.data.msg ?? "现在不能开战") : r.msg); return; }
-            Stop(); menu.Close(); wxUi.Close(); worldUi.Close();
+            Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); bagUi.Close();
             ShowWorld(false);
             string bid = r.data.battle.id;
             battle = BattleController.Begin(cam, uiCanvas.transform, r.data.battle, cmd => net.BattleAct(bid, cmd), end => EndBattle(end, foe), msg => toast.Show(msg));
@@ -321,6 +332,7 @@ namespace GuiQin
         {
             battle.Dispose(); battle = null;
             ShowWorld(true);
+            role.lv = end.lv; RefreshBag();
             if (end.result == "lose" && !string.IsNullOrEmpty(end.respawnMap)) { LoadMap(end.respawnMap, null); toast.Show("战败，回到" + map.Def.name); return; }
             if (end.result == "win" && foe != null && foe.StageInfo != null && !foe.StageInfo.tower) { if (foe.Tag != null) foe.Tag.Destroy(); list.Remove(foe); Destroy(foe.gameObject); }
             SnapCamera();
@@ -363,7 +375,7 @@ namespace GuiQin
         // 商店 / 锻造 / 塔 / 竞技场 / 门派：界面还没移植，先提示
         void AfterTalk(NpcInfo info)
         {
-            if (!string.IsNullOrEmpty(info.shop)) toast.Show("商店界面待移植：" + info.shop);
+            if (!string.IsNullOrEmpty(info.shop)) OpenShop(info.shop);
             else if (!string.IsNullOrEmpty(info.act)) toast.Show("功能待移植：" + info.act);
             else if (info.rest) toast.Show(string.IsNullOrEmpty(info.restMsg) ? "歇了一会儿，气血法力回满" : info.restMsg);
         }

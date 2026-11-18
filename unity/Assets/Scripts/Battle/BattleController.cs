@@ -140,12 +140,12 @@ namespace GuiQin.Battle
             Ui.Anchor(tipText.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -84), new Vector2(-20, -48));
             listRoot = Ui.Rect("list", panel.transform); Ui.Anchor(listRoot, Vector2.zero, Vector2.one, new Vector2(12, 96), new Vector2(-12, -90));
 
-            string[][] bs = { new[] { "attack", "攻击" }, new[] { "skill", "技能" }, new[] { "defend", "防御" }, new[] { "flee", "逃跑" }, new[] { "auto", "自动" } };
+            string[][] bs = { new[] { "attack", "攻击" }, new[] { "skill", "技能" }, new[] { "item", "物品" }, new[] { "defend", "防御" }, new[] { "flee", "逃跑" }, new[] { "auto", "自动" } };
             for (int i = 0; i < bs.Length; i++)
             {
                 string id = bs[i][0];
-                var btn = Ui.Btn("b_" + id, panel.transform, bs[i][1], 28, new Color(0.25f, 0.3f, 0.5f, 1f), () => OnCmd(id));
-                Ui.Anchor(btn.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(12 + i * 138, 14), new Vector2(12 + i * 138 + 130, 84));
+                var btn = Ui.Btn("b_" + id, panel.transform, bs[i][1], 26, new Color(0.25f, 0.3f, 0.5f, 1f), () => OnCmd(id));
+                Ui.Anchor(btn.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(12 + i * 114, 14), new Vector2(12 + i * 114 + 108, 84));
                 if (id == "auto") { autoBtn = btn; autoLabel = btn.GetComponentInChildren<Text>(); }
             }
             UpdateStat();
@@ -167,6 +167,33 @@ namespace GuiQin.Battle
             else if (c == "defend") Choose(new BattleCmd { type = "defend" });
             else if (c == "flee") Choose(new BattleCmd { type = "flee" });
             else if (c == "skill") ShowSkills();
+            else if (c == "item") ShowItems();
+        }
+
+        // 物品：开战时服务端给的药品快照；点一下就用，用完这回合就过了。数量以服务端为准，这里只做显示
+        void ShowItems()
+        {
+            tipText.text = "选择物品（用掉这回合）";
+            int i = 0;
+            if (view.items != null)
+                foreach (var kv in view.items)
+                {
+                    string id = kv.Key; int left = kv.Value - (used.ContainsKey(id) ? used[id] : 0);
+                    var it = GameData.Raw["items"][id]; string desc = it != null ? (it["hp"] != null ? "气血 +" + (int)it["hp"] : it["mp"] != null ? "法力 +" + (int)it["mp"] : "") : "";
+                    var b = Ui.Btn("it_" + id, listRoot, (it != null ? (string)it["name"] : id) + " ×" + left + "\n<size=18>" + desc + "</size>", 24, left > 0 ? new Color(0.2f, 0.45f, 0.32f) : new Color(0.25f, 0.25f, 0.3f), () => OnItem(id));
+                    b.GetComponentInChildren<Text>().supportRichText = true; b.interactable = left > 0;
+                    int col = i % 3, row = i / 3; i++;
+                    Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(0, 1), new Vector2(col * 226, -row * 70 - 66), new Vector2(col * 226 + 216, -row * 70));
+                }
+            if (i == 0) tipText.text = "背包里没有药品";
+        }
+
+        readonly Dictionary<string, int> used = new Dictionary<string, int>();
+        void OnItem(string id)
+        {
+            if (!waitingCmd) return;
+            ClearList(); int n; used.TryGetValue(id, out n); used[id] = n + 1;
+            Choose(new BattleCmd { type = "item", skill = id });
         }
 
         void ShowSkills()

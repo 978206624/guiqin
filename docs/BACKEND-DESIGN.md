@@ -190,3 +190,21 @@ IGameBackend（Net/IGameBackend.cs）──┬─ MockBackend（本地内存；�
 5. **S5 背包 / 商店 / 锻造 / 宠物**（R4）。
 6. **S6 多人同屏 + 聊天**：AOI、`push.map`、`chat.*`。
 7. **S7 运营能力**：公告、邮件、GM 后台（封号 / 发奖 / 改表）、活动、充值（渠道 SDK）、日志与监控。
+
+## 背包 / 装备 / 宝石 / 锻造 / 商店（R4，已写参考实现）
+
+| 命令 | 请求 | 服务端校验 | 备注 |
+|---|---|---|---|
+| bag.get | – | – | 返回整包背包 + 银两 + 气血法力，战斗 / 任务后客户端用它刷新 |
+| bag.use | id | 持有、是药品、没满 | 战斗外用药；战斗里用 `battle.cmd {type:"item", skill:<物品id>}`，同一回合只算一次行动 |
+| bag.equip / bag.unequip | id / slot | 持有、部位匹配、卸下时背包有空格 | 星级和宝石跟着“部位”走，换装不丢 |
+| bag.sell | id | 持有、price>0、药品不收 | 任务物品 price=0 不能卖 |
+| bag.sort | – | – | 装备→宝石→药品→材料，品质高的在前 |
+| shop.buy / shop.sell | shop, id | 商店有这个货、银两够、背包有空格 / 只收材料 | 价格取 data.items.price |
+| forge.make | slot, gem | 银两、锻造石、星级未满；成功率 = rate[星]+gemBonus | ≥10 星失败掉星；5 级锻造石必成 |
+| forge.inlay / forge.uninlay | slot, i, id | 孔已解锁（5/10/15 星）、宝石持有 | 摘下要有背包空格 |
+| forge.merge | id | 3 颗同阶同种 | 合成下一阶，5 级封顶 |
+
+回包统一是 `BagResp{ok,msg,bag,coin,hp,mp,star}`，客户端整包覆盖本地背包，不做增量合并（少一类同步 bug）。
+真服务器要在这里加：数据库事务、item_flow 流水、锻造随机数用服务端种子、同一玩家命令串行化。
+属性公式（职业×等级+心法+装备×星级+宝石）在 `RoleStats`，客户端只用来显示，战斗里的属性由服务端开战时算。

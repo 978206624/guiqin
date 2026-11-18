@@ -12,7 +12,7 @@ namespace GuiQin.Battle
     }
 
     // 根据角色状态 + 关卡配置搭出战场：属性公式对应网页版 stats() / petStats() / levelStats()，敌人取 data.enemies。
-    // 真服务器在开战时做同样的事，并把装备 / 宝石 / 亲密度加成算进属性（Mock 暂不含装备）。
+    // 真服务器在开战时做同样的事，并把装备 / 宝石 / 亲密度加成算进属性（装备 / 宝石已计入；亲密度未做）。
     public static class BattleFactory
     {
         static Dictionary<string, SkillDef> skills;
@@ -44,16 +44,13 @@ namespace GuiQin.Battle
 
             // 我方：主角
             var cls = D["classes"][role.cls] ?? D["classes"]["novice_f"];
-            Func<string, float> mod = k => cls["mod"] != null && cls["mod"][k] != null ? (float)cls["mod"][k] : 1f;
-            Func<string, int> heart = k => cls["heart"] != null && cls["heart"]["perLv"] != null && cls["heart"]["perLv"][k] != null ? (int)((float)cls["heart"]["perLv"][k] * L) : 0;
-            int maxHp = Base(b, g, "hp", L, mod("hp")), maxMp = Base(b, g, "mp", L, mod("mp"));
+            var ps = GuiQin.Inventory.RoleStats.Compute(role.cls, L, role.bag);      // 职业 + 等级 + 心法 + 装备 + 宝石
+            int maxHp = ps.maxHp, maxMp = ps.maxMp;
             var me = new BUnit
             {
                 Id = nextId++, Side = "ally", Row = "person", Me = true, Name = role.name, H = 126f, MagicAtk = cls["magicAtk"] != null && (bool)cls["magicAtk"],
                 MaxHp = maxHp, MaxMp = maxMp, Hp = role.hp < 0 ? maxHp : Math.Max(1, Math.Min(maxHp, role.hp)), Mp = role.mp < 0 ? maxMp : Math.Min(maxMp, role.mp),
-                Atk = Base(b, g, "atk", L, mod("atk")) + heart("atk"), Matk = Base(b, g, "matk", L, mod("matk")) + heart("matk"),
-                Def = Base(b, g, "def", L, mod("def")) + heart("def"), Mdef = Base(b, g, "mdef", L, mod("mdef")) + heart("mdef"),
-                Spd = (int)(F(b["spd"]) + F(g["spd"]) * L), Crit = F(b["crit"], 10f), Dodge = F(b["dodge"])
+                Atk = ps.atk, Matk = ps.matk, Def = ps.def, Mdef = ps.mdef, Spd = ps.spd, Crit = ps.crit, Dodge = ps.dodge
             };
             string sp = "b_" + role.cls; me.Sprite = Art.Has(sp) ? sp : "b_player";
             units.Add(me);

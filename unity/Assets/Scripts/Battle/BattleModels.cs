@@ -41,12 +41,13 @@ namespace GuiQin.Battle
         public List<UnitView> units;
         public List<SkillView> skills;       // 主角可用的技能（给指令面板）
         public int turnSeconds = 30;
+        public Dictionary<string, int> items;   // 背包里的药品（id → 数量），指令面板的“物品”用
     }
 
     public class BattleStartReq { public string stage; }
     public class BattleStartResp { public bool ok; public string msg; public BattleView battle; }
 
-    public class BattleCmd { public string type; public string skill; public int target = -1; }   // type: skill / defend / flee / auto
+    public class BattleCmd { public string type; public string skill; public int target = -1; }   // type: skill / item(skill 填物品 id) / defend / flee / auto
     public class BattleCmdReq { public string battleId; public BattleCmd cmd; }
 
     // 一条战斗事件。客户端按顺序播放；所有数值都已由服务端算好。

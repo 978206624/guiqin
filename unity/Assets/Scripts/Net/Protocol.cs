@@ -67,6 +67,7 @@ namespace GuiQin.Net
         public int lv;
         public float x = -1f, y = -1f;
         public int exp, coin, hp = -1, mp = -1;       // hp / mp 为 -1 表示满
+        public GuiQin.Inventory.BagState bag;         // 背包 / 装备 / 星级 / 宝石
     }
     public class EnterResp { public RoleState role; }
 
