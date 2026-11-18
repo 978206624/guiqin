@@ -229,7 +229,7 @@ namespace GuiQin.Net
             var eng = b.Engine; var p = eng.Player;
             var end = new BattleEnd { result = eng.Over, round = eng.Round, lv = role.lv, step = role.step, cnt = role.cnt, tower = role.tower };
             role.hp = Math.Max(1, p.Hp); role.mp = p.Mp;
-            var rng = new Random();
+            var rng = new System.Random();
             if (eng.Over == "win")
             {
                 int exp = 0, coin = 0;

@@ -16,7 +16,7 @@ namespace GuiQin
     {
         public enum Tab { Bag, Equip, Smith, Shop }
 
-        readonly GameObject root; readonly RectTransform body; readonly Text coinLabel, msg;
+        readonly GameObject root; readonly RectTransform body; readonly Text title, coinLabel, msg;
         readonly Func<string, BagOpReq, Task<Result<BagResp>>> op; readonly Func<RoleState> getRole; readonly Action<string> toast; readonly Action onChanged;
         Tab tab = Tab.Bag; string shopId; string filter = "all"; int page; string selId, selSlot; string forgeGem; bool busy;
         readonly List<Button> tabBtns = new List<Button>();
@@ -33,14 +33,17 @@ namespace GuiQin
         public BagUi(Transform parent, Func<string, BagOpReq, Task<Result<BagResp>>> op, Func<RoleState> role, Action<string> toast, Action onChanged)
         {
             this.op = op; getRole = role; this.toast = toast; this.onChanged = onChanged;
-            var bg = Ui.Box("bagUi", parent, new Color(0.05f, 0.05f, 0.09f, 0.97f)); root = bg.gameObject;
+            var shade = Ui.Box("bagOverlay", parent, WebUi.Dim);
+            root = shade.gameObject;
+            Ui.Anchor(shade.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var bg = WebUi.Panel("bagUi", shade.transform);
             Ui.Anchor(bg.rectTransform, Vector2.zero, Vector2.one, new Vector2(20, 100), new Vector2(-20, -100));
-            var title = Ui.Label("title", bg.transform, "行囊", 34, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleLeft);
-            Ui.Anchor(title.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, -70), new Vector2(240, -12));
+            title = WebUi.Title(Ui.Label("title", bg.transform, "背包", 34, WebUi.Amber, TextAnchor.MiddleCenter));
+            Ui.Anchor(title.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(205, -70), new Vector2(475, -12));
             coinLabel = Ui.Label("coin", bg.transform, "", 28, new Color(1f, 0.85f, 0.4f), TextAnchor.MiddleRight);
-            Ui.Anchor(coinLabel.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-300, -70), new Vector2(-110, -12));
-            var x = Ui.Btn("close", bg.transform, "关闭", 26, new Color(0.5f, 0.2f, 0.2f), Close);
-            Ui.Anchor(x.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-100, -66), new Vector2(-14, -14));
+            Ui.Anchor(coinLabel.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-215, -70), new Vector2(-64, -12));
+            var x = WebUi.Close(bg.transform, Close);
+            Ui.Anchor(x.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-50, -54), new Vector2(-10, -14));
             string[][] ts = { new[] { "Bag", "背包" }, new[] { "Equip", "装备" }, new[] { "Smith", "锻造" } };
             for (int i = 0; i < ts.Length; i++)
             {
@@ -94,6 +97,8 @@ namespace GuiQin
             Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(0, 1), min, max);
             if (id != null)
             {
+                WebUi.Dress(b.image, WebUi.C("#332642"), WebUi.C("#1a122c"),
+                    selected ? WebUi.Amber : QColor(id), 10);
                 var ic = Ui.Box("ic", b.transform, Color.white); ic.sprite = Icon(id); ic.preserveAspect = true; ic.raycastTarget = false; ic.enabled = ic.sprite != null;
                 Ui.Anchor(ic.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(-36, -80), new Vector2(36, -8));
                 var nm = Ui.Label("n", b.transform, ItemName(id), 20, QColor(id), TextAnchor.LowerCenter);
@@ -143,8 +148,10 @@ namespace GuiQin
         {
             Clear();
             var role = Role; if (role == null || role.bag == null) return;
-            coinLabel.text = "银两 " + role.coin;
-            for (int i = 0; i < tabBtns.Count; i++) { tabBtns[i].gameObject.SetActive(tab != Tab.Shop); tabBtns[i].GetComponent<Image>().color = (int)tab == i ? new Color(0.55f, 0.4f, 0.15f) : new Color(0.25f, 0.3f, 0.5f); }
+            coinLabel.text = "银两 " + role.coin.ToString("N0");
+            title.text = tab == Tab.Shop ? ((string)GameData.Raw["shops"]?[shopId]?["name"] ?? "商店") :
+                tab == Tab.Smith ? "铁匠铺" : tab == Tab.Equip ? "装备" : "背包";
+            for (int i = 0; i < tabBtns.Count; i++) { tabBtns[i].gameObject.SetActive(tab != Tab.Shop); WebUi.Button(tabBtns[i], (int)tab == i ? WebUi.C("#8a5a14") : WebUi.Purple); }
             if (selId != null && !Bag.items.ContainsKey(selId) && tab != Tab.Shop) selId = null;
             switch (tab) { case Tab.Bag: DrawBag(); break; case Tab.Equip: DrawEquip(); break; case Tab.Smith: DrawSmith(); break; case Tab.Shop: DrawShop(); break; }
         }
@@ -167,12 +174,12 @@ namespace GuiQin
             var sort = Ui.Btn("sort", body, "整理", 22, new Color(0.25f, 0.3f, 0.5f), () => Do(BagCmd.Sort, null));
             Ui.Anchor(sort.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-90, -44), new Vector2(0, 0));
 
-            var ids = Filtered(); const int per = 16; int pages = Math.Max(1, (ids.Count + per - 1) / per); page = Mathf.Clamp(page, 0, pages - 1);
-            var grid = Ui.Rect("grid", body); Ui.Anchor(grid, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -50 - 4 * 128), new Vector2(0, -50));
+            var ids = Filtered(); const int per = 20; int pages = Math.Max(1, (ids.Count + per - 1) / per); page = Mathf.Clamp(page, 0, pages - 1);
+            var grid = Ui.Rect("grid", body); Ui.Anchor(grid, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -50 - 4 * 112), new Vector2(0, -50));
             for (int k = 0; k < per; k++)
             {
-                int idx = page * per + k; int col = k % 4, row = k / 4;
-                Vector2 mn = new Vector2(col * 164, -row * 128 - 120), mx = new Vector2(col * 164 + 156, -row * 128);
+                int idx = page * per + k; int col = k % 5, row = k / 5;
+                Vector2 mn = new Vector2(col * 130, -row * 112 - 105), mx = new Vector2(col * 130 + 122, -row * 112);
                 if (idx < ids.Count)
                 {
                     string id = ids[idx]; int n = Bag.items[id];
@@ -181,18 +188,18 @@ namespace GuiQin
                 else { var e = Ui.Box("empty", grid, new Color(1, 1, 1, 0.05f)); Ui.Anchor(e.rectTransform, new Vector2(0, 1), new Vector2(0, 1), mn, mx); e.raycastTarget = false; }
             }
             var pg = Ui.Label("pg", body, "第 " + (page + 1) + "/" + pages + " 页　格子 " + Bag.items.Count + "/" + Bag.cap, 22, new Color(0.7f, 0.75f, 0.9f), TextAnchor.MiddleLeft);
-            Ui.Anchor(pg.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -50 - 4 * 128 - 40), new Vector2(380, -50 - 4 * 128));
+            Ui.Anchor(pg.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -50 - 4 * 112 - 40), new Vector2(380, -50 - 4 * 112));
             var pv = Ui.Btn("prev", body, "上页", 22, new Color(0.25f, 0.3f, 0.5f), () => { page--; Redraw(); }); pv.interactable = page > 0;
-            Ui.Anchor(pv.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-170, -50 - 4 * 128 - 40), new Vector2(-90, -50 - 4 * 128));
+            Ui.Anchor(pv.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-170, -50 - 4 * 112 - 40), new Vector2(-90, -50 - 4 * 112));
             var nx = Ui.Btn("next", body, "下页", 22, new Color(0.25f, 0.3f, 0.5f), () => { page++; Redraw(); }); nx.interactable = page < pages - 1;
-            Ui.Anchor(nx.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-80, -50 - 4 * 128 - 40), new Vector2(0, -50 - 4 * 128));
+            Ui.Anchor(nx.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-80, -50 - 4 * 112 - 40), new Vector2(0, -50 - 4 * 112));
 
             DrawItemDetail();
         }
 
         void DrawItemDetail()
         {
-            var box = Ui.Box("detail", body, new Color(0.1f, 0.11f, 0.18f)); Ui.Anchor(box.rectTransform, Vector2.zero, new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 250)); box.raycastTarget = false;
+            var box = WebUi.Panel("detail", body); Ui.Anchor(box.rectTransform, Vector2.zero, new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 250)); box.raycastTarget = false;
             if (selId == null) { var h = Info(box.transform, "点一件物品看详情", new Vector2(16, 150), new Vector2(-16, 230)); return; }
             var it = Items[selId]; string type = (string)it["type"];
             var sb = new StringBuilder();
@@ -230,17 +237,19 @@ namespace GuiQin
         {
             for (int k = 0; k < SlotOrder.Length; k++)
             {
-                string slot = SlotOrder[k]; int col = k % 3, row = k / 3;
+                string slot = SlotOrder[k]; int col = k % 2, row = k / 2;
                 string id; Bag.equip.TryGetValue(slot, out id);
                 GearState g; Bag.gear.TryGetValue(slot, out g);
-                Vector2 mn = new Vector2(col * 222, -row * 150), mx = new Vector2(col * 222 + 212, -row * 150 - 140);
+                Vector2 mn = new Vector2(col == 0 ? 0 : 496, -row * 91), mx = new Vector2(col == 0 ? 150 : 646, -row * 91 - 84);
                 Vector2 a = new Vector2(mn.x, mx.y), b = new Vector2(mx.x, mn.y);
                 var c = Cell(body, string.IsNullOrEmpty(id) ? null : id, g != null && g.star > 0 ? "★" + g.star : "", a, b, selSlot == slot, () => { selSlot = slot; Redraw(); });
                 var sl = Ui.Label("slot", c.transform, SlotName(slot), 22, new Color(0.7f, 0.75f, 0.9f), string.IsNullOrEmpty(id) ? TextAnchor.MiddleCenter : TextAnchor.UpperLeft);
                 Ui.Anchor(sl.rectTransform, Vector2.zero, Vector2.one, new Vector2(6, 4), new Vector2(-6, -4));
             }
+            var figure = WebUi.Icon("equippedRole", body, "cls_" + Role.cls);
+            WebUi.At(figure.rectTransform, 160, 0, 326, 305);
             var tot = RoleStats.Compute(Role.cls, Role.lv, Bag);
-            var box = Ui.Box("detail", body, new Color(0.1f, 0.11f, 0.18f)); Ui.Anchor(box.rectTransform, Vector2.zero, new Vector2(1, 0), Vector2.zero, new Vector2(0, 560)); box.raycastTarget = false;
+            var box = WebUi.Panel("detail", body); Ui.Anchor(box.rectTransform, Vector2.zero, new Vector2(1, 0), Vector2.zero, new Vector2(0, 328)); box.raycastTarget = false;
             var sb = new StringBuilder();
             string eid = null; if (selSlot != null) Bag.equip.TryGetValue(selSlot, out eid);
             if (selSlot == null) sb.Append("点一个部位看详情");
@@ -253,10 +262,10 @@ namespace GuiQin
                 sb.Append("宝石孔 ").Append(socks).Append("/4：");
                 for (int i = 0; i < 4; i++) sb.Append(i < socks ? (i < g.gems.Count && g.gems[i] != null ? "[" + ItemName(g.gems[i]) + "]" : "[空]") : "[锁]").Append(" ");
             }
-            Info(box.transform, sb.ToString(), new Vector2(16, 70), new Vector2(-16, 230));
+            Info(box.transform, sb.ToString(), new Vector2(16, 70), new Vector2(-16, 144), 19);
             if (selSlot != null && !string.IsNullOrEmpty(eid)) { var row = Ui.Rect("acts", box.transform); Ui.Anchor(row, new Vector2(0, 0), new Vector2(1, 0), new Vector2(12, 8), new Vector2(-12, 68)); string s = selSlot; Act(row, "卸下", 0, new Color(0.55f, 0.35f, 0.15f), () => Do(BagCmd.Unequip, new BagOpReq { slot = s })); }
             var pan = Ui.Label("tot", box.transform, "<b>人物属性</b>  Lv." + Role.lv + "\n气血 " + tot.maxHp + "　法力 " + tot.maxMp + "\n物攻 " + tot.atk + "　法攻 " + tot.matk + "\n物防 " + tot.def + "　法防 " + tot.mdef + "\n速度 " + tot.spd + "　暴击 " + tot.crit.ToString("0.#") + "%　闪避 " + tot.dodge.ToString("0.#") + "%", 24, new Color(0.9f, 0.95f, 1f), TextAnchor.UpperLeft);
-            pan.supportRichText = true; Ui.Anchor(pan.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(16, -190), new Vector2(-16, -10));
+            pan.supportRichText = true; Ui.Anchor(pan.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(16, -160), new Vector2(-16, -8));
         }
 
         // ---- 锻造 / 镶嵌 ----
@@ -272,7 +281,7 @@ namespace GuiQin
                 Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(0, 1), new Vector2(col * 164, -row * 56 - 50), new Vector2(col * 164 + 156, -row * 56));
             }
             string eid = Bag.equip[selSlot]; GearState g; Bag.gear.TryGetValue(selSlot, out g); g = g ?? new GearState();
-            var box = Ui.Box("detail", body, new Color(0.1f, 0.11f, 0.18f)); Ui.Anchor(box.rectTransform, Vector2.zero, new Vector2(1, 0), Vector2.zero, new Vector2(0, 820)); box.raycastTarget = false;
+            var box = WebUi.Panel("detail", body); Ui.Anchor(box.rectTransform, Vector2.zero, new Vector2(1, 0), Vector2.zero, new Vector2(0, 820)); box.raycastTarget = false;
             var forgeGems = Bag.items.Keys.Where(i => Items[i] != null && Items[i]["forge"] != null).OrderBy(i => (int)Items[i]["forge"]).ToList();
             if (forgeGem == null || !forgeGems.Contains(forgeGem)) forgeGem = forgeGems.FirstOrDefault();
             int maxStar = (int)GameData.Raw["forge"]["max"]; var sb = new StringBuilder();
@@ -341,7 +350,7 @@ namespace GuiQin
                 var nx = Ui.Btn("next", body, "下页", 22, new Color(0.25f, 0.3f, 0.5f), () => { page++; Redraw(); }); nx.interactable = page < pages - 1;
                 Ui.Anchor(nx.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-80, -50 - 3 * 128 - 40), new Vector2(0, -50 - 3 * 128));
             }
-            var box = Ui.Box("detail", body, new Color(0.1f, 0.11f, 0.18f)); Ui.Anchor(box.rectTransform, Vector2.zero, new Vector2(1, 0), Vector2.zero, new Vector2(0, 330)); box.raycastTarget = false;
+            var box = WebUi.Panel("detail", body); Ui.Anchor(box.rectTransform, Vector2.zero, new Vector2(1, 0), Vector2.zero, new Vector2(0, 330)); box.raycastTarget = false;
             if (selId == null || Items[selId] == null) { Info(box.transform, "点一件商品看详情", new Vector2(16, 240), new Vector2(-16, 320)); }
             else
             {

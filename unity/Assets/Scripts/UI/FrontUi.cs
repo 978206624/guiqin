@@ -15,7 +15,7 @@ namespace GuiQin
     {
         enum Scr { Login, Server, Roles, Create }
 
-        readonly GameObject root; readonly RectTransform content; readonly Func<ModalUi> getModal; ModalUi modal { get { return getModal(); } }
+        readonly GameObject root; readonly Image curtain; readonly RectTransform content; readonly Func<ModalUi> getModal; ModalUi modal { get { return getModal(); } }
         readonly Func<IGameBackend> net; readonly Func<string, Task<string>> enterGame;      // enterGame：进游戏，返回错误文字（成功返回 null）
         string account = ""; ServerInfo server; LoginResp login; List<RoleBrief> roles = new List<RoleBrief>();
         int picked; string group = "rec"; bool busy;
@@ -37,8 +37,18 @@ namespace GuiQin
             if (tex != null)
             {
                 var raw = new GameObject("art", typeof(RectTransform)).AddComponent<RawImage>(); raw.transform.SetParent(bg.transform, false); raw.texture = tex; raw.raycastTarget = false;
+                const float stageRatio = 720f / 1280f;
+                float textureRatio = tex.width / (float)tex.height;
+                float w = Mathf.Min(1, stageRatio / textureRatio);
+                float h = Mathf.Min(1, textureRatio / stageRatio);
+                raw.uvRect = new Rect((1 - w) * 0.5f, (1 - h) * 0.5f, w, h);
                 Ui.Anchor(raw.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             }
+            var shade = WebUi.Gradient("shade", bg.transform, WebUi.C("#0a061c26"), WebUi.C("#0a061ce0"));
+            Ui.Anchor(shade.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            curtain = Ui.Box("curtain", bg.transform, WebUi.C("#0a061cb8"));
+            curtain.raycastTarget = false;
+            Ui.Anchor(curtain.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             content = Ui.Rect("content", bg.transform); Ui.Anchor(content, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             root.SetActive(false);
         }
@@ -57,37 +67,82 @@ namespace GuiQin
         static string ClsTitle(string id) { return GuiQin.Sect.SectService.ClsName(id); }
 
         void Clear() { for (int i = content.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(content.GetChild(i).gameObject); }
-        Text Err(float yTop) { var t = Ui.Label("err", content, "", 24, new Color(1f, 0.55f, 0.5f), TextAnchor.MiddleCenter); Ui.Anchor(t.rectTransform, new Vector2(0, 0), new Vector2(1, 0), new Vector2(30, yTop), new Vector2(-30, yTop + 40)); return t; }
-        Button Big(string label, Vector2 min, Vector2 max, bool red, UnityEngine.Events.UnityAction a, Vector2? anchor = null)
+        Text Label(string id, string value, int size, Color color, int x, int y, int w, int h,
+            TextAnchor anchor = TextAnchor.MiddleCenter)
         {
-            var b = Ui.Btn("btn_" + label, content, label, 30, red ? new Color(0.7f, 0.25f, 0.2f) : new Color(0.25f, 0.3f, 0.5f), a);
-            Ui.Anchor(b.GetComponent<RectTransform>(), anchor ?? new Vector2(0, 0), anchor ?? new Vector2(0, 0), min, max); return b;
+            var text = Ui.Label(id, content, value, size, color, anchor);
+            WebUi.At(text.rectTransform, x, y, w, h);
+            return text;
         }
-        void Panel(Vector2 min, Vector2 max) { var p = Ui.Box("panel", content, new Color(0.04f, 0.04f, 0.08f, 0.72f)); p.raycastTarget = true; Ui.Anchor(p.rectTransform, new Vector2(0, 0), new Vector2(1, 1), min, max); }
+
+        Button ButtonAt(string id, string value, int size, int x, int y, int w, int h,
+            UnityEngine.Events.UnityAction action, Color tone)
+        {
+            var button = Ui.Btn(id, content, value, size, tone, action);
+            WebUi.At((RectTransform)button.transform, x, y, w, h);
+            return button;
+        }
+
+        void Header(string title, string back, UnityEngine.Events.UnityAction onBack)
+        {
+            WebUi.Title(Label("title", title, 44, WebUi.Amber, 0, 30, 720, 60));
+            ButtonAt("back", back, 19, 20, 38, 100, 44, onBack, WebUi.Purple);
+        }
+
+        void Portrait(string key, int top, int height, int pedestalTop)
+        {
+            var glow = Ui.Box("pedestal", content, WebUi.C("#ffce7085"));
+            glow.raycastTarget = false;
+            glow.sprite = Sprite.Create(Art.SoftTex(), new Rect(0, 0, 64, 64), Vector2.one * 0.5f);
+            WebUi.At(glow.rectTransform, 150, pedestalTop, 420, 110);
+            var image = WebUi.Icon("art", content, "cls_" + key);
+            WebUi.At(image.rectTransform, 0, top, 720, height);
+        }
+
+        static void HeadIn(Transform parent, Sprite sprite, int x, int y, int size)
+        {
+            var border = Ui.Box("border", parent, WebUi.Gold);
+            border.sprite = WebUi.Circle(); border.raycastTarget = false;
+            WebUi.At(border.rectTransform, x, y, size, size);
+            var mask = WebUi.RoundMask("clip", parent);
+            WebUi.At(mask.rectTransform, x + 2, y + 2, size - 4, size - 4);
+            var picture = Ui.Box("head", mask.transform, Color.white);
+            picture.sprite = sprite; picture.enabled = sprite != null; picture.raycastTarget = false;
+            Ui.Anchor(picture.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        }
 
         void Show(Scr s)
         {
             Clear();
+            curtain.enabled = s != Scr.Login;
             switch (s) { case Scr.Login: DrawLogin(); break; case Scr.Server: DrawServers(); break; case Scr.Roles: DrawRoles(); break; case Scr.Create: DrawCreate(); break; }
         }
 
         // ---------------- 登录 ----------------
         void DrawLogin()
         {
-            var t = Ui.Label("title", content, "归  秦", 110, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleCenter);
-            Ui.Anchor(t.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -420), new Vector2(0, -250));
-            var sub = Ui.Label("sub", content, "2.5D 武侠 · 手游", 28, new Color(0.9f, 0.92f, 1f), TextAnchor.MiddleCenter);
-            Ui.Anchor(sub.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -470), new Vector2(0, -420));
-            Panel(new Vector2(60, 90), new Vector2(-60, 590));
-            var acc = Ui.Input("account", content, "账号", 30, false, 24); acc.text = PlayerPrefs.GetString("gq_account", "");
-            Ui.Anchor(acc.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(1, 0), new Vector2(100, 470), new Vector2(-100, 550));
-            var pwd = Ui.Input("password", content, "密码", 30, true, 32);
-            Ui.Anchor(pwd.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(1, 0), new Vector2(100, 370), new Vector2(-100, 450));
+            var t = WebUi.Title(Label("logo", "归秦", 190, WebUi.Amber, 0, 139, 720, 222));
+            t.color = WebUi.Light;
+            WebUi.Edge(t);
+            var sub = Label("slogan", "大 秦 风 云　侠 义 江 湖", 24, WebUi.Light, 0, 370, 720, 42);
+            WebUi.Edge(sub);
+            var panel = WebUi.Panel("form", content);
+            WebUi.At(panel.rectTransform, 90, 716, 540, 424);
+            panel.color = new Color(1, 1, 1, 0.92f);
+            Label("accountLabel", "账号", 17, WebUi.Light, 120, 738, 480, 24, TextAnchor.MiddleLeft);
+            var acc = Ui.Input("account", content, "请输入账号", 22, false, 24);
+            acc.text = PlayerPrefs.GetString("gq_account", "");
+            WebUi.At((RectTransform)acc.transform, 120, 766, 480, 54);
+            Label("passwordLabel", "密码", 17, WebUi.Light, 120, 833, 480, 24, TextAnchor.MiddleLeft);
+            var pwd = Ui.Input("password", content, "请输入密码", 22, true, 32);
+            WebUi.At((RectTransform)pwd.transform, 120, 860, 480, 54);
             bool agree = false;
-            var ag = Ui.Btn("agree", content, "☐ 我已阅读并同意用户协议", 24, new Color(0, 0, 0, 0), null);
-            ag.onClick.AddListener(() => { agree = !agree; ag.GetComponentInChildren<Text>().text = (agree ? "☑" : "☐") + " 我已阅读并同意用户协议"; });
-            Ui.Anchor(ag.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(1, 0), new Vector2(100, 310), new Vector2(-100, 360));
-            var err = Err(262);
+            const string terms = " 我已阅读并同意用户协议";
+            var ag = ButtonAt("agree", "☐" + terms, 16, 120, 924, 480, 28, null, Color.clear);
+            var agreement = ag.GetComponentInChildren<Text>();
+            agreement.alignment = TextAnchor.MiddleLeft; agreement.color = WebUi.Muted;
+            ag.onClick.AddListener(() => { agree = !agree; agreement.text = (agree ? "☑" : "☐") + terms; });
+            var err = Label("err", "", 17, WebUi.C("#ff9a8a"), 120, 956, 480, 30);
             Func<bool, Task> go = async guest =>
             {
                 if (busy) return;
@@ -105,8 +160,10 @@ namespace GuiQin
                 }
                 finally { busy = false; }
             };
-            var b1 = Big("登录", new Vector2(100, 170), new Vector2(340, 250), true, () => { var _ = go(false); }); b1.name = "login";
-            var b2 = Big("游客试玩", new Vector2(370, 170), new Vector2(620, 250), false, () => { var _ = go(true); });
+            var enter = ButtonAt("login", "登 录", 36, 120, 992, 480, 68, () => { var _ = go(false); }, WebUi.Red);
+            WebUi.Title(enter.GetComponentInChildren<Text>());
+            var guest = ButtonAt("guest", "游客试玩", 19, 120, 1073, 480, 44, () => { var _ = go(true); }, Color.clear);
+            guest.GetComponentInChildren<Text>().color = WebUi.Light;
         }
 
         // ---------------- 选区 ----------------
@@ -119,40 +176,48 @@ namespace GuiQin
             return all.Where(s => s.no > 6).ToList();
         }
 
-        Button ServerBtn(ServerInfo s, Vector2 min, Vector2 max)
+        Button ServerBtn(ServerInfo server, int x, int y, int width)
         {
-            var b = Ui.Btn("srv_" + s.id, content, "", 28, new Color(0.16f, 0.18f, 0.28f, 0.95f), () => PickServer(s)); b.interactable = s.status != "down";
-            Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(1, 1), min, max);
-            var l = b.GetComponentInChildren<Text>(); l.alignment = TextAnchor.MiddleLeft; Ui.Anchor(l.rectTransform, Vector2.zero, Vector2.one, new Vector2(20, 0), new Vector2(-250, 0));
-            l.text = "秦 " + s.no + " 区　" + s.name;
-            var st = Ui.Label("st", b.transform, StatusName.ContainsKey(s.status) ? StatusName[s.status] : "", 26, StatusColor.ContainsKey(s.status) ? StatusColor[s.status] : Color.white, TextAnchor.MiddleRight);
-            Ui.Anchor(st.rectTransform, Vector2.zero, Vector2.one, new Vector2(0, 0), new Vector2(-20, 0));
-            if (s.roles > 0) { var n = Ui.Label("n", b.transform, s.roles + " 个角色", 22, new Color(1f, 0.9f, 0.6f), TextAnchor.MiddleRight); Ui.Anchor(n.rectTransform, Vector2.zero, Vector2.one, new Vector2(0, 0), new Vector2(-110, 0)); }
+            var b = ButtonAt("srv_" + server.id, "", 21, x, y, width, 88, () => PickServer(server), WebUi.Purple);
+            b.interactable = server.status != "down";
+            var color = StatusColor.TryGetValue(server.status, out var statusColor) ? statusColor : WebUi.Muted;
+            var dot = Ui.Box("statusDot", b.transform, color); dot.sprite = Art.Dot(); dot.raycastTarget = false;
+            WebUi.At(dot.rectTransform, 16, 37, 13, 13);
+            var name = b.GetComponentInChildren<Text>(); name.alignment = TextAnchor.MiddleLeft;
+            name.text = "秦 " + server.no + " 区 " + server.name;
+            WebUi.At(name.rectTransform, 38, 11, width - 100, 66);
+            var status = Ui.Label("status", b.transform, StatusName.TryGetValue(server.status, out var label) ? label : "",
+                14, color, TextAnchor.MiddleRight);
+            WebUi.At(status.rectTransform, width - 62, 10, 48, 20);
+            if (server.roles > 0)
+            {
+                var count = Ui.Label("count", b.transform, server.roles + " 个角色", 14, WebUi.Amber, TextAnchor.MiddleRight);
+                WebUi.At(count.rectTransform, width - 90, 57, 76, 20);
+            }
             return b;
         }
 
         void DrawServers()
         {
-            Panel(new Vector2(30, 40), new Vector2(-30, -40));
-            var who = Ui.Label("who", content, "账号：" + account, 28, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleLeft);
-            Ui.Anchor(who.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(60, -120), new Vector2(-200, -60));
-            var back = Ui.Btn("back", content, "换号", 24, new Color(0.4f, 0.25f, 0.25f), () => Show(Scr.Login));
-            Ui.Anchor(back.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-190, -116), new Vector2(-60, -64));
-            var last = login.servers != null ? login.servers.Find(s => s.id == login.last) : null;
-            var lt = Ui.Label("lt", content, "上次登录", 22, new Color(0.7f, 0.75f, 0.9f), TextAnchor.MiddleLeft);
-            Ui.Anchor(lt.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(60, -160), new Vector2(-60, -130));
-            if (last != null) ServerBtn(last, new Vector2(60, -250), new Vector2(-60, -166));
-            else { var e = Ui.Label("e", content, "还没有进过任何区。", 24, new Color(0.6f, 0.62f, 0.72f), TextAnchor.MiddleLeft); Ui.Anchor(e.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(60, -230), new Vector2(-60, -170)); }
-            string[][] gs = { new[] { "rec", "推荐" }, new[] { "mine", "我的" }, new[] { "a", "1-6 区" }, new[] { "b", "7-12 区" } };
-            for (int i = 0; i < gs.Length; i++)
+            Header("选择区服", "‹ 返回", () => Show(Scr.Login));
+            Label("account", "账号 " + account, 16, WebUi.Muted, 520, 42, 176, 30, TextAnchor.MiddleRight);
+            Label("lastLabel", "上次登录", 16, WebUi.Muted, 30, 124, 660, 24, TextAnchor.MiddleLeft);
+            var last = login.servers?.Find(s => s.id == login.last);
+            if (last != null) ServerBtn(last, 30, 154, 660);
+            else Label("lastEmpty", "还没有进过任何区。", 18, WebUi.Muted, 30, 154, 660, 52, TextAnchor.MiddleLeft);
+
+            string[][] groups = { new[] { "rec", "推荐" }, new[] { "mine", "我的" }, new[] { "a", "1-6 区" }, new[] { "b", "7-12 区" } };
+            for (int i = 0; i < groups.Length; i++)
             {
-                string g = gs[i][0];
-                var tb = Ui.Btn("tab_" + g, content, gs[i][1], 24, g == group ? new Color(0.55f, 0.4f, 0.15f) : new Color(0.2f, 0.22f, 0.34f), () => { group = g; Show(Scr.Server); });
-                Ui.Anchor(tb.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(0, 1), new Vector2(60 + i * 152, -320), new Vector2(60 + i * 152 + 144, -264));
+                string id = groups[i][0];
+                ButtonAt("tab_" + id, groups[i][1], 20, 30 + i * 168, 286, 156, 52,
+                    () => { group = id; Show(Scr.Server); }, group == id ? WebUi.C("#8a5a14") : WebUi.Purple);
             }
             var list = Servers(group);
-            if (list.Count == 0) { var e = Ui.Label("e", content, "这个账号还没有在任何区创建角色。", 24, new Color(0.6f, 0.62f, 0.72f), TextAnchor.MiddleCenter); Ui.Anchor(e.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(60, -480), new Vector2(-60, -400)); }
-            for (int i = 0; i < list.Count; i++) ServerBtn(list[i], new Vector2(60, -420 - i * 92), new Vector2(-60, -336 - i * 92));
+            if (list.Count == 0)
+                Label("empty", "这个账号还没有在任何区创建角色。", 18, WebUi.Muted, 30, 360, 660, 80);
+            for (int i = 0; i < list.Count; i++)
+                ServerBtn(list[i], 30 + i % 2 * 337, 360 + i / 2 * 102, 323);
         }
 
         async void PickServer(ServerInfo s)
@@ -179,43 +244,41 @@ namespace GuiQin
         // ---------------- 角色列表 ----------------
         void DrawRoles()
         {
-            var title = Ui.Label("t", content, "秦 " + server.no + " 区 · " + server.name, 32, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleCenter);
-            Ui.Anchor(title.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -110), new Vector2(0, -50));
-            var r = picked < roles.Count ? roles[picked] : null;
-            if (r != null)
+            Header("秦 " + server.no + " 区 · " + server.name, "‹ 换区", () => { server = null; Show(Scr.Server); });
+            var role = picked < roles.Count ? roles[picked] : null;
+            if (role != null)
             {
-                string key = "cls_" + r.cls;
-                if (Art.Has(key)) { var art = Ui.Box("art", content, Color.white); art.sprite = Art.One(key, true); art.preserveAspect = true; art.raycastTarget = false; Ui.Anchor(art.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-230, -40), new Vector2(230, 470)); }
-                var c = Cls(r.cls);
-                var nm = Ui.Label("nm", content, r.name, 44, Color.white, TextAnchor.MiddleCenter); Ui.Anchor(nm.rectTransform, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 560), new Vector2(0, 620));
-                var info = Ui.Label("info", content, r.lv + " 级 · " + ClsTitle(r.cls) + " · " + ((string)c["gender"] == "m" ? "男" : "女"), 26, new Color(0.85f, 0.9f, 1f), TextAnchor.MiddleCenter);
-                Ui.Anchor(info.rectTransform, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 510), new Vector2(0, 560));
+                Portrait(role.cls, 200, 640, 790);
+                var name = WebUi.Title(Label("name", role.name, 46, WebUi.Light, 0, 852, 720, 54));
+                name.color = WebUi.Light;
+                string gender = (string)Cls(role.cls)?["gender"] == "m" ? "男" : "女";
+                Label("info", role.lv + " 级 · " + ClsTitle(role.cls) + " · " + gender, 19, WebUi.Light, 0, 905, 720, 32);
             }
             for (int i = 0; i < MaxRoles; i++)
             {
-                int idx = i; var x = i < roles.Count ? roles[i] : null;
-                var b = Ui.Btn("slot" + i, content, "", 22, i == picked && x != null ? new Color(0.45f, 0.36f, 0.15f, 0.95f) : new Color(0.14f, 0.15f, 0.24f, 0.92f), () => { if (idx < roles.Count) { picked = idx; Show(Scr.Roles); } else Show(Scr.Create); });
-                Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(30 + i * 222, 230), new Vector2(30 + i * 222 + 212, 430));
-                var l = b.GetComponentInChildren<Text>(); l.alignment = TextAnchor.LowerCenter; Ui.Anchor(l.rectTransform, Vector2.zero, Vector2.one, new Vector2(4, 8), new Vector2(-4, -4)); l.supportRichText = true;
-                if (x != null)
+                int index = i;
+                var slot = i < roles.Count ? roles[i] : null;
+                var button = ButtonAt("slot" + i, "", 20, 30 + i * 225, 958, 210, 156,
+                    () => { if (index < roles.Count) { picked = index; Show(Scr.Roles); } else Show(Scr.Create); },
+                    i == picked && slot != null ? WebUi.C("#8a5a14") : WebUi.Purple);
+                var caption = button.GetComponentInChildren<Text>();
+                if (slot == null)
                 {
-                    l.text = x.name + "\n<size=18>" + x.lv + " 级 " + (string)Cls(x.cls)["name"] + "</size>";
-                    var h = Ui.Box("head", b.transform, Color.white); h.sprite = Head(x.cls); h.enabled = h.sprite != null; h.preserveAspect = true; h.raycastTarget = false;
-                    Ui.Anchor(h.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(-48, -100), new Vector2(48, -8));
+                    caption.text = "<size=43>＋</size>\n创建角色\n<size=14>空栏位</size>";
+                    continue;
                 }
-                else l.text = "＋\n<size=22>创建角色</size>";
+                HeadIn(button.transform, Head(slot.cls), 68, 10, 74);
+                WebUi.At(caption.rectTransform, 0, 88, 210, 56);
+                caption.text = slot.name + "\n<size=14>" + slot.lv + " 级 " + ClsTitle(slot.cls) + "</size>";
             }
-            var enter = Big("进入游戏", new Vector2(30, 120), new Vector2(430, 200), true, () => EnterPicked());
-            enter.interactable = r != null; Ui.Anchor(enter.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(30, 110), new Vector2(430, 200));
-            var del = Big("删除角色", new Vector2(450, 120), new Vector2(570, 200), false, () =>
+            ButtonAt("enter", "进入游戏", 36, 150, 1140, 420, 68, EnterPicked, WebUi.Red).interactable = role != null;
+            ButtonAt("delete", "删除角色", 19, 585, 38, 115, 44, () =>
             {
-                if (r == null) return;
-                modal.Open("删除角色", "确定要删除「" + r.name + "」吗？\n<color=#ff8a8a>删除后角色和进度无法恢复。</color>", new ModalUi.Btn("删除", () => DeleteRole(r), true), new ModalUi.Btn("再想想", null));
-            });
-            del.interactable = r != null; Ui.Anchor(del.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(450, 110), new Vector2(590, 200));
-            var sv = Big("换区", new Vector2(600, 110), new Vector2(690, 200), false, () => { server = null; Show(Scr.Server); });
-            Ui.Anchor(sv.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(600, 110), new Vector2(690, 200));
-            errLabel = Err(40);
+                if (role == null) return;
+                modal.Open("删除角色", "确定要删除「" + role.name + "」吗？\n<color=#ff8a8a>删除后角色和进度无法恢复。</color>",
+                    new ModalUi.Btn("删除", () => DeleteRole(role), true), new ModalUi.Btn("再想想", null));
+            }, WebUi.Red).interactable = role != null;
+            errLabel = Label("err", "", 17, WebUi.C("#ff9a8a"), 30, 1210, 660, 38);
         }
 
         Text errLabel;
@@ -238,52 +301,54 @@ namespace GuiQin
 
         void DrawCreate()
         {
-            var vis = ((JObject)GameData.Raw["classes"]).Properties().Where(p => p.Value["hidden"] == null || !(bool)p.Value["hidden"]).ToList();
-            var genders = vis.Select(p => (string)p.Value["gender"]).Distinct().ToList();
+            var visible = ((JObject)GameData.Raw["classes"]).Properties().Where(p => !((bool?)p.Value["hidden"] ?? false)).ToList();
+            var genders = visible.Select(p => (string)p.Value["gender"]).Distinct().ToList();
             if (!genders.Contains(draftGender)) draftGender = genders[0];
-            var ids = vis.Where(p => (string)p.Value["gender"] == draftGender).Select(p => p.Name).ToList();
+            var ids = visible.Where(p => (string)p.Value["gender"] == draftGender).Select(p => p.Name).ToList();
             if (!ids.Contains(draftCls)) draftCls = ids[0];
-            var c = Cls(draftCls);
-            var title = Ui.Label("t", content, "创建角色", 34, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleCenter);
-            Ui.Anchor(title.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -110), new Vector2(0, -50));
-            string[][] gs = { new[] { "m", "男" }, new[] { "f", "女" } };
+            var data = Cls(draftCls);
+
+            Header("创建角色", roles.Count > 0 ? "‹ 返回" : "换区",
+                () => { if (roles.Count > 0) Show(Scr.Roles); else { server = null; Show(Scr.Server); } });
             if (genders.Count > 1)
-                for (int i = 0; i < gs.Length; i++)
-                {
-                    string g = gs[i][0];
-                    var tb = Ui.Btn("g_" + g, content, gs[i][1], 26, g == draftGender ? new Color(0.55f, 0.4f, 0.15f) : new Color(0.2f, 0.22f, 0.34f), () => { draftGender = g; Show(Scr.Create); });
-                    Ui.Anchor(tb.GetComponent<RectTransform>(), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(-150 + i * 160, -180), new Vector2(-10 + i * 160, -124));
-                }
+            {
+                ButtonAt("male", "男", 20, 210, 108, 145, 52, () => { draftGender = "m"; Show(Scr.Create); },
+                    draftGender == "m" ? WebUi.C("#8a5a14") : WebUi.Purple);
+                ButtonAt("female", "女", 20, 365, 108, 145, 52, () => { draftGender = "f"; Show(Scr.Create); },
+                    draftGender == "f" ? WebUi.C("#8a5a14") : WebUi.Purple);
+            }
+            Portrait(draftCls, 176, 560, 690);
             for (int i = 0; i < ids.Count; i++)
             {
-                string id = ids[i]; int n = ids.Count; float w = 120f, gap = 10f, x0 = -(n * w + (n - 1) * gap) / 2f;
-                var b = Ui.Btn("c_" + id, content, "", 22, id == draftCls ? new Color(0.45f, 0.36f, 0.15f, 0.95f) : new Color(0.14f, 0.15f, 0.24f, 0.92f), () => { draftCls = id; Show(Scr.Create); });
-                Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(x0 + i * (w + gap), -330), new Vector2(x0 + i * (w + gap) + w, -196));
-                var l = b.GetComponentInChildren<Text>(); l.text = (string)Cls(id)["name"]; l.alignment = TextAnchor.LowerCenter; Ui.Anchor(l.rectTransform, Vector2.zero, Vector2.one, new Vector2(2, 4), new Vector2(-2, -2));
-                var h = Ui.Box("head", b.transform, Color.white); h.sprite = Head(id); h.enabled = h.sprite != null; h.preserveAspect = true; h.raycastTarget = false;
-                Ui.Anchor(h.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(-40, -80), new Vector2(40, -4));
+                string id = ids[i];
+                var button = ButtonAt("class_" + id, ClsTitle(id), 23, 30 + i * 225, 752, 210, 96,
+                    () => { draftCls = id; Show(Scr.Create); }, id == draftCls ? WebUi.C("#8a5a14") : WebUi.Purple);
+                HeadIn(button.transform, Head(id), 15, 16, 64);
+                WebUi.At(button.GetComponentInChildren<Text>().rectTransform, 84, 0, 118, 96);
             }
-            string key = "cls_" + draftCls;
-            if (Art.Has(key)) { var art = Ui.Box("art", content, Color.white); art.sprite = Art.One(key, true); art.preserveAspect = true; art.raycastTarget = false; Ui.Anchor(art.rectTransform, new Vector2(0, 0), new Vector2(0.5f, 1), new Vector2(10, 330), new Vector2(0, -340)); }
-            Panel(new Vector2(360, 330), new Vector2(-20, -340)); 
-            var nm = Ui.Label("cn", content, ClsTitle(draftCls), 34, new Color(1f, 0.92f, 0.65f), TextAnchor.UpperLeft); Ui.Anchor(nm.rectTransform, new Vector2(0.5f, 1), new Vector2(1, 1), new Vector2(10, -400), new Vector2(-34, -350));
-            var role = Ui.Label("cr", content, (string)c["role"], 24, new Color(0.7f, 0.85f, 1f), TextAnchor.UpperLeft); Ui.Anchor(role.rectTransform, new Vector2(0.5f, 1), new Vector2(1, 1), new Vector2(10, -440), new Vector2(-34, -402));
-            var desc = Ui.Label("cd", content, (string)c["desc"], 22, Color.white, TextAnchor.UpperLeft); Ui.Anchor(desc.rectTransform, new Vector2(0.5f, 1), new Vector2(1, 1), new Vector2(10, -640), new Vector2(-34, -446));
+
+            var panel = WebUi.Panel("classInfo", content);
+            WebUi.At(panel.rectTransform, 30, 866, 660, 270);
+            WebUi.Title(Label("className", ClsTitle(draftCls), 34, WebUi.Amber, 50, 880, 178, 42, TextAnchor.MiddleLeft));
+            Label("classRole", (string)data["role"], 16, WebUi.Sky, 230, 888, 410, 33, TextAnchor.MiddleLeft);
+            Label("desc", (string)data["desc"], 18, WebUi.Text, 50, 926, 620, 66, TextAnchor.UpperLeft);
             int k = 0;
-            foreach (var st in ((JObject)c["stats"]).Properties())
+            foreach (var stat in ((JObject)data["stats"]).Properties())
             {
-                var sl = Ui.Label("sl" + k, content, st.Name, 22, new Color(0.8f, 0.85f, 1f), TextAnchor.MiddleLeft); Ui.Anchor(sl.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(20, -690 - k * 38), new Vector2(100, -660 - k * 38));
-                var back = Ui.Box("sb" + k, content, new Color(1, 1, 1, 0.12f)); back.raycastTarget = false; Ui.Anchor(back.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(110, -684 - k * 38), new Vector2(330, -668 - k * 38));
-                var fill = Ui.Box("sf" + k, content, new Color(0.95f, 0.75f, 0.3f)); fill.raycastTarget = false; Ui.Anchor(fill.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(110, -684 - k * 38), new Vector2(110 + 44 * (int)st.Value, -668 - k * 38));
+                int x = 50 + k % 2 * 320, y = 1000 + k / 2 * 32;
+                Label("stat_" + k, stat.Name, 16, WebUi.Light, x, y, 45, 25, TextAnchor.MiddleLeft);
+                var back = WebUi.Gradient("statBack", content, WebUi.C("#1a0f14"), WebUi.C("#1a0f14"), 4);
+                WebUi.At(back.rectTransform, x + 55, y + 7, 230, 10);
+                var fill = WebUi.Gradient("statFill", content, WebUi.Light, WebUi.Gold, 4);
+                WebUi.At(fill.rectTransform, x + 55, y + 7, 46 * Mathf.Clamp((int)stat.Value, 0, 5), 10);
                 k++;
             }
-            var name = Ui.Input("name", content, "给自己取个名字（2～6 个字）", 28, false, 6);
-            Ui.Anchor(name.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(30, 190), new Vector2(530, 270));
-            var dice = Ui.Btn("dice", content, "随机", 26, new Color(0.25f, 0.3f, 0.5f), () => name.text = RandomName(draftGender));
-            Ui.Anchor(dice.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(545, 190), new Vector2(690, 270));
-            var err = Err(135);
-            Big("创建并进入", new Vector2(30, 40), new Vector2(430, 120), true, () => { var _ = CreateRole(name.text, err); });
-            Big(roles.Count > 0 ? "返回" : "换区", new Vector2(450, 40), new Vector2(690, 120), false, () => { if (roles.Count > 0) Show(Scr.Roles); else { server = null; Show(Scr.Server); } });
+
+            var name = Ui.Input("name", content, "角色名（2–6 字）", 22, false, 6);
+            WebUi.At((RectTransform)name.transform, 30, 1156, 390, 54);
+            ButtonAt("dice", "随机", 20, 432, 1156, 112, 54, () => name.text = RandomName(draftGender), WebUi.Purple);
+            var err = Label("err", "", 17, WebUi.C("#ff9a8a"), 30, 1214, 660, 32);
+            ButtonAt("create", "创建", 28, 556, 1156, 134, 54, () => { var _ = CreateRole(name.text, err); }, WebUi.Red);
         }
 
         async Task CreateRole(string name, Text err)
@@ -298,8 +363,7 @@ namespace GuiQin
                 if (!r.Ok) { err.text = r.msg ?? "创建失败"; return; }
                 if (!r.data.ok) { err.text = r.data.msg; return; }
                 roles.Add(r.data.role); picked = roles.Count - 1;
-                string e = await enterGame(r.data.role.id);
-                if (e != null) { Show(Scr.Roles); }
+                Show(Scr.Roles);
             }
             finally { busy = false; }
         }

@@ -1,4 +1,8 @@
 using System;
+using GuiQin.Inventory;
+using GuiQin.Net;
+using GuiQin.Quest;
+using GuiQin.Sect;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,14 +18,17 @@ namespace GuiQin
 
         public DialogUi(Transform parent)
         {
-            var bg = Ui.Box("dialog", parent, new Color(0.08f, 0.07f, 0.12f, 0.92f)); root = bg.gameObject;
-            Ui.Anchor(bg.rectTransform, new Vector2(0, 0), new Vector2(1, 0), new Vector2(24, 40), new Vector2(-24, 300));
+            var bg = WebUi.Panel("dialog", parent); root = bg.gameObject;
+            WebUi.At(bg.rectTransform, 20, 986, 680, 172);
             face = Ui.Box("face", bg.transform, Color.white); face.preserveAspect = true; face.raycastTarget = false;
-            Ui.Anchor(face.rectTransform, new Vector2(0, 0), new Vector2(0, 1), new Vector2(16, 16), new Vector2(196, -16));
+            WebUi.At(face.rectTransform, 14, 14, 118, 118);
             nameT = Ui.Label("name", bg.transform, "", 30, new Color(1f, 0.88f, 0.4f), TextAnchor.UpperLeft);
-            Ui.Anchor(nameT.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(216, -58), new Vector2(-20, -14));
-            body = Ui.Label("text", bg.transform, "", 28, Color.white, TextAnchor.UpperLeft);
-            Ui.Anchor(body.rectTransform, new Vector2(0, 0), new Vector2(1, 1), new Vector2(216, 14), new Vector2(-20, -64));
+            WebUi.Title(nameT);
+            WebUi.At(nameT.rectTransform, 150, 10, 504, 40);
+            body = Ui.Label("text", bg.transform, "", 19, WebUi.Text, TextAnchor.UpperLeft);
+            WebUi.At(body.rectTransform, 150, 54, 512, 89);
+            var hint = Ui.Label("hint", bg.transform, "点击继续 ▶", 13, WebUi.Muted, TextAnchor.MiddleRight);
+            WebUi.At(hint.rectTransform, 525, 145, 139, 19);
             body.lineSpacing = 1.15f;
             root.SetActive(false);
         }
@@ -55,61 +62,282 @@ namespace GuiQin
     public class ToastUi
     {
         readonly Text t; readonly CanvasGroup g; float left;
+        public event Action<string> Reported;
 
         public ToastUi(Transform parent)
         {
-            var bg = Ui.Box("toast", parent, new Color(0.05f, 0.05f, 0.08f, 0.85f));
-            Ui.Anchor(bg.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-260, 330), new Vector2(260, 392));
+            var bg = Ui.Box("toast", parent, Color.clear);
+            Ui.Anchor(bg.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-300, 318), new Vector2(300, 350));
             g = bg.gameObject.AddComponent<CanvasGroup>(); g.alpha = 0; g.blocksRaycasts = false; g.interactable = false;
-            t = Ui.Label("t", bg.transform, "", 26, Color.white, TextAnchor.MiddleCenter);
+            t = Ui.Label("t", bg.transform, "", 20, WebUi.Amber, TextAnchor.MiddleCenter);
+            WebUi.Edge(t);
             Ui.Anchor(t.rectTransform, Vector2.zero, Vector2.one, new Vector2(12, 0), new Vector2(-12, 0));
         }
 
-        public void Show(string s) { t.text = s; left = 1.8f; g.alpha = 1; }
+        public void Show(string s) { t.text = s; left = 1.8f; g.alpha = 1; Reported?.Invoke(s); }
         public void Tick(float dt) { if (left > 0) { left -= dt; g.alpha = Mathf.Clamp01(left / 0.4f); } }
     }
 
-    // 顶部栏：天气按钮 + 地图名（点它打开世界地图）+ 世界 / 菜单按钮
+    // 左上角色状态与右上小地图沿用 HTML 舞台的位置。
     public class HudUi
     {
-        readonly Text place, wxLabel; readonly GameObject barGo;
-        public HudUi(Transform parent, Action onMenu, Action onWeather, Action onWorld, Action onBag)
+        readonly RectTransform root, town, hpFill, mpFill, expFill, miniLayer, miniDots;
+        const float MiniScale = 0.09f;
+        Vector2 miniSize;
+        readonly CanvasGroup hudInput;
+        readonly Text systemLog;
+        readonly System.Collections.Generic.Queue<string> messages = new();
+        readonly Text place, weather, name, level, sect, power, coin, hpText, mpText;
+        readonly Image face, mini;
+
+        public HudUi(Transform parent, Action onMenu, Action onWeather, Action onWorld, Action onBag,
+            Action onRole, Action onPet, Action onScene)
         {
-            var bar = Ui.Box("hud", parent, new Color(0.05f, 0.05f, 0.08f, 0.55f));
-            Ui.Anchor(bar.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -84), new Vector2(0, 0));
-            bar.raycastTarget = false; barGo = bar.gameObject;
-            var pb = Ui.Btn("placeBtn", bar.transform, "", 34, new Color(0, 0, 0, 0), () => onWorld());      // 透明按钮：点地名 = 开世界地图
-            Ui.Anchor(pb.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(130, 0), new Vector2(-370, 0));
-            place = pb.GetComponentInChildren<Text>(); place.color = new Color(1f, 0.92f, 0.65f); place.raycastTarget = false;
-            var wb = Ui.Btn("weather", bar.transform, "晴", 26, new Color(0.2f, 0.36f, 0.55f, 0.95f), () => onWeather());
-            Ui.Anchor(wb.GetComponent<RectTransform>(), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(16, -30), new Vector2(116, 30));
-            wxLabel = wb.GetComponentInChildren<Text>();
-            var bb = Ui.Btn("bag", bar.transform, "行囊", 26, new Color(0.15f, 0.42f, 0.3f, 0.95f), () => onBag());
-            Ui.Anchor(bb.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-358, -30), new Vector2(-272, 30));
-            var wm = Ui.Btn("world", bar.transform, "世界", 26, new Color(0.45f, 0.3f, 0.12f, 0.95f), () => onWorld());
-            Ui.Anchor(wm.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-262, -30), new Vector2(-166, 30));
-            var b = Ui.Btn("menu", bar.transform, "设置", 26, new Color(0.25f, 0.22f, 0.4f, 0.95f), () => onMenu());
-            Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-150, -30), new Vector2(-16, 30));
+            root = Ui.Rect("hud", parent);
+            Ui.Anchor(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            hudInput = root.gameObject.AddComponent<CanvasGroup>();
+            var plate = WebUi.Panel("plate", root);
+            plate.raycastTarget = false;
+            WebUi.At(plate.rectTransform, 56, 24, 280, 92);
+            face = Portrait("role", 10, 20, 96, onRole);
+            var pet = Portrait("pet", 335, 48, 62, onPet);
+            pet.sprite = Art.One("ph_ss_bs20", true);
+            var badge = WebUi.Gradient("levelBadge", root, WebUi.C("#a12a20"), WebUi.C("#761913"), 12);
+            WebUi.At(badge.rectTransform, 76, 88, 30, 30);
+            level = Label("level", "", 14, WebUi.Light, 76, 88, 30, 30, TextAnchor.MiddleCenter);
+            name = Label("name", "", 19, WebUi.Light, 118, 28, 130, 23);
+            name.resizeTextForBestFit = true; name.resizeTextMinSize = 12; name.resizeTextMaxSize = 19;
+            sect = Label("sect", "", 13, WebUi.Sky, 250, 28, 66, 23);
+            hpFill = Bar("hp", 116, 60, 190, 14, "#ff8a78", "#c0241c", out hpText);
+            mpFill = Bar("mp", 116, 78, 190, 14, "#84ccff", "#2060c0", out mpText);
+            power = Label("power", "", 14, WebUi.Amber, 118, 94, 195, 20);
+            expFill = Bar("exp", 0, 1272, 720, 8, "#f6e66a", "#8fe06a", out _);
+
+            town = Ui.Rect("TownControls", root);
+            Ui.Anchor(town, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var mapButton = Ui.Btn("mini", town, "", 14, Color.clear, () => onScene());
+            mapButton.image.sprite = WebUi.Circle();
+            mapButton.image.color = WebUi.Gold;
+            WebUi.At((RectTransform)mapButton.transform, 580, 16, 124, 124);
+            var clip = WebUi.RoundMask("clip", mapButton.transform);
+            WebUi.At(clip.rectTransform, 7, 7, 110, 110);
+            var miniBack = Ui.Box("mapBack", clip.transform, WebUi.C("#224433"));
+            miniBack.raycastTarget = false;
+            WebUi.At(miniBack.rectTransform, 0, 0, 110, 110);
+            miniLayer = Ui.Rect("mapLayer", clip.transform);
+            mini = Ui.Box("mapImage", miniLayer, Color.white);
+            mini.raycastTarget = false;
+            Ui.Anchor(mini.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            miniDots = Ui.Rect("dots", miniLayer);
+            Ui.Anchor(miniDots, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var marker = Ui.Label("playerMarker", clip.transform, "▲", 14, Color.white, TextAnchor.MiddleCenter);
+            WebUi.At(marker.rectTransform, 48, 46, 14, 14);
+            WebUi.Edge(marker);
+            TownLabel("north", "北", 13, WebUi.Light, 630, 8, 24, 24);
+            place = MapButton("place", "", 566, 152, 138, onWorld);
+            weather = MapButton("weather", "晴", 520, 152, 40, onWeather);
+            coin = TownLabel("coin", "", 14, WebUi.Amber, 566, 188, 138, 24);
+            WebUi.Edge(coin);
+            Shortcut("bag", "背包", "icon_bag", 523, onBag);
+            Shortcut("settings", "设置", "icon_gear", 751, onMenu);
+
+            var log = WebUi.Panel("systemMessages", town);
+            log.raycastTarget = false;
+            WebUi.At(log.rectTransform, 10, 1146, 446, 122);
+            var heading = Ui.Label("heading", log.transform, "系统消息", 15, WebUi.Light, TextAnchor.MiddleLeft);
+            WebUi.At(heading.rectTransform, 12, 6, 420, 21);
+            systemLog = Ui.Label("log", log.transform, "", 15, WebUi.Text, TextAnchor.UpperLeft);
+            systemLog.supportRichText = false;
+            systemLog.verticalOverflow = VerticalWrapMode.Truncate;
+            WebUi.At(systemLog.rectTransform, 12, 31, 420, 80);
         }
-        public void SetPlace(string s) { place.text = s; }
-        public void SetVisible(bool v) { barGo.SetActive(v); }
-        public void SetWeather(string s) { wxLabel.text = s; }
+
+        Image Portrait(string id, float x, float y, float size, Action open)
+        {
+            var button = Ui.Btn(id, root, "", 14, Color.clear, () => open());
+            var ring = Ui.Box("ring", button.transform, WebUi.Gold);
+            ring.sprite = WebUi.Circle(); ring.raycastTarget = false;
+            WebUi.At(ring.rectTransform, 0, 0, size, size);
+            WebUi.At((RectTransform)button.transform, x, y, size, size);
+            var clip = WebUi.RoundMask("clip", button.transform);
+            WebUi.At(clip.rectTransform, 5, 5, size - 10, size - 10);
+            var image = Ui.Box("portrait", clip.transform, Color.white);
+            image.raycastTarget = false;
+            Ui.Anchor(image.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            return image;
+        }
+
+        Text Label(string id, string value, int size, Color color, float x, float y, float w, float h,
+            TextAnchor align = TextAnchor.MiddleLeft)
+        {
+            var label = Ui.Label(id, root, value, size, color, align);
+            WebUi.At(label.rectTransform, x, y, w, h);
+            return label;
+        }
+
+        Text TownLabel(string id, string value, int size, Color color, float x, float y, float w, float h)
+        {
+            var label = Ui.Label(id, town, value, size, color, TextAnchor.MiddleCenter);
+            WebUi.At(label.rectTransform, x, y, w, h);
+            return label;
+        }
+
+        Text MapButton(string id, string value, float x, float y, float w, Action open)
+        {
+            var button = Ui.Btn(id, town, value, 20, Color.clear, () => open());
+            WebUi.Dress(button.image, WebUi.C("#fbf0cc"), WebUi.C("#dcc48a"), WebUi.C("#8a5a14"), 4);
+            WebUi.At((RectTransform)button.transform, x, y, w, 34);
+            var label = WebUi.Title(button.GetComponentInChildren<Text>());
+            label.color = WebUi.C("#4a2a10");
+            label.resizeTextForBestFit = true; label.resizeTextMinSize = 12; label.resizeTextMaxSize = 20;
+            return label;
+        }
+
+        void Shortcut(string id, string title, string icon, float y, Action open)
+        {
+            var button = Ui.Btn(id, town, title, 14, Color.clear, () => open());
+            WebUi.At((RectTransform)button.transform, 648, y, 54, 72);
+            WebUi.At(WebUi.Icon("icon", button.transform, icon).rectTransform, 0, 0, 54, 54);
+            var caption = button.GetComponentInChildren<Text>();
+            WebUi.At(caption.rectTransform, 0, 52, 54, 20);
+            WebUi.Edge(caption);
+        }
+
+        RectTransform Bar(string id, float x, float y, float w, float h, string top, string bottom, out Text label)
+        {
+            var back = WebUi.Gradient(id, root, WebUi.C("#1a0f14"), WebUi.C("#0a0612"), 4);
+            WebUi.At(back.rectTransform, x, y, w, h);
+            var fill = WebUi.Gradient("fill", back.transform, WebUi.C(top), WebUi.C(bottom), 4);
+            Ui.Anchor(fill.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            label = id == "exp" ? null : Label(id + "Value", "", 11, Color.white, x, y, w, h, TextAnchor.MiddleCenter);
+            if (label != null) WebUi.Edge(label);
+            return fill.rectTransform;
+        }
+
+        static void SetBar(RectTransform fill, float value)
+        {
+            fill.anchorMax = new Vector2(Mathf.Clamp01(value), 1);
+        }
+
+        public void SetRole(RoleState role, StatBlock stats)
+        {
+            name.text = role.name;
+            sect.text = SectService.ClsName(role.cls);
+            level.text = role.lv.ToString();
+            string portrait = "head_" + role.cls;
+            face.sprite = Art.One(Art.Has(portrait) ? portrait : "head_player", true);
+            int hp = role.hp < 0 ? stats.maxHp : role.hp;
+            int mp = role.mp < 0 ? stats.maxMp : role.mp;
+            SetVitals(hp, stats.maxHp, mp, stats.maxMp);
+            SetBar(expFill, role.exp / (float)Mathf.Max(1, Rewards.ExpNeed(role.lv)));
+            power.text = "战力 " + Power(stats).ToString("N0");
+            coin.text = "银两 " + role.coin.ToString("N0");
+        }
+
+        public void SetVitals(int hp, int maxHp, int mp, int maxMp)
+        {
+            hpText.text = hp + "/" + maxHp;
+            mpText.text = mp + "/" + maxMp;
+            SetBar(hpFill, hp / (float)Mathf.Max(1, maxHp));
+            SetBar(mpFill, mp / (float)Mathf.Max(1, maxMp));
+        }
+
+        public void AddMessage(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            if (messages.Count == 3) messages.Dequeue();
+            messages.Enqueue(text.Replace("\n", " "));
+            systemLog.text = string.Join("\n", messages);
+        }
+
+        public void ClearMessages()
+        {
+            messages.Clear();
+            systemLog.text = "";
+        }
+
+        public static int Power(StatBlock s) => Mathf.RoundToInt(s.atk * 6 + s.matk * 4 + s.def * 5 + s.mdef * 3
+            + s.maxHp / 2f + s.maxMp / 4f + s.spd * 3 + s.crit * 12 + s.dodge * 12);
+
+        public void SetPlace(MapRuntime map)
+        {
+            place.text = map.Def.name;
+            mini.sprite = Art.One(Art.Has(map.Def.mini) ? map.Def.mini : map.Def.img, true);
+            miniSize = new Vector2(map.W, map.H) * MiniScale;
+        }
+
+        public void SetMapActors(System.Collections.Generic.IEnumerable<Actor> actors)
+        {
+            for (int i = miniDots.childCount - 1; i >= 0; i--)
+            {
+                var old = miniDots.GetChild(i).gameObject;
+                old.SetActive(false);
+                UnityEngine.Object.Destroy(old);
+            }
+            foreach (var actor in actors)
+            {
+                if (actor.Hidden) continue;
+                var color = actor.Marked ? Color.white : actor.Kind == ActorKind.Portal ? WebUi.Sky :
+                    actor.Kind == ActorKind.Foe ? WebUi.C("#ff6a5a") : WebUi.Amber;
+                var dot = Ui.Box("dot", miniDots, color);
+                dot.sprite = WebUi.Circle();
+                dot.raycastTarget = false;
+                WebUi.At(dot.rectTransform, actor.Pos.x * MiniScale - 3, actor.Pos.y * MiniScale - 3, 6, 6);
+            }
+        }
+
+        public void SetPosition(Vector2 p)
+        {
+            WebUi.At(miniLayer, 55 - p.x * MiniScale, 55 - p.y * MiniScale, miniSize.x, miniSize.y);
+        }
+        public void SetVisible(bool visible)
+        {
+            root.gameObject.SetActive(visible);
+            hudInput.blocksRaycasts = visible;
+            town.gameObject.SetActive(visible);
+        }
+
+        public void SetBattleVisible()
+        {
+            root.gameObject.SetActive(true);
+            hudInput.blocksRaycasts = false;
+            town.gameObject.SetActive(false);
+        }
+        public void SetWeather(string value) => weather.text = value;
     }
 
-    // 任务栏：挂在顶栏下面，点一下自动寻路到任务目标
     public class QuestUi
     {
-        readonly GameObject go; readonly Text label, side;
+        readonly GameObject root;
+        readonly Text title, goal, progress;
+
         public QuestUi(Transform parent, Action onGo)
         {
-            var b = Ui.Btn("quest", parent, "", 24, new Color(0.05f, 0.05f, 0.09f, 0.62f), () => onGo()); go = b.gameObject;
-            Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(1, 1), new Vector2(16, -172), new Vector2(-16, -92));
-            label = b.GetComponentInChildren<Text>(); label.alignment = TextAnchor.MiddleLeft; label.supportRichText = true;
-            Ui.Anchor(label.rectTransform, Vector2.zero, Vector2.one, new Vector2(14, 0), new Vector2(-150, 0));
-            side = Ui.Label("side", b.transform, "", 20, new Color(0.7f, 0.75f, 0.9f), TextAnchor.MiddleRight);
-            Ui.Anchor(side.rectTransform, Vector2.zero, Vector2.one, new Vector2(0, 0), new Vector2(-12, 0));
+            var panel = WebUi.Panel("quest", parent); root = panel.gameObject;
+            WebUi.At(panel.rectTransform, 10, 136, 214, 146);
+            var strip = WebUi.Gradient("header", panel.transform, WebUi.C("#8a5a14"), WebUi.C("#5a3a0c"), 5);
+            WebUi.At(strip.rectTransform, 1, 1, 212, 28);
+            var heading = Ui.Label("heading", panel.transform, "任务", 15, WebUi.Light, TextAnchor.MiddleCenter);
+            WebUi.At(heading.rectTransform, 0, 0, 214, 29);
+            var b = Ui.Btn("current", panel.transform, "", 15, Color.clear, () => onGo());
+            WebUi.Dress(b.image, WebUi.C("#e2b04a35"), WebUi.C("#e2b04a18"), Color.clear, 4);
+            WebUi.At((RectTransform)b.transform, 5, 34, 204, 60);
+            title = Ui.Label("title", b.transform, "", 15, WebUi.Light, TextAnchor.MiddleLeft);
+            title.horizontalOverflow = HorizontalWrapMode.Wrap; title.verticalOverflow = VerticalWrapMode.Truncate;
+            WebUi.At(title.rectTransform, 8, 3, 188, 23);
+            goal = Ui.Label("goal", b.transform, "", 13, WebUi.Jade, TextAnchor.UpperLeft);
+            goal.verticalOverflow = VerticalWrapMode.Truncate;
+            WebUi.At(goal.rectTransform, 8, 27, 188, 32);
+            progress = Ui.Label("progress", panel.transform, "", 13, WebUi.Muted, TextAnchor.UpperLeft);
+            WebUi.At(progress.rectTransform, 13, 101, 190, 34);
         }
-        public void Set(string title, string goal, string chapter) { label.text = "<color=#ffe066><b>" + title + "</b></color>\n" + goal; side.text = chapter; }
-        public void SetVisible(bool v) { go.SetActive(v); }
+
+        public void Set(string label, string target, string chapter)
+        {
+            title.text = "<color=#ffd56a>[主线]</color> " + label;
+            goal.text = target;
+            progress.text = chapter;
+        }
+        public void SetVisible(bool visible) => root.SetActive(visible);
     }
 }

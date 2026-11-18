@@ -13,12 +13,13 @@ namespace GuiQin
         public SettingsUi(Transform parent, Action onSwitchRole, Action onResetRole)
         {
             onSwitch = onSwitchRole; onReset = onResetRole;
-            var bg = Ui.Box("settings", parent, new Color(0.04f, 0.04f, 0.08f, 0.95f)); root = bg.gameObject;
+            var bg = WebUi.Panel("settings", parent); root = bg.gameObject;
             Ui.Anchor(bg.rectTransform, Vector2.zero, Vector2.one, new Vector2(30, 120), new Vector2(-30, -110));
             var title = Ui.Label("title", bg.transform, "设置", 36, new Color(1f, 0.92f, 0.65f), TextAnchor.UpperCenter);
+            WebUi.Title(title);
             Ui.Anchor(title.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -64), new Vector2(0, -14));
             body = Ui.Rect("body", bg.transform); Ui.Anchor(body, Vector2.zero, Vector2.one, new Vector2(24, 100), new Vector2(-24, -80));
-            var close = Ui.Btn("close", bg.transform, "关闭", 28, new Color(0.3f, 0.3f, 0.34f), Close);
+            var close = WebUi.Close(bg.transform, Close);
             Ui.Anchor(close.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(1, 0), new Vector2(24, 20), new Vector2(-24, 86));
             root.SetActive(false);
         }

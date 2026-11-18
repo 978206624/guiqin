@@ -33,13 +33,14 @@ namespace GuiQin
             dots = new Image[ids.Count];
             for (int i = 0; i < ids.Count; i++) MakeNode(ids[i], i);
 
-            var title = Ui.Label("title", bg.transform, "天下地图", 40, new Color(0.29f, 0.16f, 0.06f), TextAnchor.MiddleCenter);
+            var title = Ui.Label("title", bg.transform, "天下舆图", 52, WebUi.Light, TextAnchor.MiddleCenter);
+            WebUi.Title(title).color = WebUi.Light; WebUi.Edge(title);
             Ui.Anchor(title.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(-170, -96), new Vector2(170, -30));
-            hint = Ui.Label("hint", bg.transform, "拖动查看 · 点地名传送", 22, new Color(0.98f, 0.94f, 0.8f), TextAnchor.MiddleCenter);
+            hint = Ui.Label("hint", bg.transform, "拖动地图浏览 · 点击地点传送", 18, new Color(0.98f, 0.94f, 0.8f), TextAnchor.MiddleCenter);
             Ui.Anchor(hint.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-200, 110), new Vector2(200, 146));
-            var home = Ui.Btn("home", bg.transform, "回到当前位置", 26, new Color(0.45f, 0.3f, 0.12f, 0.95f), () => Center(curId()));
+            var home = Ui.Btn("home", bg.transform, "回到当前", 22, new Color(0.45f, 0.3f, 0.12f, 0.95f), () => Center(curId()));
             Ui.Anchor(home.GetComponent<RectTransform>(), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-250, 30), new Vector2(-10, 94));
-            var close = Ui.Btn("close", bg.transform, "关闭", 26, new Color(0.3f, 0.3f, 0.34f, 0.95f), () => root.SetActive(false));
+            var close = Ui.Btn("close", bg.transform, "返回", 22, WebUi.Red, () => root.SetActive(false));
             Ui.Anchor(close.GetComponent<RectTransform>(), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(10, 30), new Vector2(250, 94));
             root.SetActive(false);
         }

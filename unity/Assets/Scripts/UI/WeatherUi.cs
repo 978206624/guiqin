@@ -15,9 +15,10 @@ namespace GuiQin
         public WeatherUi(Transform parent, WeatherSystem wx, MapRuntimeProvider placeName)
         {
             this.wx = wx; cur = placeName;
-            var bg = Ui.Box("weatherPanel", parent, new Color(0.04f, 0.04f, 0.08f, 0.95f)); root = bg.gameObject;
+            var bg = WebUi.Panel("weatherPanel", parent); root = bg.gameObject;
             Ui.Anchor(bg.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-320, -280), new Vector2(320, 280));
             var title = Ui.Label("title", bg.transform, "天气", 32, new Color(1f, 0.92f, 0.65f), TextAnchor.UpperCenter);
+            WebUi.Title(title);
             Ui.Anchor(title.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -54), new Vector2(0, -10));
             head = Ui.Label("head", bg.transform, "", 40, new Color(1f, 0.95f, 0.77f), TextAnchor.UpperLeft);
             Ui.Anchor(head.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(30, -120), new Vector2(-30, -66));

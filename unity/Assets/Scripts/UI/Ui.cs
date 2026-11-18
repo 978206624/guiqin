@@ -31,7 +31,7 @@ namespace GuiQin
             go.transform.SetParent(parent, false);
             var cv = go.AddComponent<Canvas>(); cv.renderMode = RenderMode.ScreenSpaceOverlay; cv.sortingOrder = order;
             var sc = go.AddComponent<CanvasScaler>();
-            sc.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; sc.referenceResolution = new Vector2(720, 1280); sc.matchWidthOrHeight = 0.5f;
+            sc.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; sc.referenceResolution = new Vector2(720, 1280); sc.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             go.AddComponent<GraphicRaycaster>();
             return cv;
         }
@@ -56,7 +56,7 @@ namespace GuiQin
         public static Text Label(string name, Transform parent, string s, int size, Color c, TextAnchor anchor)
         {
             var r = Rect(name, parent); var t = r.gameObject.AddComponent<Text>();
-            t.font = F; t.text = s; t.fontSize = size; t.color = c; t.alignment = anchor; t.raycastTarget = false;
+            t.font = F; t.text = s; t.fontSize = size; t.color = c == Color.white ? WebUi.Text : c; t.alignment = anchor; t.raycastTarget = false;
             t.horizontalOverflow = HorizontalWrapMode.Wrap; t.verticalOverflow = VerticalWrapMode.Overflow;
             return t;
         }
@@ -65,6 +65,7 @@ namespace GuiQin
         public static InputField Input(string name, Transform parent, string placeholder, int size, bool password = false, int limit = 0)
         {
             var im = Box(name, parent, new Color(0.1f, 0.11f, 0.18f, 0.95f)); var f = im.gameObject.AddComponent<InputField>(); f.targetGraphic = im;
+            WebUi.Dress(im, WebUi.C("#130c24"), WebUi.C("#080412"), WebUi.C("#e2b04a99"), 8);
             var t = Label("text", im.transform, "", size, Color.white, TextAnchor.MiddleLeft); t.horizontalOverflow = HorizontalWrapMode.Overflow; t.supportRichText = false;
             Anchor(t.rectTransform, Vector2.zero, Vector2.one, new Vector2(16, 4), new Vector2(-16, -4));
             var ph = Label("ph", im.transform, placeholder, size, new Color(0.55f, 0.58f, 0.7f), TextAnchor.MiddleLeft); ph.fontStyle = FontStyle.Italic;
@@ -79,6 +80,7 @@ namespace GuiQin
             var im = Box(name, parent, bg); var b = im.gameObject.AddComponent<Button>(); b.targetGraphic = im;
             var t = Label("t", im.transform, label, size, Color.white, TextAnchor.MiddleCenter);
             Anchor(t.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            WebUi.Button(b, bg);
             if (onClick != null) b.onClick.AddListener(onClick);
             return b;
         }

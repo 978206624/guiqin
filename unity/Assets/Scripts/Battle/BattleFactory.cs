@@ -1,4 +1,5 @@
 using System;
+using GuiQin.Net;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
@@ -50,11 +51,11 @@ namespace GuiQin.Battle
             // 敌方
             foreach (var id in st.enemies)
             {
-                var e = D["enemies"][id]; bool pet = e["pet"] != null && (bool)e["pet"], boss = e["boss"] != null && (bool)e["boss"];
+                var e = D["enemies"][id]; bool isPet = e["pet"] != null && (bool)e["pet"], boss = e["boss"] != null && (bool)e["boss"];
                 int hp = (int)F(e["hp"]);
                 units.Add(new BUnit
                 {
-                    Id = nextId++, Side = "enemy", Row = pet ? "pet" : "person", Name = (string)e["name"], Sprite = (string)e["sprite"], H = F(e["h"]) * 1.12f, Flip = true,
+                    Id = nextId++, Side = "enemy", Row = isPet ? "pet" : "person", Name = (string)e["name"], Sprite = (string)e["sprite"], H = F(e["h"]) * 1.12f, Flip = true,
                     Hp = hp, MaxHp = hp, Atk = (int)F(e["atk"]), Matk = (int)F(e["atk"]), Def = (int)F(e["def"]), Mdef = (int)F(e["def"]), Spd = (int)F(e["spd"]),
                     Ai = boss ? "boss" : "attack", Boss = boss
                 });

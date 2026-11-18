@@ -34,8 +34,9 @@ namespace GuiQin.Battle
         BattleView view; Func<BattleCmd, Task<Result<BattleRoundResp>>> send; Action<BattleEnd> onDone; Action<string> toast;
         readonly Dictionary<int, BU> units = new Dictionary<int, BU>();
         readonly List<Fl> floats = new List<Fl>();
-        Text roundText, clockText, bannerText, tipText, statText;
-        RectTransform cmdPanel, listRoot; Button autoBtn; Text autoLabel;
+        Text roundText, clockText, bannerText, tipText;
+        Action<int, int, int, int> onVitals;
+        RectTransform cmdPanel, listRoot; ScrollRect commandScroll; Button autoBtn; Text autoLabel;
         GameObject resultPanel;
         bool auto, waitingCmd, finished; float shakeT, shakePower, bannerT; int round;
         BattleCmd chosen; Action<BU> pickCb; BU me;
@@ -43,11 +44,11 @@ namespace GuiQin.Battle
         public bool Active { get; private set; }
 
         // ---------------- 开战 ----------------
-        public static BattleController Begin(Camera cam, Transform uiParent, BattleView view, Func<BattleCmd, Task<Result<BattleRoundResp>>> send, Action<BattleEnd> onDone, Action<string> toast)
+        public static BattleController Begin(Camera cam, Transform uiParent, BattleView view, Func<BattleCmd, Task<Result<BattleRoundResp>>> send, Action<BattleEnd> onDone, Action<string> toast, Action<int, int, int, int> onVitals)
         {
             var go = new GameObject("Battle");
             var b = go.AddComponent<BattleController>();
-            b.cam = cam; b.view = view; b.send = send; b.onDone = onDone; b.toast = toast; b.Active = true;
+            b.cam = cam; b.view = view; b.send = send; b.onDone = onDone; b.toast = toast; b.onVitals = onVitals; b.Active = true;
             b.Build(uiParent);
             Time.timeScale = Settings.Speed;                 // 战斗速度：整个战斗按倍速跑（回合倒计时用的是真实时间，不受影响）
             b.StartCoroutine(b.Loop());
@@ -140,26 +141,43 @@ namespace GuiQin.Battle
         void BuildUi(Transform parent)
         {
             ui = Ui.Rect("BattleUi", parent); Ui.Anchor(ui, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            roundText = Ui.Label("round", ui, "", 34, new Color(1f, 0.92f, 0.65f), TextAnchor.UpperCenter);
-            Ui.Anchor(roundText.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -60), new Vector2(0, -16)); Shadow(roundText);
-            clockText = Ui.Label("clock", ui, "", 40, Color.white, TextAnchor.UpperRight);
-            Ui.Anchor(clockText.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-120, -70), new Vector2(-20, -16)); Shadow(clockText);
-            bannerText = Ui.Label("banner", ui, "", 36, Color.white, TextAnchor.MiddleCenter);
-            Ui.Anchor(bannerText.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -150), new Vector2(0, -90)); Shadow(bannerText);
-            var panel = Ui.Box("cmd", ui, new Color(0.04f, 0.04f, 0.08f, 0.82f)); cmdPanel = panel.rectTransform;
-            Ui.Anchor(cmdPanel, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 330));
-            statText = Ui.Label("stat", panel.transform, "", 24, new Color(0.85f, 0.95f, 1f), TextAnchor.MiddleLeft);
-            Ui.Anchor(statText.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -44), new Vector2(-20, -6));
-            tipText = Ui.Label("tip", panel.transform, "", 24, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleLeft);
-            Ui.Anchor(tipText.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -84), new Vector2(-20, -48));
-            listRoot = Ui.Rect("list", panel.transform); Ui.Anchor(listRoot, Vector2.zero, Vector2.one, new Vector2(12, 96), new Vector2(-12, -90));
+            var turn = Ui.Box("turnBadge", ui, WebUi.Gold);
+            turn.sprite = WebUi.Circle(); turn.raycastTarget = false;
+            WebUi.At(turn.rectTransform, 596, 20, 104, 104);
+            var center = Ui.Box("turnCenter", turn.transform, WebUi.Purple);
+            center.sprite = WebUi.Circle(); center.raycastTarget = false;
+            WebUi.At(center.rectTransform, 3, 3, 98, 98);
+            clockText = Ui.Label("clock", turn.transform, "", 40, WebUi.Amber, TextAnchor.MiddleCenter);
+            WebUi.At(clockText.rectTransform, 4, 13, 96, 48);
+            roundText = Ui.Label("round", turn.transform, "", 14, WebUi.Text, TextAnchor.MiddleCenter);
+            WebUi.At(roundText.rectTransform, 4, 59, 96, 27);
+            bannerText = WebUi.Title(Ui.Label("banner", ui, "", 30, WebUi.Amber, TextAnchor.MiddleCenter));
+            WebUi.At(bannerText.rectTransform, 110, 196, 500, 45);
+            Shadow(bannerText);
+            var panel = WebUi.Gradient("cmd", ui, WebUi.C("#120c208c"), WebUi.C("#120c20f2"));
+            panel.raycastTarget = true;
+            cmdPanel = panel.rectTransform;
+            WebUi.At(cmdPanel, 0, 1030, 720, 242);
+            tipText = Ui.Label("tip", panel.transform, "", 17, WebUi.Text, TextAnchor.MiddleCenter);
+            WebUi.At(tipText.rectTransform, 14, 8, 692, 31);
+            var viewport = Ui.Box("listViewport", panel.transform, Color.clear);
+            WebUi.At(viewport.rectTransform, 14, 44, 692, 104);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            listRoot = Ui.Rect("list", viewport.transform);
+            listRoot.pivot = Vector2.up;
+            Ui.Anchor(listRoot, Vector2.up, Vector2.up, Vector2.zero, new Vector2(692, 0));
+            commandScroll = viewport.gameObject.AddComponent<ScrollRect>();
+            commandScroll.viewport = viewport.rectTransform;
+            commandScroll.content = listRoot;
+            commandScroll.horizontal = false;
+            commandScroll.movementType = ScrollRect.MovementType.Clamped;
 
-            string[][] bs = { new[] { "attack", "攻击" }, new[] { "skill", "技能" }, new[] { "item", "物品" }, new[] { "defend", "防御" }, new[] { "flee", "逃跑" }, new[] { "auto", "自动" } };
+            string[][] bs = { new[] { "attack", "攻击" }, new[] { "skill", "技能" }, new[] { "item", "道具" }, new[] { "defend", "防御" }, new[] { "flee", "逃跑" }, new[] { "auto", "自动" } };
             for (int i = 0; i < bs.Length; i++)
             {
                 string id = bs[i][0];
-                var btn = Ui.Btn("b_" + id, panel.transform, bs[i][1], 26, new Color(0.25f, 0.3f, 0.5f, 1f), () => OnCmd(id));
-                Ui.Anchor(btn.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(12 + i * 114, 14), new Vector2(12 + i * 114 + 108, 84));
+                var btn = Ui.Btn("b_" + id, panel.transform, bs[i][1], 20, WebUi.Purple, () => OnCmd(id));
+                WebUi.At((RectTransform)btn.transform, 14 + i * 117, 150, 108, 54);
                 if (id == "auto") { autoBtn = btn; autoLabel = btn.GetComponentInChildren<Text>(); }
             }
             UpdateStat();
@@ -167,14 +185,30 @@ namespace GuiQin.Battle
 
         void UpdateStat()
         {
-            if (me != null) statText.text = "气血 " + me.Hp + "/" + me.MaxHp + "　法力 " + me.Mp + "/" + me.V.maxMp;
+            if (me != null) onVitals?.Invoke(me.Hp, me.MaxHp, me.Mp, me.V.maxMp);
         }
 
-        void ClearList() { for (int i = listRoot.childCount - 1; i >= 0; i--) Destroy(listRoot.GetChild(i).gameObject); }
+        void ClearList()
+        {
+            for (int i = listRoot.childCount - 1; i >= 0; i--)
+            {
+                var child = listRoot.GetChild(i).gameObject;
+                child.SetActive(false);
+                Destroy(child);
+            }
+            ResizeCommands(0);
+        }
+
+        void ResizeCommands(int count)
+        {
+            listRoot.sizeDelta = new Vector2(692, Mathf.Max(104, ((count + 2) / 3) * 52));
+            listRoot.anchoredPosition = Vector2.zero;
+            commandScroll.StopMovement();
+        }
 
         void OnCmd(string c)
         {
-            if (c == "auto") { auto = !auto; autoBtn.GetComponent<Image>().color = auto ? new Color(0.7f, 0.25f, 0.2f) : new Color(0.25f, 0.3f, 0.5f); autoLabel.text = auto ? "取消自动" : "自动"; if (auto && waitingCmd) Choose(new BattleCmd { type = "auto" }); return; }
+            if (c == "auto") { auto = !auto; WebUi.Button(autoBtn, auto ? WebUi.Red : WebUi.Purple); autoLabel.text = auto ? "取消自动" : "自动"; if (auto && waitingCmd) Choose(new BattleCmd { type = "auto" }); return; }
             if (!waitingCmd) return;
             pickCb = null; ClearList();
             if (c == "attack") PickEnemy(t => Choose(new BattleCmd { type = "skill", skill = "attack", target = t.V.id }));
@@ -194,11 +228,12 @@ namespace GuiQin.Battle
                 {
                     string id = kv.Key; int left = kv.Value - (used.ContainsKey(id) ? used[id] : 0);
                     var it = GameData.Raw["items"][id]; string desc = it != null ? (it["hp"] != null ? "气血 +" + (int)it["hp"] : it["mp"] != null ? "法力 +" + (int)it["mp"] : "") : "";
-                    var b = Ui.Btn("it_" + id, listRoot, (it != null ? (string)it["name"] : id) + " ×" + left + "\n<size=18>" + desc + "</size>", 24, left > 0 ? new Color(0.2f, 0.45f, 0.32f) : new Color(0.25f, 0.25f, 0.3f), () => OnItem(id));
+                    var b = Ui.Btn("it_" + id, listRoot, (it != null ? (string)it["name"] : id) + " ×" + left + "\n<size=13>" + desc + "</size>", 17, left > 0 ? new Color(0.2f, 0.45f, 0.32f) : new Color(0.25f, 0.25f, 0.3f), () => OnItem(id));
                     b.GetComponentInChildren<Text>().supportRichText = true; b.interactable = left > 0;
                     int col = i % 3, row = i / 3; i++;
-                    Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(0, 1), new Vector2(col * 226, -row * 70 - 66), new Vector2(col * 226 + 216, -row * 70));
+                    WebUi.At((RectTransform)b.transform, col * 232, row * 52, 224, 48);
                 }
+            ResizeCommands(i);
             if (i == 0) tipText.text = "背包里没有药品";
         }
 
@@ -217,12 +252,13 @@ namespace GuiQin.Battle
             foreach (var sk in view.skills)
             {
                 var s = sk; bool ok = s.usable && me != null && me.Mp >= s.mp;
-                string label = s.name + "\n<size=18>" + (s.usable ? "法力 " + s.mp : s.note) + "</size>";
-                var b = Ui.Btn("sk_" + s.id, listRoot, label, 24, ok ? new Color(0.3f, 0.34f, 0.56f) : new Color(0.25f, 0.25f, 0.3f), () => OnSkill(s));
+                string label = s.name + "\n<size=13>" + (s.usable ? "法力 " + s.mp : s.note) + "</size>";
+                var b = Ui.Btn("sk_" + s.id, listRoot, label, 17, ok ? new Color(0.3f, 0.34f, 0.56f) : new Color(0.25f, 0.25f, 0.3f), () => OnSkill(s));
                 b.GetComponentInChildren<Text>().supportRichText = true; b.interactable = ok;
                 int col = i % 3, row = i / 3; i++;
-                Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(0, 1), new Vector2(col * 226, -row * 70 - 66), new Vector2(col * 226 + 216, -row * 70));
+                WebUi.At((RectTransform)b.transform, col * 232, row * 52, 224, 48);
             }
+            ResizeCommands(i);
         }
 
         void OnSkill(SkillView s)
@@ -563,10 +599,11 @@ namespace GuiQin.Battle
         void ShowResult(BattleEnd end)
         {
             cmdPanel.gameObject.SetActive(false);
-            var bg = Ui.Box("result", ui, new Color(0.04f, 0.04f, 0.08f, 0.94f)); resultPanel = bg.gameObject;
-            Ui.Anchor(bg.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-300, -250), new Vector2(300, 250));
+            var bg = WebUi.Panel("result", ui); resultPanel = bg.gameObject;
+            Ui.Anchor(bg.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-310, -250), new Vector2(310, 250));
             string title = end.result == "win" ? "战斗胜利" : end.result == "lose" ? "战败" : "成功逃脱";
             var tl = Ui.Label("title", bg.transform, title, 40, new Color(1f, 0.92f, 0.65f), TextAnchor.UpperCenter);
+            WebUi.Title(tl);
             Ui.Anchor(tl.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -76), new Vector2(0, -16));
             var body = new System.Text.StringBuilder();
             if (end.result == "win")
