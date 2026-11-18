@@ -16,6 +16,8 @@ namespace GuiQin.Net
         public const string Move = "map.move";
         public const string Portal = "map.portal";
         public const string Teleport = "map.teleport";
+        public const string BattleStart = "battle.start";
+        public const string BattleCmd = "battle.cmd";
         // 服务端推送
         public const string PushKick = "push.kick";            // 被顶号 / 封禁 / 维护
         public const string PushMapState = "push.map";         // 地图内其它玩家、NPC 状态的增量（AOI）
@@ -30,6 +32,7 @@ namespace GuiQin.Net
         public const int Unauthorized = 401, Banned = 403, VersionTooOld = 426, Busy = 429, Server = 500;
         public const int QuestLocked = 2001, LevelTooLow = 2002, BadMap = 2003;
         public const int BadMove = 3001;
+        public const int NoBattle = 4001, InBattle = 4002;
     }
 
     public class Envelope
@@ -63,6 +66,7 @@ namespace GuiQin.Net
         public string id, name, cls, map;
         public int lv;
         public float x = -1f, y = -1f;
+        public int exp, coin, hp = -1, mp = -1;       // hp / mp 为 -1 表示满
     }
     public class EnterResp { public RoleState role; }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using GuiQin.Battle;
 using Newtonsoft.Json.Linq;
 
 namespace GuiQin.Net
@@ -20,6 +21,10 @@ namespace GuiQin.Net
         Task<Result<MapChangeResp>> Portal(string from, string to);     // 走传送阵：服务端判任务锁 / 等级
         Task<Result<MapChangeResp>> Teleport(string to);                // 世界地图传送：服务端判等级 / 扣费
         Task<Result<Empty>> SetLook(string cls);
+
+        // 战斗：服务端结算。start 返回战场；cmd 提交主角指令，返回本回合全部事件（客户端按序播放）；打完时 over=true 并带结算
+        Task<Result<BattleStartResp>> BattleStart(string stageId);
+        Task<Result<BattleRoundResp>> BattleAct(string battleId, BattleCmd cmd);
     }
 
     public static class BackendFactory

@@ -70,12 +70,12 @@ namespace GuiQin
     // 顶部栏：天气按钮 + 地图名（点它打开世界地图）+ 世界 / 菜单按钮
     public class HudUi
     {
-        readonly Text place, wxLabel;
+        readonly Text place, wxLabel; readonly GameObject barGo;
         public HudUi(Transform parent, Action onMenu, Action onWeather, Action onWorld)
         {
             var bar = Ui.Box("hud", parent, new Color(0.05f, 0.05f, 0.08f, 0.55f));
             Ui.Anchor(bar.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -84), new Vector2(0, 0));
-            bar.raycastTarget = false;
+            bar.raycastTarget = false; barGo = bar.gameObject;
             var pb = Ui.Btn("placeBtn", bar.transform, "", 34, new Color(0, 0, 0, 0), () => onWorld());      // 透明按钮：点地名 = 开世界地图
             Ui.Anchor(pb.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(130, 0), new Vector2(-270, 0));
             place = pb.GetComponentInChildren<Text>(); place.color = new Color(1f, 0.92f, 0.65f); place.raycastTarget = false;
@@ -88,6 +88,7 @@ namespace GuiQin
             Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-150, -30), new Vector2(-16, 30));
         }
         public void SetPlace(string s) { place.text = s; }
+        public void SetVisible(bool v) { barGo.SetActive(v); }
         public void SetWeather(string s) { wxLabel.text = s; }
     }
 

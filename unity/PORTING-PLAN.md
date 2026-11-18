@@ -7,7 +7,7 @@
 |---|---|---|---|
 | R1 | 地图与行走：底图、可走判定、A* 寻路、点击/拖动行走、镜头、传送点、NPC 站位与对话、敌人站位、道家视频帧动画（game.js 543–815 / 1227–1331） | `MapRuntime`、`GameController`、`Actors`、`GameUi` | 已写完，待在 Unity 里验证 |
 | R2 | ~~本地存档~~（取消，状态由后端管）；主线剧情「节拍」、任务显示、NPC 对话分支（game.js 38–132 / 957–1225），全部由服务端决定、客户端显示 | `Net/*`（已完成接口层）、`StoryRunner`、`QuestUi` | 后端接口层已写（见 [docs/BACKEND-DESIGN.md](../docs/BACKEND-DESIGN.md)）；剧情/任务未开始 |
-| R3 | 回合制战斗：敌我布阵、出手顺序、伤害/暴击/闪避、技能与状态、宠物、结算（game.js 1690–2350） | `Battle/*` | 未开始 |
+| R3 | 回合制战斗：敌我布阵、出手顺序、伤害/暴击/闪避、技能与状态、宠物、结算（game.js 1690–2350） | `Battle/*`（`BattleEngine` 服务端参考实现、`BattleController` 客户端回放） | 已写完（单人 PvE：主角 + 天狐 vs 关卡敌人），待在 Unity 里验证；道具 / 竞技场 / 逐帧战斗特效未做 |
 | R4 | 背包 / 装备 / 强化 / 宝石 / 锻造、商店、玄兵塔、竞技场、门派选择（game.js 150–542 / 1141–1173） | `Inventory/*`、`ShopUi`、`ForgeUi`、`TowerUi` | 未开始 |
 | R5 | 世界地图传送、天气、动态雾、流水水面（js/water.js + export/unity-water）、蝴蝶、落花 | `WorldMapUi`、`WeatherSystem`/`WeatherUi`、`MapFx`、`WaterFx` + `GuiQinWater.shader` | 已写完，待在 Unity 里验证 |
 | R6 | 登录 / 选区 / 创角（front.js）、设置、音效（WebAudio 合成 → AudioClip 或程序合成） | `FrontUi`、`Settings`、`Sfx` | 未开始 |
@@ -32,6 +32,12 @@
 - **天气 / 落花**：屏幕空间，挂在相机下，随屏幕比例铺满；雨 420 条、雪 130 片，和网页版同数量。
 - **世界地图**：`WorldMapUi`，拖动 + 惯性 + 点地名传送；地图名牌点击、顶栏“世界”按钮、点地图名都能打开。
 - **色彩空间**：`ProjectSetup` 会把项目设为 Gamma（网页版就是按显示值混合，Linear 下水面和雾的颜色会偏亮）。
+
+## R3 的实现取舍
+
+- **战斗在服务端结算**：`BattleEngine` 是纯 C# 参考实现（MockBackend 用它；真服务器照它写或直接复用）。客户端 `BattleController` 只播放事件，不算伤害。
+- **表现是简化版**：冲刺 / 受击后仰 / 闪避滑步 / 受击闪红 / 扩散圈 / 飘字 / 震屏 / 倒下淡出 / 状态角标。**网页版的神兽逐帧动画、施法逐帧图（bc_*）、技能特效图（fx_*）、音效还没接**，之后单独做。
+- **未做**：道具指令、竞技场、装备属性加成、任务与玄兵塔的战后进度。
 
 ## 暂时不做 / 取舍
 

@@ -172,6 +172,8 @@ namespace GuiQin
             softB.End(); whiteB.End(); flakeB.End();
         }
 
+        public void SetVisible(bool v) { foreach (var b in new[] { softB, whiteB, flakeB }) b.SetVisible(v); }
+
         public void Destroy()
         {
             foreach (var b in new[] { softB, whiteB, flakeB }) if (b != null && b.Go != null) UnityEngine.Object.Destroy(b.Go);

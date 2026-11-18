@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using GuiQin.Net;
+using GuiQin.Battle;
 
 namespace GuiQin
 {
@@ -23,6 +24,7 @@ namespace GuiQin
         readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
         string[] looks;
         IGameBackend net; RoleState role; bool entered;
+        BattleController battle;
         SpriteRenderer mark; float markT = 99f;
         bool holding, downOnUi; float holdAt; Vector2 lastHoldPos;
         float time;
@@ -292,8 +294,36 @@ namespace GuiQin
             if (!near) return;
             if (n.Kind != ActorKind.Portal) { player.Face = n.Pos.x >= player.Pos.x ? 1 : -1; player.Dir = n.Pos.y < player.Pos.y - 24f ? 'b' : 'f'; }
             if (n.Kind == ActorKind.Portal) Travel(n.Portal);
-            else if (n.Kind == ActorKind.Foe) toast.Show("战斗系统还在移植中：" + n.DisplayName);
+            else if (n.Kind == ActorKind.Foe) StartBattle(n);
             else Talk(n);
+        }
+
+        // ---------------- 战斗 ----------------
+        // 点敌人 → 向服务端申请开战 → 切到战场界面。战斗的一切结算在服务端，这里只是表现（见 Battle/BattleController）。
+        async void StartBattle(Actor foe)
+        {
+            if (battle != null || foe.StageInfo == null || !entered) return;
+            var r = await net.BattleStart(foe.StageInfo.id);
+            if (!r.Ok || !r.data.ok) { toast.Show(r.Ok ? (r.data.msg ?? "现在不能开战") : r.msg); return; }
+            Stop(); menu.Close(); wxUi.Close(); worldUi.Close();
+            ShowWorld(false);
+            string bid = r.data.battle.id;
+            battle = BattleController.Begin(cam, uiCanvas.transform, r.data.battle, cmd => net.BattleAct(bid, cmd), end => EndBattle(end, foe), msg => toast.Show(msg));
+        }
+
+        void ShowWorld(bool on)
+        {
+            worldRoot.gameObject.SetActive(on); if (mapRoot != null) mapRoot.SetActive(on);
+            tagCanvas.gameObject.SetActive(on); hud.SetVisible(on); wx.SetVisible(on); if (mapFx != null) mapFx.SetVisible(on);
+        }
+
+        void EndBattle(BattleEnd end, Actor foe)
+        {
+            battle.Dispose(); battle = null;
+            ShowWorld(true);
+            if (end.result == "lose" && !string.IsNullOrEmpty(end.respawnMap)) { LoadMap(end.respawnMap, null); toast.Show("战败，回到" + map.Def.name); return; }
+            if (end.result == "win" && foe != null && foe.StageInfo != null && !foe.StageInfo.tower) { if (foe.Tag != null) foe.Tag.Destroy(); list.Remove(foe); Destroy(foe.gameObject); }
+            SnapCamera();
         }
 
         // 走传送阵：任务锁 / 等级由服务端判，客户端只显示结果（PortalDef 里的 needQuest 等字段服务端也有一份）
@@ -432,6 +462,7 @@ namespace GuiQin
         {
             float dt = Mathf.Min(Time.deltaTime, 0.05f); time += dt;
             if (net != null) net.Tick();
+            if (battle != null) { toast.Tick(dt); return; }                // 战斗中：地图那边整个停住
             if (map == null) { toast.Tick(dt); return; }                // 还在登录 / 进图，场景没建好
             HandleInput();
             StepPlayer(dt); StepFox(dt);
@@ -487,7 +518,7 @@ namespace GuiQin
 
         void UpdateTag(Actor a)
         {
-            if (a.Tag == null) return;
+            if (a.Tag == null || battle != null) return;
             var top = Stage.ToWorld(a.Pos) + new Vector3(0f, (a.H + 6f) / Art.PX, 0f);
             Vector3 sp = cam.WorldToScreenPoint(top);
             bool vis = sp.z > 0f && sp.x > -150f && sp.x < Screen.width + 150f && sp.y > -100f && sp.y < Screen.height + 150f;

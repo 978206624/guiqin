@@ -167,6 +167,8 @@ namespace GuiQin
 
         static Vector2 Rot(Vector2 v, float deg) { float r = deg * Mathf.Deg2Rad, c = Mathf.Cos(r), s = Mathf.Sin(r); return new Vector2(v.x * c - v.y * s, v.x * s + v.y * c); }
 
+        public void SetVisible(bool v) { foreach (var b in new[] { glowB, fogB, petalB, bfB, bsB }) b.SetVisible(v); }
+
         public void Destroy()
         {
             foreach (var b in new[] { glowB, fogB, petalB, bfB, bsB }) if (b != null && b.Go != null) Object.Destroy(b.Go);

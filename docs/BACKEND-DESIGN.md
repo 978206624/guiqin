@@ -88,12 +88,27 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 | `sys.ping` | 请求 | 心跳 |
 | `push.kick` | 推送 | 被顶号 / 封禁 / 维护 |
 
+战斗（R3，客户端接口 + 参考实现已写，`Battle/` 目录）：
+
+| cmd | 方向 | 请求 → 回包 |
+|---|---|---|
+| `battle.start` | 请求 | `{stage}` → `{ok, msg, battle:{id,title,mode,bg,turnSeconds, units:[{id,side,row,name,sprite,h,flip,me,boss,hp,maxHp,mp,maxMp}], skills:[{id,name,target,mp,usable,note}]}}` |
+| `battle.cmd` | 请求 | `{battleId, cmd:{type: skill\|defend\|flee\|auto, skill, target}}` → `{round, events:[…], over, end}` |
+
+- 一个回合 = 一次 `battle.cmd` 请求/应答：客户端提交主角指令，服务端结算**整个回合**（所有单位按速度出手），把事件列表一次回给客户端按序播放。回合内客户端不再和服务端交互，所以延迟不影响出手节奏。
+- 事件类型（`BattleEvent.t`）：`round` `act`（出手者 / 技能 / 目标）`defend` `hit`（受击者、伤害、暴击、剩余气血）`dot` `heal` `miss` `float` `mp` `status` `unstatus` `die` `revive` `maxhp` `stun` `flee`。所有数值都是最终值，客户端不做计算。
+- 结算：`over=true` 时带 `end:{result: win|lose|flee, exp, coin, items, levelUp, lv, respawnMap}`，服务端已先入库（经验 / 掉落 / 升级 / 战败回城）。
+- 并发：一个角色同时只能有一场战斗（`Code.InBattle`）；`battleId` 不匹配或已结束回 `Code.NoBattle`。
+- 重连：战斗中断线，服务端保留战斗，重连后用 `battle.resume`（待加）取回当前战场快照；超时无指令按 `auto` 托管。
+- 参考实现：`Battle/BattleEngine.cs`（纯逻辑，无 Unity 依赖，种子固定可重放；技能 / 被动 / AI 全按网页版移植）。服务端用别的语言重写时，用同一份 `data.json` 并拿这个引擎的输出做对拍。
+- 还没做：道具指令（要等背包 R4）、竞技场（5 人 + 5 宠）、多人同场战斗、任务 / 玄兵塔进度的结算、装备 / 宝石 / 亲密度对属性的加成。
+
 后续按阶段加（命名先占位）：
 
 | 模块 | cmd |
 |---|---|
 | 任务 / 剧情 | `quest.list`、`quest.accept`、`story.beat`（推进剧情节拍）、`npc.talk`（服务端决定对话分支）、`push.quest` |
-| 战斗 | `battle.start{stageId}`、`battle.cmd{round,unitId,skill,target}`、`battle.auto`、`push.battle.round`、`push.battle.end`、`battle.reconnect` |
+| 战斗（补充） | `battle.resume`（断线重连）、`battle.item`（道具）、`arena.*`（竞技场） |
 | 背包 / 装备 | `bag.list`、`bag.use`、`bag.equip`、`bag.sell`、`equip.enhance`、`equip.gem` |
 | 商店 / 锻造 | `shop.list`、`shop.buy`、`forge.make` |
 | 宠物 | `pet.list`、`pet.battleSet`、`pet.feed`、`pet.rename` |

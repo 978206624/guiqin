@@ -104,6 +104,12 @@ namespace GuiQin
         }
         // 细圆环（涟漪）
         public static Texture2D RingTex() { if (ring == null) ring = MakeTex(128, (x, y) => { float r = Mathf.Sqrt(x * x + y * y); return 1f - Mathf.Abs(r - 0.92f) / 0.07f; }); return ring; }
+        static Sprite ringSprite;
+        public static Sprite RingSprite()        // 细圆环精灵：技能释放 / 受击的扩散圈（1 单位 = 128 像素直径）
+        {
+            if (ringSprite == null) ringSprite = Sprite.Create(RingTex(), new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 128f);
+            return ringSprite;
+        }
         public static Texture2D WhiteTex() { if (white == null) white = MakeTex(4, (x, y) => 1f); return white; }
         // 实心椭圆（翅膀、落叶），边缘一点点抗锯齿
         public static Texture2D EllipseTex() { if (ellipse == null) ellipse = MakeTex(64, (x, y) => (1f - Mathf.Sqrt(x * x + y * y)) * 14f); return ellipse; }

@@ -1,0 +1,90 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json.Linq;
+
+namespace GuiQin.Battle
+{
+    // 一场进行中的战斗（服务端持有；客户端只拿到 BattleView 和每回合的事件）
+    public class BattleSession
+    {
+        public string Id, StageId; public BattleEngine Engine; public BattleView View; public StageDef Stage;
+    }
+
+    // 根据角色状态 + 关卡配置搭出战场：属性公式对应网页版 stats() / petStats() / levelStats()，敌人取 data.enemies。
+    // 真服务器在开战时做同样的事，并把装备 / 宝石 / 亲密度加成算进属性（Mock 暂不含装备）。
+    public static class BattleFactory
+    {
+        static Dictionary<string, SkillDef> skills;
+        public static Dictionary<string, SkillDef> Skills
+        {
+            get { if (skills == null) skills = GameData.Raw["skills"].ToObject<Dictionary<string, SkillDef>>(); return skills; }
+        }
+
+        static float F(JToken t, float def = 0f) { return t == null || t.Type == JTokenType.Null ? def : (float)t; }
+        static int Base(JToken b, JToken g, string k, int L, float mul) { return (int)Math.Round((F(b[k]) + F(g[k]) * L) * mul, MidpointRounding.AwayFromZero); }
+
+        public static BattleSession Create(RoleState role, StageDef st, int seed)
+        {
+            var D = GameData.Raw; var b = D["base"]; var g = D["grow"]; int L = Math.Max(1, role.lv);
+            var units = new List<BUnit>(); int nextId = 1;
+
+            // 敌方
+            foreach (var id in st.enemies)
+            {
+                var e = D["enemies"][id]; bool pet = e["pet"] != null && (bool)e["pet"], boss = e["boss"] != null && (bool)e["boss"];
+                int hp = (int)F(e["hp"]);
+                units.Add(new BUnit
+                {
+                    Id = nextId++, Side = "enemy", Row = pet ? "pet" : "person", Name = (string)e["name"], Sprite = (string)e["sprite"], H = F(e["h"]) * 1.12f, Flip = true,
+                    Hp = hp, MaxHp = hp, Atk = (int)F(e["atk"]), Matk = (int)F(e["atk"]), Def = (int)F(e["def"]), Mdef = (int)F(e["def"]), Spd = (int)F(e["spd"]),
+                    Ai = boss ? "boss" : "attack", Boss = boss
+                });
+            }
+
+            // 我方：主角
+            var cls = D["classes"][role.cls] ?? D["classes"]["novice_f"];
+            Func<string, float> mod = k => cls["mod"] != null && cls["mod"][k] != null ? (float)cls["mod"][k] : 1f;
+            Func<string, int> heart = k => cls["heart"] != null && cls["heart"]["perLv"] != null && cls["heart"]["perLv"][k] != null ? (int)((float)cls["heart"]["perLv"][k] * L) : 0;
+            int maxHp = Base(b, g, "hp", L, mod("hp")), maxMp = Base(b, g, "mp", L, mod("mp"));
+            var me = new BUnit
+            {
+                Id = nextId++, Side = "ally", Row = "person", Me = true, Name = role.name, H = 126f, MagicAtk = cls["magicAtk"] != null && (bool)cls["magicAtk"],
+                MaxHp = maxHp, MaxMp = maxMp, Hp = role.hp < 0 ? maxHp : Math.Max(1, Math.Min(maxHp, role.hp)), Mp = role.mp < 0 ? maxMp : Math.Min(maxMp, role.mp),
+                Atk = Base(b, g, "atk", L, mod("atk")) + heart("atk"), Matk = Base(b, g, "matk", L, mod("matk")) + heart("matk"),
+                Def = Base(b, g, "def", L, mod("def")) + heart("def"), Mdef = Base(b, g, "mdef", L, mod("mdef")) + heart("mdef"),
+                Spd = (int)(F(b["spd"]) + F(g["spd"]) * L), Crit = F(b["crit"], 10f), Dodge = F(b["dodge"])
+            };
+            string sp = "b_" + role.cls; me.Sprite = Art.Has(sp) ? sp : "b_player";
+            units.Add(me);
+
+            // 我方：出战宠物（目前固定玄晶天狐）
+            var dx = D["petDex"]["fox"]; var pm = dx["mult"] ?? D["pet"];
+            int pHp = Base(b, g, "hp", L, F(pm["hp"], 1f));
+            var pet = new BUnit
+            {
+                Id = nextId++, Side = "ally", Row = "pet", Name = (string)dx["name"], Sprite = (string)dx["sprite"], H = F(dx["h"], 62f),
+                Ai = dx["ai"] != null ? (string)dx["ai"] : "fox", MagicAtk = dx["mag"] != null && (bool)dx["mag"],
+                MaxHp = pHp, Hp = pHp, Atk = Base(b, g, "atk", L, F(pm["atk"], 1f)), Matk = Base(b, g, "matk", L, F(pm["atk"], 1f)),
+                Def = Base(b, g, "def", L, F(pm["def"], 1f)), Mdef = Base(b, g, "mdef", L, F(pm["def"], 1f)), Spd = Base(b, g, "spd", L, F(pm["spd"], 1f)), Crit = 10f, Dodge = 3f
+            };
+            if (dx["act"] != null) pet.Kit = dx["act"].Select(a => new KeyValuePair<string, float>((string)a[0], (float)a[1])).ToList();
+            if (dx["pas"] != null) pet.Pas = dx["pas"].ToObject<PasDef>();
+            units.Add(pet);
+
+            var eng = new BattleEngine(units, Skills, seed);
+            // 主角可用技能：门派职业用自己的技能表，新手用通用表；等级不够的不能用
+            var list = cls["skills"] != null ? cls["skills"].Select(x => (string)x).ToList() : D["playerSkills"].Select(x => (string)x).ToList();
+            foreach (var id in list) if (Skills.ContainsKey(id) && Skills[id].lv <= L) eng.PlayerSkills.Add(id);
+            if (cls["auto"] != null) foreach (var a in cls["auto"]) eng.PlayerAuto.Add(new KeyValuePair<string, string>((string)a[0], (string)a[1]));
+
+            var view = new BattleView
+            {
+                id = Guid.NewGuid().ToString("N").Substring(0, 8), title = st.name, mode = "pve", bg = null,
+                units = units.Select(u => new UnitView { id = u.Id, side = u.Side, row = u.Row, name = u.Name, sprite = u.Sprite, h = u.H, flip = u.Flip, me = u.Me, boss = u.Boss, hp = u.Hp, maxHp = u.MaxHp, mp = u.Mp, maxMp = u.MaxMp }).ToList(),
+                skills = list.Where(id => Skills.ContainsKey(id)).Select(id => new SkillView { id = id, name = Skills[id].name, target = (Skills[id].heal > 0 || Skills[id].healPow > 0 || Skills[id].revive > 0) && (Skills[id].target ?? "one") == "one" ? "ally" : (Skills[id].target ?? "one"), mp = (int)Skills[id].mp, usable = Skills[id].lv <= L, note = Skills[id].lv <= L ? null : Skills[id].lv + " 级解锁" }).ToList()
+            };
+            return new BattleSession { Id = view.id, StageId = st.id, Engine = eng, View = view, Stage = st };
+        }
+    }
+}

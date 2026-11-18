@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using GuiQin.Battle;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -62,5 +63,65 @@ namespace GuiQin.Net
         public Task<Result<MapChangeResp>> Teleport(string to) { return Change(to, null); }
 
         public Task<Result<Empty>> SetLook(string cls) { role.cls = cls; return Reply(new Empty()); }
+
+        // ---------------- 战斗（参考实现：服务端该做的事都在这里）----------------
+        BattleSession battle;
+
+        public Task<Result<BattleStartResp>> BattleStart(string stageId)
+        {
+            StageDef st;
+            if (battle != null) return Task.FromResult(Result<BattleStartResp>.Fail(Code.InBattle, "已经在战斗中"));
+            if (!GameData.Stages.TryGetValue(stageId, out st)) return Task.FromResult(Result<BattleStartResp>.Fail(Code.NoBattle, "这场战斗不存在"));
+            // 真服务器在这里还要校验：敌人是否在角色所在地图、前置关卡（st.need）、塔层数、体力……
+            battle = BattleFactory.Create(role, st, Environment.TickCount);
+            return Reply(new BattleStartResp { ok = true, battle = battle.View });
+        }
+
+        public async Task<Result<BattleRoundResp>> BattleAct(string battleId, BattleCmd cmd)
+        {
+            await Task.Delay(LatencyMs);
+            if (battle == null || battle.Id != battleId) return Result<BattleRoundResp>.Fail(Code.NoBattle, "战斗已经结束");
+            var resp = new BattleRoundResp();
+            resp.events = battle.Engine.RunRound(cmd);
+            resp.round = battle.Engine.Round;
+            if (battle.Engine.Over != null)
+            {
+                resp.over = true; resp.end = Settle(battle);
+                battle = null;
+            }
+            return Result<BattleRoundResp>.Success(resp);
+        }
+
+        // 结算：发经验 / 银两 / 掉落，升级，写回气血法力，战败送回城
+        BattleEnd Settle(BattleSession b)
+        {
+            var eng = b.Engine; var p = eng.Player;
+            var end = new BattleEnd { result = eng.Over, round = eng.Round, lv = role.lv };
+            role.hp = Math.Max(1, p.Hp); role.mp = p.Mp;
+            var rng = new Random();
+            if (eng.Over == "win")
+            {
+                int exp = 0, coin = 0;
+                foreach (var id in b.Stage.enemies)
+                {
+                    var e = GameData.Raw["enemies"][id];
+                    exp += (int)e["exp"]; coin += (int)e["coin"];
+                    foreach (var d in e["drops"]) if (rng.NextDouble() < (double)d[1]) { string k = (string)d[0]; int n; end.items.TryGetValue(k, out n); end.items[k] = n + 1; }
+                }
+                end.exp = exp; end.coin = coin;
+                role.coin += coin; role.exp += exp;
+                int need = (int)GameData.Raw["expNeed"]["base"] + (int)GameData.Raw["expNeed"]["perLevel"] * role.lv;
+                while (role.exp >= need) { role.exp -= need; role.lv++; end.levelUp = true; need = (int)GameData.Raw["expNeed"]["base"] + (int)GameData.Raw["expNeed"]["perLevel"] * role.lv; }
+                if (end.levelUp) { role.hp = -1; role.mp = -1; }
+                end.lv = role.lv;
+            }
+            else if (eng.Over == "lose")
+            {
+                role.hp = Math.Max(1, (int)(p.MaxHp * 0.3f));
+                MapDef md; end.respawnMap = GameData.Maps.TryGetValue(role.map, out md) && !string.IsNullOrEmpty(md.home) ? md.home : role.map;
+                role.map = end.respawnMap; role.x = -1f; role.y = -1f;
+            }
+            return end;
+        }
     }
 }
