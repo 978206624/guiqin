@@ -22,6 +22,9 @@ namespace GuiQin
         List<Vector2> route = new List<Vector2>();
         Actor talkTarget;
         DialogUi dialog; ToastUi toast; HudUi hud; DebugMenuUi menu;
+        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi;
+        MapFx mapFx; WaterFx waterFx;
+        readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
         SaveData save; string[] looks;
         SpriteRenderer mark; float markT = 99f;
         bool holding, downOnUi; float holdAt; Vector2 lastHoldPos;
@@ -32,7 +35,9 @@ namespace GuiQin
             Application.targetFrameRate = 60;
             Screen.orientation = ScreenOrientation.Portrait;
             GameData.Load();
-            BuildCamera(); BuildEventSystem(); BuildUi();
+            BuildCamera(); BuildEventSystem();
+            wx = new WeatherSystem(cam);
+            BuildUi();
             var ls = new List<string>();
             foreach (var k in GameData.Assets.size.Keys) if (k.StartsWith("walk_f_")) ls.Add(k.Substring(7));
             ls.Sort(); looks = ls.ToArray();
@@ -69,10 +74,13 @@ namespace GuiQin
             tagCanvas = Ui.MakeCanvas("Tags", 0, transform);
             tagCanvas.GetComponent<UnityEngine.UI.GraphicRaycaster>().enabled = false;
             uiCanvas = Ui.MakeCanvas("UI", 10, transform);
-            hud = new HudUi(uiCanvas.transform, () => menu.Toggle());
+            hud = new HudUi(uiCanvas.transform, () => menu.Toggle(), OpenWeather, OpenWorld);
             dialog = new DialogUi(uiCanvas.transform);
             toast = new ToastUi(uiCanvas.transform);
             menu = new DebugMenuUi(uiCanvas.transform, id => LoadMap(id, null), NextLook, ResetSave);
+            wxUi = new WeatherUi(uiCanvas.transform, wx, () => map != null ? map.Def.name : "");
+            worldUi = new WorldMapUi(uiCanvas.transform, GoWorld, () => map != null ? map.Id : "village");
+            wx.Changed += (k, announce) => { hud.SetWeather(WeatherSystem.NameOf(k)); if (announce) toast.Show("天气转为 " + WeatherSystem.NameOf(k)); };
             var mk = new GameObject("clickMark"); mk.transform.SetParent(transform, false);
             mark = mk.AddComponent<SpriteRenderer>(); mark.sprite = Art.Dot(); mark.color = new Color(1f, 0.9f, 0.4f, 0f); mark.sortingOrder = 30000;
         }
@@ -123,8 +131,23 @@ namespace GuiQin
         }
 
         // ---------------- 载入地图 ----------------
+        bool ModalOpen { get { return menu.Visible || wxUi.Visible || worldUi.Visible; } }
+
+        void OpenWeather() { if (!wxUi.Visible) { menu.Close(); worldUi.Close(); wxUi.Open(); } else wxUi.Close(); }
+        void OpenWorld() { Stop(); menu.Close(); wxUi.Close(); worldUi.Open(); }
+
+        // 世界地图点名传送：同一张图只提示，不重载
+        void GoWorld(string id)
+        {
+            MapDef d; if (!GameData.Maps.TryGetValue(id, out d)) return;
+            if (map != null && id == map.Id) { toast.Show("你已经在" + d.name); return; }
+            LoadMap(id, null); toast.Show("传送到 " + d.name);
+        }
+
         void ClearMap()
         {
+            if (waterFx != null) { waterFx.Destroy(); waterFx = null; }
+            if (mapFx != null) { mapFx.Destroy(); mapFx = null; }
             foreach (var a in list) { if (a.Tag != null) a.Tag.Destroy(); Destroy(a.gameObject); }
             list.Clear();
             if (mapRoot != null) Destroy(mapRoot);
@@ -143,6 +166,10 @@ namespace GuiQin
                 var sr = bg.AddComponent<SpriteRenderer>(); sr.sprite = bgSprite; sr.sortingOrder = -10000;
                 bg.transform.localScale = new Vector3(1f, (map.H / Art.PX) / bgSprite.bounds.size.y, 1f);      // 底图按舞台宽高拉伸（和网页版一致）
             }
+            waterFx = WaterFx.Create(mapRoot.transform, id, map);
+            mapFx = new MapFx(mapRoot.transform, cam.transform, map, cam);
+            fadePolys.Clear();
+            if (def.fade != null) foreach (var z in def.fade) { var poly = new Vector2[z.poly.Length]; for (int i = 0; i < poly.Length; i++) poly[i] = new Vector2(z.poly[i][0], z.poly[i][1]); fadePolys.Add(poly); }
             if (def.npcs != null) foreach (var n in def.npcs) AddNpc(n);
             if (def.portals != null) foreach (var p in def.portals) AddPortal(p);
             if (def.foes != null) foreach (var f in def.foes) AddFoe(f);
@@ -153,6 +180,7 @@ namespace GuiQin
             fox.Pos = map.Inside(fp) ? fp : start;
             Stop();
             hud.SetPlace(def.name);
+            wx.SetMap(map);
             SnapCamera();
             SaveGame();
         }
@@ -317,10 +345,11 @@ namespace GuiQin
         void HandleInput()
         {
             PointerInput.Poll();
+            if (ModalOpen) { holding = false; return; }
             if (PointerInput.Down)
             {
                 downOnUi = PointerInput.OverUi();
-                holding = !downOnUi && !dialog.Visible && !menu.Visible;
+                holding = !downOnUi && !dialog.Visible;
                 holdAt = time; lastHoldPos = PointerInput.Pos;
             }
             // 按住拖动：手指不抬起时，主角一直朝手指的位置走
@@ -333,7 +362,7 @@ namespace GuiQin
             {
                 holding = false;
                 if (dialog.Visible) { dialog.Advance(); return; }          // 对话框开着：点哪儿都是“下一句 / 关闭”
-                if (!downOnUi && !menu.Visible) OnClick(PointerInput.Pos);
+                if (!downOnUi) OnClick(PointerInput.Pos);
             }
         }
 
@@ -376,6 +405,11 @@ namespace GuiQin
             fox.Sync(); fox.Animate(time);
             foreach (var a in list) a.Animate(time);
             dialog.Tick(dt); toast.Tick(dt);
+            worldUi.Tick(dt);
+            wx.Tick(dt);
+            if (mapFx != null) mapFx.Tick(dt, time, wx.Wet, wx.Precip);
+            if (waterFx != null) waterFx.Tick(dt, time);
+            ApplySeeThru(dt);
             if (markT < 0.6f)                                           // 点击落点的小圈
             {
                 markT += dt; float k = markT / 0.6f;
@@ -383,6 +417,30 @@ namespace GuiQin
                 mark.color = new Color(1f, 0.9f, 0.4f, (1f - k) * 0.8f);
             }
             else if (mark.color.a > 0f) mark.color = new Color(1f, 0.9f, 0.4f, 0f);
+        }
+
+        // 遮挡虚化：脚在 base 之上（更靠后）且身体与 fade 多边形有重叠时变半透明。逻辑同网页版 seeThru（取 4×5 个采样点，≥3 个落在多边形里）
+        bool SeeThru(Actor a)
+        {
+            var zs = map.Def.fade; if (zs == null) return false;
+            float f = map.Sc, x = a.Pos.x / f, y = a.Pos.y / f, hh = a.H * 1.35f / f, hw = 34f / f;
+            for (int zi = 0; zi < zs.Count; zi++)
+            {
+                if (y >= zs[zi].baseY) continue;
+                int n = 0;
+                for (int i = 0; i < 4 && n < 3; i++)
+                    for (int j = 0; j < 5; j++)
+                        if (MapRuntime.InPoly(fadePolys[zi], new Vector2(x - hw + i * hw * 2f / 3f, y - hh * j / 4f))) n++;
+                if (n >= 3) return true;
+            }
+            return false;
+        }
+
+        void ApplySeeThru(float dt)
+        {
+            if (map.Def.fade == null) { player.ApplyThru(false, dt); fox.ApplyThru(false, dt); foreach (var a in list) if (a.Kind != ActorKind.Portal) a.ApplyThru(false, dt); return; }
+            player.ApplyThru(SeeThru(player), dt); fox.ApplyThru(SeeThru(fox), dt);
+            foreach (var a in list) if (a.Kind == ActorKind.Npc || a.Kind == ActorKind.Foe) a.ApplyThru(SeeThru(a), dt);
         }
 
         void LateUpdate()

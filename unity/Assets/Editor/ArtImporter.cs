@@ -9,8 +9,24 @@ namespace GuiQin.EditorTools
     {
         void OnPreprocessTexture()
         {
-            if (!assetPath.Replace('\\', '/').Contains("/Resources/GuiQin/Art/")) return;
+            string path = assetPath.Replace('\\', '/');
             var ti = (TextureImporter)assetImporter;
+            if (path.Contains("/Resources/GuiQin/Water/"))
+            {
+                // 水面蒙版：灰度数据，不是颜色。要能被脚本读（取水面采样点 / 瀑布落点），不压缩、不做 sRGB、不要 mipmap
+                ti.textureType = TextureImporterType.Default;
+                ti.sRGBTexture = false;
+                ti.isReadable = true;
+                ti.mipmapEnabled = false;
+                ti.npotScale = TextureImporterNPOTScale.None;
+                ti.maxTextureSize = 4096;
+                ti.wrapMode = TextureWrapMode.Clamp;
+                ti.filterMode = FilterMode.Bilinear;
+                ti.alphaSource = TextureImporterAlphaSource.None;
+                ti.textureCompression = TextureImporterCompression.Uncompressed;
+                return;
+            }
+            if (!path.Contains("/Resources/GuiQin/Art/")) return;
             ti.textureType = TextureImporterType.Default;
             ti.npotScale = TextureImporterNPOTScale.None;
             ti.mipmapEnabled = false;

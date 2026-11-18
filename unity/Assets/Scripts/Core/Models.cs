@@ -17,6 +17,11 @@ namespace GuiQin
         public int? needStep;
     }
 
+    public class WaterZone { public float[] rect, dir; public float speed; }
+    public class WaterDef { public float[] dir; public float speed; public List<WaterZone> zones; }
+    public class FogDef { public int n = 26; public float lo = 0.25f, hi = 0.8f; }
+    public class FadeZone { public float[][] poly; [JsonProperty("base")] public float baseY; }
+
     public class MapDef
     {
         public string name, img, mini, alt, battleBg, note, home;
@@ -31,8 +36,11 @@ namespace GuiQin
         public List<FoePlace> foes;
         public float[][] glows;
         public float[][] slots;
-        public bool sect, indoor;
-        public int tower;
+        public bool sect, indoor, petals;
+        public int tower, butterflies;
+        public WaterDef water;
+        public FogDef fog;
+        public List<FadeZone> fade;
     }
 
     public class NpcInfo

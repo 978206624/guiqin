@@ -29,6 +29,17 @@ namespace GuiQin
         public PortalDef Portal;
         public NpcInfo Info;
         protected Transform bodyT;
+        float thruA = 1f;
+
+        // 躲在屋顶 / 栏杆后面时变半透明（网页版 .thru：身体 .42、影子 .3）
+        public void ApplyThru(bool thru, float dt)
+        {
+            float tg = thru ? 0.42f : 1f;
+            if (Mathf.Approximately(thruA, tg) && (thruA >= 1f)) return;
+            thruA = Mathf.MoveTowards(thruA, tg, dt / 0.25f * 0.58f);
+            if (Body != null) { var c = Body.color; c.a = thruA; Body.color = c; }
+            if (Shadow != null) { var c = Shadow.color; c.a = 0.35f * Mathf.Lerp(1f, 0.3f, (1f - thruA) / 0.58f); Shadow.color = c; }
+        }
 
         public static T Make<T>(string name, Transform parent, Sprite sprite, Vector2 pos, float shadowW) where T : Actor
         {

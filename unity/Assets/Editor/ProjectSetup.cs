@@ -25,7 +25,8 @@ namespace GuiQin.EditorTools
             PlayerSettings.defaultScreenWidth = 720;
             PlayerSettings.defaultScreenHeight = 1280;
             PlayerSettings.runInBackground = true;
-            Debug.Log("[归秦] 已应用：竖屏 720×1280。");
+            PlayerSettings.colorSpace = ColorSpace.Gamma;          // 和网页版一样按“显示值”直接混合，水面 / 雾 / 雨的颜色才对得上
+            Debug.Log("[归秦] 已应用：竖屏 720×1280、Gamma 色彩空间。");
         }
 
         [MenuItem("归秦/创建 Main 场景并加入 Build")]

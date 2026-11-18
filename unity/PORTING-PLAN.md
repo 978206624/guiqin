@@ -9,7 +9,7 @@
 | R2 | 存档与属性、主线剧情「节拍」、任务显示与完成、NPC 对话分支（game.js 38–132 / 957–1225） | `SaveData`/`PlayerState`、`StoryRunner`、`QuestUi` | 未开始 |
 | R3 | 回合制战斗：敌我布阵、出手顺序、伤害/暴击/闪避、技能与状态、宠物、结算（game.js 1690–2350） | `Battle/*` | 未开始 |
 | R4 | 背包 / 装备 / 强化 / 宝石 / 锻造、商店、玄兵塔、竞技场、门派选择（game.js 150–542 / 1141–1173） | `Inventory/*`、`ShopUi`、`ForgeUi`、`TowerUi` | 未开始 |
-| R5 | 世界地图传送、天气、动态雾、流水水面（js/water.js + export/unity-water）、蝴蝶、落花 | `WorldMapUi`、`Weather`、`WaterRenderer`（Shader）| 未开始 |
+| R5 | 世界地图传送、天气、动态雾、流水水面（js/water.js + export/unity-water）、蝴蝶、落花 | `WorldMapUi`、`WeatherSystem`/`WeatherUi`、`MapFx`、`WaterFx` + `GuiQinWater.shader` | 已写完，待在 Unity 里验证 |
 | R6 | 登录 / 选区 / 创角（front.js）、设置、音效（WebAudio 合成 → AudioClip 或程序合成） | `FrontUi`、`Settings`、`Sfx` | 未开始 |
 | R7 | 道家武器层（背在身后可换：琵琶/琴盒/箜篌，按帧锚点和前后层级）、移动端适配、出包 | `WeaponLayer`、真机测试 | 未开始 |
 
@@ -23,6 +23,15 @@
 
 - 坐标系、速度（230 px/s）、起步加速、朝向切换阈值、步幅（26 / 道家背面 24）、点击判定范围、NPC 站位候选点、镜头偏移——都是原样搬的数字。
 - 道家男女行走图是视频帧：女 正面 28 帧 / 背面 30 帧，男 正面/背面各 26 帧，另带一张待机帧。
+
+## R5 的实现取舍（和网页版不完全一样的地方）
+
+- **水面**：网页版是 CPU 逐像素折射 + canvas 图案平移；Unity 版改成一个 GPU 着色器（`GuiQinWater.shader`），公式和参数相同（折射幅度 1.15、岸边水花阈值 0.27、三层流动 + 中心 1.7 倍速层）。分区流向由 `WaterFx` 启动时烘成一张流向图（RG=方向，B=速度，A=瀑布标记）。
+- **流动纹理**：`WaterTiles` 程序生成（150 条亮/暗纹 + 34 段焦散弧，种子固定），密度和粗细按网页版的参数，但不是逐像素同一张图。
+- **涟漪 / 闪光 / 落叶 / 瀑布水雾**：`WaterFx` 里的粒子，用 `QuadBatch`（一个动态网格一次画完）。
+- **天气 / 落花**：屏幕空间，挂在相机下，随屏幕比例铺满；雨 420 条、雪 130 片，和网页版同数量。
+- **世界地图**：`WorldMapUi`，拖动 + 惯性 + 点地名传送；地图名牌点击、顶栏“世界”按钮、点地图名都能打开。
+- **色彩空间**：`ProjectSetup` 会把项目设为 Gamma（网页版就是按显示值混合，Linear 下水面和雾的颜色会偏亮）。
 
 ## 暂时不做 / 取舍
 

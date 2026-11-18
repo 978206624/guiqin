@@ -67,21 +67,28 @@ namespace GuiQin
         public void Tick(float dt) { if (left > 0) { left -= dt; g.alpha = Mathf.Clamp01(left / 0.4f); } }
     }
 
-    // 顶部栏：地图名 + 调试菜单按钮（世界地图、背包等正式界面移植完之前，用它切地图 / 切角色）
+    // 顶部栏：天气按钮 + 地图名（点它打开世界地图）+ 世界 / 菜单按钮
     public class HudUi
     {
-        readonly Text place;
-        public HudUi(Transform parent, Action onMenu)
+        readonly Text place, wxLabel;
+        public HudUi(Transform parent, Action onMenu, Action onWeather, Action onWorld)
         {
             var bar = Ui.Box("hud", parent, new Color(0.05f, 0.05f, 0.08f, 0.55f));
             Ui.Anchor(bar.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -84), new Vector2(0, 0));
             bar.raycastTarget = false;
-            place = Ui.Label("place", bar.transform, "", 34, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleCenter);
-            Ui.Anchor(place.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var pb = Ui.Btn("placeBtn", bar.transform, "", 34, new Color(0, 0, 0, 0), () => onWorld());      // 透明按钮：点地名 = 开世界地图
+            Ui.Anchor(pb.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(130, 0), new Vector2(-270, 0));
+            place = pb.GetComponentInChildren<Text>(); place.color = new Color(1f, 0.92f, 0.65f); place.raycastTarget = false;
+            var wb = Ui.Btn("weather", bar.transform, "晴", 26, new Color(0.2f, 0.36f, 0.55f, 0.95f), () => onWeather());
+            Ui.Anchor(wb.GetComponent<RectTransform>(), new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(16, -30), new Vector2(116, 30));
+            wxLabel = wb.GetComponentInChildren<Text>();
+            var wm = Ui.Btn("world", bar.transform, "世界", 26, new Color(0.45f, 0.3f, 0.12f, 0.95f), () => onWorld());
+            Ui.Anchor(wm.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-262, -30), new Vector2(-166, 30));
             var b = Ui.Btn("menu", bar.transform, "菜单", 26, new Color(0.25f, 0.22f, 0.4f, 0.95f), () => onMenu());
             Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-150, -30), new Vector2(-16, 30));
         }
         public void SetPlace(string s) { place.text = s; }
+        public void SetWeather(string s) { wxLabel.text = s; }
     }
 
     // 调试菜单：切地图、切角色外观、重置存档
@@ -111,6 +118,7 @@ namespace GuiQin
             root.SetActive(false);
         }
         public void Toggle() { root.SetActive(!root.activeSelf); }
+        public void Close() { root.SetActive(false); }
         public bool Visible { get { return root.activeSelf; } }
     }
 }

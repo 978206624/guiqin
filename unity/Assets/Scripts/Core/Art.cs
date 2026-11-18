@@ -77,6 +77,37 @@ namespace GuiQin
         public static int WalkFrames(string key) { var sz = Size(key); return sz != null && sz.Length > 3 ? (int)sz[3] : 4; }
         public static int IdleFrame(string key) { var sz = Size(key); return sz != null && sz.Length > 3 ? (int)sz[3] : 1; }
 
+        static Texture2D soft, fog, ring, white, ellipse;
+
+        static Texture2D MakeTex(int n, System.Func<float, float, float> alpha)     // alpha(dx, dy)：dx,dy ∈ [-1,1]
+        {
+            var t = new Texture2D(n, n, TextureFormat.RGBA32, false);
+            var px = new Color32[n * n];
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float dx = (x + 0.5f) / n * 2f - 1f, dy = (y + 0.5f) / n * 2f - 1f;
+                    byte a = (byte)Mathf.RoundToInt(Mathf.Clamp01(alpha(dx, dy)) * 255f);
+                    px[y * n + x] = new Color32(255, 255, 255, a);
+                }
+            t.SetPixels32(px); t.Apply(false, true); t.wrapMode = TextureWrapMode.Clamp; t.filterMode = FilterMode.Bilinear;
+            return t;
+        }
+
+        // 径向渐变：中心不透明、边缘透明（和 CSS 的 radial-gradient(closest-side, a, 0) 一样）
+        public static Texture2D SoftTex() { if (soft == null) soft = MakeTex(64, (x, y) => 1f - Mathf.Sqrt(x * x + y * y)); return soft; }
+        // 雾团：中心 .9 → 45% 处 .5 → 边缘 0
+        public static Texture2D FogTex()
+        {
+            if (fog == null) fog = MakeTex(64, (x, y) => { float r = Mathf.Sqrt(x * x + y * y); return r < 0.45f ? Mathf.Lerp(0.9f, 0.5f, r / 0.45f) : Mathf.Lerp(0.5f, 0f, (r - 0.45f) / 0.55f); });
+            return fog;
+        }
+        // 细圆环（涟漪）
+        public static Texture2D RingTex() { if (ring == null) ring = MakeTex(128, (x, y) => { float r = Mathf.Sqrt(x * x + y * y); return 1f - Mathf.Abs(r - 0.92f) / 0.07f; }); return ring; }
+        public static Texture2D WhiteTex() { if (white == null) white = MakeTex(4, (x, y) => 1f); return white; }
+        // 实心椭圆（翅膀、落叶），边缘一点点抗锯齿
+        public static Texture2D EllipseTex() { if (ellipse == null) ellipse = MakeTex(64, (x, y) => (1f - Mathf.Sqrt(x * x + y * y)) * 14f); return ellipse; }
+
         static Sprite dot;
         // 程序生成的软边圆（脚下阴影、点击标记）
         public static Sprite Dot()

@@ -35,4 +35,10 @@ meta = {'img': out_img, 'size': A['size'], 'pet': A['pet']}
 json.dump(meta, open(DAT + '/assets.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 for f in ('data', 'story'): shutil.copyfile(f'{R}/data/{f}.json', f'{DAT}/{f}.json')
 for k in os.listdir(R + '/data/collision'): shutil.copyfile(f'{R}/data/collision/{k}', f'{DAT}/mask_{k}')
+# 水面蒙版：export/unity-water/<地图>_mask.png → Resources/GuiQin/Water/<地图>.png（流水着色器读它）
+WAT = OUT + '/Water'; os.makedirs(WAT, exist_ok=True); nw = 0
+if os.path.isdir(R + '/export/unity-water'):
+    for fn in os.listdir(R + '/export/unity-water'):
+        if fn.endswith('_mask.png'): shutil.copyfile(f'{R}/export/unity-water/{fn}', f'{WAT}/{fn[:-9]}.png'); nw += 1
+print(f'水面蒙版 {nw} 张')
 print(f'素材 {len(out_img)} 个 key → {len(seen)} 个文件，本次转换/复制 {conv} 个，Art 目录合计 {total/1e6:.1f} MB')
