@@ -64,6 +64,15 @@ namespace GuiQin.Inventory
         }
         public int ItemCount(string id) { return Count(id); }
 
+        // 药囊：战斗打赢后自动回血，回复量 = 药囊自带气血（含星级加成）。护符先不做，坑位保留
+        public int PouchHeal()
+        {
+            float v; if (!RoleStats.SlotBonus(Bag, "pouch").TryGetValue("hp", out v) || v <= 0) return 0;
+            int max = Stats().maxHp, cur = Hp, add = Math.Min((int)v, max - cur);
+            if (add <= 0) return 0;
+            role.hp = cur + add; return add;
+        }
+
         // 战斗掉落 / 任务奖励入包：满了装不下的丢弃（真服务器应走邮件）
         public bool Give(string id, int n)
         {

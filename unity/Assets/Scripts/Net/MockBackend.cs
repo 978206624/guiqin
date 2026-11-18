@@ -144,6 +144,8 @@ namespace GuiQin.Net
                 while (role.exp >= need) { role.exp -= need; role.lv++; end.levelUp = true; need = (int)GameData.Raw["expNeed"]["base"] + (int)GameData.Raw["expNeed"]["perLevel"] * role.lv; }
                 if (end.levelUp) { role.hp = -1; role.mp = -1; }
                 end.lv = role.lv;
+                int heal = new InventoryService(role).PouchHeal();      // 升级已回满时 hp = -1，不会再加
+                if (heal > 0) end.note = (end.note != null ? end.note + "　" : "") + "药囊回血 +" + heal;
             }
             else if (eng.Over == "lose")
             {
