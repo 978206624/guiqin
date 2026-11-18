@@ -34,11 +34,7 @@ namespace GuiQin.Battle
     // 真服务器在开战时做同样的事，并把装备 / 宝石 / 亲密度加成算进属性（装备 / 宝石已计入；亲密度未做）。
     public static class BattleFactory
     {
-        static Dictionary<string, SkillDef> skills;
-        public static Dictionary<string, SkillDef> Skills
-        {
-            get { if (skills == null) skills = GameData.Raw["skills"].ToObject<Dictionary<string, SkillDef>>(); return skills; }
-        }
+        public static IReadOnlyDictionary<string, SkillDef> Skills => GameData.Skills;
 
         static float F(JToken t, float def = 0f) { return t == null || t.Type == JTokenType.Null ? def : (float)t; }
         static int Base(JToken b, JToken g, string k, int L, float mul) { return (int)Math.Round((F(b[k]) + F(g[k]) * L) * mul, MidpointRounding.AwayFromZero); }
@@ -71,7 +67,7 @@ namespace GuiQin.Battle
                 MaxHp = maxHp, MaxMp = maxMp, Hp = role.hp < 0 ? maxHp : Math.Max(1, Math.Min(maxHp, role.hp)), Mp = role.mp < 0 ? maxMp : Math.Min(maxMp, role.mp),
                 Atk = ps.atk, Matk = ps.matk, Def = ps.def, Mdef = ps.mdef, Spd = ps.spd, Crit = ps.crit, Dodge = ps.dodge
             };
-            string sp = "b_" + role.cls; me.Sprite = Art.Has(sp) ? sp : "b_player";
+            string sp = "b_" + role.cls; me.Sprite = GameData.Assets.img.ContainsKey(sp) ? sp : "b_player";
             units.Add(me);
 
             // 我方：出战宠物（灵狐或已拥有的神兽）；属性和亲密度加成走 PetService，和宠物面板显示的一致
@@ -87,7 +83,7 @@ namespace GuiQin.Battle
             if (dx["pas"] != null) pet.Pas = dx["pas"].ToObject<PasDef>();
             units.Add(pet);
 
-            var eng = new BattleEngine(units, Skills, seed);
+            var eng = new BattleEngine(units, Skills, GameData.ItemNames, seed);
             // 主角可用技能：门派职业用自己的技能表，新手用通用表；等级不够的不能用
             var list = cls["skills"] != null ? cls["skills"].Select(x => (string)x).ToList() : D["playerSkills"].Select(x => (string)x).ToList();
             // 门派职业的技能要“学过”才能用（技能修炼）；新手的通用技能仍按人物等级解锁

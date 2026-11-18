@@ -19,9 +19,8 @@ namespace GuiQin.Quest
 
     public static class StoryBeats
     {
-        public static readonly List<Beat> All = new List<Beat>();
-        public static readonly Dictionary<string, int> First = new Dictionary<string, int>();   // 任务 id → 第一拍序号
-        static bool built;
+        static List<Beat> all;
+        static Dictionary<string, int> first;   // 任务 id → 第一拍序号
 
         static List<string[]> Pages(JToken t)
         {
@@ -30,10 +29,11 @@ namespace GuiQin.Quest
             return l;
         }
 
-        public static void Build()
+        internal static void Build(JObject story, Dictionary<string, NpcInfo> npcs)
         {
-            if (built) return; built = true;
-            foreach (var q in GameData.Story["quests"])
+            var beats = new List<Beat>();
+            var starts = new Dictionary<string, int>();
+            foreach (var q in story["quests"])
             {
                 var bs = (JArray)q["beats"];
                 for (int i = 0; i < bs.Count; i++)
@@ -46,7 +46,7 @@ namespace GuiQin.Quest
                         n = b["n"] != null ? (int)b["n"] : 0, pages = Pages(b["pages"]), pre = Pages(b["pre"])
                     };
                     if (b["at"] != null) beat.at = new[] { (float)b["at"][0], (float)b["at"][1] };
-                    if (i == 0) { beat.first = true; beat.accept = Pages(q["accept"]); First[beat.qid] = All.Count; }
+                    if (i == 0) { beat.first = true; beat.accept = Pages(q["accept"]); starts[beat.qid] = beats.Count; }
                     if (i == bs.Count - 1)
                     {
                         beat.last = true; beat.outro = Pages(q["complete"]);
@@ -57,14 +57,16 @@ namespace GuiQin.Quest
                             if (rw["items"] != null) foreach (var p in ((JObject)rw["items"]).Properties()) beat.items[p.Name] = (int)p.Value;
                         }
                     }
-                    All.Add(beat);
+                    beats.Add(beat);
                 }
             }
             // 剧情里的采集点当成一个只在对应任务时出现的“人物”
-            foreach (var b in All) if (b.type == "spot" && !GameData.Npcs.ContainsKey(b.npc)) GameData.Npcs[b.npc] = new NpcInfo { name = b.spot, spot = true, color = "#9ff0ff", idle = "" };
+            foreach (var b in beats) if (b.type == "spot" && !npcs.ContainsKey(b.npc)) npcs[b.npc] = new NpcInfo { name = b.spot, spot = true, color = "#9ff0ff", idle = "" };
+            all = beats;
+            first = starts;
         }
 
-        public static Beat At(int step) { Build(); return step >= 0 && step < All.Count ? All[step] : null; }
-        public static int NeedStep(string questId) { Build(); int s; return First.TryGetValue(questId, out s) ? s : 0; }
+        public static Beat At(int step) { return step >= 0 && step < all.Count ? all[step] : null; }
+        public static int NeedStep(string questId) { int s; return first.TryGetValue(questId, out s) ? s : 0; }
     }
 }

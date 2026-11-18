@@ -32,12 +32,15 @@ namespace GuiQin.Battle
         public readonly List<string> PlayerSkills = new List<string>();       // 主角当前能用的技能
         public Dictionary<string, int> SkillLv;                               // 主角各技能的修炼等级（只有门派职业有）；每升 1 级威力 / 疗效 +12%
         public readonly List<KeyValuePair<string, string>> PlayerAuto = new List<KeyValuePair<string, string>>();   // 职业自动规则 [(技能, 条件)]
-        readonly Dictionary<string, SkillDef> skills; readonly Random rng;
+        readonly IReadOnlyDictionary<string, SkillDef> skills;
+        readonly IReadOnlyDictionary<string, string> itemNames;
+        readonly Random rng;
         List<BattleEvent> ev;
 
-        public BattleEngine(List<BUnit> units, Dictionary<string, SkillDef> skills, int seed)
+        public BattleEngine(List<BUnit> units, IReadOnlyDictionary<string, SkillDef> skills,
+            IReadOnlyDictionary<string, string> itemNames, int seed)
         {
-            Units = units; this.skills = skills; rng = new Random(seed);
+            Units = units; this.skills = skills; this.itemNames = itemNames; rng = new Random(seed);
             foreach (var u in units)
             {
                 if (u.Me) Player = u;
@@ -132,7 +135,7 @@ namespace GuiQin.Battle
             {
                 var r = u.Me && ItemUse != null ? ItemUse(act.skill) : null;
                 if (r == null) { Float(u, "用不了", "miss"); return; }
-                var name = GameData.Raw["items"][act.skill] != null ? (string)GameData.Raw["items"][act.skill]["name"] : act.skill;
+                string name = act.skill != null && itemNames.TryGetValue(act.skill, out var label) ? label : act.skill;
                 Float(u, name, "heal");
                 if (r[0] > 0) { int d = Math.Min(r[0], u.MaxHp - u.Hp); u.Hp += d; Add(new BattleEvent { t = "heal", u = u.Id, v = d, hp = u.Hp }); }
                 if (r[1] > 0) { u.Mp = Math.Min(u.MaxMp, u.Mp + r[1]); Add(new BattleEvent { t = "mp", u = u.Id, mp = u.Mp }); }

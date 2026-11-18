@@ -36,7 +36,7 @@ namespace GuiQin
         {
             Application.targetFrameRate = 60;
             Screen.orientation = ScreenOrientation.Portrait;
-            GameData.Load();
+            GameData.Load(new UnityRulesDataSource());
             BuildCamera(); BuildEventSystem();
             wx = new WeatherSystem(cam);
             BuildUi();

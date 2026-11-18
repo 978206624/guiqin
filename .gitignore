@@ -1,3 +1,6 @@
 dist/
 __pycache__/
 *.pyc
+
+server/**/bin/
+server/**/obj/
