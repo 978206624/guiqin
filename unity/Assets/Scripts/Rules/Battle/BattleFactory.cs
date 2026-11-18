@@ -10,6 +10,7 @@ namespace GuiQin.Battle
     public class BattleSession
     {
         public string Id, StageId; public BattleEngine Engine; public BattleView View; public StageDef Stage;
+        public int Seed { get; internal set; }
 
         // 当前战场快照：开战时的静态信息 + 引擎里每个单位此刻的血 / 蓝 / 存活 / 状态。断线重连、重进游戏时发给客户端重建战场。
         public BattleView Snapshot()
@@ -99,7 +100,7 @@ namespace GuiQin.Battle
                 units = units.Select(u => new UnitView { id = u.Id, side = u.Side, row = u.Row, name = u.Name, sprite = u.Sprite, h = u.H, flip = u.Flip, me = u.Me, boss = u.Boss, hp = u.Hp, maxHp = u.MaxHp, mp = u.Mp, maxMp = u.MaxMp }).ToList(),
                 skills = list.Where(id => Skills.ContainsKey(id)).Select(id => new SkillView { id = id, name = Skills[id].name + (table && usable(id) ? " Lv." + GuiQin.Train.TrainService.Level(role, id) : ""), target = (Skills[id].heal > 0 || Skills[id].healPow > 0 || Skills[id].revive > 0) && (Skills[id].target ?? "one") == "one" ? "ally" : (Skills[id].target ?? "one"), mp = (int)Skills[id].mp, usable = usable(id), note = usable(id) ? null : (table ? "未学习" : Skills[id].lv + " 级解锁") }).ToList()
             };
-            return new BattleSession { Id = view.id, StageId = st.id, Engine = eng, View = view, Stage = st };
+            return new BattleSession { Id = view.id, StageId = st.id, Engine = eng, View = view, Stage = st, Seed = seed };
         }
     }
 }

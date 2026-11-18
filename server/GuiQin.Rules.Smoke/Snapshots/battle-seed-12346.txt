@@ -1,0 +1,6 @@
+seed=12346 stage=boar
+round 1 | act 4 foxfire -> 1 | hit 1 -130 hp=230 | float 3 金创药 | heal 3 +600 hp=1100 | act 1 bite -> 3 | hit 3 -32 hp=1068 | act 2 bite -> 4 | hit 4 -58 hp=782
+round 2 | act 4 foxfire -> 1 | hit 1 -124 hp=106 | act 3 attack -> 1 | hit 1 -144 hp=0 | die 1 | act 2 bite -> 3 | hit 3 -67 hp=1001 crit
+round 3 | act 4 bite -> 2 | hit 2 -90 hp=270 | act 3 attack -> 2 | hit 2 -216 hp=54 crit | act 2 bite -> 4 | hit 4 -55 hp=727
+round 4 | act 4 foxfire -> 2 | hit 2 -125 hp=0 | die 2
+result=win exp=360 coin=30 drops=hp_potion=1
