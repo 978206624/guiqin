@@ -346,7 +346,8 @@ window.DATA = {
     arenaman: { name: '擂台官', title: '【竞技场】', color: '#ff9a8a', sprite: 'f_blade', head: 'head_m_spear', idle: '擂台已经备好，五对五，人宠齐上。要不要上去练练手？', act: 'arena' },
     towerman: { name: '守塔人', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'f_tao', head: 'head_m_mage', act: 'towerEnter', idle: '百炼玄兵塔一共七层，每层十名守卫，都是百炼成精的神兵法宝。打败本层首领，才能上下一层。' },
     towertp:  { name: '塔内传送师', title: '【玄兵塔】', color: '#c9b8ff', sprite: 'kk_npc07', head: 'head_kk_npc07', act: 'towerTp', idle: '每层的首领一倒，我就能送你上楼。想歇一歇，也可以送你出塔。' },
-    trader:   { name: '掌柜',   title: '【寄卖行】', color: '#ffe08a', sprite: 'f_healer', head: 'head_vendor', shop: 'trader', idle: '百宝摊上的项链、戒指、法宝、护符，都是各路好货，少侠随便看。' },
+    trader:   { name: '寄卖商人', title: '【汉中郡】', color: '#ffe08a', sprite: 'kk_npc_jmsr', head: 'head_kk_npc_jmsr', shop: 'trader', idle: '寄卖行的买卖，讲的是个“诚”字。项链、戒指、法宝、护符，各路好货都在这儿挂着，少侠随便看。' },
+    pet_jz:   { name: '斗宠小郡主', title: '【斗宠】', color: '#ffb8e0', titleColor: '#8fd0ff', sprite: 'kk_npc20', head: 'head_kk_npc20', act: 'arena', idle: '本郡主的宠物可是汉中第一！你的宠物敢不敢跟它比一比？' },
     // 道家驻地（太虚之林）的三位：形象取自 kunkunxunqin（门主 10000463 / 琴魔堂主 10000464 / 天音堂主 10000465）
     dao_menzhu: { name: '道家门主', title: '【道家】', color: '#bfe8ff', sprite: 'kk_npc57', head: 'head_kk_npc57', act: 'joinSect', idle: '道法自然，无为而无不为。太虚之林乃本门驻地。十级以上、与道有缘者，可在此拜入道家，再去堂主处择天音或琴魔一堂。' },
     dao_qinmo:  { name: '琴魔堂主', title: '【道家·琴魔】', color: '#bfe8ff', act: 'pickHall', hall: 'qm', sprite: 'kk_npc45', head: 'head_kk_npc45', idle: '琴魔一脉，以魔音入敌心。琴声不是用来讨好谁的，是用来镇住心里那头兽的。' },
@@ -559,7 +560,7 @@ window.DATA = {
       blocks: [],
       glows: [[660,225],[1215,280],[1750,200],[1620,610],[240,540],[1500,990]],
       npcs: [{ id: 'towerman', at: [850, 535] }, { id: 'waiter', at: [1384, 376] }, { id: 'smith', at: [1290, 745] },
-             { id: 'vendor', at: [350, 745] }, { id: 'arenaman', at: [660, 705] }, { id: 'trader', at: [1690, 925] }, { id: 'girl', at: [1009, 600] }],
+             { id: 'vendor', at: [350, 745] }, { id: 'arenaman', at: [660, 705] }, { id: 'trader', at: [1720, 1060] }, { id: 'girl', at: [1009, 600] }, { id: 'pet_jz', at: [1470, 1230] }],
       portals: [{ to: 'wild', name: '出城·竹林', at: [300, 800], arrive: [150, 453] }, { to: 'outskirts', name: '恒山村郊', at: [570, 160], arrive: [1860, 190] }]
     },
     wild: {
