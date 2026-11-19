@@ -201,7 +201,7 @@
  },
  "bg_handan": {
   "file": "assets/bg_handan.webp",
-  "bytes": 666588
+  "bytes": 561408
  },
  "bg_hejiang": {
   "file": "assets/bg_hejiang.webp",
@@ -1157,7 +1157,7 @@
  },
  "mini_handan": {
   "file": "assets/mini_handan.jpg",
-  "bytes": 61808
+  "bytes": 56516
  },
  "mini_hejiang": {
   "file": "assets/mini_hejiang.jpg",
