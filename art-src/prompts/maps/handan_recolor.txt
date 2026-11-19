@@ -1,0 +1,7 @@
+Edit this game map illustration. Keep the EXACT same composition, camera, layout, road shapes, building positions, market stalls, canal and bridge, square and empty lot, so the walkable paths stay in the same place. ONLY change the color palette and a few decorative details so this northern commercial city of Handan looks clearly different from a southern garden town:
+- Roofs: change the bright teal-blue tiles to dark slate grey and charcoal tiles with a subtle warm brown tint; timber walls become deeper brown, banners and lanterns become dark crimson and old gold.
+- Paving and ground: change the pinkish grey stone to warm sandy yellow-brown and dusty ochre rammed-earth tones.
+- Vegetation: replace the pink cherry blossoms with golden-yellow autumn ginkgo and orange-red maple leaves; the green trees become olive and dry yellow-green; remove lotus flowers and pink flowers (use dry reeds and yellow-brown grass instead); the willow becomes a yellowing willow.
+- Water: the canal becomes a muted grey-green, less turquoise.
+- Lighting: warm late-afternoon golden light with a slightly dusty, cooler-contrast feel; overall a drier, harder, northern frontier trading city mood.
+Same top-down 3/4 overhead view, no sky, no horizon, no text, no characters, clean smooth painterly shading, no grain or noise.
