@@ -79,7 +79,8 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 
 | cmd | 方向 | 说明 |
 |---|---|---|
-| `auth.login` | 请求 | 账号密码 / 游客登录，返回 `session`、区服列表（含各区状态与本账号角色数）、上次登录区 |
+| `auth.register` | 请求 | 注册正式账号，保存密码哈希并返回登录态 |
+| `auth.login` | 请求 | 账号密码登录，返回 `session`、区服列表（含各区状态与本账号角色数）、上次登录区 |
 | `role.list` | 请求 | 某区的角色列表 |
 | `role.create` | 请求 | 建角色：名字 2–6 字、区内不重名、每区最多 3 个、职业必须开放，全部由服务端判 |
 | `role.delete` | 请求 | 删角色（客户端二次确认；服务端可加冷却 / 找回期） |
@@ -88,7 +89,7 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 | `tower.enter` / `tower.next` / `tower.leave` | 请求 | 百炼玄兵塔：进塔（15 级）、上楼（需破本层首领）、出塔 |
 | `map.move` | 请求 | 上报行走目的地 / 到达点，服务端校验，不合法回 `ok=false` + 应回到的位置 |
 | `map.portal` | 请求 | 走传送阵（服务端判 `needQuest`/`needStep`/等级） |
-| `map.teleport` | 请求 | 世界地图传送（服务端判等级 / 费用） |
+| `map.teleport` | 请求 | 本地真实服务支持门派接引师传送。传入 `npc` 和 `to`，按当前地图、接引师位置及配置目的地校验 |
 | `sys.ping` | 请求 | 心跳（带 seq，服务端回 pong） |
 | `auth.resume` | 请求 | 断线重连，带 session 恢复登录态 |
 | `battle.resume` | 请求 | 取进行中战斗的快照 |
@@ -123,8 +124,8 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 |---|---|
 | 任务 / 剧情 | `quest.list`、`quest.accept`、`story.beat`（推进剧情节拍）、`npc.talk`（服务端决定对话分支）、`push.quest` |
 | 战斗（补充） | `battle.resume`（断线重连）、`battle.item`（道具）、`arena.*`（竞技场） |
-| 背包 / 装备 | `bag.list`、`bag.use`、`bag.equip`、`bag.sell`、`equip.enhance`、`equip.gem` |
-| 商店 / 锻造 | `shop.list`、`shop.buy`、`forge.make` |
+| 背包 / 装备 | `bag.list`、`bag.expand`、`bag.use`、`bag.equip`、`bag.sell`、`equip.enhance`、`equip.gem` |
+| 商店 / 锻造 | `shop.list`、`shop.buy`、`mall.buy`、`forge.make` |
 | 宠物 | `pet.list`、`pet.battleSet`、`pet.feed`、`pet.rename` |
 | 玄兵塔 / 竞技场 | `tower.enter`、`arena.match`、`arena.rank` |
 | 社交 | `chat.send`（世界 / 地图 / 私聊 / 帮派）、`push.chat`、`friend.*`、`mail.*` |
@@ -158,22 +159,22 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 
 玩法参数（伤害公式、成长曲线、掉率）来自 `Balance-Sheet.md` / `data.json`，服务端和客户端用同一份表，**以服务端为准**；改表后重新发版，配置表 hash 不一致的客户端被提示更新。
 
-## 6. MySQL 数据库（概要）
+## 6. MySQL 首版数据库
 
-| 表 | 关键字段 |
+库名为 `guiqin`，使用 MySQL 8.0 和 `utf8mb4`。首版结构见 [001_init.sql](../server/database/001_init.sql)。
+
+| 表 | 持久化内容 |
 |---|---|
-| `account` | id、渠道、第三方 openid、状态（正常 / 封禁）、创建时间 |
-| `role` | id、account_id、zone、name、cls（职业外观）、lv、exp、gold、map、x、y、创建 / 最后登录时间 |
-| `role_item` | role_id、item_id、数量、强化等级、宝石、绑定、来源 |
-| `role_equip` | role_id、槽位、item 实例 id |
-| `role_pet` | role_id、pet_id、等级、品质、技能、出战位 |
-| `role_quest` | role_id、quest_id、状态、进度（JSON） |
-| `role_story` | role_id、已完成节拍（位图 / 列表） |
-| `battle_log` | id、role_id、stage、种子、指令序列、结果、时间（保留 N 天） |
-| `item_flow` | role_id、变更类型、物品 / 货币、前后值、原因、时间（只增不改） |
-| `mail`、`chat_log`、`rank_*` | 按需 |
+| `account` | 账号 ID、登录渠道、渠道内唯一身份、密码散列（如适用）、状态 |
+| `role` | 账号、区服、角色名、`state_json` 与乐观锁 `ver`。背包、装备、宠物和任务进度随角色状态保存 |
+| `chat_msg` | 全局自增 ID、区服、频道、范围、发送方、收件方和消息 JSON |
+| `friend` | 角色与好友角色的有向关系，角色删除时清理关联 |
+| `battle_log` | 唯一 `battle_id`、角色初始状态、关卡、种子、规则版本、指令和结果 |
+| `item_flow` | 角色、物品或货币、变更前后值、原因与关联标识。应用账号可追加和查询 |
 
-Redis：在线表（role_id → 连接 / 场景）、会话、排行榜（zset）、分布式锁（防同一角色并发操作）、限流计数。
+后端接入时，按角色 ID 与读取时的 `ver` 条件更新并递增版本，受影响行数为 0 时处理版本冲突。战斗日志、角色状态与奖励流水应在同一事务中提交，利用 `battle_id` 唯一键避免重试重复发奖。聊天 ID 允许有空洞，并发事务的提交顺序与 ID 分配顺序可能不同。
+
+本地服务已使用上面的事务提交玄兵塔结算。现行 WebSocket 支持账号注册与密码登录、角色增删查、地图移动与传送、任务对话、基础背包操作及塔和普通战斗。塔战还校验所在楼层、守卫顺序与可用指令。同一会话的最近请求支持按序号重放结果。
 
 ## 7. 配置表与热更
 
@@ -209,12 +210,14 @@ IGameBackend（Net/IGameBackend.cs）──┬─ MockBackend（本地内存；�
 
 | 命令 | 请求 | 服务端校验 | 备注 |
 |---|---|---|---|
-| bag.get | – | – | 返回整包背包 + 银两 + 气血法力，战斗 / 任务后客户端用它刷新 |
+| bag.get | – | – | 返回整包背包、银两、元宝、银票和气血法力，战斗 / 任务后客户端用它刷新 |
+| bag.expand | capacity（确认时的背包容量） | 核对当前容量、元宝和扩容上限；每次 100 元宝扩 10 格，最高 80 格 | 返回新背包和余额，同事务写元宝与格数流水 |
 | bag.use | id | 持有、是药品、没满 | 战斗外用药；战斗里用 `battle.cmd {type:"item", skill:<物品id>}`，同一回合只算一次行动 |
 | bag.equip / bag.unequip | id / slot | 持有、部位匹配、卸下时背包有空格 | 星级和宝石跟着“部位”走，换装不丢 |
 | bag.sell | id | 持有、price>0、药品不收 | 任务物品 price=0 不能卖 |
 | bag.sort | – | – | 装备→宝石→药品→材料，品质高的在前 |
 | shop.buy / shop.sell | shop, id | 商店有这个货、银两够、背包有空格 / 只收材料 | 价格取 data.items.price |
+| mall.buy | id, quantity | 共用目录核价，校验 1–9999 件、余额、背包容量，装备单买且限持有 1 件 | 返回整包背包和三种余额。MySQL 同事务写角色状态、扣款和入包流水，两条流水共用 reference_id |
 | forge.make | slot, gem | 银两、锻造石、星级未满；成功率 = rate[星]+gemBonus | ≥10 星失败掉星；5 级锻造石必成 |
 | forge.inlay / forge.uninlay | slot, i, id | 孔已解锁（5/10/15 星）、宝石持有 | 摘下要有背包空格 |
 | forge.merge | id | 3 颗同阶同种 | 合成下一阶，5 级封顶 |
@@ -238,7 +241,7 @@ story.json 的每个任务展平成“节拍”（talk 找人 / spot 采集点 /
 
 ## 登录 / 角色 / 设置（R5，已写参考实现）
 
-- 客户端流程：`FrontUi` 登录（账号 + 密码，或游客）→ 选区（推荐 / 我的 / 1-6 区 / 7-12 区，维护中不可选）→ 角色列表（3 个槽位，进入 / 删除 / 换区）→ 创建角色（性别、职业、名字，随机名只是客户端便利，校验以服务端为准）。
+- 客户端流程：`FrontUi` 登录（账号 + 密码）→ 选区（推荐 / 我的 / 1-6 区 / 7-12 区，维护中不可选）→ 角色列表（3 个槽位，进入 / 删除 / 换区）→ 创建角色（性别、职业、名字，随机名只是客户端便利，校验以服务端为准）。
 - 客户端只在 `PlayerPrefs` 记“上次的账号名”，不记密码；密码提交后立即清空。
 - 设置（水面 / 蝴蝶 / 天气特效 / 屏幕震动 / 战斗倍速）是设备偏好，存 `PlayerPrefs`，不属于游戏进度，不上服务端。
 - “切换角色”：退出当前地图回到角色列表（战斗中禁用）；“重新开始”仅本地演示后端可用。

@@ -583,6 +583,10 @@
   "file": "assets/head_kk_axiu.webp",
   "bytes": 13336
  },
+ "head_kk_jrhdds_npc": {
+  "file": "assets/head_kk_jrhdds_npc.webp",
+  "bytes": 12174
+ },
  "head_kk_mo_dj": {
   "file": "assets/head_kk_mo_dj.webp",
   "bytes": 15166
@@ -621,7 +625,15 @@
  },
  "head_kk_npc57": {
   "file": "assets/head_kk_npc57.webp",
-  "bytes": 19598
+  "bytes": 15712
+ },
+ "head_kk_npc58": {
+  "file": "assets/head_kk_npc58.webp",
+  "bytes": 9884
+ },
+ "head_kk_npc59": {
+  "file": "assets/head_kk_npc59.webp",
+  "bytes": 12378
  },
  "head_kk_npc_cyblq": {
   "file": "assets/head_kk_npc_cyblq.webp",
@@ -971,6 +983,10 @@
   "file": "assets/kk_axiu.webp",
   "bytes": 14888
  },
+ "kk_jrhdds_npc": {
+  "file": "assets/kk_jrhdds_npc.webp",
+  "bytes": 57696
+ },
  "kk_mo_dj": {
   "file": "assets/kk_mo_dj.webp",
   "bytes": 34712
@@ -1010,6 +1026,14 @@
  "kk_npc57": {
   "file": "assets/kk_npc57.webp",
   "bytes": 48566
+ },
+ "kk_npc58": {
+  "file": "assets/kk_npc58.webp",
+  "bytes": 44722
+ },
+ "kk_npc59": {
+  "file": "assets/kk_npc59.webp",
+  "bytes": 52072
  },
  "kk_npc_cyblq": {
   "file": "assets/kk_npc_cyblq.webp",

@@ -33,6 +33,7 @@ namespace GuiQin
         public NpcInfo Info;
         protected Transform bodyT;
         float thruA = 1f;
+        float bodyScale = 1f;
 
         // 躲在屋顶 / 栏杆后面时变半透明（网页版 .thru：身体 .42、影子 .3）
         public void ApplyThru(bool thru, float dt)
@@ -44,7 +45,7 @@ namespace GuiQin
             if (Shadow != null) { var c = Shadow.color; c.a = 0.35f * Mathf.Lerp(1f, 0.3f, (1f - thruA) / 0.58f); Shadow.color = c; }
         }
 
-        public static T Make<T>(string name, Transform parent, Sprite sprite, Vector2 pos, float shadowW) where T : Actor
+        public static T Make<T>(string name, Transform parent, Sprite sprite, Vector2 pos, float shadowW, float scale = 1f) where T : Actor
         {
             var go = new GameObject(name); go.transform.SetParent(parent, false);
             var a = go.AddComponent<T>();
@@ -53,6 +54,7 @@ namespace GuiQin
             sh.transform.localScale = new Vector3(shadowW / Art.PX, shadowW * 0.3f / Art.PX, 1f);
             var b = new GameObject("body"); b.transform.SetParent(go.transform, false);
             a.bodyT = b.transform; a.Body = b.AddComponent<SpriteRenderer>(); a.Body.sprite = sprite;
+            a.bodyScale = scale; b.transform.localScale = new Vector3(scale, scale, 1f);
             a.Pos = pos; a.Sync();
             return a;
         }
@@ -77,15 +79,41 @@ namespace GuiQin
             float bob = Moving ? Mathf.Abs(Mathf.Sin(t * 11f)) * Hop : 0f;
             float br = Moving ? 1f : 1f + Mathf.Sin(t * 2.2f + Pos.x) * 0.012f;
             bodyT.localPosition = new Vector3(0, bob / Art.PX, 0);
-            bodyT.localScale = new Vector3(Face, br, 1f);
+            bodyT.localScale = new Vector3(Face * bodyScale, br * bodyScale, 1f);
         }
     }
 
     public class PortalActor : Actor
     {
+        static Sprite[] frames;
+
+        // Cocos 图集按原始画布还原为两行五列，保留每帧的中心和偏移。
+        public static Sprite FirstFrame()
+        {
+            if (frames == null)
+            {
+                const int cell = 256;
+                var texture = Resources.Load<Texture2D>("GuiQin/Art/eff_transport");
+                if (texture == null || texture.width != cell * 5 || texture.height != cell * 2)
+                    return Art.One("portal_array", true) ?? Art.Dot();
+                frames = new Sprite[10];
+                for (int i = 0; i < frames.Length; i++)
+                    frames[i] = Sprite.Create(texture, new Rect(i % 5 * cell, (1 - i / 5) * cell, cell, cell),
+                        new Vector2(0.5f, 0.5f), Art.PX, 0, SpriteMeshType.FullRect);
+            }
+            return frames[0];
+        }
+
+        public void SetGroundEffect()
+        {
+            H = 104f;
+            Shadow.enabled = false;
+            Body.sortingOrder = -5000;
+        }
+
         public override void Animate(float t)
         {
-            if (Body.sprite == Art.Dot()) { float s = 0.9f + Mathf.Sin(t * 3f) * 0.08f; bodyT.localScale = new Vector3(s, s * 0.55f, 1f); }
+            if (frames != null) Body.sprite = frames[Mathf.FloorToInt(t * 12f) % frames.Length];
         }
     }
 

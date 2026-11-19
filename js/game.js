@@ -1101,6 +1101,11 @@ function pickHallTalk(hall) {          // hall: 'qm' | 'ty'
       '</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
 }
 ACTS.sect = id => { closeModal(); changeClass(id); };
+ACTS.sectEscort = id => {
+  const to = D.npcs[id] && D.npcs[id].escort;
+  if (!to || !(M.def.npcs || []).some(n => n.id === id)) return;
+  closeModal(); loadMap(to); save(); toast('传送到 ' + D.maps[to].name);
+};
 // 完成当前这一拍：进入下一拍；任务最后一拍发奖励并播完成对白（下一个任务不是“找人”时，顺带播它的接取对白）
 function finishBeat(q, extra) {
   const wasLow = S.lv < SECT_LV;
@@ -1125,7 +1130,10 @@ function talk(n) {
   }
   const info = D.npcs[n.id];
   openDialog(n, info.idle, () => {
-    if (info.shop === 'smith') openSmith('forge');
+    if (info.escort) {
+      openModal(n.name, '<p class="center">要我送你去' + D.maps[info.escort].name + '吗？</p><p class="center"><button type="button" class="tbtn red" data-act="sectEscort:' + n.id + '">前往门派</button>　<button type="button" class="tbtn" data-act="close">暂不前往</button></p>');
+    }
+    else if (info.shop === 'smith') openSmith('forge');
     else if (info.shop) openShop(info.shop);
     else if (info.act === 'ssEnvoy') openEnvoy();
     else if (info.act === 'towerEnter') openTowerEnter();

@@ -28,6 +28,7 @@ namespace GuiQin.Net
         class Pending { public Envelope Req; public TaskCompletionSource<Envelope> Tcs; public float Deadline; }
 
         readonly string url;
+        internal string Endpoint => url;
         ClientWebSocket ws; CancellationTokenSource cts;
         readonly ConcurrentQueue<string> inbox = new ConcurrentQueue<string>();
         readonly ConcurrentQueue<string> events = new ConcurrentQueue<string>();      // 来自接收线程的断线通知
@@ -205,7 +206,7 @@ namespace GuiQin.Net
         public async Task<Result<LoginResp>> Login(LoginReq req)
         {
             kicked = false;
-            var r = await Call<LoginResp>(Cmd.Login, req);
+            var r = await Call<LoginResp>(req.register ? Cmd.Register : Cmd.Login, req);
             if (r.Ok && r.data != null) session = r.data.session;       // 之后断线就靠它恢复
             return r;
         }
@@ -215,7 +216,7 @@ namespace GuiQin.Net
         public Task<Result<EnterResp>> EnterGame(string roleId) { return Call<EnterResp>(Cmd.EnterGame, new EnterReq { roleId = roleId }); }
         public Task<Result<MoveResp>> Move(MoveReq req) { return Call<MoveResp>(Cmd.Move, req); }
         public Task<Result<MapChangeResp>> Portal(string from, string to) { return Call<MapChangeResp>(Cmd.Portal, new PortalReq { from = from, to = to }); }
-        public Task<Result<MapChangeResp>> Teleport(string to) { return Call<MapChangeResp>(Cmd.Teleport, new TeleportReq { to = to }); }
+        public Task<Result<MapChangeResp>> Teleport(string to, string npc = null) { return Call<MapChangeResp>(Cmd.Teleport, new TeleportReq { to = to, npc = npc }); }
         public Task<Result<SectResp>> SectJoin(string sect) { return Call<SectResp>(SectCmd.Join, new SectReq { sect = sect }); }
         public Task<Result<SectResp>> SectHall(string hall) { return Call<SectResp>(SectCmd.Hall, new SectReq { hall = hall }); }
         public Task<Result<MapChangeResp>> Tower(string op) { return Call<MapChangeResp>("tower." + op, null); }

@@ -400,8 +400,8 @@ for k in ['wave','mist','soul','chain','heal','notes','revive']:
         Image.fromarray((np.dstack([rgb,al])*255).astype('uint8'),'RGBA').save(f'{AD}/fxc_{k}.webp',quality=85,method=6)
 # kunkunxunqin 项目的 NPC 静态图（art-src/kunkun-npc/<资源名>.png，1000×600 画布里一个小人）：裁掉空白 → kk_<名> 立绘（显示高度见表，2 倍存储）+ head_kk_<名> 头像
 # 当前接入第一章用到的；后续章节的（npc_qxz 赵村村长 / npc_xhs 萧恨水 / npc_hx 韩信 / npc15 装备商人 / npc_bs 白素）原图已在 art-src/kunkun-npc，用到时加进来（单文件版有 16MB 上限）
-KK_HEAD = dict(npc07=(0.1,0,0.9,0.36), npc13=(0.05,0,0.95,0.42), npc14=(0.05,0,0.9,0.40), npc33=(0.08,0,0.92,0.38), npc45=(0.15,0.02,0.85,0.48), npc47=(0.3,0,0.85,0.40), npc57=(0.25,0.05,0.75,0.50), npc_zhw=(0.1,0,0.9,0.38), npc_cyblq=(0.12,0.02,0.65,0.55), mo_ms=(0.30,0.02,0.75,0.34), mo_dj=(0.30,0,0.72,0.30))   # 各 NPC 头部在立绘上的范围（占身高/身宽的比例）
-KK_NPC = dict(npc14=104, npc_zhw=118, npc_cyblq=132, npc13=104, npc07=104, axiu=104, npc33=104, npc57=150, npc45=150, npc47=156, mo_ms=150, mo_dj=150)   # mo_ms/mo_dj 墨家猛士/遁甲堂主（平滑重绘）； npc57 道家门主 / npc45 琴魔堂主 / npc47 天音堂主
+KK_HEAD = dict(jrhdds_npc=(0.27,0.43,0.64,0.72), npc07=(0.1,0,0.9,0.36), npc13=(0.05,0,0.95,0.42), npc14=(0.05,0,0.9,0.40), npc33=(0.08,0,0.92,0.38), npc45=(0.15,0.02,0.85,0.48), npc47=(0.3,0,0.85,0.40), npc57=(0.29,0.21,0.68,0.67), npc58=(0.20,0.0,0.67,0.49), npc59=(0.20,0.0,0.72,0.47), npc_zhw=(0.1,0,0.9,0.38), npc_cyblq=(0.12,0.02,0.65,0.55), mo_ms=(0.30,0.02,0.75,0.34), mo_dj=(0.30,0,0.72,0.30))   # 各 NPC 头部在立绘上的范围（占身高/身宽的比例）
+KK_NPC = dict(jrhdds_npc=168, npc14=104, npc_zhw=118, npc_cyblq=132, npc13=104, npc07=104, axiu=104, npc33=104, npc57=150, npc58=150, npc59=150, npc45=150, npc47=156, mo_ms=150, mo_dj=150)   # mo_ms/mo_dj 墨家猛士/遁甲堂主（平滑重绘）； npc57 道家门主 / npc45 琴魔堂主 / npc47 天音堂主
 for n,hh in KK_NPC.items():
     sp=f'{G}/kunkun-npc/{n}.png'
     if not os.path.exists(sp): continue

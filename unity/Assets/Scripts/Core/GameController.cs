@@ -191,7 +191,7 @@ namespace GuiQin
             Ui.Anchor(netText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero); netBanner.SetActive(false);
             menu = new SettingsUi(uiStage, SwitchRole, ResetRole);
             wxUi = new WeatherUi(uiStage, wx, () => map != null ? map.Def.name : "");
-            worldUi = new WorldMapUi(uiStage, GoWorld, () => map != null ? map.Id : "village");
+            worldUi = new WorldMapUi(uiStage, id => GoWorld(id), () => map != null ? map.Id : "village");
             sceneUi = new SceneMapUi(uiStage, OpenWorld);
             petUi = new PetUi(uiStage, () => role, PetRun, m => toast.Show(m));
             trainUi = new TrainUi(uiStage, () => role, TrainRun, m => toast.Show(m));
@@ -257,7 +257,7 @@ namespace GuiQin
             {
                 case "act": toast.Show("中秋灯会将在戌时三刻开始"); break;
                 case "gift": DailyGift(); break;
-                case "mall": Stop(); OpenShop("vendor"); break;
+                case "mall": OpenMall(); break;
                 case "rank": modal.Open("竞技场", "五对五的实时对战，需要对战服务端支持，现在还没有开放。", new ModalUi.Btn("知道了", null)); break;
                 case "guild": OpenChat("guild"); break;
                 case "friend": OpenChat("friends"); break;
@@ -374,20 +374,30 @@ namespace GuiQin
         // 背包 / 商店：先向服务端要一份最新的（战斗、任务都会改背包），再打开
         async void OpenBag() { if (bagUi.Visible) { bagUi.Close(); return; } Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Bag); }
         async void OpenShop(string shop) { Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Shop, shop); }
-        async System.Threading.Tasks.Task RefreshBag()
+        async void OpenMall()
         {
+            Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close();
+            if (await RefreshBag()) bagUi.Open(BagUi.Tab.Mall);
+        }
+
+        async System.Threading.Tasks.Task<bool> RefreshBag()
+        {
+            var current = role;
             var r = await net.BagOp(GuiQin.Inventory.BagCmd.Get, null);
-            if (!r.Ok || !r.data.ok) { if (!r.Ok) toast.Show(r.msg); return; }
+            if (role != current) return false;
+            if (!r.Ok || !r.data.ok) { if (!r.Ok) toast.Show(r.msg); return false; }
             role.bag = r.data.bag; role.coin = r.data.coin; role.hp = r.data.hp; role.mp = r.data.mp;
+            role.yuanbao = r.data.yuanbao; role.silverNote = r.data.silverNote;
             RefreshHud();
+            return true;
         }
 
         // 世界地图点名传送：同一张图只提示；其它由服务端判定（等级 / 费用），通过了才切图
-        async void GoWorld(string id)
+        async void GoWorld(string id, string escort = null)
         {
             MapDef d; if (!GameData.Maps.TryGetValue(id, out d) || !entered) return;
             if (map != null && id == map.Id) { toast.Show("你已经在" + d.name); return; }
-            var r = await net.Teleport(id);
+            var r = await net.Teleport(id, escort);
             if (!r.Ok || !r.data.ok) { toast.Show(r.Ok ? (r.data.msg ?? "现在不能传送") : r.msg); return; }
             LoadMap(r.data.map, StageAt(r.data.map, r.data.x, r.data.y)); toast.Show("传送到 " + d.name);
         }
@@ -443,22 +453,24 @@ namespace GuiQin
             var sprite = Art.One(key);
             if (sprite == null) { Debug.LogWarning("NPC 缺图：" + n.id + "（" + key + "）"); return; }
             var sz = Art.Size(key);
-            var a = Actor.Make<Actor>("npc_" + n.id, worldRoot, sprite, map.ToMap(n.at), sz != null ? sz[0] * 0.6f : 50f);
+            const float playerHeight = 118f;    // 男女新手主角的站立身高约为 117～119 舞台像素。
+            float spriteHeight = sprite.bounds.size.y * Art.PX;
+            float scale = Mathf.Max(1f, playerHeight / spriteHeight);
+            float shadowW = (sz != null ? sz[0] * 0.6f : 50f) * scale;
+            var a = Actor.Make<Actor>("npc_" + n.id, worldRoot, sprite, map.ToMap(n.at), shadowW, scale);
             a.Kind = ActorKind.Npc; a.Id = n.id; a.Info = info; a.DisplayName = info.name; a.Title = info.title;
             a.NameColor = Ui.Hex(info.color, a.NameColor); a.TitleColor = Ui.Hex(info.titleColor, a.TitleColor);
-            a.H = sz != null ? sz[1] : 80f;
+            a.H = spriteHeight * scale;
             a.Tag = new TagLabel(tagCanvas.transform); a.SetTag();
             list.Add(a);
         }
 
         void AddPortal(PortalDef p)
         {
-            Sprite s = !string.IsNullOrEmpty(p.art) ? Art.One(p.art, true) : null;
-            var a = Actor.Make<PortalActor>("portal_" + p.to, worldRoot, s != null ? s : Art.Dot(), map.ToMap(p.at), 0f);
-            if (s == null) a.Body.color = new Color(0.45f, 0.9f, 1f, 0.7f);
-            a.Shadow.enabled = false;
-            a.Body.sortingOrder = s != null ? -5000 : Mathf.RoundToInt(a.Pos.y);      // 带贴图的传送阵贴在地面上，在所有人物下面
-            a.Kind = ActorKind.Portal; a.Id = "portal_" + p.to; a.Portal = p; a.H = 50f;
+            var sprite = PortalActor.FirstFrame();
+            var a = Actor.Make<PortalActor>("portal_" + p.to, worldRoot, sprite, map.ToMap(p.at), 0f);
+            a.Kind = ActorKind.Portal; a.Id = "portal_" + p.to; a.Portal = p;
+            a.SetGroundEffect();
             a.DisplayName = p.name + " ▶"; a.NameColor = new Color(0.85f, 1f, 1f);
             a.Tag = new TagLabel(tagCanvas.transform); a.SetTag();
             list.Add(a);
@@ -631,7 +643,13 @@ namespace GuiQin
             var info = n.Info;
             string key = !string.IsNullOrEmpty(info.head) ? info.head : "head_" + n.Id;
             string text = string.IsNullOrEmpty(info.idle) ? "……" : info.idle;
-            dialog.Open(n.DisplayName, n.NameColor, Art.One(key, true), text, () => AfterTalk(info));
+            dialog.Open(n.DisplayName, n.NameColor, Art.One(key, true), text, () =>
+            {
+                if (info.escort != null && GameData.Maps.TryGetValue(info.escort, out var destination))
+                    modal.Open(n.DisplayName, "要我送你去" + destination.name + "吗？",
+                        new ModalUi.Btn("前往门派", () => GoWorld(info.escort, n.Id), true), new ModalUi.Btn("暂不前往", null));
+                else AfterTalk(info);
+            });
         }
 
         // ---------------- 主线任务 ----------------

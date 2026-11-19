@@ -48,7 +48,8 @@ window.DATA = {
     qMul: { 1: 1, 2: 1.2, 3: 1.5, 4: 2, 5: 2.6 },                    // 品质越高越贵
     sockets: [0, 5, 10, 15]                                           // 第 1/2/3/4 个孔需要的星级
   },
-  bagSize: 20,
+  bagSize: 40,
+  bagExpand: { step: 10, max: 80, yuanbao: 100 },
   // 装备部位（界面左右各 6 个，从上到下）
   slots: { weapon: '武器', treasure: '法宝', neck: '颈部', wrist: '手腕', finger: '手指', pouch: '药囊', amulet: '护符', head: '头部', chest: '胸部', waist: '腰部', legs: '腿部', feet: '脚部' },
   slotLeft: ['head', 'neck', 'chest', 'waist', 'legs', 'feet'], slotRight: ['weapon', 'treasure', 'wrist', 'finger', 'pouch', 'amulet'],
@@ -353,16 +354,16 @@ window.DATA = {
     dao_menzhu: { name: '道家门主', title: '【道家】', color: '#bfe8ff', sprite: 'kk_npc57', head: 'head_kk_npc57', act: 'joinSect', idle: '道法自然，无为而无不为。太虚之林乃本门驻地。十级以上、与道有缘者，可在此拜入道家，再去堂主处择天音或琴魔一堂。' },
     dao_qinmo:  { name: '琴魔堂主', title: '【道家·琴魔】', color: '#bfe8ff', act: 'pickHall', hall: 'qm', sprite: 'kk_npc45', head: 'head_kk_npc45', idle: '琴魔一脉，以魔音入敌心。琴声不是用来讨好谁的，是用来镇住心里那头兽的。' },
     dao_tianyin: { name: '天音堂主', title: '【道家·天音】', color: '#bfe8ff', act: 'pickHall', hall: 'ty', sprite: 'kk_npc47', head: 'head_kk_npc47', idle: '天音一脉，琵琶一曲可疗伤、护体、唤回将逝之人。会救人，才算真本事。' },
-    taixu_mo:    { name: '墨巨子',   title: '【墨家】', color: '#ffd9a0', sprite: 'f_spear', head: 'head_m_spear', act: 'joinMo', idle: '兼爱非攻，机关为用。太虚之峰的每一道机括，都是墨家弟子亲手所造。' },
+    taixu_mo:    { name: '墨巨子',   title: '【墨家】', color: '#ffd9a0', sprite: 'kk_npc58', head: 'head_kk_npc58', act: 'joinMo', idle: '兼爱非攻，机关为用。太虚之峰的每一道机括，都是墨家弟子亲手所造。' },
     mo_mengshi:  { name: '猛士堂主', title: '【墨家·猛士】', color: '#ffd9a0', act: 'pickMoHall', hall: 'ms', sprite: 'kk_mo_ms', head: 'head_kk_mo_ms', idle: '猛士一脉，双刃开山。流血、易伤、拼命的打法，不怕疼的人才学得会。' },
     mo_dunjia:   { name: '遁甲堂主', title: '【墨家·遁甲】', color: '#ffd9a0', act: 'pickMoHall', hall: 'dj', sprite: 'kk_mo_dj', head: 'head_kk_mo_dj', idle: '遁甲一脉，剑盾为阵。破甲、鼓舞、吸血，站在最前面，也要让身后的人站得住。' },
-    taixu_yin:   { name: '邹长老',   title: '【阴阳家】', color: '#ffc6e8', sprite: 'f_healer', head: 'head_f_heal', idle: '阴阳消长，五行流转。太虚之谷里的每一块卦石，都藏着天地的玄机。' },
+    taixu_yin:   { name: '邹长老',   title: '【阴阳家】', color: '#ffc6e8', sprite: 'kk_npc59', head: 'head_kk_npc59', idle: '阴阳消长，五行流转。太虚之谷里的每一块卦石，都藏着天地的玄机。' },
     zhanhw:   { name: '展护卫',   title: '【恒山村】', color: '#ffd9a0', sprite: 'kk_npc_zhw',  head: 'head_kk_npc_zhw', idle: '拳脚功夫不是一天练成的。去清溪谷之前，多打几场熟悉手感。' },
     bianque:  { name: '扁老鹊',   title: '【村医】',   color: '#b8f0c0', sprite: 'kk_npc_cyblq',   head: 'head_kk_npc_cyblq',  idle: '身子还虚的话，随时来我这儿讨碗药。心里的事，也别一个人扛着。' },
     qingxizi: { name: '清溪子',   title: '【清溪谷】', color: '#bfe8ff', sprite: 'kk_npc13',    head: 'head_kk_npc13',  idle: '溪水听得久了，人心也就静了。你慢慢逛，别踩坏了溪石。' },
-    jy_mo:    { name: '墨家接引师', title: '【墨家】', color: '#ffd9a0', sprite: 'kk_npc33',  head: 'head_kk_npc33', idle: '机关用在哪，要看掌机关的人。多看，少信一句定论。' },
-    jy_dao:   { name: '道家接引师', title: '【道家】', color: '#bfe8ff', sprite: 'kk_npc13', head: 'head_kk_npc13',  idle: '问来处无妨，别让答案牵着鼻子走。' },
-    jy_yin:   { name: '阴阳接引师', title: '【阴阳家】', color: '#ffc6e8', sprite: 'kk_npc07', head: 'head_kk_npc07', idle: '同一道篆线，正看是阻，反看是引。' },
+    jy_mo:    { name: '墨家接引师', title: '【墨家】', color: '#ffd9a0', sprite: 'kk_npc33',  head: 'head_kk_npc33', escort: 'taixupeak', idle: '墨家精研器械与阵法。猛士堂擅双刃，遁甲堂以剑盾护阵。驻地在太虚之峰，想入门可去拜见墨巨子。' },
+    jy_dao:   { name: '道家接引师', title: '【道家】', color: '#bfe8ff', sprite: 'kk_npc13', head: 'head_kk_npc13',  escort: 'taixuforest', idle: '道家以音律入道。琴魔以音攻敌，天音善疗伤护体。驻地在太虚之林，想入门可去拜见道家门主。' },
+    jy_yin:   { name: '阴阳接引师', title: '【阴阳家】', color: '#ffc6e8', sprite: 'kk_npc07', head: 'head_kk_npc07', escort: 'taixuvalley', idle: '阴阳家研习五行与卦象，以篆符观变化。驻地在太虚之谷，到了可找邹长老问道。' },
     zc_elder: { name: '赵村村长', title: '【赵村】',   color: '#ffe08a', sprite: 'kk_npc_qxz',    head: 'head_kk_npc_qxz',   idle: '虫清了，乡亲们才敢来上香。日子总算能往下过。' },
     xiaohs:   { name: '萧恨水',   title: '【除魔军】', color: '#ff9a8a', sprite: 'kk_npc_xhs',  head: 'head_kk_npc_xhs', idle: '梦里的事不要全信，也不要全不信。多留个心眼。' },
     hanxin:   { name: '韩信',     title: '【云雾谷】', color: '#ffd56a', sprite: 'kk_npc_hx',  head: 'head_kk_npc_hx', idle: '谷里雾大，别走散。有消息我会让人通知你。' },
@@ -424,7 +425,7 @@ window.DATA = {
       blocks: [],
       glows: [[520,860],[1470,330]],
       npcs: [{ id: 'zhanhw', at: [470, 855] }, { id: 'bianque', at: [1070, 685] }],
-      portals: [{ to: 'village', name: '回恒山村', art: 'portal_array', at: [170, 1315], arrive: [320, 1285] }, { to: 'town', name: '去汉中郡', at: [1960, 110], arrive: [450, 790] }, { to: 'creek', name: '入清溪谷', at: [1480, 320], arrive: [1100, 1450] }],
+      portals: [{ to: 'village', name: '回恒山村', art: 'portal_array', at: [170, 1315], arrive: [320, 1285] }, { to: 'town', name: '去汉中郡', at: [1870, 160], arrive: [450, 790] }, { to: 'creek', name: '入清溪谷', at: [1610, 385], arrive: [1160, 1350] }],
       foes: [{ stage: 'hog', at: [560, 1060] }, { stage: 'roam', at: [1330, 505] }]
     },
     creek: {
@@ -439,8 +440,8 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[1100,760],[1650,480],[700,1030]],
-      npcs: [{ id: 'qingxizi', at: [880, 830] }, { id: 'jy_dao', at: [1240, 670] }, { id: 'jy_yin', at: [1480, 653] }, { id: 'jy_mo', at: [700, 960] }],
-      portals: [{ to: 'outskirts', name: '回恒山村郊', at: [1100, 1470], arrive: [1440, 390] }, { to: 'mist', name: '入云雾谷', at: [1800, 50], arrive: [770, 1440] }],
+      npcs: [{ id: 'qingxizi', at: [880, 830] }, { id: 'jy_dao', at: [1320, 650] }, { id: 'jy_yin', at: [1415, 650] }, { id: 'jy_mo', at: [1510, 650] }],
+      portals: [{ to: 'outskirts', name: '回恒山村郊', at: [1220, 1390], arrive: [1630, 440] }, { to: 'mist', name: '入云雾谷', at: [1810, 130], arrive: [770, 1440] }],
       foes: [{ stage: 'creekwolf', at: [800, 1110] }, { stage: 'creekgang', at: [1600, 490] }]
     },
     mist: {
@@ -454,7 +455,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[1050,330],[1450,870]],
-      portals: [{ to: 'creek', name: '回清溪谷', at: [760, 1470], arrive: [1790, 130] }],
+      portals: [{ to: 'creek', name: '回清溪谷', at: [805, 1370], arrive: [1770, 188] }],
       foes: [{ stage: 'mistwolf', at: [1130, 1240] }, { stage: 'mistgang', at: [1170, 430] }]
     },
     pine: {
@@ -466,7 +467,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[900,1100],[1200,540]],
-      portals: [{ to: 'wild', name: '回城外竹林', at: [800, 1470], arrive: [440, 232] }, { to: 'wolfvalley', name: '入恶狼谷', at: [1090, 30], arrive: [90, 1310] }],
+      portals: [{ to: 'wild', name: '回城外竹林', at: [815, 1380], arrive: [440, 232] }, { to: 'wolfvalley', name: '入恶狼谷', at: [1150, 120], arrive: [90, 1310] }],
       foes: [{ stage: 'pinegang', at: [1000, 1170] }, { stage: 'pinewolf', at: [1180, 650] }]
     },
     wolfvalley: {
@@ -478,7 +479,7 @@ window.DATA = {
       ],
       blocks: [],
       glows: [[540,990],[1420,440]],
-      portals: [{ to: 'pine', name: '回石松林', at: [40, 1345], arrive: [1090, 110] }],
+      portals: [{ to: 'pine', name: '回石松林', at: [135, 1330], arrive: [1240, 165] }],
       foes: [{ stage: 'denwolf', at: [760, 870] }, { stage: 'wolfboss', at: [1380, 300] }]
     },
     taixuforest: {
@@ -521,7 +522,7 @@ window.DATA = {
       blocks: [],
       glows: [[1450, 320], [1220, 1000]],
       npcs: [{ id: 'taixu_mo', at: [1455, 286] }, { id: 'mo_mengshi', at: [1344, 372] }, { id: 'mo_dunjia', at: [1576, 366] }],
-      portals: [{ to: 'town', name: '返回汉中郡', at: [1150, 500], arrive: [850, 575] }]
+      portals: [{ to: 'town', name: '返回汉中郡', at: [1115, 559], arrive: [850, 575] }]
     },
     taixuvalley: {
       sect: true, name: '太虚之谷', world: [1150, 250], note: '阴阳家驻地', home: 'town', img: 'bg_taixuvalley', mini: 'mini_taixuvalley', iw: 2000, ih: 1504, scale: 1.35, k: 1, start: [1040, 950],
@@ -541,7 +542,7 @@ window.DATA = {
       blocks: [],
       glows: [[1040, 860], [1520, 540]],
       npcs: [{ id: 'taixu_yin', at: [1040, 780] }],
-      portals: [{ to: 'town', name: '返回汉中郡', at: [1040, 1080], arrive: [850, 575] }]
+      portals: [{ to: 'town', name: '返回汉中郡', at: [1145, 875], arrive: [850, 575] }]
     },
     town: {
       name: '汉中郡', world: [1105, 1145], note: '主城', home: 'town', img: 'bg_town', mini: 'mini_town', iw: 5324, ih: 3042, scale: 1.0359, k: 1.8648, start: [850, 575],
@@ -562,7 +563,7 @@ window.DATA = {
       glows: [[660,225],[1215,280],[1750,200],[1620,610],[240,540],[1500,990]],
       npcs: [{ id: 'towerman', at: [850, 535] }, { id: 'waiter', at: [1384, 376] }, { id: 'smith', at: [1290, 745] },
              { id: 'vendor', at: [350, 745] }, { id: 'arenaman', at: [660, 705] }, { id: 'trader', at: [1720, 1060] }, { id: 'girl', at: [1009, 600] }, { id: 'pet_jz', at: [1470, 1230] }],
-      portals: [{ to: 'wild', name: '出城·竹林', at: [300, 800], arrive: [150, 453] }, { to: 'outskirts', name: '恒山村郊', at: [570, 160], arrive: [1860, 190] }]
+      portals: [{ to: 'wild', name: '出城·竹林', at: [300, 800], arrive: [150, 453] }, { to: 'outskirts', name: '恒山村郊', at: [550, 195], arrive: [1860, 190] }]
     },
     wild: {
       name: '城外·竹林', world: [1336, 1690], note: '山贼出没', home: 'town', img: 'bg_wild', mini: 'mini_wild', iw: 1672, ih: 941, scale: 2, k: 1.6328, start: [150, 453],
@@ -678,7 +679,7 @@ window.DATA = {
     desc: '逆天而行的魔龙，紫鬃蓝鳞，盘踞云端，吐息间天象皆变。', mult: { hp: 0.9, atk: 0.8, def: 0.9, spd: 1.3 },
     act: [['ss_qk', 0.6], ['ss_hit', 1]], pas: { lowAtk: 0.2, ownerAtk: 0.2 },
     pasList: [['万魔归宗', '生命低于 30% 时，提升自身 20% 的攻击。'], ['邪龙附体', '死亡时为主人增加 20% 的攻击力。']] });
-  D.npcs.ss_envoy = { name: '神兽使者', title: '【神兽】', color: '#ffb08a', sprite: 'kk_npc07', head: 'head_kk_npc07', act: 'ssEnvoy',
+  D.npcs.ss_envoy = { name: '神兽使者', title: '【神兽】', color: '#ffb08a', sprite: 'kk_jrhdds_npc', head: 'head_kk_jrhdds_npc', act: 'ssEnvoy',
     idle: '神兽遗魂散落人间，聚齐了魂魄，我便能替你唤来神兽。凡人也可以出银两办一场神兽祭，求天神赐下魂魄。' };
   D.maps.town.npcs.push({ id: 'ss_envoy', at: [1156, 1129] });   // 神兽使者在汉中郡
 })();

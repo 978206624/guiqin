@@ -28,7 +28,7 @@ namespace GuiQin.Net
         Task<Result<EnterResp>> EnterGame(string roleId);
         Task<Result<MoveResp>> Move(MoveReq req);
         Task<Result<MapChangeResp>> Portal(string from, string to);     // 走传送阵：服务端判任务锁 / 等级
-        Task<Result<MapChangeResp>> Teleport(string to);                // 世界地图传送：服务端判等级 / 扣费
+        Task<Result<MapChangeResp>> Teleport(string to, string npc = null);   // 传送：接引师请求带 NPC ID，由服务端校验
 
         // 背包 / 装备 / 商店 / 锻造 / 宝石：命令名见 BagCmd，参数用 BagOpReq 的哪几个字段见 InventoryService。返回最新背包（整包覆盖客户端）
         Task<Result<BagResp>> BagOp(string cmd, BagOpReq req);
@@ -70,6 +70,10 @@ namespace GuiQin.Net
 
         public static IGameBackend Create()
         {
+#if UNITY_EDITOR
+            var preview = System.Environment.GetEnvironmentVariable("GUIQIN_WS_PREVIEW");
+            if (!string.IsNullOrEmpty(preview)) return new WsBackend(preview);
+#endif
             var ta = UnityEngine.Resources.Load<UnityEngine.TextAsset>("GuiQin/Config/backend");
             if (ta != null)
             {

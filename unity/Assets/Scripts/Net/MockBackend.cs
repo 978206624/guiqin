@@ -120,7 +120,9 @@ namespace GuiQin.Net
 
         public Task<Result<LoginResp>> Login(LoginReq req)
         {
-            // 真服务器在这里校验账号密码（或游客设备号），返回 session。Mock 谁都放行。
+            // 离线预览需要填写账号和密码，不创建或验证正式账号。
+            if (string.IsNullOrWhiteSpace(req?.account) || string.IsNullOrEmpty(req.password))
+                return Task.FromResult(Result<LoginResp>.Fail(Code.Unauthorized, "请输入账号和密码"));
             var list = new List<ServerInfo>();
             foreach (var s in Servers) list.Add(new ServerInfo { id = s.id, no = s.no, name = s.name, status = s.status, roles = Zone(s.id).Count });
             return Reply(new LoginResp { session = "mock-session", last = lastServer, servers = list, serverTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() });
@@ -181,7 +183,12 @@ namespace GuiQin.Net
             return Change(to, p != null ? p.arrive : null);
         }
 
-        public Task<Result<MapChangeResp>> Teleport(string to) { return Change(to, null); }
+        public Task<Result<MapChangeResp>> Teleport(string to, string npc = null)
+        {
+            if (npc != null && !SectService.CanEscort(role, npc, to))
+                return Reply(new MapChangeResp { msg = "请靠近对应的门派接引师" });
+            return Change(to, null);
+        }
 
 
         // ---------------- 门派 / 玄兵塔 ----------------
@@ -236,6 +243,7 @@ namespace GuiQin.Net
             if (cmd == BagCmd.Forge && q.slot != null && role.bag.gear.TryGetValue(q.slot, out var gear)) oldStar = gear.star;
             switch (cmd)
             {
+                case BagCmd.Expand: ok = svc.Expand(q.capacity); break;
                 case BagCmd.Get: ok = true; svc.Msg = null; break;
                 case BagCmd.Rest: { var st = RoleStats.Compute(role.cls, role.lv, role.bag); bool need = role.hp >= 0 && role.hp < st.maxHp || role.mp >= 0 && role.mp < st.maxMp; role.hp = -1; role.mp = -1; ok = true; svc.Msg = need ? "歇了一会儿，气血法力回满" : null; break; }
                 case BagCmd.Gift:
@@ -251,6 +259,7 @@ namespace GuiQin.Net
                 case BagCmd.Sell: ok = svc.Sell(q.id); break;
                 case BagCmd.Sort: ok = svc.Sort(); break;
                 case BagCmd.ShopBuy: ok = svc.Buy(q.shop, q.id); break;
+                case BagCmd.MallBuy: ok = svc.BuyMall(q.id, q.quantity, out _); break;
                 case BagCmd.ShopSell: ok = svc.ShopSell(q.shop, q.id); break;
                 case BagCmd.Forge: ok = svc.Forge(q.slot, q.gem); break;
                 case BagCmd.Inlay: ok = svc.Inlay(q.slot, q.i, q.id); break;
@@ -258,11 +267,11 @@ namespace GuiQin.Net
                 case BagCmd.Merge: ok = svc.Merge(q.id); break;
                 default: return Result<BagResp>.Fail(Code.Protocol, "未知命令 " + cmd);
             }
-            if (ok && (cmd == BagCmd.Forge || cmd == BagCmd.ShopBuy || cmd == BagCmd.Gift || cmd == BagCmd.Merge))
+            if (ok && (cmd == BagCmd.Forge || cmd == BagCmd.ShopBuy || cmd == BagCmd.MallBuy || cmd == BagCmd.Gift || cmd == BagCmd.Merge))
                 Chat.SystemMessage(svc.Msg);
             if (cmd == BagCmd.Forge && ok && svc.Star >= 10 && svc.Star > oldStar && q.slot != null && role.bag.equip.TryGetValue(q.slot, out var forged))
                 ZoneNotice("恭喜玩家「" + role.name + "」将" + ItemName(forged) + "锻造至 " + svc.Star + " 星！");
-            return Result<BagResp>.Success(new BagResp { ok = ok, msg = svc.Msg, bag = Clone(role.bag), coin = role.coin, hp = role.hp, mp = role.mp, star = svc.Star });
+            return Result<BagResp>.Success(new BagResp { ok = ok, msg = svc.Msg, bag = Clone(role.bag), coin = role.coin, yuanbao = role.yuanbao, silverNote = role.silverNote, hp = role.hp, mp = role.mp, star = svc.Star });
         }
 
         // ---------------- 战斗（参考实现：服务端该做的事都在这里）----------------

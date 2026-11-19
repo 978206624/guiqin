@@ -10,7 +10,7 @@ using UnityEngine.UI;
 namespace GuiQin
 {
     // 进游戏之前的界面：登录 → 选区 → 角色列表 / 创建角色。对应网页版 front.js。
-    // 账号密码、区服列表、角色增删、名字校验全部走后端；客户端只记“上次的账号”这种设备便利信息（不记密码）。
+    // 账号密码、区服列表、角色增删、名字校验全部走后端；客户端在 Windows 通过系统凭据管理器记住密码。
     public class FrontUi
     {
         enum Scr { Login, Server, Roles, Create }
@@ -136,34 +136,68 @@ namespace GuiQin
             Label("passwordLabel", "密码", 17, WebUi.Light, 120, 833, 480, 24, TextAnchor.MiddleLeft);
             var pwd = Ui.Input("password", content, "请输入密码", 22, true, 32);
             WebUi.At((RectTransform)pwd.transform, 120, 860, 480, 54);
+            string endpoint = (net() as WsBackend)?.Endpoint;
+            bool canRemember = WindowsLoginCredential.Supported && !string.IsNullOrEmpty(endpoint);
+            bool remember = canRemember && PlayerPrefs.GetInt("gq_remember_login", 1) != 0;
+            if (remember && WindowsLoginCredential.TryRead(endpoint, out var savedAccount, out var savedPassword))
+            {
+                acc.text = savedAccount;
+                pwd.text = savedPassword;
+            }
             bool agree = false;
             const string terms = " 我已阅读并同意用户协议";
-            var ag = ButtonAt("agree", "☐" + terms, 16, 120, 924, 480, 28, null, Color.clear);
+            var ag = ButtonAt("agree", "☐" + terms, 16, 120, 924, canRemember ? 310 : 480, 28, null, Color.clear);
             var agreement = ag.GetComponentInChildren<Text>();
             agreement.alignment = TextAnchor.MiddleLeft; agreement.color = WebUi.Muted;
             ag.onClick.AddListener(() => { agree = !agree; agreement.text = (agree ? "☑" : "☐") + terms; });
             var err = Label("err", "", 17, WebUi.C("#ff9a8a"), 120, 956, 480, 30);
-            Func<bool, Task> go = async guest =>
+            if (canRemember)
+            {
+                const string rememberLabel = " 记住密码";
+                var button = ButtonAt("remember", (remember ? "☑" : "☐") + rememberLabel, 16, 440, 924, 160, 28, null, Color.clear);
+                var label = button.GetComponentInChildren<Text>();
+                label.alignment = TextAnchor.MiddleRight; label.color = WebUi.Muted;
+                button.onClick.AddListener(() =>
+                {
+                    if (busy) return;
+                    remember = !remember;
+                    label.text = (remember ? "☑" : "☐") + rememberLabel;
+                    PlayerPrefs.SetInt("gq_remember_login", remember ? 1 : 0);
+                    PlayerPrefs.Save();
+                    if (!remember)
+                    {
+                        pwd.text = "";
+                        if (!WindowsLoginCredential.Clear(endpoint)) err.text = "未能删除系统凭据，请重试";
+                    }
+                });
+            }
+            Func<bool, Task> go = async register =>
             {
                 if (busy) return;
                 string a = acc.text.Trim();
-                if (!guest && a == "") { err.text = "请输入账号，或者点“游客试玩”"; return; }
+                if (a == "" || string.IsNullOrEmpty(pwd.text)) { err.text = "请输入账号和密码"; return; }
                 if (!agree) { err.text = "请先勾选同意用户协议"; return; }
-                err.text = "登录中…"; busy = true;
+                err.text = register ? "注册中…" : "登录中…"; busy = true;
                 try
                 {
-                    var r = await net().Login(new LoginReq { account = guest ? "" : a, password = pwd.text, guest = guest, device = SystemInfo.deviceModel, platform = Application.platform.ToString(), clientVer = Application.version });
-                    pwd.text = "";                                       // 密码用完即弃
+                    string password = pwd.text;
+                    var r = await net().Login(new LoginReq { account = a, password = password, register = register, device = SystemInfo.deviceModel, platform = Application.platform.ToString(), clientVer = Application.version });
+                    pwd.text = "";
                     if (!r.Ok) { err.text = r.msg ?? "登录失败"; return; }
-                    login = r.data; account = guest ? "游客" : a; PlayerPrefs.SetString("gq_account", guest ? "" : a);
+                    if (remember && !WindowsLoginCredential.Save(endpoint, a, password))
+                    {
+                        modal.Open("记住密码", "登录成功，但 Windows 未能保存凭据。", new ModalUi.Btn("知道了", null));
+                    }
+                    login = r.data; account = a; PlayerPrefs.SetString("gq_account", a);
+                    PlayerPrefs.Save();
                     server = null; Show(Scr.Server);
                 }
                 finally { busy = false; }
             };
             var enter = ButtonAt("login", "登 录", 36, 120, 992, 480, 68, () => { var _ = go(false); }, WebUi.Red);
             WebUi.Title(enter.GetComponentInChildren<Text>());
-            var guest = ButtonAt("guest", "游客试玩", 19, 120, 1073, 480, 44, () => { var _ = go(true); }, Color.clear);
-            guest.GetComponentInChildren<Text>().color = WebUi.Light;
+            var registerButton = ButtonAt("register", "注册账号", 19, 120, 1073, 480, 44, () => { var _ = go(true); }, Color.clear);
+            registerButton.GetComponentInChildren<Text>().color = WebUi.Light;
         }
 
         // ---------------- 选区 ----------------

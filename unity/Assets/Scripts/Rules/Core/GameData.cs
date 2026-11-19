@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using GuiQin.Battle;
+using GuiQin.Inventory;
 using GuiQin.Quest;
 
 namespace GuiQin
@@ -22,6 +23,7 @@ namespace GuiQin
         static Dictionary<string, MaskDef> masks;
         internal static IReadOnlyDictionary<string, SkillDef> Skills { get; private set; }
         internal static IReadOnlyDictionary<string, string> ItemNames { get; private set; }
+        public static IReadOnlyList<MallOffer> MallOffers { get; private set; }
         public static JObject Raw { get; private set; }
         public static JObject Story { get; private set; }
         public static AssetsMeta Assets { get; private set; }
@@ -44,6 +46,17 @@ namespace GuiQin
             {
                 if (loaded) return;
                 var raw = JObject.Parse(Required(source, "data"));
+                var mallText = source.ReadText("mall");
+                var mall = mallText == null ? null : JObject.Parse(mallText);
+                if (mall != null)
+                    foreach (var item in ((JObject)mall["items"]).Properties())
+                        ((JObject)raw["items"]).Add(item.Name, item.Value.DeepClone());
+                var offers = mall == null ? new List<MallOffer>() : mall["offers"].ToObject<List<MallOffer>>();
+                var offerIds = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var offer in offers)
+                    if (!offerIds.Add(offer.id) || offer.price <= 0 || raw["items"][offer.item] == null ||
+                        (offer.currency != "coin" && offer.currency != "yuanbao" && offer.currency != "silverNote"))
+                        throw new InvalidOperationException("商城货架配置错误：" + offer.id);
                 var story = JObject.Parse(Required(source, "story"));
                 var assets = JsonConvert.DeserializeObject<AssetsMeta>(Required(source, "assets"));
                 var maps = raw["maps"].ToObject<Dictionary<string, MapDef>>();
@@ -62,6 +75,7 @@ namespace GuiQin
                 }
 
                 StoryBeats.Build(story, npcs);
+                MallOffers = offers.AsReadOnly();
                 Raw = raw; Story = story; Assets = assets;
                 Maps = maps; Npcs = npcs; Enemies = enemies; Stages = stages;
                 Skills = new ReadOnlyDictionary<string, SkillDef>(skills);

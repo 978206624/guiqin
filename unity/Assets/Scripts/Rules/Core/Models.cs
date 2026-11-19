@@ -45,7 +45,7 @@ namespace GuiQin
 
     public class NpcInfo
     {
-        public string name, title, color, titleColor, sprite, head, idle, shop, act, hall, restMsg;
+        public string name, title, color, titleColor, sprite, head, idle, shop, act, hall, restMsg, escort;
         public bool rest, spot;
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using GuiQin.Net;
 
 namespace GuiQin.Inventory
 {
@@ -10,15 +11,32 @@ namespace GuiQin.Inventory
         public Dictionary<string, int> items = new Dictionary<string, int>();      // 背包里的物品（未穿戴）
         public Dictionary<string, string> equip = new Dictionary<string, string>();  // 部位 → 装备 id
         public Dictionary<string, GearState> gear = new Dictionary<string, GearState>();
-        public int cap = 20;                                                        // 格子数（不同物品各占一格，同种叠加）
+        public int cap = 40;                                                        // 格子数（不同物品各占一格，同种叠加）
     }
 
-    public class BagOpReq { public string shop, id, slot, gem; public int i; }      // 各命令用到哪几个字段见 InventoryService
-    public class BagResp { public bool ok; public string msg; public BagState bag; public int coin, hp = -1, mp = -1, star = -1; }
+    public class BagOpReq { public string shop, id, slot, gem; public int i, quantity, capacity; }      // 各命令用到哪几个字段见 InventoryService
+    public class BagResp { public bool ok; public string msg; public BagState bag; public int coin, yuanbao, silverNote, hp = -1, mp = -1, star = -1; }
+
+    public class MallOffer
+    {
+        public string id, item, name, currency, color, kind, desc;
+        public int price, level;
+        public bool bound;
+
+        public int Balance(RoleState role) => currency == "coin" ? role.coin : currency == "yuanbao" ? role.yuanbao : role.silverNote;
+        public static string CurrencyName(string currency) => currency == "coin" ? "银两" : currency == "yuanbao" ? "元宝" : "银票";
+    }
+
+    public class MallPurchase
+    {
+        public MallOffer Offer;
+        public int BalanceBefore, BalanceAfter, CountBefore, CountAfter;
+    }
 
     public static class BagCmd
     {
         public const string Get = "bag.get";
+        public const string Expand = "bag.expand";
         public const string Use = "bag.use";
         public const string Equip = "bag.equip";
         public const string Unequip = "bag.unequip";
@@ -26,6 +44,7 @@ namespace GuiQin.Inventory
         public const string Sort = "bag.sort";
         public const string ShopBuy = "shop.buy";
         public const string ShopSell = "shop.sell";
+        public const string MallBuy = "mall.buy";
         public const string Forge = "forge.make";
         public const string Inlay = "forge.inlay";
         public const string Uninlay = "forge.uninlay";

@@ -37,6 +37,19 @@ namespace GuiQin.Sect
             return new SectResp { ok = true, msg = msg, cls = cls, sect = role.sect, hp = -1, mp = -1 };
         }
 
+        // 传送请求只认可当前地图附近、且明确配置了该目的地的接引师。
+        public static bool CanEscort(RoleState role, string npc, string destination)
+        {
+            if (role == null || string.IsNullOrEmpty(npc) || string.IsNullOrEmpty(destination) ||
+                !GameData.Maps.TryGetValue(role.map, out var map) || !GameData.Maps.ContainsKey(destination) ||
+                !GameData.Npcs.TryGetValue(npc, out var info) || info.escort != destination) return false;
+            var at = map.npcs?.Find(p => p.id == npc)?.at;
+            if (at == null || role.x < 0 || role.y < 0) return false;
+            float dx = (role.x - at[0]) * map.scale * map.k;
+            float dy = (role.y - at[1]) * map.scale * map.k;
+            return dx * dx + dy * dy < 150f * 150f;
+        }
+
         public SectResp Join(string sect)
         {
             if (sect != "dao" && sect != "mo") return Fail("没有这个门派");

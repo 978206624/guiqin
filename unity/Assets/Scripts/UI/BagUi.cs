@@ -14,13 +14,16 @@ namespace GuiQin
     // 背包 / 装备 / 锻造（含宝石镶嵌与合成）/ 商店。所有改动都发给后端，收到整包背包后重画——界面自己不改任何数据。
     public class BagUi
     {
-        public enum Tab { Bag, Equip, Smith, Shop }
+        public enum Tab { Bag, Equip, Smith, Shop, Mall }
 
         readonly GameObject root; readonly RectTransform body; readonly Text title, coinLabel, msg;
+        readonly ModalUi expandConfirm;
         readonly Func<string, BagOpReq, Task<Result<BagResp>>> op; readonly Func<RoleState> getRole; readonly Action<string> toast; readonly Action onChanged;
         Tab tab = Tab.Bag; string shopId; string filter = "all"; int page; string selId, selSlot; string forgeGem; bool busy;
         readonly List<Button> tabBtns = new List<Button>();
 
+        static readonly string[] MallCurrencies = { "yuanbao", "coin", "silverNote" };
+        int mallCurrency;
         static readonly string[] SlotOrder = { "weapon", "head", "chest", "waist", "legs", "feet", "wrist", "neck", "finger", "treasure", "pouch", "amulet" };
         static readonly Dictionary<string, string> StatName = new Dictionary<string, string> { { "atk", "物攻" }, { "matk", "法攻" }, { "hp", "气血" }, { "def", "物防" }, { "mdef", "法防" }, { "mp", "法力" }, { "dodge", "闪避" }, { "spd", "速度" }, { "crit", "暴击" } };
         static readonly string[][] Filters = { new[] { "all", "全部" }, new[] { "potion", "药品" }, new[] { "equip", "装备" }, new[] { "gem", "宝石" }, new[] { "mat", "材料" } };
@@ -55,15 +58,16 @@ namespace GuiQin
             msg = Ui.Label("msg", bg.transform, "", 24, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleLeft);
             Ui.Anchor(msg.rectTransform, new Vector2(0, 0), new Vector2(1, 0), new Vector2(24, 8), new Vector2(-24, 52));
             body = Ui.Rect("body", bg.transform); Ui.Anchor(body, Vector2.zero, Vector2.one, new Vector2(16, 56), new Vector2(-16, -150));
+            expandConfirm = new ModalUi(root.transform);
             root.SetActive(false);
         }
 
         public void Open(Tab t, string shop = null)
         {
-            tab = t; shopId = shop; selId = null; selSlot = null; page = 0; filter = "all"; msg.text = "";
+            tab = t; shopId = shop; selId = null; selSlot = null; page = 0; mallCurrency = 0; filter = "all"; msg.text = "";
             root.SetActive(true); Redraw();
         }
-        public void Close() { root.SetActive(false); }
+        public void Close() { expandConfirm.Close(); root.SetActive(false); }
 
         // ---------------- 通用 ----------------
         static string ItemName(string id) { var it = Items[id]; return it != null ? (string)it["name"] : id; }
@@ -72,7 +76,24 @@ namespace GuiQin
             var it = Items[id]; int q = it != null && it["q"] != null ? (int)it["q"] : 1;
             var qd = GameData.Raw["quality"][q.ToString()]; return Ui.Hex(qd != null ? (string)qd["color"] : "#eef0f4", Color.white);
         }
-        static Sprite Icon(string id) { var it = Items[id]; if (it == null) return null; string k = "item_" + (string)it["icon"]; return Art.Has(k) ? Art.One(k, true) : null; }
+        static Sprite Icon(string id)
+        {
+            var mallIcon = MallItemArt.Get(id);
+            if (mallIcon != null) return mallIcon;
+            var it = Items[id]; if (it == null) return null;
+            string k = "item_" + (string)it["icon"];
+            return Art.Has(k) ? Art.One(k, true) : null;
+        }
+
+        static void PlaceIcon(Transform parent, Sprite sprite, int x, int y, int size)
+        {
+            if (sprite == null) return;
+            var icon = Ui.Box("itemIcon", parent, Color.white);
+            icon.sprite = sprite;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            WebUi.At(icon.rectTransform, x, y, size, size);
+        }
         static string Fmt(string k, float v) { return StatName[k] + " +" + (RoleStats.IsPct(k) ? v.ToString("0.#") + "%" : ((int)v).ToString()); }
         static string SlotName(string s) { return (string)GameData.Raw["slots"][s]; }
 
@@ -131,11 +152,14 @@ namespace GuiQin
             if (busy) return; busy = true;
             try
             {
+                var current = Role;
                 var r = await op(cmd, req);
+                if (Role != current) return;
                 if (!r.Ok) { msg.text = r.msg ?? "操作失败"; return; }
                 var d = r.data; var role = Role;
                 if (d.bag != null) role.bag = d.bag;
                 role.coin = d.coin; role.hp = d.hp; role.mp = d.mp;
+                role.yuanbao = d.yuanbao; role.silverNote = d.silverNote;
                 msg.text = d.msg ?? "";
                 if (cmd == BagCmd.Sell || cmd == BagCmd.ShopSell || cmd == BagCmd.ShopBuy) { }
                 onChanged?.Invoke();
@@ -148,12 +172,14 @@ namespace GuiQin
         {
             Clear();
             var role = Role; if (role == null || role.bag == null) return;
+            coinLabel.gameObject.SetActive(tab != Tab.Mall);
             coinLabel.text = "银两 " + role.coin.ToString("N0");
-            title.text = tab == Tab.Shop ? ((string)GameData.Raw["shops"]?[shopId]?["name"] ?? "商店") :
+            title.text = tab == Tab.Mall ? "商城" : tab == Tab.Shop ? ((string)GameData.Raw["shops"]?[shopId]?["name"] ?? "商店") :
                 tab == Tab.Smith ? "铁匠铺" : tab == Tab.Equip ? "装备" : "背包";
-            for (int i = 0; i < tabBtns.Count; i++) { tabBtns[i].gameObject.SetActive(tab != Tab.Shop); WebUi.Button(tabBtns[i], (int)tab == i ? WebUi.C("#8a5a14") : WebUi.Purple); }
-            if (selId != null && !Bag.items.ContainsKey(selId) && tab != Tab.Shop) selId = null;
-            switch (tab) { case Tab.Bag: DrawBag(); break; case Tab.Equip: DrawEquip(); break; case Tab.Smith: DrawSmith(); break; case Tab.Shop: DrawShop(); break; }
+            bool storefront = tab == Tab.Shop || tab == Tab.Mall;
+            for (int i = 0; i < tabBtns.Count; i++) { tabBtns[i].gameObject.SetActive(!storefront); WebUi.Button(tabBtns[i], (int)tab == i ? WebUi.C("#8a5a14") : WebUi.Purple); }
+            if (selId != null && !Bag.items.ContainsKey(selId) && !storefront) selId = null;
+            switch (tab) { case Tab.Bag: DrawBag(); break; case Tab.Equip: DrawEquip(); break; case Tab.Smith: DrawSmith(); break; case Tab.Shop: DrawShop(); break; case Tab.Mall: DrawMall(); break; }
         }
 
         List<string> Filtered()
@@ -174,11 +200,14 @@ namespace GuiQin
             var sort = Ui.Btn("sort", body, "整理", 22, new Color(0.25f, 0.3f, 0.5f), () => Do(BagCmd.Sort, null));
             Ui.Anchor(sort.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-90, -44), new Vector2(0, 0));
 
-            var ids = Filtered(); const int per = 20; int pages = Math.Max(1, (ids.Count + per - 1) / per); page = Mathf.Clamp(page, 0, pages - 1);
+            var ids = Filtered(); const int per = 20;
+            int slots = filter == "all" ? Math.Max(Bag.cap, ids.Count) : ids.Count;
+            int pages = Math.Max(1, (slots + per - 1) / per); page = Mathf.Clamp(page, 0, pages - 1);
             var grid = Ui.Rect("grid", body); Ui.Anchor(grid, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -50 - 4 * 112), new Vector2(0, -50));
             for (int k = 0; k < per; k++)
             {
                 int idx = page * per + k; int col = k % 5, row = k / 5;
+                if (filter == "all" && idx >= slots) break;
                 Vector2 mn = new Vector2(col * 130, -row * 112 - 105), mx = new Vector2(col * 130 + 122, -row * 112);
                 if (idx < ids.Count)
                 {
@@ -188,13 +217,36 @@ namespace GuiQin
                 else { var e = Ui.Box("empty", grid, new Color(1, 1, 1, 0.05f)); Ui.Anchor(e.rectTransform, new Vector2(0, 1), new Vector2(0, 1), mn, mx); e.raycastTarget = false; }
             }
             var pg = Ui.Label("pg", body, "第 " + (page + 1) + "/" + pages + " 页　格子 " + Bag.items.Count + "/" + Bag.cap, 22, new Color(0.7f, 0.75f, 0.9f), TextAnchor.MiddleLeft);
-            Ui.Anchor(pg.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -50 - 4 * 112 - 40), new Vector2(380, -50 - 4 * 112));
+            Ui.Anchor(pg.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -50 - 4 * 112 - 40), new Vector2(270, -50 - 4 * 112));
+            int added = Math.Min(InventoryService.ExpansionStep, InventoryService.MaxCapacity - Bag.cap);
+            var expand = Ui.Btn("expand", body, added > 0 ? "扩容 +" + added : "已达上限", 22, WebUi.Purple, ConfirmExpansion);
+            WebUi.At(expand.GetComponent<RectTransform>(), 302, 498, 152, 40);
+            expand.interactable = added > 0 && !busy;
             var pv = Ui.Btn("prev", body, "上页", 22, new Color(0.25f, 0.3f, 0.5f), () => { page--; Redraw(); }); pv.interactable = page > 0;
             Ui.Anchor(pv.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-170, -50 - 4 * 112 - 40), new Vector2(-90, -50 - 4 * 112));
             var nx = Ui.Btn("next", body, "下页", 22, new Color(0.25f, 0.3f, 0.5f), () => { page++; Redraw(); }); nx.interactable = page < pages - 1;
             Ui.Anchor(nx.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-80, -50 - 4 * 112 - 40), new Vector2(0, -50 - 4 * 112));
 
             DrawItemDetail();
+        }
+
+        void ConfirmExpansion()
+        {
+            var role = Role;
+            int capacity = Bag.cap, cost = InventoryService.ExpansionPrice;
+            int next = Math.Min(InventoryService.MaxCapacity, capacity + InventoryService.ExpansionStep);
+            if (busy || next <= capacity) return;
+            string details = "背包容量 " + capacity + " → " + next + " 格\n消耗 " + cost + " 元宝\n当前元宝 " + role.yuanbao.ToString("N0");
+            if (role.yuanbao < cost)
+            {
+                expandConfirm.Open("背包扩容", details + "\n元宝不足", new ModalUi.Btn("知道了", null));
+                return;
+            }
+            expandConfirm.Open("背包扩容", details, new ModalUi.Btn("确认扩容", () =>
+            {
+                if (Visible && Role == role && tab == Tab.Bag)
+                    Do(BagCmd.Expand, new BagOpReq { capacity = capacity });
+            }), new ModalUi.Btn("取消", null));
         }
 
         void DrawItemDetail()
@@ -208,7 +260,9 @@ namespace GuiQin
             string st = StatText(selId); if (st != "") sb.Append(st).Append("\n");
             if (type == "equip") sb.Append(CompareText(selId)).Append("\n");
             if (it["desc"] != null) sb.Append("<size=20>").Append((string)it["desc"]).Append("</size>");
-            var t = Info(box.transform, sb.ToString(), new Vector2(16, 76), new Vector2(-16, 240));
+            var mallIcon = MallItemArt.Get(selId);
+            PlaceIcon(box.transform, mallIcon, 12, 12, 80);
+            Info(box.transform, sb.ToString(), new Vector2(mallIcon != null ? 104 : 16, 76), new Vector2(-16, 240));
             var row = Ui.Rect("acts", box.transform); Ui.Anchor(row, new Vector2(0, 0), new Vector2(1, 0), new Vector2(12, 8), new Vector2(-12, 68));
             int slot = 0; string id = selId;
             if (type == "potion") Act(row, "使用", slot++, new Color(0.2f, 0.5f, 0.3f), () => Do(BagCmd.Use, new BagOpReq { id = id }));
@@ -375,6 +429,97 @@ namespace GuiQin
                 Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 0), new Vector2(0, 0), new Vector2(12 + i * 130, 0), new Vector2(12 + i * 130 + 124, 0)); var rt = b.GetComponent<RectTransform>(); rt.anchoredPosition = new Vector2(12 + i * 130, 104); rt.sizeDelta = new Vector2(124, 56);
             }
         }
+        void DrawMall()
+        {
+            string currency = MallCurrencies[mallCurrency], currencyName = MallOffer.CurrencyName(currency);
+            int[] balances = { Role.yuanbao, Role.coin, Role.silverNote };
+            for (int i = 0; i < MallCurrencies.Length; i++)
+            {
+                int index = i;
+                MallButton("currency_" + MallCurrencies[i], body,
+                    MallOffer.CurrencyName(MallCurrencies[i]) + " " + balances[i].ToString("N0"),
+                    i * 217, 0, 208, 52, i == mallCurrency, () => { mallCurrency = index; page = 0; selId = null; msg.text = ""; Redraw(); });
+            }
+
+            var offers = GameData.MallOffers.Where(x => x.currency == currency).ToList();
+            const int perPage = 12;
+            int pages = Math.Max(1, (offers.Count + perPage - 1) / perPage);
+            page = Mathf.Clamp(page, 0, pages - 1);
+            for (int index = page * perPage; index < Math.Min((page + 1) * perPage, offers.Count); index++)
+            {
+                var offer = offers[index];
+                int offset = index - page * perPage;
+                var row = MallButton("offer_" + offer.id, body, "", offset % 2 * 326, 67 + offset / 2 * 74, 318, 68,
+                    offer.id == selId, () => { selId = offer.id; msg.text = ""; Redraw(); });
+                PlaceIcon(row.transform, Icon(offer.item), 8, 6, 56);
+                Color color = offer.color == "#000000" ? WebUi.Text :
+                    offer.color == "#009933" ? WebUi.Jade : offer.color == "#0066CC" ? WebUi.Sky : WebUi.C(offer.color);
+                var name = Ui.Label("name", row.transform, offer.name, 22, color, TextAnchor.MiddleLeft);
+                name.resizeTextForBestFit = true; name.resizeTextMinSize = 16;
+                WebUi.At(name.rectTransform, 72, 4, 234, 34);
+                var price = Ui.Label("price", row.transform, offer.price.ToString("N0") + " " + currencyName, 18, WebUi.Light, TextAnchor.MiddleRight);
+                WebUi.At(price.rectTransform, 72, 36, 234, 24);
+            }
+            var previous = MallButton("mall_prev", body, "上页", 166, 516, 100, 44, false, () => { page--; selId = null; Redraw(); });
+            var next = MallButton("mall_next", body, "下页", 382, 516, 100, 44, false, () => { page++; selId = null; Redraw(); });
+            previous.interactable = page > 0; next.interactable = page + 1 < pages;
+            var pageLabel = Ui.Label("mall_page", body, (page + 1) + " / " + pages, 22, WebUi.Light, TextAnchor.MiddleCenter);
+            WebUi.At(pageLabel.rectTransform, 270, 516, 108, 44);
+
+            var detail = WebUi.Panel("mall_detail", body);
+            WebUi.At(detail.rectTransform, 0, 583, 644, 270);
+            var selected = offers.Find(x => x.id == selId);
+            if (selected == null)
+            {
+                var hint = Ui.Label("mall_hint", detail.transform, offers.Count > 0 ? "请选择商品" : "暂无商品", 26, WebUi.Muted, TextAnchor.MiddleCenter);
+                WebUi.At(hint.rectTransform, 12, 10, 620, 90);
+                return;
+            }
+
+            Bag.items.TryGetValue(selected.item, out int owned);
+            string desc = selected.kind + " · 等级 " + selected.level + " · 已有 " + owned +
+                (selected.bound ? " · 绑定" : "") + "\n" + selected.desc;
+            PlaceIcon(detail.transform, Icon(selected.item), 16, 16, 88);
+            var heading = Ui.Label("name", detail.transform, selected.name, 27, WebUi.Light, TextAnchor.MiddleLeft);
+            WebUi.At(heading.rectTransform, 116, 12, 510, 42);
+            var summary = Ui.Label("summary", detail.transform, desc, 22, WebUi.Text, TextAnchor.UpperLeft);
+            WebUi.At(summary.rectTransform, 116, 60, 510, 105);
+
+            bool equipment = selected.kind == "装备";
+            var quantity = Ui.Input("mall_quantity", detail.transform, "数量", 24, false, 4);
+            quantity.contentType = InputField.ContentType.IntegerNumber;
+            quantity.text = "1";
+            quantity.interactable = !equipment;
+            WebUi.At(quantity.GetComponent<RectTransform>(), 16, 182, 92, 56);
+            var total = Ui.Label("mall_total", detail.transform, "", 22, WebUi.Light, TextAnchor.MiddleLeft);
+            WebUi.At(total.rectTransform, 125, 182, 326, 56);
+            int amount = 1;
+            var buy = MallButton("mall_buy", detail.transform, "购买", 470, 182, 156, 56, true,
+                () => Do(BagCmd.MallBuy, new BagOpReq { id = selected.id, quantity = amount }));
+            void UpdateTotal(string value)
+            {
+                if (!int.TryParse(value, out amount) || amount < 1 || amount > 9999)
+                {
+                    total.text = "数量须为 1–9999"; buy.interactable = false; return;
+                }
+                long cost = (long)selected.price * amount;
+                bool enough = cost <= selected.Balance(Role);
+                total.text = cost.ToString("N0") + " " + currencyName + (enough ? "" : "（余额不足）");
+                buy.interactable = enough && (!equipment || owned == 0);
+            }
+            quantity.onValueChanged.AddListener(UpdateTotal);
+            UpdateTotal(quantity.text);
+        }
+
+        static Button MallButton(string name, Transform parent, string label, int x, int y, int width, int height,
+            bool selected, UnityEngine.Events.UnityAction click)
+        {
+            var button = Ui.Btn(name, parent, label, 23, WebUi.Purple, click);
+            WebUi.At(button.GetComponent<RectTransform>(), x, y, width, height);
+            WebUi.Button(button, selected ? WebUi.C("#8a5a14") : WebUi.Purple);
+            return button;
+        }
+
         int role_coin() { return Role.coin; }
     }
 }

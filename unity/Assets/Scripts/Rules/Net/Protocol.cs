@@ -12,7 +12,7 @@ namespace GuiQin.Net
         public const string Ping = "sys.ping";
         public const string Resume = "auth.resume";                 // 断线重连：带 session 恢复登录态，服务端回放 / 幂等处理未确认的请求
         public const string BattleResume = "battle.resume";         // 重进游戏时取进行中的战斗快照
-        public const string Login = "auth.login";
+        public const string Login = "auth.login", Register = "auth.register";
         public const string EnterGame = "role.enter";
         public const string ServerList = "server.list", RoleList = "role.list", RoleCreate = "role.create", RoleDelete = "role.delete";
         public const string Move = "map.move";
@@ -60,8 +60,8 @@ namespace GuiQin.Net
     // ------------------------------ 数据 ------------------------------
     // 位置一律是“地图数据坐标”（舞台像素 / scale*k），服务端不用知道客户端的缩放；x、y 为 -1 表示“出生点”。
 
-    // 账号登录（走 HTTPS 网关，WebSocket 连上后再带 token 恢复）；密码只在 TLS 里传，服务端存哈希。游客试玩：account 为空，服务端发一个临时账号。
-    public class LoginReq { public string account, password, token, device, platform, clientVer, dataHash; public bool guest; }
+    // 账号登录（走 HTTPS 网关，WebSocket 连上后再带 token 恢复）；密码只在 TLS 里传，服务端存哈希。本地开发服务使用回环连接。
+    public class LoginReq { public string account, password, token, device, platform, clientVer, dataHash; [JsonIgnore] public bool register; }
     public class RoleBrief { public string id, name, cls; public int lv; public string map; }
     public class ServerInfo { public string id, name, status; public int no, roles; }        // status: new / ok / busy / hot / down；roles：这个账号在该区的角色数
     public class LoginResp { public string session, last; public List<ServerInfo> servers; public long serverTime; }   // last：上次进的区
@@ -79,6 +79,7 @@ namespace GuiQin.Net
         public int lv;
         public float x = -1f, y = -1f;
         public int exp, coin, hp = -1, mp = -1;       // hp / mp 为 -1 表示满
+        public int yuanbao, silverNote;                // 商城货币：元宝、银票；旧存档缺字段时为零
         public string sect = "";                      // 门派：""（未入门）/ dao / mo
         public int step, cnt, tower;                  // 主线进度（节拍序号 / 清怪计数）、玄兵塔进度
         public List<string> cleared = new List<string>();   // 已通关的关卡
@@ -96,7 +97,7 @@ namespace GuiQin.Net
     public class MoveResp { public bool ok; public float x, y; }            // ok=false：服务端拒绝，(x,y) 是应回到的位置
 
     public class PortalReq { public string from, to; }
-    public class TeleportReq { public string to; }
+    public class TeleportReq { public string to, npc; }
     public class MapChangeResp { public bool ok; public string msg, map; public float x = -1f, y = -1f; }
 
     public class ResumeReq { public string session; public int lastSeq; }

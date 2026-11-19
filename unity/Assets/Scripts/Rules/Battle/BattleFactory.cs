@@ -52,7 +52,8 @@ namespace GuiQin.Battle
                 int hp = (int)F(e["hp"]);
                 units.Add(new BUnit
                 {
-                    Id = nextId++, Side = "enemy", Row = isPet ? "pet" : "person", Name = (string)e["name"], Sprite = (string)e["sprite"], H = F(e["h"]) * 1.12f, Flip = true,
+                    Id = nextId++, Side = "enemy", Row = isPet ? "pet" : "person", Name = (string)e["name"], Sprite = (string)e["sprite"], H = F(e["h"]) * 1.12f,
+                    Flip = id != "xinmo",  // 心魔原图已经朝向玩家一侧
                     Hp = hp, MaxHp = hp, Atk = (int)F(e["atk"]), Matk = (int)F(e["atk"]), Def = (int)F(e["def"]), Mdef = (int)F(e["def"]), Spd = (int)F(e["spd"]),
                     Ai = boss ? "boss" : "attack", Boss = boss
                 });

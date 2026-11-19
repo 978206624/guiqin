@@ -21,13 +21,21 @@ namespace GuiQin.Inventory
 
         public InventoryService(RoleState role) { this.role = role; }
 
+        public static int InitialCapacity => (int)D["bagSize"];
+        public static int MaxCapacity => (int)D["bagExpand"]["max"];
+        public static int ExpansionStep => (int)D["bagExpand"]["step"];
+        public static int ExpansionPrice => (int)D["bagExpand"]["yuanbao"];
+
+        // 旧存档补足基础格子，保留玩家已解锁的容量。
+        public static void EnsureBaseCapacity(BagState bag) => bag.cap = Math.Max(bag.cap, InitialCapacity);
+
         // 新角色的初始背包（data.start）
         public static BagState NewBag()
         {
             var st = D["start"]; var b = new BagState();
             foreach (var p in ((JObject)st["items"]).Properties()) b.items[p.Name] = (int)p.Value;
             foreach (var p in ((JObject)st["equip"]).Properties()) b.equip[p.Name] = (string)p.Value;
-            b.cap = (int)D["bagSize"];
+            b.cap = InitialCapacity;
             return b;
         }
 
@@ -108,6 +116,53 @@ namespace GuiQin.Inventory
             Bag.equip.Remove(slot); AddItem(id, 1);
             role.hp = Math.Min(Hp, Stats().maxHp);
             return Ok("卸下了" + Name(id));
+        }
+
+        public bool Expand(int expectedCapacity)
+        {
+            if (Bag.cap >= MaxCapacity) return Fail("背包已达容量上限");
+            if (expectedCapacity != Bag.cap) return Fail("背包容量已变化，请重新确认");
+            int price = ExpansionPrice;
+            if (role.yuanbao < price) return Fail("元宝不足");
+
+            role.yuanbao -= price;
+            Bag.cap = Math.Min(MaxCapacity, Bag.cap + ExpansionStep);
+            return Ok("背包已扩容至 " + Bag.cap + " 格");
+        }
+
+        // 购买只接受货号和件数，币种、价格与物品由共享目录确定。
+        public bool BuyMall(string offerId, int quantity, out MallPurchase purchase)
+        {
+            purchase = null;
+            if (quantity < 1 || quantity > 9999) return Fail("购买数量必须为 1 到 9999");
+            var offer = GameData.MallOffers.FirstOrDefault(x => x.id == offerId);
+            if (offer == null) return Fail("商品不存在或已下架");
+
+            int count = Count(offer.item);
+            if (offer.kind == "装备")
+            {
+                if (quantity != 1) return Fail("装备类商品单次只能购买 1 件");
+                if (count > 0 || Bag.equip.ContainsValue(offer.item)) return Fail("已持有该装备");
+            }
+            int balance = offer.Balance(role);
+            long total = (long)offer.price * quantity;
+            if (total > balance) return Fail(MallOffer.CurrencyName(offer.currency) + "不足");
+            if (quantity > int.MaxValue - count) return Fail("物品数量已达上限");
+            if (!Give(offer.item, quantity)) return Fail("背包已满");
+
+            int remaining = balance - (int)total;
+            switch (offer.currency)
+            {
+                case "coin": role.coin = remaining; break;
+                case "yuanbao": role.yuanbao = remaining; break;
+                case "silverNote": role.silverNote = remaining; break;
+            }
+            purchase = new MallPurchase
+            {
+                Offer = offer, BalanceBefore = balance, BalanceAfter = remaining,
+                CountBefore = count, CountAfter = count + quantity
+            };
+            return Ok("已购买 " + offer.name + " ×" + quantity);
         }
 
         public bool Sell(string id)
