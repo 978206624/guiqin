@@ -1,3 +1,5 @@
+CLEAN RENDER RULE: smooth, clean painterly shading with large readable shapes; absolutely no film grain, no noise, no speckle, no dithering, no over-sharpened micro texture. Keep clutter low: leave generous open ground and calm areas between the few landmark objects.
+
 CRITICAL CAMERA RULE: a steep top-down 3/4 overhead view exactly like the reference — the camera looks down at the ground. There must be NO sky, NO horizon line, NO distant background mountains, NO clouds as a backdrop and NO perspective vanishing point. Every pixel of the frame, including the top edge, is ground-level terrain or buildings seen from above (cliffs, ridges, walls and peaks are drawn as top-down raised terrain, mist only as low patches over the ground). The scene fills the whole frame edge to edge.
 
 Mourning Mountain (殇山): a gloomy sacred mountain slope in cold blue-purple and grey tones. A circular stone sacrificial altar ground at the upper center with carved pillars, bone-white standing stones, dead twisted trees, drifting pale mist, faint ghostly lantern glows, dark soil. A worn stone path runs from the bottom center up to the altar with a wide open battle ground around it.
