@@ -203,8 +203,8 @@ window.DATA = {
   },
 
   stages: [
-    { id: 'qy47', name: '古城外街·巡兵', rec: 47, enemies: ['qy_dunjia', 'qy_nishi', 'qy_ronggu'], desc: '青阳古城外街游荡的盾甲兵、泥石兵俑和熔骨血尸。' },
-    { id: 'qy49', name: '古城外街·妖物', rec: 49, enemies: ['qy_ksls', 'qy_eling', 'qy_shehun'], desc: '被紫阴煞气引来的开山力士、恶灵和摄魂使者。' },
+    { id: 'qy47', name: '古城外街·巡兵', rec: 47, enemies: ['qy_dunjia', 'qy_nishi', 'qy_ronggu'], desc: '青阳城郊一带游荡的盾甲兵、泥石兵俑和熔骨血尸。' },
+    { id: 'qy49', name: '古城外街·妖物', rec: 49, enemies: ['qy_ksls', 'qy_eling', 'qy_shehun'], desc: '青阳古城街面上游荡的开山力士、恶灵和摄魂使者。' },
     { id: 'dummy',   name: '山脚木桩', rec: 1, enemies: ['dummy'],               desc: '一动不动的稻草人，拿来练手正好。' },
     { id: 'boar',    name: '山道野猪', rec: 2, enemies: ['boar', 'boar'],          desc: '两头在山道边拱土的野猪。', need: 'dummy' },
     { id: 'hog',     name: '荒径野猪', rec: 3, enemies: ['boar', 'boar', 'boar'],    desc: '三头在村郊荒径上横冲直撞的野猪。', need: 'boar' },
