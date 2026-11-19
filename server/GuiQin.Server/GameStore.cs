@@ -8,9 +8,13 @@ namespace GuiQin.Server;
 
 internal sealed record SavedAccount(string Id, string Name, string Hash, byte Status);
 internal sealed record SavedRole(string Zone, ulong Version, RoleState State);
+internal sealed record EconomyChange(string Command, int Coin, Dictionary<string, int> Items)
+{
+    public static EconomyChange Capture(string command, RoleState role) => new(command, role.coin, new(role.bag.items));
+}
 internal sealed record BattleRecord(string Id, string Stage, int Seed, string Rules, RoleState Initial, List<BattleCmd> Commands, BattleEnd End);
 
-internal sealed class GameStore(string connectionString)
+internal sealed partial class GameStore(string connectionString)
 {
     MySqlConnection Open()
     {
@@ -76,7 +80,7 @@ internal sealed class GameStore(string connectionString)
 
     // 角色状态、审计记录和奖励流水必须一起提交。
     public bool Save(string account, SavedRole role, BattleRecord battle = null, MallPurchase purchase = null,
-        (int Capacity, int Yuanbao)? expansion = null)
+        (int Capacity, int Yuanbao)? expansion = null, EconomyChange economy = null)
     {
         using var db = Open();
         using var tx = db.BeginTransaction();
@@ -113,6 +117,14 @@ internal sealed class GameStore(string connectionString)
             var before = expansion.Value;
             Flow("currency", "yuanbao", before.Yuanbao, role.State.yuanbao, "bag.expand", receipt);
             Flow("capacity", "bag", before.Capacity, role.State.bag.cap, "bag.expand", receipt);
+        }
+        if (economy != null)
+        {
+            string receipt = Guid.NewGuid().ToString("N");
+            Flow("currency", "coin", economy.Coin, role.State.coin, economy.Command, receipt);
+            var after = role.State.bag.items;
+            foreach (var id in economy.Items.Keys.Union(after.Keys))
+                Flow("item", id, economy.Items.GetValueOrDefault(id), after.GetValueOrDefault(id), economy.Command, receipt);
         }
         tx.Commit();
 

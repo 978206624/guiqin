@@ -1,6 +1,6 @@
 # 构建：切图 → assets/；生成 js/assets.js（相对路径版）；输出单文件版 dist/guiqin.html 和可移植的源码 zip
 import base64, json, os, shutil, zipfile
-from PIL import Image
+from PIL import Image, ImageOps
 R=os.path.dirname(os.path.abspath(__file__)); G=R+'/art-src'; AD=R+'/assets'; DIST=R+'/dist'      # 全部相对仓库根目录，换机器也能直接构建
 os.makedirs(DIST, exist_ok=True)
 os.makedirs(AD, exist_ok=True)
@@ -48,6 +48,10 @@ cut_row(G+'/backp.png',['b_player','b_axiu','b_girl','b_yan','b_wuchen'],dict(b_
 cut_row(G+'/backpet.png',['b_fox','b_deer','b_rabbit','b_hawk','b_tiger'],dict(b_fox=66,b_deer=80,b_rabbit=60,b_hawk=74,b_tiger=68))
 cut_row(G+'/foep.png',['f_sword','f_tao','f_blade','f_healer','f_spear'],dict(f_sword=130,f_tao=134,f_blade=140,f_healer=130,f_spear=134))
 cut_row(G+'/foepet.png',['f_panther','f_crane','f_dragon','f_panda','f_tortoise'],dict(f_panther=62,f_crane=86,f_dragon=78,f_panda=68,f_tortoise=60))
+# 神秘强者为独立立绘；导出时朝右，延续其地图站姿。
+_mystery=Image.open(G+'/f_mystery.png').convert('RGBA'); _mystery=ImageOps.mirror(_mystery.crop(_mystery.getbbox()))
+_h=264; _w=round(_mystery.width*_h/_mystery.height)
+_mystery.resize((_w,_h),Image.LANCZOS).save(f'{AD}/f_mystery.webp',quality=92,method=6); size['f_mystery']=[_w/2,_h/2]
 def head(src_png, idx, n_total, name, cx):
     im=Image.open(src_png).convert('RGBA'); import numpy as np
     cols=(np.array(im.getchannel('A'))>40).sum(0)>2; runs=[]; s0=None

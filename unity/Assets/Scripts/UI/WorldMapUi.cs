@@ -7,7 +7,7 @@ namespace GuiQin
     // 世界地图：一张 2300×2300 的大图，拖动平移（松手有惯性），上面是各地图的地名牌，点地名传送。对应网页版 openWorld。
     public class WorldMapUi
     {
-        readonly GameObject root; readonly RectTransform view, pan; readonly Text hint;
+        readonly GameObject root, destinations; readonly RectTransform view, pan; readonly Text hint;
         readonly Action<string> onGo; readonly Func<string> curId;
         Vector2 vel; bool drag; float moved; Vector2 lastPos; float lastT;
         string here; Image[] dots;
@@ -39,10 +39,55 @@ namespace GuiQin
             hint = Ui.Label("hint", bg.transform, "拖动地图浏览 · 点击地点传送", 18, new Color(0.98f, 0.94f, 0.8f), TextAnchor.MiddleCenter);
             Ui.Anchor(hint.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-200, 110), new Vector2(200, 146));
             var home = Ui.Btn("home", bg.transform, "回到当前", 22, new Color(0.45f, 0.3f, 0.12f, 0.95f), () => Center(curId()));
-            Ui.Anchor(home.GetComponent<RectTransform>(), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-250, 30), new Vector2(-10, 94));
+            WebUi.At(home.GetComponent<RectTransform>(), 20, 1186, 214, 64);
+            var list = Ui.Btn("destinations", bg.transform, "地点列表", 22, WebUi.Purple, OpenDestinations);
+            WebUi.At(list.GetComponent<RectTransform>(), 253, 1186, 214, 64);
             var close = Ui.Btn("close", bg.transform, "返回", 22, WebUi.Red, () => root.SetActive(false));
-            Ui.Anchor(close.GetComponent<RectTransform>(), new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(10, 30), new Vector2(250, 94));
+            WebUi.At(close.GetComponent<RectTransform>(), 486, 1186, 214, 64);
+            destinations = MakeDestinations(bg.transform);
             root.SetActive(false);
+        }
+
+        GameObject MakeDestinations(Transform parent)
+        {
+            var shade = Ui.Box("destinationOverlay", parent, WebUi.Dim);
+            Ui.Anchor(shade.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var panel = WebUi.Panel("destinationPanel", shade.transform);
+            WebUi.At(panel.rectTransform, 26, 118, 668, 1044);
+            var title = WebUi.Title(Ui.Label("title", panel.transform, "传送地点", 32, WebUi.Light, TextAnchor.MiddleCenter));
+            WebUi.At(title.rectTransform, 16, 12, 636, 54);
+            var close = WebUi.Close(panel.transform, () => shade.gameObject.SetActive(false));
+            WebUi.At(close.GetComponent<RectTransform>(), 608, 16, 42, 42);
+
+            var viewport = Ui.Box("viewport", panel.transform, Color.clear);
+            WebUi.At(viewport.rectTransform, 18, 78, 632, 946);
+            viewport.gameObject.AddComponent<RectMask2D>();
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.viewport = viewport.rectTransform;
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            var content = Ui.Rect("maps", viewport.transform);
+            Ui.Anchor(content, new Vector2(0, 1), new Vector2(1, 1),
+                new Vector2(0, -Mathf.Max(946, (GameData.Maps.Count + 1) / 2 * 62)), Vector2.zero);
+            content.pivot = new Vector2(0, 1);
+            scroll.content = content;
+            int i = 0;
+            foreach (var map in GameData.Maps)
+            {
+                if (!GameData.CanWorldTeleport(map.Value)) continue;
+                string id = map.Key;
+                var button = Ui.Btn("go_" + id, content, map.Value.name, 24, WebUi.Purple, () => Click(id));
+                WebUi.At(button.GetComponent<RectTransform>(), i % 2 * 320, i / 2 * 62, 310, 54);
+                i++;
+            }
+            shade.gameObject.SetActive(false);
+            return shade.gameObject;
+        }
+
+        void OpenDestinations()
+        {
+            moved = 0f; drag = false; vel = Vector2.zero;
+            destinations.SetActive(true);
         }
 
         void MakeNode(string id, int idx)
@@ -79,6 +124,7 @@ namespace GuiQin
 
         public void Open()
         {
+            destinations.SetActive(false);
             here = curId();
             foreach (Transform c in pan)                              // 标出“你在这里”
                 if (c.name.StartsWith("node_"))
@@ -119,7 +165,7 @@ namespace GuiQin
         // 每帧由 GameController 调用（指针状态已经 Poll 过）
         public void Tick(float dt)
         {
-            if (!root.activeSelf) return;
+            if (!root.activeSelf || destinations.activeSelf) return;
             float k = view.rect.width / Mathf.Max(1, Screen.width);      // 屏幕像素 → 画布单位
             if (PointerInput.Down) { drag = true; moved = 0f; vel = Vector2.zero; lastPos = PointerInput.Pos; lastT = Time.unscaledTime; }
             if (drag && PointerInput.Held)

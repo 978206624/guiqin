@@ -79,6 +79,16 @@ namespace GuiQin
 
             if (tab == "party")
             {
+                if (party.incoming?.Count > 0)
+                {
+                    string peer = party.incoming[0];
+                    Label("partyInvite", stripRow, peer + " 邀请你组队", 20, WebUi.Light, 20, 0, 420, 48);
+                    Small("acceptParty", stripRow, "接受", 16, 440, 8, 120, 40,
+                        () => { _ = PartyOp(backend => backend.PartyReply(peer, true)); }, WebUi.Red);
+                    Small("declineParty", stripRow, "拒绝", 16, 580, 8, 120, 40,
+                        () => { _ = PartyOp(backend => backend.PartyReply(peer, false)); });
+                    return 58;
+                }
                 bool joined = party.members.Count > 0;
                 if (!joined)
                 {

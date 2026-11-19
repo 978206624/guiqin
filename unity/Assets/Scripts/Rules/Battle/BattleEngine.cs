@@ -28,6 +28,8 @@ namespace GuiQin.Battle
     public class BattleEngine
     {
         public readonly List<BUnit> Units; public BUnit Player;
+        public readonly BUnit Pet;
+        public readonly List<string> PetSkills = new List<string>();
         public int Round; public string Over;
         public readonly List<string> PlayerSkills = new List<string>();       // 主角当前能用的技能
         public Dictionary<string, int> SkillLv;                               // 主角各技能的修炼等级（只有门派职业有）；每升 1 级威力 / 疗效 +12%
@@ -48,6 +50,28 @@ namespace GuiQin.Battle
                 if (u.Pas != null && u.Pas.dodgeUp > 0) u.Dodge += u.Pas.dodgeUp;
                 if (u.Pas != null && u.Pas.atkMul > 0) { u.Atk = (int)Math.Round(u.Atk * u.Pas.atkMul); u.Matk = (int)Math.Round(u.Matk * u.Pas.atkMul); }
             }
+            Pet = units.FirstOrDefault(u => u.Side == "ally" && u.Row == "pet");
+            if (Pet != null)
+            {
+                PetSkills.Add(Pet.Ai == "ss" ? "ss_hit" : "bite");
+                if (Pet.Ai == "fox") PetSkills.Add("foxfire");
+                if (Pet.Kit != null)
+                    foreach (var skill in Pet.Kit)
+                        if (Sk(skill.Key) != null && !PetSkills.Contains(skill.Key)) PetSkills.Add(skill.Key);
+            }
+        }
+
+        public bool AcceptsPetCommand(string skill) => skill == null ||
+            Pet != null && (skill == "defend" || PetSkills.Contains(skill));
+
+        public Dictionary<string, int> PetCooldowns() => Pet == null ? null : new Dictionary<string, int>(Pet.Cd);
+
+        BattleCmd PetAct(BattleCmd cmd)
+        {
+            if (cmd?.petSkill == null) return UnitAct(Pet);
+            if (cmd.petSkill == "defend" || !PetSkills.Contains(cmd.petSkill) || Pet.Cd.ContainsKey(cmd.petSkill))
+                return new BattleCmd { type = "defend" };
+            return new BattleCmd { type = "skill", skill = cmd.petSkill, target = cmd.petTarget };
         }
 
         // ---------------- 小工具 ----------------
@@ -88,8 +112,9 @@ namespace GuiQin.Battle
             Round++;
             Add(new BattleEvent { t = "round", v = Round });
             foreach (var u in Units) u.Defending = false;
-            var act = cmd == null || cmd.type == "auto" ? AutoAct() : cmd;
-            if (act.type == "flee")
+            // 主角倒下时忽略其指令，存活队友仍按各自的 AI 行动。
+            var act = Player.Alive ? (cmd == null || cmd.type == "auto" ? AutoAct() : cmd) : null;
+            if (act?.type == "flee")
             {
                 bool hasBoss = Units.Any(u => u.Ai == "boss");
                 if (!hasBoss && rng.NextDouble() < 0.65) { Over = "flee"; Add(new BattleEvent { t = "flee", text = "成功逃脱" }); return ev; }
@@ -102,10 +127,10 @@ namespace GuiQin.Battle
                 if (!u.Alive || Over != null) continue;
                 StatusStart(u);
                 if (u.St.ContainsKey("stun")) { Add(new BattleEvent { t = "stun", u = u.Id }); }
-                else Perform(u, u == Player ? act : UnitAct(u));
+                else Perform(u, u == Player ? act : u == Pet ? PetAct(cmd) : UnitAct(u));
                 StatusEnd(u);
                 if (Living("enemy").Count == 0) Over = "win";
-                else if (!Player.Alive) Over = "lose";
+                else if (!Units.Any(x => x.Alive && x.Side == "ally")) Over = "lose";
             }
             return ev;
         }

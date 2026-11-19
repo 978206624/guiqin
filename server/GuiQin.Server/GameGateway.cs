@@ -4,6 +4,8 @@ using GuiQin.Battle;
 using GuiQin.Inventory;
 using GuiQin.Net;
 using GuiQin.Quest;
+using GuiQin.Pets;
+using GuiQin.Sect;
 using GuiQin.Tower;
 using GuiQin.Train;
 using GuiQin.Chat;
@@ -12,9 +14,14 @@ using MySqlConnector;
 
 namespace GuiQin.Server;
 
-internal sealed class ConnectionState { public string Token; }
+internal sealed class ConnectionState
+{
+    public string Token;
+    public readonly System.Threading.Channels.Channel<Envelope> Pushes =
+        System.Threading.Channels.Channel.CreateBounded<Envelope>(256);
+}
 
-internal sealed class GameGateway(GameStore store, string rulesVersion)
+internal sealed partial class GameGateway(GameStore store, string rulesVersion)
 {
     const string Zone = "s12";
     readonly object gate = new();
@@ -26,6 +33,7 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
     {
         public string Account { get; } = account;
         public string Role;
+        public ConnectionState Connection;
         public DateTimeOffset Seen = DateTimeOffset.UtcNow;
         public readonly Dictionary<int, Envelope> Replies = new();
         public readonly Queue<int> ReplyOrder = new();
@@ -57,7 +65,7 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
                 if (request.cmd == Cmd.Resume)
                 {
                     var token = Read<ResumeReq>(request).session;
-                    RequireSession(token);
+                    RequireSession(token).Connection = connection;
                     connection.Token = token;
                     return reply;
                 }
@@ -127,7 +135,7 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
         string account = saved.Id;
         var roles = store.Roles(account, Zone);
         string token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
-        sessions[token] = new LoginSession(account);
+        sessions[token] = new LoginSession(account) { Connection = connection };
         connection.Token = token;
         return new LoginResp
         {
@@ -150,10 +158,14 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
                 if (!ValidId(id) || battles.ContainsKey(id) || !store.Delete(session.Account, id))
                     throw new GameError(Code.Protocol, "无法删除该角色");
                 if (session.Role == id) session.Role = null;
+                LeaveParty(id);
+                onlineGuild.Remove(id);
                 return new Empty();
             case Cmd.EnterGame:
                 var entered = OwnRole(session, Read<EnterReq>(request).roleId);
+                if (QuestService.EnsureSectLevel(entered.State) > 0) Save(session, entered);
                 session.Role = entered.State.id;
+                if (entered.State.guildMember) onlineGuild.Add(session.Role);
                 return new EnterResp { role = entered.State };
         }
 
@@ -163,18 +175,24 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
             return battle == null ? throw new GameError(Code.NoBattle, "没有进行中的战斗") : new BattleStartResp { ok = true, battle = battle.Session.Snapshot() };
         if (request.cmd == Cmd.BattleCmd)
             return Act(session, battle, Read<BattleCmdReq>(request));
-        if (request.cmd == ChatCmd.Hist) return new ChatHistResp();
+        if (request.cmd is (ChatCmd.Send or ChatCmd.Hist or ChatCmd.Guild or Cmd.FriendAdd or Cmd.FriendDel or Cmd.FriendList or Cmd.PartyInvite or Cmd.PartyReply or Cmd.PartyLeave))
+            return Social(session, role, request);
         if (battle != null) throw new GameError(Code.InBattle, "战斗中");
 
         return request.cmd switch
         {
             Cmd.Move => Move(session, role, Read<MoveReq>(request)),
             Cmd.Portal => Portal(session, role, Read<PortalReq>(request)),
-            Cmd.Teleport => Escort(session, role, Read<TeleportReq>(request)),
+            Cmd.Teleport => Teleport(session, role, Read<TeleportReq>(request)),
             TowerCmd.Enter or TowerCmd.Next or TowerCmd.Leave => Tower(session, role, request.cmd),
             Cmd.BattleStart => Start(role, Read<BattleStartReq>(request).stage),
             QuestCmd.Talk => Talk(session, role, Read<QuestTalkReq>(request).npc),
-            BagCmd.Get or BagCmd.Expand or BagCmd.Rest or BagCmd.Use or BagCmd.Equip or BagCmd.Unequip or BagCmd.MallBuy => Bag(session, role, request),
+            BagCmd.Get or BagCmd.Expand or BagCmd.Rest or BagCmd.Use or BagCmd.Equip or BagCmd.Unequip or BagCmd.MallBuy
+                or BagCmd.Sell or BagCmd.Sort or BagCmd.ShopBuy or BagCmd.ShopSell or BagCmd.Forge or BagCmd.Inlay
+                or BagCmd.Uninlay or BagCmd.Merge or BagCmd.Gift => Bag(session, role, request),
+            SectCmd.Join or SectCmd.Hall => Sect(session, role, request),
+            TrainCmd.Do => Train(session, role, Read<TrainReq>(request)),
+            PetCmd.Use or PetCmd.Exchange or PetCmd.Gift or PetCmd.Rite => Pet(session, role, request),
             _ => throw new GameError(Code.Protocol, "该功能尚未接入真实后端")
         };
     }
@@ -215,9 +233,9 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
     }
 
     void Save(LoginSession session, SavedRole role, BattleRecord battle = null, MallPurchase purchase = null,
-        (int Capacity, int Yuanbao)? expansion = null)
+        (int Capacity, int Yuanbao)? expansion = null, EconomyChange economy = null)
     {
-        if (!store.Save(session.Account, role, battle, purchase, expansion)) throw new GameError(Code.Busy, "角色状态已更新，请重试");
+        if (!store.Save(session.Account, role, battle, purchase, expansion, economy)) throw new GameError(Code.Busy, "角色状态已更新，请重试");
     }
 
     MoveResp Move(LoginSession session, SavedRole role, MoveReq request)
@@ -238,21 +256,34 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
         var state = role.State;
         var portal = request.from == state.map ? GameData.Maps[state.map].portals?.Find(p => p.to == request.to) : null;
         if (portal == null) return new() { msg = "当前地图没有这个传送点", map = state.map };
-        var locked = new QuestService(state).CheckPortal(portal);
-        return locked != null ? new() { msg = locked, map = state.map } : Change(session, role, portal.to, portal.arrive);
+        if (portal.needStages?.Exists(id => !state.cleared.Contains(id)) == true)
+            return new() { msg = portal.lockMsg ?? "需先击败守卫", map = state.map };
+        return Change(session, role, portal.to, portal.arrive);
     }
 
-    MapChangeResp Escort(LoginSession session, SavedRole role, TeleportReq request)
+    MapChangeResp Teleport(LoginSession session, SavedRole role, TeleportReq request)
     {
-        if (!GuiQin.Sect.SectService.CanEscort(role.State, request.npc, request.to))
+        if (string.IsNullOrEmpty(request.to) || !GameData.Maps.TryGetValue(request.to, out var destination))
+            return new() { map = role.State.map, msg = "目的地不存在" };
+        if (request.to == ZiyinService.Entrance && request.npc == ZiyinService.Guard)
+        {
+            if (role.State.map != "qingyang" || !NearNpc(role.State, npc => npc.act == "fbEntry"))
+                return new() { map = role.State.map, msg = "请靠近古城守卫" };
+            var economy = EconomyChange.Capture("dungeon.ziyin.enter", role.State);
+            var error = ZiyinService.Enter(role.State, DateTime.UtcNow);
+            return error != null ? new() { map = role.State.map, msg = error } : Change(session, role, request.to, null, economy);
+        }
+        if (!string.IsNullOrEmpty(request.npc) && !GuiQin.Sect.SectService.CanEscort(role.State, request.npc, request.to))
             return new() { map = role.State.map, msg = "请靠近对应的门派接引师" };
+        if (string.IsNullOrEmpty(request.npc) && !GameData.CanWorldTeleport(destination))
+            return new() { map = role.State.map, msg = "请从副本入口进入" };
         return Change(session, role, request.to, null);
     }
 
-    MapChangeResp Change(LoginSession session, SavedRole role, string map, float[] at)
+    MapChangeResp Change(LoginSession session, SavedRole role, string map, float[] at, EconomyChange economy = null)
     {
         role.State.map = map; role.State.x = at?[0] ?? -1; role.State.y = at?[1] ?? -1;
-        Save(session, role);
+        Save(session, role, economy: economy);
         return new() { ok = true, map = map, x = role.State.x, y = role.State.y };
     }
 
@@ -286,11 +317,69 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
         return response;
     }
 
+    static bool NearNpc(RoleState role, Func<NpcInfo, bool> matches)
+    {
+        var map = GameData.Maps[role.map];
+        float x = role.x >= 0 ? role.x : map.start[0];
+        float y = role.y >= 0 ? role.y : map.start[1];
+        return map.npcs?.Any(p =>
+        {
+            if (!GameData.Npcs.TryGetValue(p.id, out var npc) || !matches(npc)) return false;
+            float dx = (p.at[0] - x) * map.scale * map.k, dy = (p.at[1] - y) * map.scale * map.k;
+            return dx * dx + dy * dy < 150f * 150f;
+        }) == true;
+    }
+
+    SectResp Sect(LoginSession session, SavedRole role, Envelope request)
+    {
+        var q = Read<SectReq>(request);
+        var service = new SectService(role.State);
+        bool join = request.cmd == SectCmd.Join;
+        if (!NearNpc(role.State, npc => join
+                ? q.sect == "dao" && npc.act == "joinSect" || q.sect == "mo" && npc.act == "joinMo"
+                : q.hall != null && npc.hall == q.hall && npc.act is ("pickHall" or "pickMoHall")))
+            throw new GameError(Code.BadMap, "请靠近对应门派师父");
+        var result = join ? service.Join(q.sect) : service.Hall(q.hall);
+        if (result.ok) Save(session, role);
+        return result;
+    }
+
+    TrainResp Train(LoginSession session, SavedRole role, TrainReq request)
+    {
+        var state = role.State;
+        if (!NearNpc(state, npc => request.who == "menzhu"
+                ? state.sect == "dao" && npc.act == "joinSect" || state.sect == "mo" && npc.act == "joinMo"
+                : request.who == "hall" && npc.hall != null && state.cls.StartsWith(state.sect + "_" + npc.hall)
+                    && npc.act is ("pickHall" or "pickMoHall")))
+            throw new GameError(Code.BadMap, "请靠近对应技能师父");
+        var economy = EconomyChange.Capture(TrainCmd.Do, state);
+        var result = new TrainService(state).Do(request.who, request.id);
+        if (result.ok) Save(session, role, economy: economy);
+        return result;
+    }
+
+    PetResp Pet(LoginSession session, SavedRole role, Envelope request)
+    {
+        if (request.cmd != PetCmd.Use && !NearNpc(role.State, npc => npc.act == "ssEnvoy"))
+            throw new GameError(Code.BadMap, "请靠近神兽使者");
+        var economy = EconomyChange.Capture(request.cmd, role.State);
+        var result = new PetService(role.State).Run(request.cmd, Read<PetReq>(request).id);
+        if (result.ok) Save(session, role, economy: economy);
+        return result;
+    }
+
     BagResp Bag(LoginSession session, SavedRole role, Envelope request)
     {
         var state = role.State;
         var req = Read<BagOpReq>(request);
         var inventory = new InventoryService(state);
+        if (request.cmd is (BagCmd.ShopBuy or BagCmd.ShopSell) && (req.shop == null || !NearNpc(state, npc => npc.shop == req.shop)))
+            throw new GameError(Code.BadMap, "请靠近对应商人");
+        if (request.cmd is (BagCmd.Forge or BagCmd.Inlay or BagCmd.Uninlay or BagCmd.Merge) && !NearNpc(state, npc => npc.shop == "smith"))
+            throw new GameError(Code.BadMap, "请靠近铁匠");
+        var economy = request.cmd is (BagCmd.Get or BagCmd.Expand or BagCmd.MallBuy or BagCmd.Rest or BagCmd.Sort)
+            ? null : EconomyChange.Capture(request.cmd, state);
+        int oldStar = request.cmd == BagCmd.Forge && req.slot != null && state.bag.gear.TryGetValue(req.slot, out var oldGear) ? oldGear.star : -1;
         MallPurchase purchase = null;
         (int Capacity, int Yuanbao)? expansion = request.cmd == BagCmd.Expand ? (state.bag.cap, state.yuanbao) : null;
         bool Rest() { state.hp = -1; state.mp = -1; return true; }
@@ -303,10 +392,26 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
             BagCmd.Use => req.id != null && inventory.Use(req.id),
             BagCmd.Equip => req.id != null && inventory.Equip(req.id),
             BagCmd.Unequip => req.slot != null && inventory.Unequip(req.slot),
+            BagCmd.Sell => req.id != null && inventory.Sell(req.id),
+            BagCmd.Sort => inventory.Sort(),
+            BagCmd.ShopBuy => req.id != null && inventory.Buy(req.shop, req.id),
+            BagCmd.ShopSell => req.id != null && inventory.ShopSell(req.shop, req.id),
+            BagCmd.Forge => req.slot != null && inventory.Forge(req.slot, req.gem),
+            BagCmd.Inlay => req.slot != null && inventory.Inlay(req.slot, req.i, req.id),
+            BagCmd.Uninlay => req.slot != null && inventory.Uninlay(req.slot, req.i),
+            BagCmd.Merge => inventory.Merge(req.id),
+            BagCmd.Gift => inventory.DailyGift(DateTime.UtcNow),
             _ => false
         };
-        if (ok && request.cmd != BagCmd.Get) Save(session, role, purchase: purchase, expansion: expansion);
-        return new() { ok = ok, msg = inventory.Msg, bag = state.bag, coin = state.coin, yuanbao = state.yuanbao, silverNote = state.silverNote, hp = state.hp, mp = state.mp };
+        if (ok && request.cmd != BagCmd.Get)
+        {
+            Save(session, role, purchase: purchase, expansion: expansion, economy: economy);
+            if (request.cmd is (BagCmd.Forge or BagCmd.ShopBuy or BagCmd.MallBuy or BagCmd.Gift or BagCmd.Merge))
+                SystemChat(state.id, inventory.Msg);
+            if (request.cmd == BagCmd.Forge && inventory.Star == 10 && oldStar < 10 && state.bag.equip.TryGetValue(req.slot, out var item))
+                SystemChat(state.id, "恭喜「" + state.name + "」将" + (string)GameData.Raw["items"][item]["name"] + "锻造至 10 星！", true);
+        }
+        return new() { ok = ok, msg = inventory.Msg, bag = state.bag, coin = state.coin, yuanbao = state.yuanbao, silverNote = state.silverNote, hp = state.hp, mp = state.mp, star = inventory.Star };
     }
 
     BattleStartResp Start(SavedRole role, string stageId)
@@ -341,16 +446,27 @@ internal sealed class GameGateway(GameStore store, string rulesVersion)
         var cmd = request.cmd;
         if (cmd == null || cmd.type is not ("skill" or "item" or "defend" or "flee" or "auto") ||
             cmd.type == "skill" && cmd.skill != "attack" && !battle.Engine.PlayerSkills.Contains(cmd.skill) ||
-            cmd.type == "item" && string.IsNullOrEmpty(cmd.skill))
+            cmd.type == "item" && string.IsNullOrEmpty(cmd.skill) || !battle.Engine.AcceptsPetCommand(cmd.petSkill))
             throw new GameError(Code.Protocol, "无法使用该战斗指令");
 
         active.Commands.Add(cmd);
         var events = battle.Engine.RunRound(cmd);
-        var reply = new BattleRoundResp { events = events, round = battle.Engine.Round, over = battle.Engine.Over != null };
+        var reply = new BattleRoundResp { events = events, round = battle.Engine.Round, over = battle.Engine.Over != null, petCooldowns = battle.Engine.PetCooldowns() };
         if (!reply.over) return reply;
         battles.Remove(active.Role.State.id);
         reply.end = BattleSettlement.Settle(active.Role.State, battle);
         Save(session, active.Role, new BattleRecord(battle.Id, battle.StageId, battle.Seed, rulesVersion, active.Initial, active.Commands, reply.end));
+        if (reply.end.result == "win")
+        {
+            var end = reply.end;
+            string items = string.Join("、", end.items.Select(p => (string)GameData.Raw["items"][p.Key]["name"] + " ×" + p.Value));
+            SystemChat(active.Role.State.id, "战斗胜利：经验 +" + end.exp + "，银两 +" + end.coin + (items.Length > 0 ? "，获得 " + items : ""));
+            if (end.levelUp)
+            {
+                SystemChat(active.Role.State.id, "升到 " + end.lv + " 级");
+                if (end.lv % 5 == 0) SystemChat(active.Role.State.id, "恭喜「" + active.Role.State.name + "」升到 " + end.lv + " 级！", true);
+            }
+        }
         return reply;
     }
 }

@@ -126,8 +126,11 @@ namespace GuiQin
             WebUi.Edge(t);
             var sub = Label("slogan", "大 秦 风 云　侠 义 江 湖", 24, WebUi.Light, 0, 370, 720, 42);
             WebUi.Edge(sub);
+            string endpoint = (net() as WsBackend)?.Endpoint;
+            bool canRemember = WindowsLoginCredential.Supported && !string.IsNullOrEmpty(endpoint);
+            int shift = canRemember ? 0 : 32;
             var panel = WebUi.Panel("form", content);
-            WebUi.At(panel.rectTransform, 90, 716, 540, 424);
+            WebUi.At(panel.rectTransform, 90, 716, 540, 424 - shift);
             panel.color = new Color(1, 1, 1, 0.92f);
             Label("accountLabel", "账号", 17, WebUi.Light, 120, 738, 480, 24, TextAnchor.MiddleLeft);
             var acc = Ui.Input("account", content, "请输入账号", 22, false, 24);
@@ -136,21 +139,13 @@ namespace GuiQin
             Label("passwordLabel", "密码", 17, WebUi.Light, 120, 833, 480, 24, TextAnchor.MiddleLeft);
             var pwd = Ui.Input("password", content, "请输入密码", 22, true, 32);
             WebUi.At((RectTransform)pwd.transform, 120, 860, 480, 54);
-            string endpoint = (net() as WsBackend)?.Endpoint;
-            bool canRemember = WindowsLoginCredential.Supported && !string.IsNullOrEmpty(endpoint);
             bool remember = canRemember && PlayerPrefs.GetInt("gq_remember_login", 1) != 0;
             if (remember && WindowsLoginCredential.TryRead(endpoint, out var savedAccount, out var savedPassword))
             {
                 acc.text = savedAccount;
                 pwd.text = savedPassword;
             }
-            bool agree = false;
-            const string terms = " 我已阅读并同意用户协议";
-            var ag = ButtonAt("agree", "☐" + terms, 16, 120, 924, canRemember ? 310 : 480, 28, null, Color.clear);
-            var agreement = ag.GetComponentInChildren<Text>();
-            agreement.alignment = TextAnchor.MiddleLeft; agreement.color = WebUi.Muted;
-            ag.onClick.AddListener(() => { agree = !agree; agreement.text = (agree ? "☑" : "☐") + terms; });
-            var err = Label("err", "", 17, WebUi.C("#ff9a8a"), 120, 956, 480, 30);
+            var err = Label("err", "", 17, WebUi.C("#ff9a8a"), 120, 956 - shift, 480, 30);
             if (canRemember)
             {
                 const string rememberLabel = " 记住密码";
@@ -176,7 +171,6 @@ namespace GuiQin
                 if (busy) return;
                 string a = acc.text.Trim();
                 if (a == "" || string.IsNullOrEmpty(pwd.text)) { err.text = "请输入账号和密码"; return; }
-                if (!agree) { err.text = "请先勾选同意用户协议"; return; }
                 err.text = register ? "注册中…" : "登录中…"; busy = true;
                 try
                 {
@@ -194,9 +188,9 @@ namespace GuiQin
                 }
                 finally { busy = false; }
             };
-            var enter = ButtonAt("login", "登 录", 36, 120, 992, 480, 68, () => { var _ = go(false); }, WebUi.Red);
+            var enter = ButtonAt("login", "登 录", 36, 120, 992 - shift, 480, 68, () => { var _ = go(false); }, WebUi.Red);
             WebUi.Title(enter.GetComponentInChildren<Text>());
-            var registerButton = ButtonAt("register", "注册账号", 19, 120, 1073, 480, 44, () => { var _ = go(true); }, Color.clear);
+            var registerButton = ButtonAt("register", "注册账号", 19, 120, 1073 - shift, 480, 44, () => { var _ = go(true); }, Color.clear);
             registerButton.GetComponentInChildren<Text>().color = WebUi.Light;
         }
 

@@ -2907,6 +2907,36 @@
   "zongheng",
   "ningshen"
  ],
+ "battleFacing": {
+  "left": [
+   "boar",
+   "boss",
+   "grunt",
+   "kk_npc_zhw",
+   "wolf"
+  ],
+  "right": [
+   "f_blade",
+   "f_crane",
+   "f_dragon",
+   "f_healer",
+   "f_mystery",
+   "f_panda",
+   "f_panther",
+   "f_spear",
+   "f_sword",
+   "f_tao",
+   "f_tortoise",
+   "kk_mon_100004",
+   "kk_mon_30005",
+   "kk_mon_40010",
+   "kk_mon_50008",
+   "kk_mon_60009",
+   "kk_npc16066",
+   "kk_npc60",
+   "kk_npc65_bs08"
+  ]
+ },
  "enemies": {
   "dummy": {
    "name": "木桩",
@@ -3032,7 +3062,7 @@
   },
   "mystery": {
    "name": "神秘强者",
-   "sprite": "f_tao",
+   "sprite": "f_mystery",
    "h": 132,
    "hp": 1200,
    "atk": 118,
@@ -7371,9 +7401,7 @@
      "arrive": [
       140,
       1360
-     ],
-     "needQuest": "1001",
-     "lockMsg": "村长还有话要交代，先别急着下山"
+     ]
     }
    ],
    "foes": [

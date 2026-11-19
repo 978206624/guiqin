@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using GuiQin.Net;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
@@ -14,13 +15,15 @@ namespace GuiQin.Quest
         public bool first, last;
         public List<string[]> pages = new List<string[]>(), pre = new List<string[]>(), accept = new List<string[]>(), outro = new List<string[]>();
         public int exp, coin; public Dictionary<string, int> items = new Dictionary<string, int>();
+        public bool IsSectGate { get { return type == "sect"; } }
         public bool IsTalk { get { return type == "talk" || type == "spot"; } }
     }
 
     public static class StoryBeats
     {
         static List<Beat> all;
-        static Dictionary<string, int> first;   // 任务 id → 第一拍序号
+        static Beat sectGate;
+        static int sectGateStep;
 
         static List<string[]> Pages(JToken t)
         {
@@ -32,7 +35,6 @@ namespace GuiQin.Quest
         internal static void Build(JObject story, Dictionary<string, NpcInfo> npcs)
         {
             var beats = new List<Beat>();
-            var starts = new Dictionary<string, int>();
             foreach (var q in story["quests"])
             {
                 var bs = (JArray)q["beats"];
@@ -46,7 +48,7 @@ namespace GuiQin.Quest
                         n = b["n"] != null ? (int)b["n"] : 0, pages = Pages(b["pages"]), pre = Pages(b["pre"])
                     };
                     if (b["at"] != null) beat.at = new[] { (float)b["at"][0], (float)b["at"][1] };
-                    if (i == 0) { beat.first = true; beat.accept = Pages(q["accept"]); starts[beat.qid] = beats.Count; }
+                    if (i == 0) { beat.first = true; beat.accept = Pages(q["accept"]); }
                     if (i == bs.Count - 1)
                     {
                         beat.last = true; beat.outro = Pages(q["complete"]);
@@ -63,10 +65,20 @@ namespace GuiQin.Quest
             // 剧情里的采集点当成一个只在对应任务时出现的“人物”
             foreach (var b in beats) if (b.type == "spot" && !npcs.ContainsKey(b.npc)) npcs[b.npc] = new NpcInfo { name = b.spot, spot = true, color = "#9ff0ff", idle = "" };
             all = beats;
-            first = starts;
+            var gate = story["sectGate"];
+            var last = gate == null ? -1 : beats.FindLastIndex(b => b.qid == (string)gate["after"]);
+            sectGateStep = last + 1;
+            sectGate = last < 0 ? null : new Beat
+            {
+                type = "sect", title = (string)gate["title"], goal = (string)gate["goal"],
+                chapter = (string)gate["chapter"], summary = (string)gate["summary"]
+            };
         }
 
+        // 入门要求只盖在当前任务上，原存档的节拍序号保持有效。
+        public static Beat Current(RoleState role) =>
+            sectGate != null && role.step >= sectGateStep && string.IsNullOrEmpty(role.sect) ? sectGate : At(role.step);
+
         public static Beat At(int step) { return step >= 0 && step < all.Count ? all[step] : null; }
-        public static int NeedStep(string questId) { int s; return first.TryGetValue(questId, out s) ? s : 0; }
     }
 }

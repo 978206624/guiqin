@@ -15,7 +15,7 @@ namespace GuiQin.Battle
         // 当前战场快照：开战时的静态信息 + 引擎里每个单位此刻的血 / 蓝 / 存活 / 状态。断线重连、重进游戏时发给客户端重建战场。
         public BattleView Snapshot()
         {
-            var v = new BattleView { id = View.id, title = View.title, mode = View.mode, bg = View.bg, skills = View.skills, turnSeconds = View.turnSeconds, items = View.items, round = Engine.Round };
+            var v = new BattleView { id = View.id, title = View.title, mode = View.mode, bg = View.bg, skills = View.skills, petSkills = View.petSkills, petCooldowns = Engine.PetCooldowns(), turnSeconds = View.turnSeconds, items = View.items, round = Engine.Round };
             v.units = View.units.Select(u =>
             {
                 var b = Engine.Units.Find(x => x.Id == u.id);
@@ -40,6 +40,12 @@ namespace GuiQin.Battle
         static float F(JToken t, float def = 0f) { return t == null || t.Type == JTokenType.Null ? def : (float)t; }
         static int Base(JToken b, JToken g, string k, int L, float mul) { return (int)Math.Round((F(b[k]) + F(g[k]) * L) * mul, MidpointRounding.AwayFromZero); }
 
+        // 敌方在左侧朝右，我方在右侧朝左；只有原图朝向相反时才翻。
+        static bool FlipSprite(string sprite, bool enemy)
+        {
+            return GameData.Raw["battleFacing"]?[enemy ? "left" : "right"]?.Any(x => (string)x == sprite) == true;
+        }
+
         public static BattleSession Create(RoleState role, StageDef st, int seed)
         {
             var D = GameData.Raw; var b = D["base"]; var g = D["grow"]; int L = Math.Max(1, role.lv);
@@ -49,11 +55,11 @@ namespace GuiQin.Battle
             foreach (var id in st.enemies)
             {
                 var e = D["enemies"][id]; bool isPet = e["pet"] != null && (bool)e["pet"], boss = e["boss"] != null && (bool)e["boss"];
-                int hp = (int)F(e["hp"]);
+                int hp = (int)F(e["hp"]); string sprite = (string)e["sprite"];
                 units.Add(new BUnit
                 {
-                    Id = nextId++, Side = "enemy", Row = isPet ? "pet" : "person", Name = (string)e["name"], Sprite = (string)e["sprite"], H = F(e["h"]) * 1.12f,
-                    Flip = id != "xinmo" && !((string)e["sprite"]).StartsWith("kk_mon_"),  // 心魔、原版怪物帧本身朝向玩家一侧，不翻
+                    Id = nextId++, Side = "enemy", Row = isPet ? "pet" : "person", Name = (string)e["name"], Sprite = sprite, H = F(e["h"]) * 1.12f,
+                    Flip = FlipSprite(sprite, true),
                     Hp = hp, MaxHp = hp, Atk = (int)F(e["atk"]), Matk = (int)F(e["atk"]), Def = (int)F(e["def"]), Mdef = (int)F(e["def"]), Spd = (int)F(e["spd"]),
                     Ai = boss ? "boss" : "attack", Boss = boss
                 });
@@ -70,6 +76,7 @@ namespace GuiQin.Battle
                 Atk = ps.atk, Matk = ps.matk, Def = ps.def, Mdef = ps.mdef, Spd = ps.spd, Crit = ps.crit, Dodge = ps.dodge
             };
             string sp = "b_" + role.cls; me.Sprite = GameData.Assets.img.ContainsKey(sp) ? sp : "b_player";
+            me.Flip = FlipSprite(me.Sprite, false);
             units.Add(me);
 
             // 我方：出战宠物（灵狐或已拥有的神兽）；属性和亲密度加成走 PetService，和宠物面板显示的一致
@@ -81,6 +88,7 @@ namespace GuiQin.Battle
                 Ai = dx["ai"] != null ? (string)dx["ai"] : "fox", MagicAtk = dx["mag"] != null && (bool)dx["mag"],
                 MaxHp = pHp, Hp = pHp, Atk = pst.atk, Matk = pst.matk, Def = pst.def, Mdef = pst.mdef, Spd = pst.spd, Crit = 10f, Dodge = 3f
             };
+            pet.Flip = FlipSprite(pet.Sprite, false);
             if (dx["act"] != null) pet.Kit = dx["act"].Select(a => new KeyValuePair<string, float>((string)a[0], (float)a[1])).ToList();
             if (dx["pas"] != null) pet.Pas = dx["pas"].ToObject<PasDef>();
             units.Add(pet);
@@ -99,6 +107,10 @@ namespace GuiQin.Battle
             {
                 id = Guid.NewGuid().ToString("N").Substring(0, 8), title = st.name, mode = "pve", bg = null,
                 units = units.Select(u => new UnitView { id = u.Id, side = u.Side, row = u.Row, name = u.Name, sprite = u.Sprite, h = u.H, flip = u.Flip, me = u.Me, boss = u.Boss, hp = u.Hp, maxHp = u.MaxHp, mp = u.Mp, maxMp = u.MaxMp }).ToList(),
+                petSkills = eng.PetSkills.Select(id => new SkillView
+                {
+                    id = id, name = Skills[id].name, target = Skills[id].target ?? "one", mp = (int)Skills[id].mp, usable = true
+                }).ToList(),
                 skills = list.Where(id => Skills.ContainsKey(id)).Select(id => new SkillView { id = id, name = Skills[id].name + (table && usable(id) ? " Lv." + GuiQin.Train.TrainService.Level(role, id) : ""), target = (Skills[id].heal > 0 || Skills[id].healPow > 0 || Skills[id].revive > 0) && (Skills[id].target ?? "one") == "one" ? "ally" : (Skills[id].target ?? "one"), mp = (int)Skills[id].mp, usable = usable(id), note = usable(id) ? null : (table ? "未学习" : Skills[id].lv + " 级解锁") }).ToList()
             };
             return new BattleSession { Id = view.id, StageId = st.id, Engine = eng, View = view, Stage = st, Seed = seed };

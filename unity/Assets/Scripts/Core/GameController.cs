@@ -264,7 +264,8 @@ namespace GuiQin
                 case "chat": OpenChat("all"); break;
                 case "auto": SetWander(!wander); toast.Show(wander ? "开始挂机闲逛，再点一次停止" : "停止挂机"); break;
                 case "ride": toast.Show("「坐骑」暂未开放"); break;
-                case "potion": QuickPotion(); break;
+                case "potion": QuickPotion("hp_potion"); break;
+                case "mpPotion": QuickPotion("mp_potion"); break;
             }
         }
 
@@ -294,11 +295,11 @@ namespace GuiQin
             if (!string.IsNullOrEmpty(r.data.msg)) toast.Show(r.data.msg);
         }
 
-        async void QuickPotion()
+        async void QuickPotion(string id)
         {
-            int n = 0; if (role != null && role.bag != null) role.bag.items.TryGetValue("hp_potion", out n);
-            if (n <= 0) { toast.Show("没有金创药了，找货郎买点吧"); return; }
-            var r = await net.BagOp(GuiQin.Inventory.BagCmd.Use, new GuiQin.Inventory.BagOpReq { id = "hp_potion" });
+            int n = 0; if (role != null && role.bag != null) role.bag.items.TryGetValue(id, out n);
+            if (n <= 0) { toast.Show("没有" + (string)GameData.Raw["items"][id]["name"] + "了，找货郎买点吧"); return; }
+            var r = await net.BagOp(GuiQin.Inventory.BagCmd.Use, new GuiQin.Inventory.BagOpReq { id = id });
             if (!r.Ok) { toast.Show(r.msg); return; }
             role.bag = r.data.bag; role.coin = r.data.coin; role.hp = r.data.hp; role.mp = r.data.mp; RefreshHud();
             if (!string.IsNullOrEmpty(r.data.msg)) toast.Show(r.data.msg);
@@ -316,7 +317,7 @@ namespace GuiQin
         async void OpenEquipment()
         {
             Stop(); await RefreshBag();
-            if (entered) bagUi.Open(BagUi.Tab.Equip);
+            if (entered) bagUi.Open(BagUi.Tab.Equip, fromRole: true);
         }
 
         void OpenPet()
@@ -392,14 +393,16 @@ namespace GuiQin
             return true;
         }
 
-        // 世界地图点名传送：同一张图只提示；其它由服务端判定（等级 / 费用），通过了才切图
+        // 世界地图点名直达，服务端确认目的地后切图。
         async void GoWorld(string id, string escort = null)
         {
             MapDef d; if (!GameData.Maps.TryGetValue(id, out d) || !entered) return;
             if (map != null && id == map.Id) { toast.Show("你已经在" + d.name); return; }
+            Stop();
             var r = await net.Teleport(id, escort);
             if (!r.Ok || !r.data.ok) { toast.Show(r.Ok ? (r.data.msg ?? "现在不能传送") : r.msg); return; }
             LoadMap(r.data.map, StageAt(r.data.map, r.data.x, r.data.y)); toast.Show("传送到 " + d.name);
+            if (escort == GuiQin.Tower.ZiyinService.Guard) await RefreshBag();
         }
 
         void ClearMap()
@@ -599,13 +602,13 @@ namespace GuiQin
             }
         }
 
-        // 走传送阵：任务锁 / 等级由服务端判，客户端只显示结果（PortalDef 里的 needQuest 等字段服务端也有一份）
+        // 走传送阵：服务端核对出发地图和实际传送点。
         async void Travel(PortalDef p)
         {
             string from = map.Id;
             var r = await net.Portal(from, p.to);
             if (!r.Ok) { toast.Show(r.msg); return; }
-            if (!r.data.ok) { toast.Show(!string.IsNullOrEmpty(r.data.msg) ? r.data.msg : (string.IsNullOrEmpty(p.lockMsg) ? "现在还不能过去" : p.lockMsg)); return; }
+            if (!r.data.ok) { toast.Show(r.data.msg ?? "现在还不能过去"); return; }
             if (map == null || map.Id != from) return;                       // 等待期间已经换图了
             MapDef dest = GameData.Maps[r.data.map];
             LoadMap(r.data.map, StageAt(r.data.map, r.data.x, r.data.y));
@@ -653,7 +656,7 @@ namespace GuiQin
         }
 
         // ---------------- 主线任务 ----------------
-        Beat Cur { get { return StoryBeats.At(role != null ? role.step : 0); } }
+        Beat Cur { get { return role != null ? StoryBeats.Current(role) : StoryBeats.At(0); } }
 
         Sprite FaceOf(string who)
         {
@@ -756,6 +759,8 @@ namespace GuiQin
         Actor QuestTarget()
         {
             var q = Cur; if (q == null || map == null) return null;
+            if (q.IsSectGate) return list.Find(x => x.Kind == ActorKind.Npc &&
+                (x.Id == "dao_menzhu" || x.Id == "taixu_mo") && x.gameObject.activeSelf);
             Actor a = q.IsTalk ? list.Find(x => x.Kind == ActorKind.Npc && x.Id == q.npc && x.gameObject.activeSelf) : list.Find(x => x.Sb == role.step);
             return a ?? HopTo(q.map);
         }
@@ -788,7 +793,15 @@ namespace GuiQin
         void QuestGo()
         {
             if (ModalOpen || dialog.Visible || battle != null || !entered) return;
-            var t = QuestTarget() ?? list.Find(a => a.Kind == ActorKind.Portal);
+            var t = QuestTarget();
+            if (t == null && Cur?.IsSectGate == true)
+            {
+                modal.Open(Cur.title, Cur.summary,
+                    new ModalUi.Btn("去太虚之林·道家", () => GoWorld("taixuforest"), true),
+                    new ModalUi.Btn("去太虚之峰·墨家", () => GoWorld("taixupeak")));
+                return;
+            }
+            if (t == null) t = list.Find(a => a.Kind == ActorKind.Portal);
             if (t != null) { GoTalk(t); toast.Show("自动寻路：" + t.DisplayName); }
         }
 
@@ -797,6 +810,15 @@ namespace GuiQin
         {
             if (info.shop == "smith") OpenSmith();
             else if (!string.IsNullOrEmpty(info.shop)) OpenShop(info.shop);
+            else if (info.act == "fbEntry")
+            {
+                var cfg = GuiQin.Tower.ZiyinService.Config;
+                var text = (string)cfg["intro"] + "\n\n等级 " + (int)cfg["lv"] + "，每日 " + (int)cfg["daily"] +
+                    " 次，入场 " + (int)cfg["fee"] + " 银两。";
+                modal.Open((string)cfg["name"], text,
+                    new ModalUi.Btn("进入副本", () => GoWorld(GuiQin.Tower.ZiyinService.Entrance, GuiQin.Tower.ZiyinService.Guard), true),
+                    new ModalUi.Btn("取消", null));
+            }
             else if (info.act == "towerEnter") TowerEnterModal();
             else if (info.act == "towerTp") TowerTpModal();
             else if (info.act == "joinSect") JoinSect("dao");
@@ -858,12 +880,19 @@ namespace GuiQin
 
         async void DoSect(bool join, string key)
         {
+            bool required = join && Cur?.IsSectGate == true;
             var r = join ? await net.SectJoin(key) : await net.SectHall(key);
             if (!r.Ok) { toast.Show(r.msg); return; }
             if (!r.data.ok) { toast.Show(r.data.msg); return; }
             role.cls = r.data.cls; role.sect = r.data.sect; role.hp = r.data.hp; role.mp = r.data.mp;
-            ApplyRoleLook(); toast.Show(r.data.msg);
-            if (join) { dialog.Open("提示", new Color(1f, 0.88f, 0.4f), null, key == "mo" ? "你拜入墨家，背起长剑。请去太虚之峰找猛士堂主或遁甲堂主选择分堂。" : "你拜入道家，背起箜篌。请去太虚之林找琴魔堂主或天音堂主选择分堂。", null); }
+            if (r.data.skl != null) role.skl = r.data.skl;
+            ApplyRoleLook(); SyncStory(); RefreshQuest(); toast.Show(r.data.msg);
+            if (join)
+            {
+                var next = required ? Cur : null;
+                Action continueStory = next != null && next.first && !next.IsTalk ? () => ShowPages(next.accept, null) : null;
+                dialog.Open("提示", new Color(1f, 0.88f, 0.4f), null, key == "mo" ? "你拜入墨家，背起长剑。日后可找猛士堂主或遁甲堂主选择分堂。" : "你拜入道家，背起箜篌。日后可找琴魔堂主或天音堂主选择分堂。", continueStory);
+            }
         }
 
         // ---------------- 玄兵塔 ----------------

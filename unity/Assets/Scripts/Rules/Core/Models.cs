@@ -12,9 +12,9 @@ namespace GuiQin
 
     public class PortalDef
     {
-        public string to, name, art, needQuest, lockMsg;
+        public string to, name, art, lockMsg;
+        public List<string> needStages;
         public float[] at, arrive;
-        public int? needStep;
     }
 
     public class WaterZone { public float[] rect, dir; public float speed; }
@@ -57,7 +57,8 @@ namespace GuiQin
         public int rec, n;
         public bool tower, story;
         public string need;
-        public List<string> enemies;
+        public List<string> enemies, needAll;
+        public string needMsg;
     }
 
     // 碰撞位图：bits 是 base64，1 = 可走

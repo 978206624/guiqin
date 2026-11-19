@@ -467,6 +467,12 @@
   "file": "assets/f_sword.webp",
   "bytes": 24952
  },
+ "f_mystery": {
+  "file": "assets/f_mystery.webp",
+  "w": 185,
+  "h": 264,
+  "bytes": 21012
+ },
  "f_tao": {
   "file": "assets/f_tao.webp",
   "bytes": 24724

@@ -85,6 +85,9 @@ namespace GuiQin
             }
         }
 
+        // 舆图地点和玄兵塔楼层可直达，独立副本使用自己的入口。
+        public static bool CanWorldTeleport(MapDef map) => map.world != null || map.tower > 0;
+
         // 没有碰撞位图的地图使用道路和多边形。
         public static MaskDef Mask(string mapId) => masks.TryGetValue(mapId, out var mask) ? mask : null;
     }

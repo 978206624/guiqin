@@ -44,6 +44,8 @@ namespace GuiQin.Battle
     {
         public string id, title, mode, bg;
         public List<UnitView> units;
+        public List<SkillView> petSkills;
+        public Dictionary<string, int> petCooldowns;
         public List<SkillView> skills;       // 主角可用的技能（给指令面板）
         public int turnSeconds = 30;
         public int round;                                 // 快照：当前回合数（开战时为 0）
@@ -53,7 +55,13 @@ namespace GuiQin.Battle
     public class BattleStartReq { public string stage; }
     public class BattleStartResp { public bool ok; public string msg; public BattleView battle; }
 
-    public class BattleCmd { public string type; public string skill; public int target = -1; }   // type: skill / item(skill 填物品 id) / defend / flee / auto
+    public class BattleCmd
+    {
+        public string type, skill;                    // 主角：技能、道具、防御、逃跑或自动
+        public int target = -1;
+        public string petSkill;                       // 宠物技能，defend 表示防御，缺省由 AI 行动
+        public int petTarget = -1;
+    }
     public class BattleCmdReq { public string battleId; public BattleCmd cmd; }
 
     // 一条战斗事件。客户端按顺序播放；所有数值都已由服务端算好。
@@ -85,6 +93,7 @@ namespace GuiQin.Battle
         public List<BattleEvent> events = new List<BattleEvent>();
         public bool over;
         public BattleEnd end;
+        public Dictionary<string, int> petCooldowns;
         public int round;
     }
 }

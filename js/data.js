@@ -175,6 +175,14 @@ window.DATA = {
   },
   playerSkills: ['pokong', 'zongheng', 'ningshen'],
 
+  // 战斗贴图的原始朝向。没有明确朝向的贴图（例如木桩）保持原图。
+  battleFacing: {
+    left: ['boar', 'boss', 'grunt', 'kk_npc_zhw', 'wolf'],
+    right: ['f_blade', 'f_crane', 'f_dragon', 'f_healer', 'f_mystery', 'f_panda',
+      'f_panther', 'f_spear', 'f_sword', 'f_tao', 'f_tortoise', 'kk_mon_100004',
+      'kk_mon_30005', 'kk_mon_40010', 'kk_mon_50008', 'kk_mon_60009', 'kk_npc16066', 'kk_npc60',
+      'kk_npc65_bs08'],
+  },
   enemies: {
     dummy: { name: '木桩',     sprite: 'dummy', h: 110, hp: 420,  atk: 28,  def: 8,  spd: 10,  exp: 200, coin: 0,   drops: [] },
     boar:  { name: '野猪',     sprite: 'boar',  pet: true, h: 78,  hp: 360,  atk: 82,  def: 14, spd: 82,  exp: 180, coin: 15,  drops: [['hp_potion', 0.4]] },
@@ -184,7 +192,7 @@ window.DATA = {
     // ---- 主线剧情专用 ----
     zhw:     { name: '展护卫',   sprite: 'kk_npc_zhw', h: 118, hp: 520,  atk: 62,  def: 14, spd: 78,  exp: 60,  coin: 0,  drops: [], boss: true },
     xinmo:   { name: '心魔',     sprite: 'f_panther',  h: 92,  hp: 760,  atk: 78,  def: 18, spd: 90,  exp: 90,  coin: 0,  drops: [['hp_potion', 1]], boss: true },
-    mystery: { name: '神秘强者', sprite: 'f_tao',      h: 132, hp: 1200, atk: 118, def: 28, spd: 86,  exp: 120, coin: 30, drops: [['hp_potion', 1]], boss: true },
+    mystery: { name: '神秘强者', sprite: 'f_mystery',      h: 132, hp: 1200, atk: 118, def: 28, spd: 86,  exp: 120, coin: 30, drops: [['hp_potion', 1]], boss: true },
     worm:    { name: '食尸虫',   sprite: 'f_tortoise', h: 62,  hp: 380,  atk: 84,  def: 16, spd: 70,  exp: 25,  coin: 10, drops: [['hp_potion', 0.2]], pet: true },
     xieyue:  { name: '邪月',     sprite: 'boss',       h: 150, hp: 1900, atk: 150, def: 38, spd: 84,  exp: 160, coin: 50, drops: [['hp_potion', 1], ['mp_potion', 1]], boss: true },
     tiger:   { name: '利爪幼虎', sprite: 'f_panther',  h: 70,  hp: 520,  atk: 126, def: 22, spd: 108, exp: 30,  coin: 12, drops: [['wolf_fang', 0.3]], pet: true },
@@ -452,7 +460,7 @@ window.DATA = {
         [[1790, 1255], [1885, 1255], [1895, 1305], [1790, 1310]],   // 右下药铺门口的木地板（阿秀站这儿）
         [[110, 1135], [105, 1075], [185, 1050], [200, 990], [260, 965], [470, 950], [570, 935], [585, 960], [395, 1040], [378, 1085], [385, 1170], [450, 1215], [330, 1235], [300, 1200], [225, 1125], [205, 1112]]],   // 桥西草屋的木平台和台阶
       npcs: [{ id: 'elder', at: [1295, 405] }, { id: 'axiu', at: [1735, 1305] }],
-      portals: [{ to: 'outskirts', name: '下山·恒山村郊', art: 'portal_array', at: [230, 1295], arrive: [140, 1360], needQuest: '1001', lockMsg: '村长还有话要交代，先别急着下山' }],
+      portals: [{ to: 'outskirts', name: '下山·恒山村郊', art: 'portal_array', at: [230, 1295], arrive: [140, 1360] }],
       foes: [{ stage: 'dummy', at: [440, 1225] }, { stage: 'boar', at: [1560, 480] }]
     },
     outskirts: {

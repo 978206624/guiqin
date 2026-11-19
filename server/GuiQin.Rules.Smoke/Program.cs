@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,8 @@ using System.Text;
 using GuiQin.Battle;
 using GuiQin.Inventory;
 using GuiQin.Net;
+using GuiQin.Quest;
+using GuiQin.Sect;
 using GuiQin;
 
 internal static class Program
@@ -41,7 +44,87 @@ internal static class Program
             Console.Error.WriteLine("战斗输出与快照不一致：" + snapshot);
             return 1;
         }
+        VerifySectStory();
+        VerifyPetSurvivesOwner();
+        Console.WriteLine("宠物续战：主角倒下后继续行动，宠物独力可获胜，全员倒下才判负。");
         return 0;
+    }
+
+    static void VerifySectStory()
+    {
+        foreach (var sect in new[] { "dao", "mo" })
+        {
+            var role = new RoleState { cls = "novice_f", lv = 1, bag = InventoryService.NewBag() };
+            var quest = new QuestService(role);
+            int earned = 0;
+            while (!quest.Current.IsSectGate)
+            {
+                var beat = quest.Current;
+                if (beat.IsTalk)
+                {
+                    var result = quest.Talk(beat.npc);
+                    if (!result.ok || result.exp != beat.exp) throw new InvalidOperationException("主线对话未推进或重复补发了经验。");
+                    earned += result.exp;
+                }
+                else
+                {
+                    var stage = GameData.Stages[beat.stage];
+                    if (quest.CheckStage(stage) != null) throw new InvalidOperationException("第一章战斗被意外阻止。");
+                    int exp = stage.enemies.Sum(id => (int)GameData.Raw["enemies"][id]["exp"]);
+                    Rewards.Grant(role, exp, 0, null, out _);
+                    quest.OnWin(stage, out _, out var result);
+                    earned += exp + result.exp;
+                }
+            }
+            var inventory = new InventoryService(role);
+            if (role.lv != 10 || role.exp != 0 || earned != 5400 ||
+                inventory.ItemCount("cloth_armor") != 1 || inventory.ItemCount("iron_sword") != 1 ||
+                inventory.ItemCount("bronze_bell") != 1)
+                throw new InvalidOperationException("第一章的自然升级或装备发奖不正确。");
+
+            int step = role.step;
+            var boss = GameData.Stages["s_mystery"];
+            if (quest.CheckStage(boss) == null || quest.Talk("zc_elder").ok ||
+                !new SectService(role).Join(sect).ok || role.step != step ||
+                quest.Current.qid != "1007" || quest.CheckStage(boss) != null)
+                throw new InvalidOperationException("入门应解除主线门槛并延续原进度。");
+
+            var old = new RoleState { cls = "novice_f", lv = 4, exp = 123, coin = 55, step = step + 2, cnt = 3, bag = InventoryService.NewBag() };
+            if (QuestService.EnsureSectLevel(old) <= 0 || old.lv != 10 || old.exp != 0 ||
+                old.step != step + 2 || old.cnt != 3 || old.coin != 55 ||
+                new InventoryService(old).ItemCount("cloth_armor") != 0 || QuestService.EnsureSectLevel(old) != 0)
+                throw new InvalidOperationException("旧角色的经验补足不应重发奖励或改动进度。");
+        }
+        Console.WriteLine("主线入门：第一章升到 10 级并发放装备，两派均能解锁赵村，旧存档保留节拍。");
+    }
+
+    static void VerifyPetSurvivesOwner()
+    {
+        var skills = GameData.Raw["skills"].ToObject<Dictionary<string, SkillDef>>();
+        var names = new Dictionary<string, string>();
+        foreach (bool petWins in new[] { true, false })
+        {
+            var player = new BUnit { Id = 1, Side = "ally", Me = true, Hp = 1, MaxHp = 1, Spd = 40, Crit = 0 };
+            var pet = new BUnit { Id = 2, Side = "ally", Row = "pet", Hp = 2000, MaxHp = 2000, Atk = 150, Spd = 20, Aggro = 0, Crit = 0 };
+            var enemy = new BUnit { Id = 3, Side = "enemy", Hp = 350, MaxHp = 350, Atk = 200, Spd = 200, Crit = 0 };
+            var engine = new BattleEngine(new List<BUnit> { player, pet, enemy }, skills, names, Seed);
+            if (!engine.AcceptsPetCommand("bite") || engine.AcceptsPetCommand("pokong"))
+                throw new InvalidOperationException("宠物技能白名单无效。");
+            var first = engine.RunRound(new BattleCmd { type = "defend", petSkill = "bite", petTarget = enemy.Id });
+            if (player.Alive || !pet.Alive || engine.Over != null || !first.Any(e => e.t == "act" && e.u == pet.Id))
+                throw new InvalidOperationException("主角倒下时，宠物应在当前回合继续出手。");
+
+            if (!petWins) pet.Hp = 1;
+            var next = engine.RunRound(new BattleCmd { type = "flee", petSkill = "bite", petTarget = enemy.Id });
+            if (next.Any(e => e.t == "flee"))
+                throw new InvalidOperationException("倒下的主角不能提交逃跑指令。");
+            if (petWins && !next.Any(e => e.t == "act" && e.u == pet.Id && e.skill == "bite"))
+                throw new InvalidOperationException("主角倒下后，宠物应执行玩家选择的技能。");
+            while (engine.Over == null && engine.Round < 20)
+                engine.RunRound(new BattleCmd { type = "auto" });
+            if (engine.Over != (petWins ? "win" : "lose") || player.Alive || pet.Alive != petWins)
+                throw new InvalidOperationException("宠物独力战斗结果不正确。");
+        }
     }
 
     static string RunBattle()

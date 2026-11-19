@@ -5,7 +5,7 @@ namespace GuiQin.Sect
 {
     public static class SectCmd { public const string Join = "sect.join", Hall = "sect.hall"; }
     public class SectReq { public string sect, hall; }
-    public class SectResp { public bool ok; public string msg, cls, sect; public int hp = -1, mp = -1; }
+    public class SectResp { public bool ok; public string msg, cls, sect; public int hp = -1, mp = -1; public System.Collections.Generic.Dictionary<string, int> skl; }
 
     // 门派两步：到了入门等级找门主入门（role.sect = dao / mo，职业变成“xx弟子”），再去对应堂主处选分堂（职业形象此时才定下，选了不能改）。
     // 原作入门 15 级、分堂 30 级，网页演示只做到 10 级，这里沿用 10 级。
@@ -34,7 +34,7 @@ namespace GuiQin.Sect
         {
             role.cls = cls; role.hp = -1; role.mp = -1;                      // 换职业气血法力回满
             GuiQin.Train.TrainService.GrantInit(role, cls);                  // 入门送前两个技能 1 级
-            return new SectResp { ok = true, msg = msg, cls = cls, sect = role.sect, hp = -1, mp = -1 };
+            return new SectResp { ok = true, msg = msg, cls = cls, sect = role.sect, hp = -1, mp = -1, skl = new System.Collections.Generic.Dictionary<string, int>(role.skl) };
         }
 
         // 传送请求只认可当前地图附近、且明确配置了该目的地的接引师。

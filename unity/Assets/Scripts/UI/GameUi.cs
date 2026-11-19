@@ -147,9 +147,10 @@ namespace GuiQin
             Shortcut("guild", "帮派", "icon_guild", 599, () => onKey("guild"));
             Shortcut("friend", "好友", "icon_friend", 675, () => onKey("friend"));
             Shortcut("settings", "设置", "icon_gear", 751, onMenu);
-            // 右下角：自动挂机（大）、坐骑、金创药快捷键
+            // 右下角：自动挂机（大）、坐骑、回气丹和金创药快捷键
             autoBtn = RoundIcon("auto", "icon_auto", 609, 1143, 86, () => onKey("auto"));
             RoundIcon("ride", "icon_ride", 534, 1186, 56, () => onKey("ride"));
+            RoundIcon("mpPotion", "item_mp_potion", 502, 1116, 56, () => onKey("mpPotion"));
             RoundIcon("potion", "icon_potion", 566, 1116, 56, () => onKey("potion"));
 
             var log = WebUi.Panel("systemMessages", town);

@@ -88,8 +88,8 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 | `sect.join` / `sect.hall` | 请求 | 拜入门派（需 10 级）/ 选择分堂（定后不可改） |
 | `tower.enter` / `tower.next` / `tower.leave` | 请求 | 百炼玄兵塔：进塔（15 级）、上楼（需破本层首领）、出塔 |
 | `map.move` | 请求 | 上报行走目的地 / 到达点，服务端校验，不合法回 `ok=false` + 应回到的位置 |
-| `map.portal` | 请求 | 走传送阵（服务端判 `needQuest`/`needStep`/等级） |
-| `map.teleport` | 请求 | 本地真实服务支持门派接引师传送。传入 `npc` 和 `to`，按当前地图、接引师位置及配置目的地校验 |
+| `map.portal` | 请求 | 走传送阵（服务端核对出发地图和真实传送点） |
+| `map.teleport` | 请求 | 传入 `to` 免费直达舆图地点和玄兵塔楼层。门派接引师可附带 `npc`，服务端按当前位置和接引目的地校验 |
 | `sys.ping` | 请求 | 心跳（带 seq，服务端回 pong） |
 | `auth.resume` | 请求 | 断线重连，带 session 恢复登录态 |
 | `battle.resume` | 请求 | 取进行中战斗的快照 |
@@ -108,9 +108,9 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 | cmd | 方向 | 请求 → 回包 |
 |---|---|---|
 | `battle.start` | 请求 | `{stage}` → `{ok, msg, battle:{id,title,mode,bg,turnSeconds, units:[{id,side,row,name,sprite,h,flip,me,boss,hp,maxHp,mp,maxMp}], skills:[{id,name,target,mp,usable,note}]}}` |
-| `battle.cmd` | 请求 | `{battleId, cmd:{type: skill\|defend\|flee\|auto, skill, target}}` → `{round, events:[…], over, end}` |
+| `battle.cmd` | 请求 | `{battleId, cmd:{type: skill\|defend\|flee\|auto, skill, target, petSkill, petTarget}}` → `{round, events:[…], over, end}` |
 
-- 一个回合 = 一次 `battle.cmd` 请求/应答：客户端提交主角指令，服务端结算**整个回合**（所有单位按速度出手），把事件列表一次回给客户端按序播放。回合内客户端不再和服务端交互，所以延迟不影响出手节奏。
+- 一个回合 = 一次 `battle.cmd` 请求/应答：客户端在同一条请求中提交主角和出战宠物的指令，服务端校验宠物技能并结算**整个回合**（所有单位按速度出手），把事件列表一次回给客户端按序播放。回合内客户端不再和服务端交互，所以延迟不影响出手节奏。
 - 事件类型（`BattleEvent.t`）：`round` `act`（出手者 / 技能 / 目标）`defend` `hit`（受击者、伤害、暴击、剩余气血）`dot` `heal` `miss` `float` `mp` `status` `unstatus` `die` `revive` `maxhp` `stun` `flee`。所有数值都是最终值，客户端不做计算。
 - 结算：`over=true` 时带 `end:{result: win|lose|flee, exp, coin, items, levelUp, lv, respawnMap}`，服务端已先入库（经验 / 掉落 / 升级 / 战败回城）。
 - 并发：一个角色同时只能有一场战斗（`Code.InBattle`）；`battleId` 不匹配或已结束回 `Code.NoBattle`。
@@ -205,6 +205,12 @@ IGameBackend（Net/IGameBackend.cs）──┬─ MockBackend（本地内存；�
 5. **S5 背包 / 商店 / 锻造 / 宠物**（R4）。
 6. **S6 多人同屏 + 聊天**：AOI、`push.map`、`chat.*`。
 7. **S7 运营能力**：公告、邮件、GM 后台（封号 / 发奖 / 改表）、活动、充值（渠道 SDK）、日志与监控。
+
+## 联网服务已接入的命令
+
+- 背包与商店包含整理、出售、普通商店买卖、锻造、宝石镶嵌／拆卸／合成及每日福利。门派包括 `sect.join`、`sect.hall` 和 `train.do`，宠物包括 `pet.use`、`pet.exch`、`pet.rite` 和 `pet.gift`。
+- 聊天支持 `chat.send`、`chat.hist`、`chat.guild` 和 `push.chat`，好友支持 `friend.add`、`friend.del` 和 `friend.list`。队伍通过 `party.invite`、`party.reply`、`party.leave` 和 `push.party` 处理，邀请限一分钟，队伍最多五人。
+- 紫阴古城使用带守卫编号的 `map.teleport` 入场，过层使用 `map.portal` 的 `needStages`，入场费用和次数持久化。
 
 ## 背包 / 装备 / 宝石 / 锻造 / 商店（R4，已写参考实现）
 

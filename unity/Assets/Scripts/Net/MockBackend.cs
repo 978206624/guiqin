@@ -13,7 +13,7 @@ using UnityEngine;
 namespace GuiQin.Net
 {
     // 本地假后端：状态只在内存里（退出就没了——和“不做本地存档”一致）。用来在没有服务器时把客户端跑通，
-    // 同时是服务端行为的“参考实现”：真服务器要做的校验（传送阵任务锁、等级、移动合法性）在这里先写成最宽松的版本。
+    // 同时是服务端行为的“参考实现”：真服务器要做的校验（等级、移动合法性等）在这里先写成最宽松的版本。
     public class MockBackend : IGameBackend
     {
         public bool Connected { get { return true; } }
@@ -50,6 +50,7 @@ namespace GuiQin.Net
         public Task<Result<FriendResp>> FriendAdd(string peer) => ChatCall(c => c.SetFriend(peer, true));
         public Task<Result<FriendResp>> FriendDel(string peer) => ChatCall(c => c.SetFriend(peer, false));
         public Task<Result<PartyResp>> PartyInvite(string peer) => ChatCall(c => c.Invite(peer));
+        public Task<Result<PartyResp>> PartyReply(string peer, bool accept) => Task.FromResult(Result<PartyResp>.Success(new PartyResp { msg = "没有待处理的邀请" }));
         public Task<Result<PartyResp>> PartyLeave() => ChatCall(c => c.Leave());
 
         void ZoneNotice(string text)
@@ -155,7 +156,7 @@ namespace GuiQin.Net
 
         public Task<Result<EnterResp>> EnterGame(string roleId)
         {
-            foreach (var kv in zones) { var r = kv.Value.Find(x => x.id == roleId); if (r != null) { if (role != r) battle = null; role = r; enteredServer = kv.Key; GuiQin.Train.TrainService.EnsureSkl(role); return Reply(new EnterResp { role = Clone(role) }); } }
+            foreach (var kv in zones) { var r = kv.Value.Find(x => x.id == roleId); if (r != null) { if (role != r) battle = null; role = r; enteredServer = kv.Key; GuiQin.Train.TrainService.EnsureSkl(role); QuestService.EnsureSectLevel(role); return Reply(new EnterResp { role = Clone(role) }); } }
             return Task.FromResult(Result<EnterResp>.Fail(Code.Protocol, "没有这个角色"));
         }
 
@@ -175,18 +176,28 @@ namespace GuiQin.Net
 
         public Task<Result<MapChangeResp>> Portal(string from, string to)
         {
-            // 传送阵的任务锁在服务端判（needQuest → 对应任务第一拍的序号）。等级限制还没有。
-            PortalDef p = null;
-            MapDef fd;
-            if (GameData.Maps.TryGetValue(from, out fd) && fd.portals != null) p = fd.portals.Find(q => q.to == to);
-            if (p != null) { var lk = new QuestService(role).CheckPortal(p); if (lk != null) return Reply(new MapChangeResp { ok = false, msg = lk, map = role.map }); }
-            return Change(to, p != null ? p.arrive : null);
+            if (battle != null) return Task.FromResult(Result<MapChangeResp>.Fail(Code.InBattle, "战斗中"));
+            var portal = from == role.map ? GameData.Maps[from].portals?.Find(q => q.to == to) : null;
+            if (portal == null) return Reply(new MapChangeResp { msg = "当前地图没有这个传送点", map = role.map });
+            if (portal.needStages?.Exists(id => !role.cleared.Contains(id)) == true)
+                return Reply(new MapChangeResp { msg = portal.lockMsg ?? "需先击败守卫", map = role.map });
+            return Change(to, portal.arrive);
         }
 
         public Task<Result<MapChangeResp>> Teleport(string to, string npc = null)
         {
-            if (npc != null && !SectService.CanEscort(role, npc, to))
+            if (battle != null) return Task.FromResult(Result<MapChangeResp>.Fail(Code.InBattle, "战斗中"));
+            if (string.IsNullOrEmpty(to) || !GameData.Maps.TryGetValue(to, out var destination))
+                return Reply(new MapChangeResp { msg = "目的地不存在", map = role.map });
+            if (to == ZiyinService.Entrance && npc == ZiyinService.Guard && role.map == "qingyang")
+            {
+                var error = ZiyinService.Enter(role, DateTime.UtcNow);
+                return error != null ? Reply(new MapChangeResp { map = role.map, msg = error }) : Change(to, null);
+            }
+            if (!string.IsNullOrEmpty(npc) && !SectService.CanEscort(role, npc, to))
                 return Reply(new MapChangeResp { msg = "请靠近对应的门派接引师" });
+            if (string.IsNullOrEmpty(npc) && !GameData.CanWorldTeleport(destination))
+                return Reply(new MapChangeResp { msg = "请从副本入口进入", map = role.map });
             return Change(to, null);
         }
 
@@ -246,13 +257,7 @@ namespace GuiQin.Net
                 case BagCmd.Expand: ok = svc.Expand(q.capacity); break;
                 case BagCmd.Get: ok = true; svc.Msg = null; break;
                 case BagCmd.Rest: { var st = RoleStats.Compute(role.cls, role.lv, role.bag); bool need = role.hp >= 0 && role.hp < st.maxHp || role.mp >= 0 && role.mp < st.maxMp; role.hp = -1; role.mp = -1; ok = true; svc.Msg = need ? "歇了一会儿，气血法力回满" : null; break; }
-                case BagCmd.Gift:
-                    {
-                        string today = DateTime.UtcNow.AddHours(8).ToString("yyyy-MM-dd");          // 服务端日期（北京时间）
-                        if (role.giftDay == today) { ok = false; svc.Msg = "今日福利已领取"; break; }
-                        List<string> lost; Rewards.Grant(role, 0, 200, new Dictionary<string, int> { { "hp_potion", 2 } }, out lost);
-                        role.giftDay = today; ok = true; svc.Msg = "领取福利：银两 +200，金创药 ×2" + (lost.Count > 0 ? "（背包满了，药品丢失）" : ""); break;
-                    }
+                case BagCmd.Gift: ok = svc.DailyGift(DateTime.UtcNow); break;
                 case BagCmd.Use: ok = svc.Use(q.id); break;
                 case BagCmd.Equip: ok = svc.Equip(q.id); break;
                 case BagCmd.Unequip: ok = svc.Unequip(q.slot); break;
@@ -315,9 +320,11 @@ namespace GuiQin.Net
         {
             await Task.Delay(LatencyMs);
             if (battle == null || battle.Id != battleId) return Result<BattleRoundResp>.Fail(Code.NoBattle, "战斗已经结束");
+            if (!battle.Engine.AcceptsPetCommand(cmd?.petSkill)) return Result<BattleRoundResp>.Fail(Code.Protocol, "宠物无法使用该技能");
             var resp = new BattleRoundResp();
             resp.events = battle.Engine.RunRound(cmd);
             resp.round = battle.Engine.Round;
+            resp.petCooldowns = battle.Engine.PetCooldowns();
             if (battle.Engine.Over != null)
             {
                 resp.over = true; resp.end = Settle(battle);

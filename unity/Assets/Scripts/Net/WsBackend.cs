@@ -230,6 +230,7 @@ namespace GuiQin.Net
         public Task<Result<FriendResp>> FriendAdd(string peer) => Call<FriendResp>(Cmd.FriendAdd, new ChatPeerReq { peer = peer });
         public Task<Result<FriendResp>> FriendDel(string peer) => Call<FriendResp>(Cmd.FriendDel, new ChatPeerReq { peer = peer });
         public Task<Result<PartyResp>> PartyInvite(string peer) => Call<PartyResp>(Cmd.PartyInvite, new ChatPeerReq { peer = peer });
+        public Task<Result<PartyResp>> PartyReply(string peer, bool accept) => Call<PartyResp>(Cmd.PartyReply, new PartyReplyReq { peer = peer, accept = accept });
         public Task<Result<PartyResp>> PartyLeave() => Call<PartyResp>(Cmd.PartyLeave, null);
         public Task<Result<GuiQin.Train.TrainResp>> Train(string who, string id) { return Call<GuiQin.Train.TrainResp>(GuiQin.Train.TrainCmd.Do, new GuiQin.Train.TrainReq { who = who, id = id }); }
         public Task<Result<GuiQin.Pets.PetResp>> PetOp(string cmd, string id) { return Call<GuiQin.Pets.PetResp>(cmd, new GuiQin.Pets.PetReq { id = id }); }

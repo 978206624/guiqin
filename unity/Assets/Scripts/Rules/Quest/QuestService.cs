@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using GuiQin.Net;
+using GuiQin.Tower;
 
 namespace GuiQin.Quest
 {
@@ -9,7 +10,17 @@ namespace GuiQin.Quest
         readonly RoleState role;
         public QuestService(RoleState role) { this.role = role; }
 
-        public Beat Current { get { return StoryBeats.At(role.step); } }
+        public Beat Current { get { return StoryBeats.Current(role); } }
+
+        // 旧角色可能按原奖励走完了引见；只补到入门所需等级，不重发任务奖励。
+        public static int EnsureSectLevel(RoleState role)
+        {
+            if (StoryBeats.Current(role)?.IsSectGate != true || role.lv >= GuiQin.Sect.SectService.SectLv) return 0;
+            int gain = -role.exp;
+            for (int lv = role.lv; lv < GuiQin.Sect.SectService.SectLv; lv++) gain += Rewards.ExpNeed(lv);
+            Rewards.Grant(role, gain, 0, null, out _);
+            return gain;
+        }
 
         // 找人对话 / 采集：只有当前这一拍的 npc 对得上才算
         public QuestTalkResp Talk(string npc)
@@ -32,6 +43,8 @@ namespace GuiQin.Quest
                 r.exp = b.exp; r.coin = b.coin; r.items = new Dictionary<string, int>(b.items);
                 if (lost.Count > 0) r.msg = "背包已满，部分奖励丢失";
             }
+            int sectExp = EnsureSectLevel(role);
+            if (sectExp > 0) { r.exp += sectExp; r.levelUp = true; }
             r.step = role.step; r.cnt = role.cnt; r.lv = role.lv;
         }
 
@@ -41,24 +54,21 @@ namespace GuiQin.Quest
             if (st.story)
             {
                 var b = Current;
+                if (b?.IsSectGate == true) return "请先完成「投师学艺」，拜入道家或墨家。";
                 if (b == null || (b.type != "fight" && b.type != "kill") || b.stage != st.id) return "现在还不是和他动手的时候";
             }
             if (st.tower)
             {
+                if (role.lv < TowerService.MinLv) return "达到 " + TowerService.MinLv + " 级才能挑战玄兵塔守卫。";
                 if (st.n <= role.tower) return "这名守卫你已经打败了，不能重复挑战。";
                 if (st.n > role.tower + 1) return "要按顺序挑战守卫。";
             }
+            if (st.needAll != null && st.needAll.Exists(id => !role.cleared.Contains(id))) return st.needMsg ?? "需先击败守卫。";
             if (!string.IsNullOrEmpty(st.need) && !role.cleared.Contains(st.need))
             {
                 StageDef need; string nm = GameData.Stages.TryGetValue(st.need, out need) ? need.name : st.need;
                 return "他们人多势众，贸然上前太危险。先打通「" + nm + "」再来。";
             }
-            return null;
-        }
-
-        public string CheckPortal(PortalDef p)
-        {
-            if (!string.IsNullOrEmpty(p.needQuest) && role.step < StoryBeats.NeedStep(p.needQuest)) return string.IsNullOrEmpty(p.lockMsg) ? "现在还不能过去" : p.lockMsg;
             return null;
         }
 

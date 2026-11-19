@@ -19,12 +19,13 @@ namespace GuiQin.Chat
 
     public class ChatPerson { public string name, cls; public int lv; }
     public class ChatPeerReq { public string peer; }
+    public class PartyReplyReq { public string peer; public bool accept; }
     public class PartyState
     {
         public string roleId;
         public int revision;
         public List<ChatPerson> members = new List<ChatPerson>();
-        public List<string> pending = new List<string>();
+        public List<string> pending = new List<string>(), incoming = new List<string>();
     }
     public class FriendResp { public bool ok; public string msg; public List<ChatPerson> friends = new List<ChatPerson>(); }
     public class PartyResp { public bool ok; public string msg; public PartyState party; }

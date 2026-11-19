@@ -13,7 +13,8 @@
 1. `CHAPTER_LAST=1014 python3 tools/story_import.py`（只要范围内用到的 NPC / 首领 / 怪物 / 采集物都在脚本顶部映射表里）。
 2. `data.js`：补 NPC（已预置 赵村村长/萧恨水/韩信/装备商人/白素 等）、`enemies`、`stages`（`story:true`）、地图 `npcs` 摆位（用 tools 里的碰撞图确认可走）。
 3. NPC 形象来自 kunkunxunqin：把 `client/assets/npc_handpainted/<名>/frame-000.png` 放进 `art-src/kunkun-npc/`，加进 `build.py` 的 `KK_NPC`（会生成立绘 `kk_<名>` 与头像 `head_kk_<名>`）。注意单文件版 16MB 上限。
-4. 经验奖励：`TOTAL` 表给每个任务的总经验，脚本扣掉战斗经验后写进奖励。
+4. 经验奖励：`TOTAL` 表给每个任务的总经验，脚本扣掉战斗经验后写进奖励。第一章主线及必打战斗合计 5,400 经验，正好升到 10 级。`EQUIPMENT` 表为指定任务添加阶段装备。
+5. 完成《阴阳两面》后，未入门角色先完成「投师学艺」再进入后续主线。入门关口定义在剧本的 `sectGate` 中，沿用原任务节拍序号。
 
 ## 已知取舍
 - 食尸虫 / 幼虎 / 毒蛇 / 邪月等后续章节怪物暂借现有美术。

@@ -594,7 +594,7 @@ function makePortal(p) {
   const el = document.createElement('div'); el.className = 'portal'; const sz = p.art && AS.size[p.art];
   el.innerHTML = (sz ? '<img class="arr" alt="" src="' + IMG(p.art) + '" style="width:' + sz[0] + 'px;height:' + sz[1] + 'px;left:' + (-sz[0] / 2) + 'px;top:' + (-sz[1] / 2) + 'px">' : '<i></i>') + '<div class="tag"' + (sz ? ' style="bottom:' + (sz[1] / 2 + 6) + 'px"' : '') + '></div>';
   world.appendChild(el);
-  const a = { kind: 'portal', id: 'portal_' + p.to, name: p.name, el, tag: el.querySelector('.tag'), pos: I(p.at[0], p.at[1]), h: 50, mark: false, to: p.to, arrive: p.arrive, needStep: p.needStep, needStages: p.needStages, lockMsg: p.lockMsg };
+  const a = { kind: 'portal', id: 'portal_' + p.to, name: p.name, el, tag: el.querySelector('.tag'), pos: I(p.at[0], p.at[1]), h: 50, mark: false, to: p.to, arrive: p.arrive, needStages: p.needStages, lockMsg: p.lockMsg };
   el.style.transform = 'translate(' + a.pos.x + 'px,' + a.pos.y + 'px)'; el.style.zIndex = sz ? 0 : 1;
   drawTag(a); return a;
 }
@@ -826,15 +826,19 @@ function findPath(from, to) {
 function addBtn(parent, icon, label, x, y, size, key, dot) {
   const b = document.createElement('button'); b.className = 'btn'; b.type = 'button';
   b.style.cssText = 'left:' + (x - size / 2) + 'px;top:' + (y - size / 2) + 'px;width:' + size + 'px';
-  b.innerHTML = '<img alt="" src="' + IMG('icon_' + icon) + '">' + (label ? '<span>' + label + '</span>' : '') + (dot ? '<i class="dot"></i>' : '');
+  b.innerHTML = '<img alt="" src="' + IMG(icon) + '">' + (label ? '<span>' + label + '</span>' : '') + (dot ? '<i class="dot"></i>' : '');
   b.setAttribute('aria-label', label || key);
   b.addEventListener('click', e => { e.stopPropagation(); onBtn(key, label, b); });
   parent.appendChild(b); return b;
 }
-[['act', '活动', 0], ['gift', '福利', 1], ['mall', '商城', 0], ['rank', '竞技', 0], ['bag', '背包', 0], ['guild', '帮派', 0], ['friend', '好友', 0]].forEach((r, i) => addBtn($('btns'), r[0], r[1], 676, 246 + i * 76, 54, r[0], r[2]));
-addBtn($('btns'), 'gear', '设置', 676, 246 + 7 * 76, 54, 'gear', 0);
-const autoBtn = addBtn($('btns'), 'auto', '', 652, 1186, 86, 'auto');
-addBtn($('btns'), 'ride', '', 562, 1214, 56, 'ride'); addBtn($('btns'), 'potion', '', 594, 1144, 56, 'potion');
+[['act', '活动', 0], ['gift', '福利', 1], ['mall', '商城', 0], ['rank', '竞技', 0], ['bag', '背包', 0], ['guild', '帮派', 0], ['friend', '好友', 0]].forEach((r, i) => addBtn($('btns'), 'icon_' + r[0], r[1], 676, 246 + i * 76, 54, r[0], r[2]));
+addBtn($('btns'), 'icon_gear', '设置', 676, 246 + 7 * 76, 54, 'gear', 0);
+const autoBtn = addBtn($('btns'), 'icon_auto', '', 652, 1186, 86, 'auto');
+addBtn($('btns'), 'icon_ride', '', 562, 1214, 56, 'ride');
+addBtn($('btns'), 'icon_potion', '', 594, 1144, 56, 'potion');
+const manaBtn = addBtn($('btns'), 'item_mp_potion', '', 530, 1144, 56, 'mpPotion');
+manaBtn.classList.add('quickMana');
+manaBtn.setAttribute('aria-label', '补蓝（回气丹）');
 // 点头像开角色面板，点宠物头像开宠物面板
 $('hudFace').parentNode.addEventListener('click', e => { e.stopPropagation(); if (!B.active) openRole(); });
 $('hudPet').addEventListener('click', e => { e.stopPropagation(); if (!B.active) openPet(); });
@@ -858,7 +862,11 @@ function onBtn(key, label, b) {
   else if (key === 'guild') window.CHAT.open('guild');
   else if (key === 'friend') window.CHAT.open('pm');
   else if (key === 'auto') { wander = !wander; wanderWait = 0; autoBtn.classList.toggle('on', wander); if (!wander) stop(); toast(wander ? '开始挂机闲逛，再点一次停止' : '停止挂机'); }
-  else if (key === 'potion') { if (!S.items.hp_potion) toast('没有金创药了，找货郎买点吧'); else usePotion('hp_potion'); }
+  else if (key === 'potion' || key === 'mpPotion') {
+    const id = key === 'mpPotion' ? 'mp_potion' : 'hp_potion';
+    if (!S.items[id]) toast('没有' + D.items[id].name + '了，找货郎买点吧');
+    else usePotion(id);
+  }
   else if (key === 'gift') {
     if (!S.ssGift2) {
       S.ssGift2 = true;
@@ -900,7 +908,18 @@ function openWorld() {
     return '<button type="button" class="wnode' + (here ? ' here' : '') + (d.sect ? ' sect' : '') + '" data-go="' + id + '" style="left:' + d.world[0] + 'px;top:' + d.world[1] + 'px">' + d.name +
       '<small>' + (here ? '你在这里' : d.note) + '</small></button>';
   }).join('');
+  const locations = $('wmapDestinations');
+  locations.replaceChildren(new Option('地点列表', ''));
+  for (const [id, def] of Object.entries(D.maps)) {
+    if (id !== M.id && canWorldTravel(def)) locations.add(new Option(def.name, id));
+  }
   $('wmap').hidden = false; WP.vx = WP.vy = 0; wpCenter(M.id);
+}
+function canWorldTravel(def) { return !!(def && (def.world || def.tower)); }
+function worldTravel(id) {
+  if (B.active || !canWorldTravel(D.maps[id])) return;
+  if (id === M.id) { toast('你已经在' + D.maps[id].name); return; }
+  $('wmap').hidden = true; loadMap(id); save(); toast('传送到 ' + D.maps[id].name);
 }
 { const wm = $('wmap'); let last = null, pid = null;
   const stepInertia = () => {
@@ -925,12 +944,11 @@ function openWorld() {
     e.stopPropagation();
     if (WP.moved > 10) { WP.moved = 0; return; }              // 拖动不算点击
     const b = e.target.closest('[data-go]'); if (!b) return;
-    const id = b.dataset.go;
-    if (id === M.id) { toast('你已经在' + D.maps[id].name); return; }
-    wm.hidden = true; loadMap(id); save(); toast('传送到 ' + D.maps[id].name);
+    worldTravel(b.dataset.go);
   });
   $('wmapHome').addEventListener('click', e => { e.stopPropagation(); WP.vx = WP.vy = 0; wpCenter(M.id); });
 }
+$('wmapDestinations').addEventListener('change', e => worldTravel(e.target.value));
 $('wmapClose').addEventListener('click', e => { e.stopPropagation(); $('wmap').hidden = true; });
 $('place').addEventListener('click', e => { e.stopPropagation(); openWorld(); });
 // 场景地图（点小地图打开）：当前这张地图的全貌，标出自己、人物、传送点、敌人；点地面走过去，点标记去找人
@@ -989,10 +1007,22 @@ $('dialog').addEventListener('click', e => { e.stopPropagation(); closeDialog();
     out.push(beat);
   }));
   D.quests = out; D.questFirst = first;
-  Object.values(D.maps).forEach(m => (m.portals || []).forEach(p => { if (p.needQuest) p.needStep = first[p.needQuest]; }));
+  const gate = window.STORY && window.STORY.sectGate;
+  const last = gate ? out.map(b => b.qid).lastIndexOf(gate.after) : -1;
+  if (last >= 0) D.sectGate = Object.assign({type: 'sect', step: last + 1}, gate);
   // 剧情里的采集点：当成一个只在对应任务时出现的“人物”
   out.forEach(b => { if (b.type === 'spot' && !D.npcs[b.npc]) D.npcs[b.npc] = { name: b.spot, spot: true, color: '#9ff0ff', idle: '' }; });
 })();
+// 入门要求盖在当前任务上，保留存档原有的节拍序号。
+function currentQuest() {
+  return D.sectGate && S.step >= D.sectGate.step && !ROLE.sect ? D.sectGate : D.quests[S.step];
+}
+function sectExpDeficit() {
+  if (currentQuest()?.type !== 'sect' || S.lv >= SECT_LV) return 0;
+  let exp = -S.exp;
+  for (let lv = S.lv; lv < SECT_LV; lv++) exp += D.expNeed.base + D.expNeed.perLevel * lv;
+  return exp;
+}
 const faceOf = who => {
   if (who === '你') return ROLE && AS.img['head_' + ROLE.cls] ? 'head_' + ROLE.cls : 'head_player';   // 对白里的“你”用当前职业的头像
   const id = Object.keys(D.npcs).find(k => D.npcs[k].name === who && !D.npcs[k].spot);
@@ -1078,7 +1108,17 @@ function openTrain(who) {
 ACTS.train = v => { const [who, id] = v.split(':'), ct = trainCost(id);
   if (skl(id) >= D.train.maxLv || S.lv < ct.lvReq || S.coin < ct.coin || trainList(who).indexOf(id) < 0) return;
   S.coin -= ct.coin; S.skl[id] = skl(id) + 1; save(); refresh(); toast(D.skills[id].name + ' 升到 ' + S.skl[id] + ' 级'); openTrain(who); };
-ACTS.joinDao = () => { closeModal(); ROLE.sect = 'dao'; changeClass(curCls().gender === 'm' ? 'dao_dz_m' : 'dao_dz'); };
+function joinStorySect(sect) {
+  const c = curCls();
+  if (ROLE.sect || !c.joinSect || S.lv < SECT_LV) return;
+  const required = currentQuest()?.type === 'sect';
+  closeModal();
+  ROLE.sect = sect;
+  changeClass(sect + '_dz' + (c.gender === 'm' ? '_m' : ''));
+  const next = required ? currentQuest() : null;
+  if (next?.first && next.type !== 'talk' && next.type !== 'spot') showPages(next.accept);
+}
+ACTS.joinDao = () => joinStorySect('dao');
 function joinMoTalk() {
   const c = curCls();
   if (ROLE.sect === 'mo') { if (c.name === '墨家弟子') openTrain('menzhu'); else toast('分堂技能请找本堂堂主学习、升级'); return; }
@@ -1087,7 +1127,7 @@ function joinMoTalk() {
   if (S.lv < SECT_LV) { toast('需达到 ' + SECT_LV + ' 级方可入门（现在 ' + S.lv + ' 级）'); return; }
   openModal('拜入墨家', '<p class="center">墨巨子说：兼爱非攻，机关为用。入我门下，再去猛士、遁甲两位堂主处择一堂修行。</p><p class="center"><button type="button" class="tbtn red" data-act="joinMo">拜入墨家</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>');
 }
-ACTS.joinMo = () => { closeModal(); ROLE.sect = 'mo'; changeClass(curCls().gender === 'm' ? 'mo_dz_m' : 'mo_dz'); };
+ACTS.joinMo = () => joinStorySect('mo');
 function pickMoHallTalk(hall) {          // hall: 'ms' | 'dj'
   const c = curCls(), name = hall === 'ms' ? '猛士' : '遁甲';
   if (c.sect === '墨家' && !/弟子$/.test(c.name)) { if (c.name === name) openTrain('hall'); else toast('你已入另一堂，分堂不可改选'); return; }
@@ -1122,17 +1162,18 @@ function finishBeat(q, extra) {
   let ups = 0, pages = [];
   if (q.last) {
     const r = Object.assign({}, q.reward || {}); if (extra) { r.exp = (r.exp || 0) + (extra.exp || 0); r.coin = (r.coin || 0) + (extra.coin || 0); r.items = Object.assign({}, r.items, extra.items); }
+    r.exp = Math.max(r.exp || 0, sectExpDeficit());
     ups = grant(r); sys('完成「' + q.title + '」：' + rewardText(r));
     pages = (q.outro || []).slice();
-    const nx = D.quests[S.step]; if (nx && nx.first && nx.type !== 'talk' && nx.type !== 'spot') pages = pages.concat(nx.accept);
+    const nx = currentQuest(); if (nx && nx.first && nx.type !== 'talk' && nx.type !== 'spot') pages = pages.concat(nx.accept);
   }
-  toast(ups ? '升到 ' + S.lv + ' 级！气血法力已回满' : (D.quests[S.step] ? '任务更新：' + D.quests[S.step].goal : '已接入的剧情已完成，后续剧情敬请期待'));
+  toast(ups ? '升到 ' + S.lv + ' 级！气血法力已回满' : (currentQuest() ? '任务更新：' + currentQuest().goal : '已接入的剧情已完成，后续剧情敬请期待'));
   if (wasLow && S.lv >= SECT_LV && curCls().joinSect) sys('你已达 ' + SECT_LV + ' 级，可前往太虚之林，找道家门主入门，再去堂主处选分堂。');
   save(); refresh();
   if (pages.length) showPages(pages);
 }
 function talk(n) {
-  const q = D.quests[S.step];
+  const q = currentQuest();
   if (q && (q.type === 'talk' || q.type === 'spot') && q.npc === n.id) {
     showPages((q.first ? q.accept : []).concat(q.pages), () => finishBeat(q));
     return;
@@ -1182,7 +1223,7 @@ function openTowerTp() {
 }
 // 地图上的敌人：走过去后弹出确认
 function openFoe(a) {
-  const q0 = D.quests[S.step];
+  const q0 = currentQuest();
   if (a.stage.story && q0 && q0.stage === a.stage.id && q0.pre && q0.pre.length && S.preSeen !== S.step) { S.preSeen = S.step; save(); showPages(q0.pre, () => openFoe(a)); return; }
   if (a.done) { openModal(a.stage.name, '<p class="center">这名守卫你已经打败了，不能重复挑战。</p><p class="center"><button type="button" class="tbtn" data-act="close">知道了</button></p>'); return; }
   const st = a.stage, names = st.enemies.map(e => D.enemies[e].name).join('、');
@@ -1213,13 +1254,14 @@ function hopTo(target) {
 }
 // 当前任务在这张地图上该去找谁：目标不在本图时，指向通往那张图的传送点
 function questTarget() {
-  const q = D.quests[S.step]; if (!q || !M) return null;
+  const q = currentQuest(); if (!q || !M) return null;
+  if (q.type === 'sect') return M.npcs.dao_menzhu || M.npcs.taixu_mo || null;
   if (q.type === 'talk') return M.npcs[q.npc] || hopTo(mapOfNpc(q.npc));
   return M.list.find(a => a.sb === S.step) || hopTo(q.map);
 }
 // 剧情首领 / 采集点：只在对应任务进行到那一拍时出现在地图上
 function syncStory() {
-  const q = D.quests[S.step];
+  const q = currentQuest();
   Object.values(M.npcs).forEach(n => { n.el.style.display = q && q.type === 'fight' && q.map === M.id && D.stages.find(s => s.id === q.stage).name === n.name ? 'none' : ''; });   // 剧情首领和同名 NPC 是同一个人：战斗前后只显示一个
   const stale = M.list.filter(a => a.sb !== undefined && !(q && a.sb === S.step));
   stale.forEach(a => { a.el.remove(); delete M.npcs[a.id]; }); if (stale.length) M.list = M.list.filter(a => !stale.includes(a));
@@ -1236,16 +1278,23 @@ function syncStory() {
 function showQuest() {
   if (!M) return;
   syncStory();
-  const q = D.quests[S.step], tgt = questTarget();
+  const q = currentQuest(), tgt = questTarget();
   let ch = false; M.list.forEach(a => { const m = a === tgt; if (a.mark !== m) { a.mark = m; drawTag(a); ch = true; } }); if (ch) drawMiniDots();
   $('qTitle').textContent = q ? q.title : '江湖路远'; $('qGoal').textContent = q ? q.goal + (q.type === 'kill' ? '（' + Math.min(S.cnt || 0, q.n) + '/' + q.n + '）' : '') : '已接入的剧情已完成，去各处历练升级吧';
   $('qSide').textContent = q ? q.chapter : '待续';
 }
 function questGo() {
   wander = false; autoBtn.classList.remove('on');
-  const t = questTarget() || M.list.find(a => a.kind === 'portal');
+  let t = questTarget();
+  const q = currentQuest();
+  if (!t && q?.type === 'sect') {
+    openModal(q.title, '<p class="center">' + q.summary + '</p><p class="center"><button type="button" class="tbtn red" data-act="sectTravel:taixuforest">去太虚之林·道家</button>　<button type="button" class="tbtn" data-act="sectTravel:taixupeak">去太虚之峰·墨家</button></p>');
+    return;
+  }
+  if (!t) t = M.list.find(a => a.kind === 'portal');
   if (t) { goTalk(t); toast('自动寻路：' + t.name); }
 }
+ACTS.sectTravel = id => { if (currentQuest()?.type === 'sect') { closeModal(); worldTravel(id); } };
 $('quest').addEventListener('click', e => { e.stopPropagation(); questGo(); });
 $('quest').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); questGo(); } });
 
@@ -1278,7 +1327,10 @@ function arrive() {
   stop(); S.pos = { x: player.pos.x, y: player.pos.y }; save();
   if (!near) return;
   if (n.kind !== 'portal') { player.face = n.pos.x >= player.pos.x ? 1 : -1; player.dir = n.pos.y < player.pos.y - 24 ? 'b' : 'f'; }
-  if (n.kind === 'portal') { if (n.needStep != null && S.step < n.needStep) toast(n.lockMsg || '现在还不能过去'); else if (n.needStages && n.needStages.some(x => !S.cleared.includes(x))) toast(n.lockMsg || '先击败这一层的守卫'); else travel(n); }
+  if (n.kind === 'portal') {
+    if (n.needStages && n.needStages.some(x => !S.cleared.includes(x))) toast(n.lockMsg || '先击败这一层的守卫');
+    else travel(n);
+  }
   else if (n.kind === 'foe') openFoe(n); else talk(n);
 }
 function stepPlayer(dt) {
@@ -1730,8 +1782,9 @@ function levelStats(L, m) {
 
 function makeUnit(side, row, def, pos) {
   const sz = AS.size[def.sprite], h = def.h, w = h * sz[0] / sz[1];
+  const flip = D.battleFacing[side === 'enemy' ? 'left' : 'right'].includes(def.sprite);
   const el = document.createElement('div'); el.className = 'unit ' + side + ' ' + row; el.style.setProperty('--ib', (-Math.random() * 2.6).toFixed(2) + 's');
-  el.innerHTML = '<div class="sh"></div><img alt="" src="' + IMG(def.sprite) + '" style="width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px' + (def.flip ? ';scale:-1 1' : '') + '">' +
+  el.innerHTML = '<div class="sh"></div><img alt="" src="' + IMG(def.sprite) + '" style="width:' + w + 'px;height:' + h + 'px;left:' + (-w / 2) + 'px' + (flip ? ';scale:-1 1' : '') + '">' +
     '<div class="tap" style="left:' + (-w / 2) + 'px;bottom:0;width:' + w + 'px;height:' + h + 'px"></div>' +
     '<div class="hpb" style="bottom:' + (h + 4) + 'px"><i></i></div><div class="stt"></div>' + (row === 'person' ? '<div class="nm" style="bottom:' + (h + 13) + 'px">' + def.name + '</div>' : '');
   el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px'; el.style.zIndex = Math.round(pos.y);
@@ -1745,14 +1798,15 @@ function makeUnit(side, row, def, pos) {
   if (u.pas && u.pas.baotiStart) u._bt = u.pas.baotiStart;
   if (u.pas && u.pas.dodgeUp) u.dodge += u.pas.dodgeUp;
   if (u.pas && u.pas.atkMul) { u.atk = Math.round(u.atk * u.pas.atkMul); u.matk = Math.round(u.matk * u.pas.atkMul); }
-  B.units.push(u); petAnimInit(u); drawUnit(u); return u;
+  B.units.push(u); petAnimInit(u, flip); drawUnit(u); return u;
 }
 
 // 神兽逐帧动画（原作高清帧，图集元数据见 ASSETS.pet[sprite]）：待机循环；攻击 / 技能 / 受击 / 闪避时插播，播完回到待机
-function petAnimInit(u) {
+function petAnimInit(u, flip) {
   const m = AS.pet && AS.pet[u.sprite]; if (!m || !AS.img[m.sheet]) return;
   const k = u.h / m.H, w = m.cw * k, h = m.ch * k, d = document.createElement('div'), img = u.el.querySelector('img');
   d.className = 'pa'; d.style.cssText = 'left:' + (-m.ox * k) + 'px;bottom:' + (-4 - m.by * k) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG(m.sheet) + ');background-size:' + (m.cols * 100) + '% ' + (m.rows * 100) + '%';
+  if (flip) { d.style.transformOrigin = (m.ox * k) + 'px center'; d.style.scale = '-1 1'; }
   u.el.insertBefore(d, img); img.style.visibility = 'hidden';
   u.pa = { d, m, tm: 0, gen: 0, i: 0 }; petIdle(u);
 }
@@ -1936,7 +1990,7 @@ function beginBattle(mode, title, teams, names) {
     });
     stage.appendChild(b);
   }
-  B.active = true; B.mode = mode; B.round = 0; B.auto = false; B.over = null; B.units = []; B.player = null; B.title = title;
+  B.active = true; B.mode = mode; B.round = 0; B.auto = false; B.over = null; B.petOrder = null; B.units = []; B.player = null; B.title = title;
   stage.classList.add('fight');
   $('bnameE').textContent = names[0]; $('bnameA').textContent = names[1];
   ['enemy', 'ally'].forEach(side => ['person', 'pet'].forEach(row => {
@@ -1948,13 +2002,15 @@ function beginBattle(mode, title, teams, names) {
 }
 // 野外 / 剧情战斗：我方是主角 + 玄晶天狐，敌方按关卡配置
 function startBattle(st) {
+  if (st.story && currentQuest()?.type === 'sect') { toast('请先完成「投师学艺」，拜入道家或墨家。'); return; }
+  if (st.tower && S.lv < D.tower.minLv) { toast('达到 ' + D.tower.minLv + ' 级才能挑战玄兵塔守卫'); return; }
   clampVitals();
   const ps = stats(), fs = petStats(petAct());
   B.stage = st;
   const foes = { persons: [], pets: [] };
   st.enemies.forEach(id => {
     const e = D.enemies[id];
-    (e.pet ? foes.pets : foes.persons).push({ name: e.name, sprite: e.sprite, h: e.h * 1.12, flip: !/^kk_mon_/.test(e.sprite), data: e, ai: e.boss ? 'boss' : 'attack',
+    (e.pet ? foes.pets : foes.persons).push({ name: e.name, sprite: e.sprite, h: e.h * 1.12, data: e, ai: e.boss ? 'boss' : 'attack',
       stats: { hp: e.hp, maxHp: e.hp, atk: e.atk, def: e.def, spd: e.spd } });
   });
   beginBattle('pve', st.name, {
@@ -1993,7 +2049,10 @@ async function loop() {
   while (!B.over) {
     B.round++; $('bround').textContent = '第 ' + B.round + ' 回合';
     B.units.forEach(u => { u.defending = false; });
-    let act = B.auto ? autoAct() : await chooseAction();
+    const pet = B.units.find(u => u.side === 'ally' && u.row === 'pet');
+    let act = !B.player.alive ? { type: 'none' } : B.auto ? autoAct() : await chooseAction();
+    const petAct = pet && pet.alive && !B.auto && (act.type !== 'flee' || B.mode !== 'arena') ? await chooseAction(pet) : null;
+    if (B.auto && B.player.alive && act.type !== 'flee') act = autoAct();
     $('cmdList').innerHTML = ''; tip(''); $('bclock').textContent = '';
     if (act.type === 'flee') {
       if (B.mode === 'arena') { B.over = 'lose'; break; }
@@ -2006,11 +2065,12 @@ async function loop() {
       if (!u.alive || B.over) continue;
       u.el.classList.add('turn');
       statusStart(u);
-      if (u.st.stun) { floatText(u, '眩晕', 'info'); await sleep(420); } else await perform(u, u === B.player ? act : unitAct(u));
+      if (u.st.stun) { floatText(u, '眩晕', 'info'); await sleep(420); }
+      else await perform(u, u === B.player ? act : u === pet && petAct && petAct.type !== 'auto' ? petAct : unitAct(u));
       statusEnd(u);
       u.el.classList.remove('turn');
       if (!living('enemy').length) B.over = 'win';
-      else if (B.mode === 'arena' ? !living('ally').length : !B.player.alive) B.over = 'lose';
+      else if (!living('ally').length) B.over = 'lose';
     }
   }
   clearInterval(B.clock); $('bclock').textContent = '';
@@ -2019,21 +2079,26 @@ async function loop() {
 
 // ---------- 指令 ----------
 const tip = t => { $('cmdTip').textContent = t; };
+function petSkillIds(pet) {
+  const basic = pet.ai === 'ss' ? 'ss_hit' : 'bite';
+  return [...new Set([basic, ...(pet.ai === 'fox' ? ['foxfire'] : []), ...(pet.kit || []).map(sk => sk[0])])].filter(id => D.skills[id]);
+}
 function drawCmd() {
   const names = [['attack', '攻击'], ['skill', '技能'], ['item', '道具'], ['defend', '防御'], ['flee', B.mode === 'arena' ? '认输' : '逃跑'], ['auto', '自动']];
-  $('cmdBtns').innerHTML = names.map(n => '<button type="button" class="tbtn' + (n[0] === 'auto' && B.auto ? ' red' : '') + '" data-cmd="' + n[0] + '">' + n[1] + '</button>').join('');
+  $('cmdBtns').innerHTML = names.map(n => '<button type="button" class="tbtn' + (n[0] === 'auto' && B.auto ? ' red' : '') + '" data-cmd="' + n[0] + '"' + (B.petOrder && (n[0] === 'item' || n[0] === 'flee') ? ' disabled' : '') + '>' + n[1] + '</button>').join('');
 }
 $('cmdBtns').addEventListener('click', e => { const b = e.target.closest('[data-cmd]'); if (b) onCmd(b.dataset.cmd); });
 $('cmdList').addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (b && !b.disabled) onPick(b.dataset.pick); });
-function chooseAction() {
-  if (!B.player.alive) return Promise.resolve({ type: 'none' });      // 竞技场里主角倒下后，队友继续自动打
-  tip('请选择行动');
+function chooseAction(pet = null) {
+  B.petOrder = pet;
+  $('cmdList').innerHTML = '';
+  drawCmd();
+  tip(pet ? '请选择宠物行动 · ' + pet.name : '请选择主角行动');
   return new Promise(res => {
-    B.resolve = a => { B.resolve = null; B.picking = null; clearInterval(B.clock); living('enemy').forEach(u => u.el.classList.remove('pick')); res(a); };
-    // 出手倒计时：到 0 自动行动
+    B.resolve = a => { B.resolve = null; B.petOrder = null; B.picking = null; clearInterval(B.clock); living('enemy').forEach(u => u.el.classList.remove('pick')); res(a); };
     let left = TURN_SECONDS; $('bclock').textContent = left;
     clearInterval(B.clock);
-    B.clock = setInterval(() => { left--; $('bclock').textContent = Math.max(0, left); if (left <= 0 && B.resolve) B.resolve(autoAct()); }, 1000);
+    B.clock = setInterval(() => { left--; $('bclock').textContent = Math.max(0, left); if (left <= 0 && B.resolve) B.resolve(pet ? { type: 'defend' } : autoAct()); }, 1000);
   });
 }
 function pickTarget(make) {
@@ -2044,14 +2109,29 @@ function pickTarget(make) {
   B.picking = u => B.resolve(make(u));
 }
 function onCmd(cmd) {
-  if (cmd === 'auto') { B.auto = !B.auto; drawCmd(); if (B.auto && B.resolve) B.resolve(autoAct()); return; }
+  if (cmd === 'auto') {
+    B.auto = !B.auto;
+    if (B.auto && B.resolve) B.resolve(B.petOrder ? { type: 'auto' } : autoAct());
+    drawCmd();
+    return;
+  }
   if (!B.resolve) return;
+  const pet = B.petOrder;
+  if (pet && (cmd === 'item' || cmd === 'flee')) return;
   B.picking = null; living('enemy').forEach(u => u.el.classList.remove('pick'));
-  if (cmd === 'attack') pickTarget(t => ({ type: 'skill', skill: 'attack', target: t }));
+  if (cmd === 'attack') pickTarget(t => ({ type: 'skill', skill: pet ? petSkillIds(pet)[0] : 'attack', target: t }));
   else if (cmd === 'defend') B.resolve({ type: 'defend' });
   else if (cmd === 'flee') B.resolve({ type: 'flee' });
   else if (cmd === 'skill') {
-    tip('选择技能');
+    tip(pet ? '选择宠物技能' : '选择技能');
+    if (pet) {
+      $('cmdList').innerHTML = petSkillIds(pet).map(id => {
+        const sk = D.skills[id], cd = Math.max(0, (pet.cd[id] || 0) - 1);
+        return '<button type="button" class="tbtn" data-pick="skill:' + id + '"' + (cd || pet.mp < sk.mp ? ' disabled' : '') + '>' +
+          sk.name + (cd ? '<small>冷却 ' + cd + ' 回合</small>' : '') + '</button>';
+      }).join('');
+      return;
+    }
     $('cmdList').innerHTML = playerSkills().map(id => { const s = D.skills[id], lock = B.mode !== 'arena' && !skillUsable(id);
       return '<button type="button" class="tbtn" data-pick="skill:' + id + '"' + (lock || B.player.mp < s.mp ? ' disabled' : '') + '>' + s.name +
           '<small>' +
@@ -2327,7 +2407,7 @@ function finish() {
     st.enemies.forEach(id => { const e = D.enemies[id]; r.exp += e.exp; r.coin += e.coin; e.drops.forEach(d => { if (Math.random() < d[1]) r.items[d[0]] = (r.items[d[0]] || 0) + 1; }); });
     if (!S.cleared.includes(st.id)) S.cleared.push(st.id);
     let towerLine = ''; if (st.tower && st.n > (S.tower | 0)) { S.tower = st.n; towerLine = st.n % 10 === 0 ? (st.n === 70 ? '百炼玄兵塔全部通关！' : '本层首领已破，可以找塔内传送师上楼。') : '玄兵塔进度 ' + st.n + '/70'; }
-    const q = D.quests[S.step]; let questDone = false, killLine = '';
+    const q = currentQuest(); let questDone = false, killLine = '';
     if (q && (q.type === 'fight' || q.type === 'kill') && q.stage === st.id) {
       let done = true;
       if (q.type === 'kill') { S.cnt = (S.cnt || 0) + st.enemies.length; done = S.cnt >= q.n; if (!done) killLine = q.goal + ' ' + S.cnt + '/' + q.n; }
@@ -2366,11 +2446,11 @@ function leaveBattle() {
   last = performance.now(); save(); refresh();
   const bq = B.after; B.after = null;
   if (!arena && bq && bq.last) {                 // 这场战斗打完了一个任务：播完成对白，下一个任务不是“找人”就接着播它的接取对白
-    let pages = (bq.outro || []).slice(); const nx = D.quests[S.step];
+    let pages = (bq.outro || []).slice(); const nx = currentQuest();
     if (nx && nx.first && nx.type !== 'talk' && nx.type !== 'spot') pages = pages.concat(nx.accept);
     if (pages.length) showPages(pages);
   }
-  const q = D.quests[S.step]; if (!arena && B.over === 'win') toast(q ? '任务更新：' + q.goal : '已接入的剧情已完成，后续剧情敬请期待');
+  const q = currentQuest(); if (!arena && B.over === 'win') toast(q ? '任务更新：' + q.goal : '已接入的剧情已完成，后续剧情敬请期待');
 }
 
 // ============================================================ 启动
@@ -2406,6 +2486,7 @@ loadMap(D.maps[S.map] ? S.map : D.start.map, S.pos); refresh(); requestAnimation
 function enterGame(role, serverName) {
   ROLE = role; SAVE_KEY = 'guiqin-save:' + role.id;
   S = load() || newGame(); bagSel = null; ensureSkl();
+  if (sectExpDeficit() > 0) { S.lv = SECT_LV; S.exp = 0; S.hp = null; S.mp = null; }
   const c = D.classes[role.cls];
   setPlayerLook(role.cls);
   const sectTxt = c.joinSect && role.sect ? (role.sect === 'mo' ? '墨家' : '道家') : clsName(c);

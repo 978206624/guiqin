@@ -5,7 +5,8 @@
 # 原任务目标类型：0 找人交谈 / 1 采集 / 2 首领战 / 4 清怪计数；原 NPC、首领、怪物编号在下面映射到本游戏的 id。
 import json, re, os
 R = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-src = json.load(open(R + '/story-src/main_story_existing.json'))['tasks']
+source = json.load(open(R + '/story-src/main_story_existing.json', encoding='utf-8'))
+src = source['tasks']
 # 目标信息（类型/NPC/目标键）取自服务端任务表 data_task_defs；已抽成下面这张精简表，避免依赖 SQL
 T = json.load(open(R + '/story-src/task_targets.json'))
 FIRST, LAST = 1000, int(os.environ.get('CHAPTER_LAST', 1006))
@@ -22,10 +23,14 @@ SPOT = {'cj1000': ('creek', [1060, 1230], '神韵')}
 NPC_MAP = {'elder': 'village', 'zhanhw': 'outskirts', 'bianque': 'outskirts', 'qingxizi': 'creek', 'jy_dao': 'creek', 'jy_yin': 'creek', 'jy_mo': 'creek',
            'zc_elder': 'wild', 'xiaohs': 'wild', 'hanxin': 'mist', 'equipman': 'town', 'baisu': 'town', 'xiaohs2': 'town'}
 # 每个任务想让玩家拿到的总经验（战斗经验已含在内，脚本会扣掉战斗那部分）。1–10 级共需约 5400 经验。
-TOTAL = dict(zip(range(1000, 1024), [120, 220, 280, 320, 220, 220, 280, 220, 320, 260, 320, 150, 300, 150, 150, 200, 300, 260, 200, 300, 260, 320, 320, 340]))
+TOTAL = dict(zip(range(1000, 1024), [240, 500, 650, 900, 900, 1000, 1210, 220, 320, 260, 320, 150, 300, 150, 150, 200, 300, 260, 200, 300, 260, 320, 320, 340]))
 BATTLE_EXP = {'s_zhw': 60, 's_xinmo': 90, 's_mystery': 120, 's_xieyue': 160, 's_hanxin': 180, 's_shadow': 200, 's_mengyuan': 220, 's_tianxing': 250,
               's_worm': 25, 's_tiger': 30, 's_snake': 35}
 ITEMS = {1006: {'mp_potion': 2}, 1012: {'ore': 2}, 1015: {'iron_sword': 1}, 1023: {'sachet': 1, 'hp_potion': 3}}
+# 按任务阶段奖励现有装备，和原先的消耗品奖励合并。
+EQUIPMENT = {1000: 'cloth_armor', 1001: 'iron_sword', 1002: 'peace_charm', 1003: 'cloth_boots',
+             1004: 'leather_bracer', 1005: 'wood_beads', 1006: 'bronze_bell', 1008: 'leather_armor',
+             1010: 'iron_greaves', 1014: 'iron_helm'}
 KNOWN = ['你', '村长', '展护卫', '扁老鹊', '清溪子', '陨神残念', '墨家接引师', '道家接引师', '阴阳接引师', '赵村村长', '除魔军士卒', '邪月', '萧恨水', '韩信',
          '装备商人', '白素', '暗影魔将', '梦渊尸魔', '天星子的身影', '心魔']
 
@@ -65,10 +70,11 @@ for k in range(FIRST, LAST + 1):
     beats = mg
     reward = {'exp': max(20, TOTAL[k] - battle), 'coin': 60 + (40 if any(b['type'] == 'fight' for b in beats) else 0)}
     if k % 2 == 0 and k not in ITEMS: reward['items'] = {'hp_potion': 2}
-    if k in ITEMS: reward['items'] = ITEMS[k]
+    if k in ITEMS: reward['items'] = dict(ITEMS[k])
+    if k in EQUIPMENT: reward.setdefault('items', {})[EQUIPMENT[k]] = 1
     quests.append({'id': str(k), 'title': q['title'], 'chapter': q['chapter'], 'summary': q['summary'], 'accept': pages(q['accept']),
                    'beats': beats, 'complete': pages(q['complete']), 'reward': reward})
 out = '// 由 tools/story_import.py 生成（原剧本：story-src/main_story_existing.json）。不要手改，改映射表后重新运行脚本。\n'
-out += 'window.STORY = ' + json.dumps({'quests': quests}, ensure_ascii=False, separators=(',', ':')) + ';\n'
-open(R + '/js/story.js', 'w').write(out)
+out += 'window.STORY = ' + json.dumps({'sectGate': source['sectGate'], 'quests': quests}, ensure_ascii=False, separators=(',', ':')) + ';\n'
+open(R + '/js/story.js', 'w', encoding='utf-8').write(out)
 print(len(quests), 'quests,', sum(len(q['beats']) for q in quests), 'beats; total exp ~', sum(q['reward']['exp'] + sum(BATTLE_EXP[b['stage']] * b.get('n', 1) for b in q['beats'] if 'stage' in b) for q in quests))

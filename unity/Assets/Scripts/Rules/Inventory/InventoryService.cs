@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using GuiQin.Net;
+using GuiQin.Quest;
 
 namespace GuiQin.Inventory
 {
@@ -116,6 +117,15 @@ namespace GuiQin.Inventory
             Bag.equip.Remove(slot); AddItem(id, 1);
             role.hp = Math.Min(Hp, Stats().maxHp);
             return Ok("卸下了" + Name(id));
+        }
+
+        public bool DailyGift(DateTime utcNow)
+        {
+            string today = utcNow.AddHours(8).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+            if (role.giftDay == today) return Fail("今日福利已领取");
+            Rewards.Grant(role, 0, 200, new Dictionary<string, int> { { "hp_potion", 2 } }, out var lost);
+            role.giftDay = today;
+            return Ok("领取福利：银两 +200，金创药 ×2" + (lost.Count > 0 ? "（背包满了，药品丢失）" : ""));
         }
 
         public bool Expand(int expectedCapacity)
@@ -259,6 +269,7 @@ namespace GuiQin.Inventory
             if (Count(id) < 3) return Fail("需要三颗");
             string next = System.Text.RegularExpressions.Regex.Replace(id, "_\\d$", "_" + ((int)it["lv"] + 1));
             if (Item(next) == null) return Fail("没有更高阶的宝石");
+            if (!CanHold(next) && Count(id) > 3) return Fail("背包已满");
             AddItem(id, -3); AddItem(next, 1); return Ok("合成了" + Name(next));
         }
     }

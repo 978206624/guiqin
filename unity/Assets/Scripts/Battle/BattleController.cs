@@ -38,8 +38,11 @@ namespace GuiQin.Battle
         Action<int, int, int, int> onVitals;
         RectTransform cmdPanel, listRoot; ScrollRect commandScroll; Button autoBtn; Text autoLabel;
         GameObject resultPanel;
+        Button[] commandButtons;
         bool auto, waitingCmd, finished; float shakeT, shakePower, bannerT; int round;
-        BattleCmd chosen; Action<BU> pickCb; BU me;
+        BattleCmd chosen, heroCommand; Action<BU> pickCb; BU me, pet;
+        bool petTurn; float seconds;
+        bool HasPetTurn => pet != null && pet.Alive && view.petSkills != null && view.petSkills.Count > 0;
 
         public bool Active { get; private set; }
 
@@ -93,7 +96,11 @@ namespace GuiQin.Battle
                     var list = view.units.FindAll(u => u.side == side && u.row == row);
                     for (int i = 0; i < list.Count; i++) AddUnit(list[i], Slot(side, row, i, list.Count));
                 }
-            foreach (var u in units.Values) if (u.V.me) me = u;
+            foreach (var u in units.Values)
+            {
+                if (u.V.me) me = u;
+                else if (u.V.side == "ally" && u.V.row == "pet" && pet == null) pet = u;
+            }
             BuildUi(uiParent);
         }
 
@@ -173,11 +180,13 @@ namespace GuiQin.Battle
             commandScroll.movementType = ScrollRect.MovementType.Clamped;
 
             string[][] bs = { new[] { "attack", "攻击" }, new[] { "skill", "技能" }, new[] { "item", "道具" }, new[] { "defend", "防御" }, new[] { "flee", "逃跑" }, new[] { "auto", "自动" } };
+            commandButtons = new Button[bs.Length];
             for (int i = 0; i < bs.Length; i++)
             {
                 string id = bs[i][0];
                 var btn = Ui.Btn("b_" + id, panel.transform, bs[i][1], 20, WebUi.Purple, () => OnCmd(id));
                 WebUi.At((RectTransform)btn.transform, 14 + i * 117, 150, 108, 54);
+                commandButtons[i] = btn;
                 if (id == "auto") { autoBtn = btn; autoLabel = btn.GetComponentInChildren<Text>(); }
             }
             UpdateStat();
@@ -209,9 +218,13 @@ namespace GuiQin.Battle
         void OnCmd(string c)
         {
             if (c == "auto") { auto = !auto; WebUi.Button(autoBtn, auto ? WebUi.Red : WebUi.Purple); autoLabel.text = auto ? "取消自动" : "自动"; if (auto && waitingCmd) Choose(new BattleCmd { type = "auto" }); return; }
-            if (!waitingCmd) return;
+            if (!waitingCmd || (!petTurn && !me.Alive) || (petTurn && (c == "item" || c == "flee"))) return;
             pickCb = null; ClearList();
-            if (c == "attack") PickEnemy(t => Choose(new BattleCmd { type = "skill", skill = "attack", target = t.V.id }));
+            if (c == "attack")
+            {
+                string skill = petTurn ? view.petSkills[0].id : "attack";
+                PickEnemy(t => Choose(new BattleCmd { type = "skill", skill = skill, target = t.V.id }));
+            }
             else if (c == "defend") Choose(new BattleCmd { type = "defend" });
             else if (c == "flee") Choose(new BattleCmd { type = "flee" });
             else if (c == "skill") ShowSkills();
@@ -249,10 +262,14 @@ namespace GuiQin.Battle
         {
             tipText.text = "选择技能";
             int i = 0;
-            foreach (var sk in view.skills)
+            foreach (var sk in petTurn ? view.petSkills : view.skills)
             {
-                var s = sk; bool ok = s.usable && me != null && me.Mp >= s.mp;
-                string label = s.name + "\n<size=13>" + (s.usable ? "法力 " + s.mp : s.note) + "</size>";
+                var s = sk;
+                int cd = 0;
+                if (petTurn && view.petCooldowns != null) view.petCooldowns.TryGetValue(s.id, out cd);
+                bool ok = s.usable && (petTurn ? pet.Mp : me.Mp) >= s.mp && cd <= 1;
+                string detail = cd > 1 ? "冷却 " + (cd - 1) + " 回合" : s.usable ? "法力 " + s.mp : s.note;
+                string label = s.name + "\n<size=13>" + detail + "</size>";
                 var b = Ui.Btn("sk_" + s.id, listRoot, label, 17, ok ? new Color(0.3f, 0.34f, 0.56f) : new Color(0.25f, 0.25f, 0.3f), () => OnSkill(s));
                 b.GetComponentInChildren<Text>().supportRichText = true; b.interactable = ok;
                 int col = i % 3, row = i / 3; i++;
@@ -278,7 +295,32 @@ namespace GuiQin.Battle
             tipText.text = "点击要攻击的敌人"; pickCb = cb;
         }
 
-        void Choose(BattleCmd c) { pickCb = null; ClearList(); chosen = c; waitingCmd = false; tipText.text = ""; clockText.text = ""; }
+        void Prompt(bool choosePet)
+        {
+            petTurn = choosePet; waitingCmd = true; seconds = view.turnSeconds;
+            for (int i = 0; i < commandButtons.Length; i++)
+                commandButtons[i].interactable = !choosePet || (i != 2 && i != 4);
+            tipText.text = choosePet ? "请选择宠物行动 · " + pet.V.name : "请选择主角行动";
+        }
+
+        void Choose(BattleCmd c)
+        {
+            pickCb = null; ClearList();
+            if (!petTurn && HasPetTurn && !auto)
+            {
+                heroCommand = c;
+                Prompt(true);
+                return;
+            }
+            if (petTurn && c.type != "auto")
+            {
+                chosen = heroCommand ?? new BattleCmd { type = "auto" };
+                chosen.petSkill = c.type == "defend" ? "defend" : c.skill;
+                chosen.petTarget = c.target;
+            }
+            else chosen = c;
+            waitingCmd = false; tipText.text = ""; clockText.text = "";
+        }
 
         // ---------------- 主流程 ----------------
         IEnumerator Loop()
@@ -288,15 +330,21 @@ namespace GuiQin.Battle
             while (end == null && Active)
             {
                 round++; roundText.text = "第 " + round + " 回合";
-                if (auto) chosen = new BattleCmd { type = "auto" };
+                heroCommand = null;
+                if (auto || (!me.Alive && !HasPetTurn))
+                {
+                    commandButtons[5].interactable = true;
+                    chosen = new BattleCmd { type = "auto" };
+                }
                 else
                 {
-                    chosen = null; waitingCmd = true; tipText.text = "请选择行动";
-                    float left = view.turnSeconds;
+                    chosen = null;
+                    Prompt(!me.Alive);
                     while (chosen == null && Active)
                     {
-                        left -= Time.unscaledDeltaTime; clockText.text = Mathf.Max(0, Mathf.CeilToInt(left)).ToString();
-                        if (left <= 0f) Choose(new BattleCmd { type = "auto" });
+                        seconds -= Time.unscaledDeltaTime;
+                        clockText.text = Mathf.Max(0, Mathf.CeilToInt(seconds)).ToString();
+                        if (seconds <= 0f) Choose(new BattleCmd { type = petTurn ? "defend" : "auto" });
                         yield return null;
                     }
                     if (!Active) yield break;
@@ -305,6 +353,7 @@ namespace GuiQin.Battle
                 while (!task.IsCompleted) yield return null;
                 var r = task.Result;
                 if (!r.Ok) { toast(r.msg); Banner("网络不稳：" + r.msg, 1.5f); round--; yield return new WaitForSeconds(1f); continue; }    // 请求没处理成功：同一回合重新选
+                view.petCooldowns = r.data.petCooldowns;
                 yield return Play(r.data.events);
                 if (r.data.over) end = r.data.end;
             }

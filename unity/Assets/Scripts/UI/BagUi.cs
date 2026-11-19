@@ -20,6 +20,7 @@ namespace GuiQin
         readonly ModalUi expandConfirm;
         readonly Func<string, BagOpReq, Task<Result<BagResp>>> op; readonly Func<RoleState> getRole; readonly Action<string> toast; readonly Action onChanged;
         Tab tab = Tab.Bag; string shopId; string filter = "all"; int page; string selId, selSlot; string forgeGem; bool busy;
+        bool fromRole;
         readonly List<Button> tabBtns = new List<Button>();
 
         static readonly string[] MallCurrencies = { "yuanbao", "coin", "silverNote" };
@@ -62,8 +63,9 @@ namespace GuiQin
             root.SetActive(false);
         }
 
-        public void Open(Tab t, string shop = null)
+        public void Open(Tab t, string shop = null, bool fromRole = false)
         {
+            this.fromRole = fromRole;
             tab = t; shopId = shop; selId = null; selSlot = null; page = 0; mallCurrency = 0; filter = "all"; msg.text = "";
             root.SetActive(true); Redraw();
         }
@@ -177,7 +179,11 @@ namespace GuiQin
             title.text = tab == Tab.Mall ? "商城" : tab == Tab.Shop ? ((string)GameData.Raw["shops"]?[shopId]?["name"] ?? "商店") :
                 tab == Tab.Smith ? "铁匠铺" : tab == Tab.Equip ? "装备" : "背包";
             bool storefront = tab == Tab.Shop || tab == Tab.Mall;
-            for (int i = 0; i < tabBtns.Count; i++) { tabBtns[i].gameObject.SetActive(!storefront); WebUi.Button(tabBtns[i], (int)tab == i ? WebUi.C("#8a5a14") : WebUi.Purple); }
+            for (int i = 0; i < tabBtns.Count; i++)
+            {
+                tabBtns[i].gameObject.SetActive(!storefront && (!fromRole || i != (int)Tab.Smith));
+                WebUi.Button(tabBtns[i], (int)tab == i ? WebUi.C("#8a5a14") : WebUi.Purple);
+            }
             if (selId != null && !Bag.items.ContainsKey(selId) && !storefront) selId = null;
             switch (tab) { case Tab.Bag: DrawBag(); break; case Tab.Equip: DrawEquip(); break; case Tab.Smith: DrawSmith(); break; case Tab.Shop: DrawShop(); break; case Tab.Mall: DrawMall(); break; }
         }

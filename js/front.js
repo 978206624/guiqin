@@ -55,7 +55,6 @@ function login(guest) {
   const name = $('fAccount').value.trim();
   const err = $('fLoginErr');
   if (!guest && !name) { err.textContent = '请输入账号，或者点“游客试玩”'; $('fAccount').focus(); return; }
-  if (!$('fAgree').checked) { err.textContent = '请先勾选同意用户协议'; return; }
   err.textContent = '';
   account = guest ? '游客' : name;
   $('fPassword').value = '';                 // 密码用完即弃，不保存

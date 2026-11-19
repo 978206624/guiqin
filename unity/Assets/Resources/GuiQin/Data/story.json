@@ -1,4 +1,11 @@
 {
+ "sectGate": {
+  "after": "1006",
+  "title": "投师学艺",
+  "goal": "拜入道家或墨家",
+  "chapter": "第一章·清溪残梦",
+  "summary": "镇印的异声能扰人心神。先拜入道家或墨家学一门定心御敌的本事，再追查赵村的怪梦。"
+ },
  "quests": [
   {
    "id": "1000",
@@ -72,10 +79,11 @@
     ]
    ],
    "reward": {
-    "exp": 120,
+    "exp": 240,
     "coin": 60,
     "items": {
-     "hp_potion": 2
+     "hp_potion": 2,
+     "cloth_armor": 1
     }
    }
   },
@@ -167,8 +175,11 @@
     ]
    ],
    "reward": {
-    "exp": 160,
-    "coin": 100
+    "exp": 440,
+    "coin": 100,
+    "items": {
+     "iron_sword": 1
+    }
    }
   },
   {
@@ -247,10 +258,11 @@
     ]
    ],
    "reward": {
-    "exp": 190,
+    "exp": 560,
     "coin": 100,
     "items": {
-     "hp_potion": 2
+     "hp_potion": 2,
+     "peace_charm": 1
     }
    }
   },
@@ -347,8 +359,11 @@
     ]
    ],
    "reward": {
-    "exp": 320,
-    "coin": 60
+    "exp": 900,
+    "coin": 60,
+    "items": {
+     "cloth_boots": 1
+    }
    }
   },
   {
@@ -395,10 +410,11 @@
     ]
    ],
    "reward": {
-    "exp": 220,
+    "exp": 900,
     "coin": 60,
     "items": {
-     "hp_potion": 2
+     "hp_potion": 2,
+     "leather_bracer": 1
     }
    }
   },
@@ -450,8 +466,11 @@
     ]
    ],
    "reward": {
-    "exp": 220,
-    "coin": 60
+    "exp": 1000,
+    "coin": 60,
+    "items": {
+     "wood_beads": 1
+    }
    }
   },
   {
@@ -490,22 +509,23 @@
    "complete": [
     [
      "阴阳接引师",
-     "至于投哪一家修行，你自己慢慢想。"
+     "赵村的怪梦比这里更凶。要追查那股异声，先学一门能定住心神的本事。"
     ],
     [
      "你",
-     "那先欠着这个答案。我今天听了三堂课，得出去走走才记得住。"
+     "道家能以音律稳住心神，墨家能用机关护住旁人。这趟去赵村，总得学会一样。"
     ],
     [
      "",
-     "你收好三家的笔记，沿山路赶往赵村。"
+     "你收好三家的笔记。须先入门，才能继续追查赵村的怪梦。"
     ]
    ],
    "reward": {
-    "exp": 280,
+    "exp": 1210,
     "coin": 60,
     "items": {
-     "mp_potion": 2
+     "mp_potion": 2,
+     "bronze_bell": 1
     }
    }
   },
@@ -641,7 +661,8 @@
     "exp": 70,
     "coin": 60,
     "items": {
-     "hp_potion": 2
+     "hp_potion": 2,
+     "leather_armor": 1
     }
    }
   },
@@ -753,7 +774,8 @@
     "exp": 20,
     "coin": 60,
     "items": {
-     "hp_potion": 2
+     "hp_potion": 2,
+     "iron_greaves": 1
     }
    }
   },
@@ -963,7 +985,8 @@
     "exp": 150,
     "coin": 60,
     "items": {
-     "hp_potion": 2
+     "hp_potion": 2,
+     "iron_helm": 1
     }
    }
   }

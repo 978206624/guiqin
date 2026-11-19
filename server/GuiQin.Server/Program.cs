@@ -29,7 +29,39 @@ app.Map("/ws", async (HttpContext context, GameGateway gateway) =>
     using var socket = await context.WebSockets.AcceptWebSocketAsync();
     var state = new ConnectionState();
     var buffer = new byte[8192];
-    var cancellation = context.RequestAborted;
+    using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
+    using var sends = new SemaphoreSlim(1);
+    var cancellation = lifetime.Token;
+
+    async Task Send(Envelope message)
+    {
+        var output = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
+        await sends.WaitAsync(cancellation);
+        try { await socket.SendAsync(new ArraySegment<byte>(output), WebSocketMessageType.Text, true, cancellation); }
+        finally { sends.Release(); }
+    }
+
+    async Task Close(WebSocketCloseStatus status, string message)
+    {
+        state.Pushes.Writer.TryComplete();
+        await sends.WaitAsync(cancellation);
+        try { await socket.CloseOutputAsync(status, message, cancellation); }
+        finally { sends.Release(); }
+    }
+
+    async Task Push()
+    {
+        try
+        {
+            await foreach (var message in state.Pushes.Reader.ReadAllAsync(cancellation))
+                if (socket.State == WebSocketState.Open) await Send(message);
+        }
+        catch (Exception error) when (error is WebSocketException or OperationCanceledException)
+        {
+            lifetime.Cancel();
+        }
+    }
+    var pushes = Push();
     try
     {
         while (socket.State == WebSocketState.Open)
@@ -41,12 +73,12 @@ app.Map("/ws", async (HttpContext context, GameGateway gateway) =>
                 frame = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellation);
                 if (frame.MessageType == WebSocketMessageType.Close)
                 {
-                    await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", cancellation);
+                    await Close(WebSocketCloseStatus.NormalClosure, "");
                     return;
                 }
                 if (frame.MessageType != WebSocketMessageType.Text || message.Length + frame.Count > 65536)
                 {
-                    await socket.CloseOutputAsync(WebSocketCloseStatus.InvalidPayloadData, "无效消息", cancellation);
+                    await Close(WebSocketCloseStatus.InvalidPayloadData, "无效消息");
                     return;
                 }
                 message.Write(buffer, 0, frame.Count);
@@ -55,17 +87,22 @@ app.Map("/ws", async (HttpContext context, GameGateway gateway) =>
             var request = JsonConvert.DeserializeObject<Envelope>(Encoding.UTF8.GetString(message.ToArray()));
             if (request == null || request.seq <= 0 || string.IsNullOrEmpty(request.cmd))
             {
-                await socket.CloseOutputAsync(WebSocketCloseStatus.InvalidPayloadData, "无效命令", cancellation);
+                await Close(WebSocketCloseStatus.InvalidPayloadData, "无效命令");
                 return;
             }
             var response = gateway.Handle(state, request);
-            var output = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
-            await socket.SendAsync(new ArraySegment<byte>(output), WebSocketMessageType.Text, true, cancellation);
+            await Send(response);
         }
     }
     catch (Exception error) when (error is WebSocketException or OperationCanceledException or JsonException)
     {
         // 断线或无效帧由连接层终止，角色和战斗保留在会话中。
+    }
+    finally
+    {
+        state.Pushes.Writer.TryComplete();
+        lifetime.Cancel();
+        await pushes;
     }
 });
 app.Run();
