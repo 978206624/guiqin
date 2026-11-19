@@ -32,7 +32,6 @@ namespace GuiQin.Chat
             this.role = role;
             long now = Now();
             nextWorld = now + 4000; nextGuild = now + 9000; nextNotice = now + 60000; nextGreet = now + 90000;
-            for (int i = 0; i < 4; i++) Save(BotMsg("world", PickBot(), Fill(Pick(D["lines"]))), false);
             Save(Make("notice", (string)D["notices"][0]), false);
         }
 

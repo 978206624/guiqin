@@ -70,7 +70,7 @@ internal sealed partial class GameStore
         using var db = Open();
         using var cmd = Sql(db, """
             SELECT id,sender_role_id,payload_json FROM chat_msg WHERE zone_id=@zone AND
-            (channel IN ('world','notice') OR (channel='guild' AND @guild)
+            (channel = 'notice' OR (channel = 'world' AND created_at > NOW(3) - INTERVAL 1 HOUR) OR (channel='guild' AND @guild)
                 OR (channel='pm' AND (sender_role_id=@id OR recipient_role_id=@id))
                 OR (channel='party' AND scope_id=@party)
                 OR (channel='system' AND recipient_role_id=@id))
