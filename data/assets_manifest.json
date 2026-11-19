@@ -1031,6 +1031,30 @@
   "file": "assets/kk_mo_ms.webp",
   "bytes": 43774
  },
+ "kk_mon_100004": {
+  "file": "assets/kk_mon_100004.webp",
+  "bytes": 32960
+ },
+ "kk_mon_100005": {
+  "file": "assets/kk_mon_100005.webp",
+  "bytes": 24128
+ },
+ "kk_mon_100006": {
+  "file": "assets/kk_mon_100006.webp",
+  "bytes": 29238
+ },
+ "kk_mon_40010": {
+  "file": "assets/kk_mon_40010.webp",
+  "bytes": 20744
+ },
+ "kk_mon_50004": {
+  "file": "assets/kk_mon_50004.webp",
+  "bytes": 19578
+ },
+ "kk_mon_60009": {
+  "file": "assets/kk_mon_60009.webp",
+  "bytes": 15854
+ },
  "kk_npc07": {
   "file": "assets/kk_npc07.webp",
   "bytes": 13950

@@ -110,6 +110,7 @@ LINKS = {
 }
 for _k, _v in LINKS.items(): MAPS[_k].update(_v)
 # 世界地图上的位置（world.webp 2300×2300）：沿东侧田舍往北、再往西，和老地图的圆点错开
+FOES = {'qingyang': [{'stage': 'qy47', 'at': [1150, 760]}, {'stage': 'qy49', 'at': [1750, 950]}]}  # 关卡定义在 data.js 的 stages
 NPCS = {'qingyang': [{'id': 'fb50_guard', 'at': [640, 420]}]}
 WORLD = {'hejiang': [2045, 1431], 'qianling': [2134, 843], 'anyang': [2096, 435], 'handan': [1636, 307],
          'shangshan': [1380, 153], 'baishou': [767, 383], 'yinlong': [332, 588], 'qingyang': [281, 843]}
@@ -131,7 +132,7 @@ def build_def(k, m):
     for to, name, at, _ in m['portals']:
         d['portals'].append(dict(to=to, name=name, at=S(at), arrive=None))
     d['npcs'] = NPCS.get(k, [])  # 手写 NPC，重跑脚本时保留
-    d['foes'] = []
+    d['foes'] = FOES.get(k, [])
     return d
 
 def raster(d, step=8):

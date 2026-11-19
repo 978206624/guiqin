@@ -3204,6 +3204,112 @@
    ],
    "boss": true
   },
+  "qy_ksls": {
+   "name": "开山力士",
+   "sprite": "kk_mon_100006",
+   "h": 130,
+   "hp": 9809,
+   "atk": 441,
+   "def": 141,
+   "spd": 114,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ]
+  },
+  "qy_eling": {
+   "name": "恶灵",
+   "sprite": "kk_mon_40010",
+   "h": 96,
+   "hp": 9809,
+   "atk": 441,
+   "def": 141,
+   "spd": 114,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "pet": true
+  },
+  "qy_shehun": {
+   "name": "摄魂使者",
+   "sprite": "kk_mon_100004",
+   "h": 124,
+   "hp": 9809,
+   "atk": 441,
+   "def": 141,
+   "spd": 114,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "pet": true
+  },
+  "qy_nishi": {
+   "name": "泥石兵俑",
+   "sprite": "kk_mon_50004",
+   "h": 108,
+   "hp": 9300,
+   "atk": 422,
+   "def": 134,
+   "spd": 112,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "pet": true
+  },
+  "qy_dunjia": {
+   "name": "盾甲兵",
+   "sprite": "kk_mon_100005",
+   "h": 126,
+   "hp": 9300,
+   "atk": 422,
+   "def": 134,
+   "spd": 112,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ]
+  },
+  "qy_ronggu": {
+   "name": "熔骨血尸",
+   "sprite": "kk_mon_60009",
+   "h": 100,
+   "hp": 9300,
+   "atk": 422,
+   "def": 134,
+   "spd": 112,
+   "exp": 300,
+   "coin": 120,
+   "drops": [
+    [
+     "hp_potion",
+     0.5
+    ]
+   ],
+   "pet": true
+  },
   "blxt_m1": {
    "name": "火灵",
    "sprite": "boar",
@@ -4613,6 +4719,28 @@
   }
  },
  "stages": [
+  {
+   "id": "qy47",
+   "name": "古城外街·巡兵",
+   "rec": 47,
+   "enemies": [
+    "qy_dunjia",
+    "qy_nishi",
+    "qy_ronggu"
+   ],
+   "desc": "青阳古城外街游荡的盾甲兵、泥石兵俑和熔骨血尸。"
+  },
+  {
+   "id": "qy49",
+   "name": "古城外街·妖物",
+   "rec": 49,
+   "enemies": [
+    "qy_ksls",
+    "qy_eling",
+    "qy_shehun"
+   ],
+   "desc": "被紫阴煞气引来的开山力士、恶灵和摄魂使者。"
+  },
   {
    "id": "dummy",
    "name": "山脚木桩",
@@ -9653,7 +9781,22 @@
      ]
     }
    ],
-   "foes": []
+   "foes": [
+    {
+     "stage": "qy47",
+     "at": [
+      1150,
+      760
+     ]
+    },
+    {
+     "stage": "qy49",
+     "at": [
+      1750,
+      950
+     ]
+    }
+   ]
   },
   "taixuforest": {
    "sect": true,
