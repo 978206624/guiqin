@@ -1,0 +1,5 @@
+Edit this game map illustration. Keep the EXACT same color palette, art style, camera, lighting, road shapes, paved square, empty lot at the lower right, all market stalls, lantern poles, banners, trees and ALL buildings that are not mentioned below, so the walkable paths stay in the same place.
+Changes (small):
+1) REMOVE THE BRIDGE: delete the arched wooden bridge over the canal on the left. The canal flows uninterrupted with a plain stone bank on both sides, no bridge.
+2) SLIGHTLY FEWER HOUSES: remove only the two tile-roofed houses standing directly beside the canal in the upper left-middle (the pair next to the former bridge) and the single house in the middle of the right edge. Replace them with a golden ginkgo tree, a red maple, dry reeds and yellow-brown grass. Every other building stays exactly as it is, including the houses at the top-left corner, top center, right edge top and bottom, and bottom-left corner.
+Same top-down 3/4 overhead view, no sky, no horizon, no text, no characters, clean smooth painterly shading, no grain or noise.
