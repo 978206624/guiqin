@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "out": "art-src/maps/handan.png",
+  "model": "gpt-image-2",
+  "quality": "medium",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 504,
+      "elapsed": 183.1,
+      "error": "{'code': 'upstream_connect_timeout', 'message': 'Upstream preparation exceeded the opening time limit', 'type': 'server_error'}"
+    },
+    {
+      "attempt": 2,
+      "status": 200,
+      "elapsed": 129.7,
+      "error": null
+    }
+  ]
+}

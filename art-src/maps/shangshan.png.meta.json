@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "out": "art-src/maps/shangshan.png",
+  "model": "gpt-image-2",
+  "quality": "medium",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 504,
+      "elapsed": 183.3,
+      "error": "{'code': 'upstream_connect_timeout', 'message': 'Image upstream response headers timed out', 'type': 'server_error'}"
+    },
+    {
+      "attempt": 2,
+      "status": 504,
+      "elapsed": 187.7,
+      "error": "{'code': 'upstream_connect_timeout', 'message': 'Upstream preparation exceeded the opening time limit', 'type': 'server_error'}"
+    },
+    {
+      "attempt": 3,
+      "status": 200,
+      "elapsed": 191.4,
+      "error": null
+    }
+  ]
+}

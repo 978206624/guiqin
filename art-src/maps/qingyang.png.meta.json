@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "out": "art-src/maps/qingyang.png",
+  "model": "gpt-image-2",
+  "quality": "medium",
+  "size": "1536x1024",
+  "attempts": [
+    {
+      "attempt": 1,
+      "status": 504,
+      "elapsed": 183.6,
+      "error": "{'code': 'upstream_connect_timeout', 'message': 'Image upstream response headers timed out', 'type': 'server_error'}"
+    },
+    {
+      "attempt": 2,
+      "status": 200,
+      "elapsed": 234.4,
+      "error": null
+    }
+  ]
+}
