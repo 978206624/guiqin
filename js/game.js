@@ -1118,7 +1118,7 @@ function finishBeat(q, extra) {
     pages = (q.outro || []).slice();
     const nx = D.quests[S.step]; if (nx && nx.first && nx.type !== 'talk' && nx.type !== 'spot') pages = pages.concat(nx.accept);
   }
-  toast(ups ? '升到 ' + S.lv + ' 级！气血法力已回满' : (D.quests[S.step] ? '任务更新：' + D.quests[S.step].goal : '第一章已完成，后续剧情敬请期待'));
+  toast(ups ? '升到 ' + S.lv + ' 级！气血法力已回满' : (D.quests[S.step] ? '任务更新：' + D.quests[S.step].goal : '已接入的剧情已完成，后续剧情敬请期待'));
   if (wasLow && S.lv >= SECT_LV && curCls().joinSect) sys('你已达 ' + SECT_LV + ' 级，可前往太虚之林，找道家门主入门，再去堂主处选分堂。');
   save(); refresh();
   if (pages.length) showPages(pages);
@@ -1229,7 +1229,7 @@ function showQuest() {
   syncStory();
   const q = D.quests[S.step], tgt = questTarget();
   let ch = false; M.list.forEach(a => { const m = a === tgt; if (a.mark !== m) { a.mark = m; drawTag(a); ch = true; } }); if (ch) drawMiniDots();
-  $('qTitle').textContent = q ? q.title : '江湖路远'; $('qGoal').textContent = q ? q.goal + (q.type === 'kill' ? '（' + Math.min(S.cnt || 0, q.n) + '/' + q.n + '）' : '') : '第一章已完成，去各处历练升级吧';
+  $('qTitle').textContent = q ? q.title : '江湖路远'; $('qGoal').textContent = q ? q.goal + (q.type === 'kill' ? '（' + Math.min(S.cnt || 0, q.n) + '/' + q.n + '）' : '') : '已接入的剧情已完成，去各处历练升级吧';
   $('qSide').textContent = q ? q.chapter : '待续';
 }
 function questGo() {
@@ -2361,7 +2361,7 @@ function leaveBattle() {
     if (nx && nx.first && nx.type !== 'talk' && nx.type !== 'spot') pages = pages.concat(nx.accept);
     if (pages.length) showPages(pages);
   }
-  const q = D.quests[S.step]; if (!arena && B.over === 'win') toast(q ? '任务更新：' + q.goal : '第一章已完成，后续剧情敬请期待');
+  const q = D.quests[S.step]; if (!arena && B.over === 'win') toast(q ? '任务更新：' + q.goal : '已接入的剧情已完成，后续剧情敬请期待');
 }
 
 // ============================================================ 启动

@@ -1,7 +1,7 @@
 # 主线剧情接入
 
 剧情来自 kunkunxunqin 项目的《归秦主线完整剧本》（`story-src/main_story_existing.json`，原 22 章 172 任务；续章在 `main_story_continuation.json`）。
-目前接入 **第一章·清溪残梦（任务 1000–1006）**，对应 1–10 级（原项目地图等级：恒山村 3 / 村郊 6 / 清溪谷 9）。
+目前接入 **第一章·清溪残梦（1000–1006）** 与 **第二章·赵村血契（1007–1014）**，共 15 个任务、20 拍（`CHAPTER_LAST=1014`）。第一章对应 1–10 级（原项目地图等级：恒山村 3 / 村郊 6 / 清溪谷 9）。第二章的 NPC 摆在城外·竹林（赵村村长、萧恨水）和云雾谷（韩信）；首领/清怪点已用游戏自带碰撞逐一验证可走到。
 
 ## 流程
 `story-src/*.json` + `story-src/task_targets.json`（原任务目标表）→ `python3 tools/story_import.py` → `js/story.js`（`window.STORY`）→ 载入时 `game.js` 摊平成“节拍”序列 `D.quests`，`S.step` 为节拍序号。

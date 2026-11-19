@@ -14,10 +14,10 @@ NPC = {'10000000': 'elder', '10000003': 'zhanhw', '10000002': 'bianque', '100000
        '10000009': 'jy_mo', '10000010': 'zc_elder', '10000012': 'xiaohs', '10000013': 'hanxin', '10000014': 'equipman', '10000018': 'baisu',
        '10000026': 'xiaohs2', '10000011': 'zc_soldier'}
 # 首领战 / 清怪 / 采集 → 关卡 id、所在地图、地图上出现的位置
-FIGHT = {'boss_0': ('s_zhw', 'outskirts', [480, 1040]), 'boss_1': ('s_xinmo', 'outskirts', [700, 930]), 'boss_2': ('s_mystery', 'wild', [700, 380]),
-         'boss_3': ('s_xieyue', 'wild', [560, 330]), 'boss_4': ('s_hanxin', 'mist', [1100, 1180]), 'boss_5': ('s_shadow', 'town', [1500, 620]),
+FIGHT = {'boss_0': ('s_zhw', 'outskirts', [480, 1040]), 'boss_1': ('s_xinmo', 'outskirts', [700, 930]), 'boss_2': ('s_mystery', 'wild', [700, 262]),
+         'boss_3': ('s_xieyue', 'wild', [560, 318]), 'boss_4': ('s_hanxin', 'mist', [1100, 1180]), 'boss_5': ('s_shadow', 'town', [1500, 620]),
          'boss_6': ('s_mengyuan', 'town', [1000, 760]), 'boss_7': ('s_tianxing', 'town', [1040, 700])}
-KILL = {'1004': ('s_worm', 'wild', [520, 300]), '1003': ('s_tiger', 'wild', [800, 460]), '1005': ('s_snake', 'town', [640, 900])}
+KILL = {'1004': ('s_worm', 'wild', [520, 300]), '1003': ('s_tiger', 'wild', [840, 284]), '1005': ('s_snake', 'town', [640, 900])}
 SPOT = {'cj1000': ('creek', [1060, 1230], '神韵')}
 NPC_MAP = {'elder': 'village', 'zhanhw': 'outskirts', 'bianque': 'outskirts', 'qingxizi': 'creek', 'jy_dao': 'creek', 'jy_yin': 'creek', 'jy_mo': 'creek',
            'zc_elder': 'wild', 'xiaohs': 'wild', 'hanxin': 'mist', 'equipman': 'town', 'baisu': 'town', 'xiaohs2': 'town'}

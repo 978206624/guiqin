@@ -478,6 +478,7 @@ window.DATA = {
       blocks: [],
       glows: [[1050,330],[1450,870]],
       portals: [{ to: 'creek', name: '回清溪谷', at: [805, 1370], arrive: [1770, 188] }, { to: 'hejiang', name: '入合江村', at: [1250, 100], arrive: [300, 1580] }],
+      npcs: [{ id: 'hanxin', at: [1100, 1180] }],
       foes: [{ stage: 'mistwolf', at: [1130, 1240] }, { stage: 'mistgang', at: [1170, 430] }]
     },
     pine: {
@@ -612,6 +613,7 @@ window.DATA = {
       ],
       glows: [[440,165],[75,445],[250,440],[140,490],[165,410],[808,262],[898,298],[872,78],[960,85]],
       portals: [{ to: 'town', name: '回汉中郡', at: [40, 515], arrive: [300, 800] }, { to: 'pine', name: '入石松林', at: [440, 206], arrive: [800, 1440] }],
+      npcs: [{ id: 'zc_elder', at: [300, 436] }, { id: 'xiaohs', at: [480, 356] }],
       foes: [{ stage: 'path', at: [352, 352] }, { stage: 'wolves', at: [150, 140] }, { stage: 'outpost', at: [850, 288] }, { stage: 'boss', at: [926, 116] }]
     }
   },
