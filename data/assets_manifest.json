@@ -221,7 +221,7 @@
  },
  "bg_qianling": {
   "file": "assets/bg_qianling.webp",
-  "bytes": 327528
+  "bytes": 481240
  },
  "bg_qingyang": {
   "file": "assets/bg_qingyang.webp",
@@ -1121,7 +1121,7 @@
  },
  "mini_qianling": {
   "file": "assets/mini_qianling.jpg",
-  "bytes": 45658
+  "bytes": 58797
  },
  "mini_qingyang": {
   "file": "assets/mini_qingyang.jpg",
