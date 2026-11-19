@@ -3204,23 +3204,6 @@
    ],
    "boss": true
   },
-  "qy_ksls": {
-   "name": "开山力士",
-   "sprite": "kk_mon_100006",
-   "h": 130,
-   "hp": 9809,
-   "atk": 441,
-   "def": 141,
-   "spd": 114,
-   "exp": 300,
-   "coin": 120,
-   "drops": [
-    [
-     "hp_potion",
-     0.5
-    ]
-   ]
-  },
   "qy_eling": {
    "name": "恶灵",
    "sprite": "kk_mon_40010",
@@ -3256,41 +3239,6 @@
     ]
    ],
    "pet": true
-  },
-  "qy_nishi": {
-   "name": "泥石兵俑",
-   "sprite": "kk_mon_50004",
-   "h": 108,
-   "hp": 9300,
-   "atk": 422,
-   "def": 134,
-   "spd": 112,
-   "exp": 300,
-   "coin": 120,
-   "drops": [
-    [
-     "hp_potion",
-     0.5
-    ]
-   ],
-   "pet": true
-  },
-  "qy_dunjia": {
-   "name": "盾甲兵",
-   "sprite": "kk_mon_100005",
-   "h": 126,
-   "hp": 9300,
-   "atk": 422,
-   "def": 134,
-   "spd": 112,
-   "exp": 300,
-   "coin": 120,
-   "drops": [
-    [
-     "hp_potion",
-     0.5
-    ]
-   ]
   },
   "qy_ronggu": {
    "name": "熔骨血尸",
@@ -4852,55 +4800,55 @@
  "stages": [
   {
    "id": "qy47",
-   "name": "古城遗迹·巡兵",
+   "name": "古城遗迹·血尸",
    "rec": 47,
    "enemies": [
-    "qy_dunjia",
-    "qy_nishi",
+    "qy_ronggu",
+    "qy_ronggu",
     "qy_ronggu"
    ],
-   "desc": "遗迹里游荡的盾甲兵、泥石兵俑和熔骨血尸。"
+   "desc": "遗迹里游荡的熔骨血尸。"
   },
   {
    "id": "qy47b",
-   "name": "古城遗迹·残兵",
+   "name": "古城遗迹·残尸",
    "rec": 47,
    "enemies": [
-    "qy_nishi",
     "qy_ronggu",
-    "qy_nishi"
+    "qy_ronggu",
+    "qy_eling"
    ],
-   "desc": "残垣断壁间的泥石兵俑和熔骨血尸。"
+   "desc": "残垣断壁间的熔骨血尸和恶灵。"
   },
   {
    "id": "qy49",
    "name": "古城遗迹·妖物",
    "rec": 49,
    "enemies": [
-    "qy_ksls",
     "qy_eling",
-    "qy_shehun"
+    "qy_shehun",
+    "qy_eling"
    ],
-   "desc": "荒废古城里的开山力士、恶灵和摄魂使者。"
+   "desc": "荒废古城里的恶灵和摄魂使者。"
   },
   {
    "id": "qy49b",
    "name": "古城遗迹·恶灵",
    "rec": 49,
    "enemies": [
-    "qy_ksls",
+    "qy_eling",
     "qy_eling",
     "qy_eling"
    ],
-   "desc": "坍塌街巷中聚集的恶灵与开山力士。"
+   "desc": "坍塌街巷中聚集的恶灵。"
   },
   {
    "id": "qy49c",
    "name": "古城遗迹·魂使",
    "rec": 49,
    "enemies": [
-    "qy_eling",
     "qy_shehun",
+    "qy_eling",
     "qy_shehun"
    ],
    "desc": "城门附近盘踞的摄魂使者。"

@@ -193,12 +193,9 @@ window.DATA = {
     shadow:  { name: '暗影魔将', sprite: 'grunt',      h: 128, hp: 3100, atk: 204, def: 54, spd: 96,  exp: 200, coin: 70, drops: [['ore', 1]], boss: true },
     mengyuan:{ name: '梦渊尸魔', sprite: 'boss',       h: 156, hp: 3600, atk: 226, def: 60, spd: 88,  exp: 220, coin: 80, drops: [['ore', 1], ['mp_potion', 1]], boss: true },
     tianxing:{ name: '天星子的幻影', sprite: 'f_tao',  h: 136, hp: 4000, atk: 240, def: 64, spd: 104, exp: 250, coin: 90, drops: [['ore', 2], ['mp_potion', 1]], boss: true },
-    // ---- 青阳古城野怪（原版 1041–1046；数值取玄兵塔同级曲线，经验银两同塔内守卫）----
-    qy_ksls: { name: '开山力士', sprite: 'kk_mon_100006', h: 130, hp: 9809, atk: 441, def: 141, spd: 114, exp: 300, coin: 120, drops: [['hp_potion', 0.5]] },
+    // ---- 青阳古城野怪（原版 1041–1046 里只保留熔骨血尸、恶灵、摄魂使者；数值取玄兵塔同级曲线，经验银两同塔内守卫）----
     qy_eling: { name: '恶灵', sprite: 'kk_mon_40010', h: 96, hp: 9809, atk: 441, def: 141, spd: 114, exp: 300, coin: 120, drops: [['hp_potion', 0.5]], pet: true },
     qy_shehun: { name: '摄魂使者', sprite: 'kk_mon_100004', h: 124, hp: 9809, atk: 441, def: 141, spd: 114, exp: 300, coin: 120, drops: [['hp_potion', 0.5]], pet: true },
-    qy_nishi: { name: '泥石兵俑', sprite: 'kk_mon_50004', h: 108, hp: 9300, atk: 422, def: 134, spd: 112, exp: 300, coin: 120, drops: [['hp_potion', 0.5]], pet: true },
-    qy_dunjia: { name: '盾甲兵', sprite: 'kk_mon_100005', h: 126, hp: 9300, atk: 422, def: 134, spd: 112, exp: 300, coin: 120, drops: [['hp_potion', 0.5]] },
     qy_ronggu: { name: '熔骨血尸', sprite: 'kk_mon_60009', h: 100, hp: 9300, atk: 422, def: 134, spd: 112, exp: 300, coin: 120, drops: [['hp_potion', 0.5]], pet: true },
     // ---- 紫阴古城（50 级副本）怪物：数值取玄兵塔同级曲线，首领倍率同塔内首领；噬魂魔将/魔帅形象为暂代 ----
     zy_shiren: { name: '噬人妖', sprite: 'kk_mon_30005', h: 100, hp: 10064, atk: 450, def: 144, spd: 115, exp: 300, coin: 120, drops: [['hp_potion', 0.5]], pet: true },
@@ -210,11 +207,11 @@ window.DATA = {
   },
 
   stages: [
-    { id: 'qy47',  name: '古城遗迹·巡兵', rec: 47, enemies: ['qy_dunjia', 'qy_nishi', 'qy_ronggu'], desc: '遗迹里游荡的盾甲兵、泥石兵俑和熔骨血尸。' },
-    { id: 'qy47b', name: '古城遗迹·残兵', rec: 47, enemies: ['qy_nishi', 'qy_ronggu', 'qy_nishi'], desc: '残垣断壁间的泥石兵俑和熔骨血尸。' },
-    { id: 'qy49',  name: '古城遗迹·妖物', rec: 49, enemies: ['qy_ksls', 'qy_eling', 'qy_shehun'], desc: '荒废古城里的开山力士、恶灵和摄魂使者。' },
-    { id: 'qy49b', name: '古城遗迹·恶灵', rec: 49, enemies: ['qy_ksls', 'qy_eling', 'qy_eling'], desc: '坍塌街巷中聚集的恶灵与开山力士。' },
-    { id: 'qy49c', name: '古城遗迹·魂使', rec: 49, enemies: ['qy_eling', 'qy_shehun', 'qy_shehun'], desc: '城门附近盘踞的摄魂使者。' },
+    { id: 'qy47', name: '古城遗迹·血尸', rec: 47, enemies: ['qy_ronggu', 'qy_ronggu', 'qy_ronggu'], desc: '遗迹里游荡的熔骨血尸。' },
+    { id: 'qy47b', name: '古城遗迹·残尸', rec: 47, enemies: ['qy_ronggu', 'qy_ronggu', 'qy_eling'], desc: '残垣断壁间的熔骨血尸和恶灵。' },
+    { id: 'qy49', name: '古城遗迹·妖物', rec: 49, enemies: ['qy_eling', 'qy_shehun', 'qy_eling'], desc: '荒废古城里的恶灵和摄魂使者。' },
+    { id: 'qy49b', name: '古城遗迹·恶灵', rec: 49, enemies: ['qy_eling', 'qy_eling', 'qy_eling'], desc: '坍塌街巷中聚集的恶灵。' },
+    { id: 'qy49c', name: '古城遗迹·魂使', rec: 49, enemies: ['qy_shehun', 'qy_eling', 'qy_shehun'], desc: '城门附近盘踞的摄魂使者。' },
     { id: 'zy1a', name: '古城外围·噬人妖', rec: 50, enemies: ['zy_shiren', 'zy_shiren', 'zy_shiren'], desc: '在古城外围游荡的噬人妖。' },
     { id: 'zy1b', name: '古城外围·噬人妖群', rec: 50, enemies: ['zy_shiren', 'zy_shiren', 'zy_shiren'], desc: '聚在石板长道上的噬人妖。' },
     { id: 'zy1boss', name: '噬魂魔将', rec: 50, enemies: ['zy_shihun', 'zy_shiren', 'zy_shiren'], desc: '被封印在古城外围的噬魂魔将。', needAll: ['zy1a', 'zy1b'], needMsg: '噬人妖守着魔将的封印，不清掉它们没法靠近。' },
