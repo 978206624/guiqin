@@ -225,7 +225,7 @@
  },
  "bg_qingyang": {
   "file": "assets/bg_qingyang.webp",
-  "bytes": 525556
+  "bytes": 477606
  },
  "bg_shangshan": {
   "file": "assets/bg_shangshan.webp",
@@ -1181,7 +1181,7 @@
  },
  "mini_qingyang": {
   "file": "assets/mini_qingyang.jpg",
-  "bytes": 54941
+  "bytes": 41172
  },
  "mini_shangshan": {
   "file": "assets/mini_shangshan.jpg",

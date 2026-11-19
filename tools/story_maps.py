@@ -110,8 +110,8 @@ LINKS = {
 }
 for _k, _v in LINKS.items(): MAPS[_k].update(_v)
 # 世界地图上的位置（world.webp 2300×2300）：沿东侧田舍往北、再往西，和老地图的圆点错开
-FOES = {'qingyang': [{'stage': 'qy47', 'at': [1150, 760]}, {'stage': 'qy49', 'at': [1750, 950]}]}  # 关卡定义在 data.js 的 stages
-NPCS = {'qingyang': [{'id': 'fb50_guard', 'at': [640, 420]}]}
+FOES = {'qingyang': [{'stage': 'qy47', 'at': [900, 560]}, {'stage': 'qy47b', 'at': [1000, 1250]}, {'stage': 'qy49', 'at': [1450, 830]}, {'stage': 'qy49b', 'at': [1250, 1120]}, {'stage': 'qy49c', 'at': [1850, 990]}]}  # 关卡定义在 data.js 的 stages
+NPCS = {'qingyang': [{'id': 'fb50_guard', 'at': [2090, 1015]}]}  # 守将站在遗迹城门前
 WORLD = {'hejiang': [2045, 1431], 'qianling': [2134, 843], 'anyang': [2096, 435], 'handan': [1636, 307],
          'shangshan': [1380, 153], 'baishou': [767, 383], 'yinlong': [332, 588], 'qingyang': [281, 843]}
 for _k, _w in WORLD.items(): MAPS[_k]['world'] = _w
