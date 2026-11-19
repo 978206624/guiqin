@@ -179,6 +179,14 @@
   "file": "assets/bc_mo_ms_m.webp",
   "bytes": 114800
  },
+ "bg_anyang": {
+  "file": "assets/bg_anyang.webp",
+  "bytes": 381668
+ },
+ "bg_baishou": {
+  "file": "assets/bg_baishou.webp",
+  "bytes": 454272
+ },
  "bg_battle": {
   "file": "assets/bg_battle.webp",
   "bytes": 195182
@@ -191,6 +199,14 @@
   "file": "assets/bg_creek.webp",
   "bytes": 505578
  },
+ "bg_handan": {
+  "file": "assets/bg_handan.webp",
+  "bytes": 666588
+ },
+ "bg_hejiang": {
+  "file": "assets/bg_hejiang.webp",
+  "bytes": 533636
+ },
  "bg_mist": {
   "file": "assets/bg_mist.webp",
   "bytes": 470008
@@ -202,6 +218,18 @@
  "bg_pine": {
   "file": "assets/bg_pine.webp",
   "bytes": 652308
+ },
+ "bg_qianling": {
+  "file": "assets/bg_qianling.webp",
+  "bytes": 327528
+ },
+ "bg_qingyang": {
+  "file": "assets/bg_qingyang.webp",
+  "bytes": 525556
+ },
+ "bg_shangshan": {
+  "file": "assets/bg_shangshan.webp",
+  "bytes": 305104
  },
  "bg_taixuforest": {
   "file": "assets/bg_taixuforest.webp",
@@ -258,6 +286,10 @@
  "bg_wolfvalley": {
   "file": "assets/bg_wolfvalley.webp",
   "bytes": 442452
+ },
+ "bg_yinlong": {
+  "file": "assets/bg_yinlong.webp",
+  "bytes": 475284
  },
  "boar": {
   "file": "assets/boar.webp",
@@ -1055,9 +1087,25 @@
   "file": "assets/mini.jpg",
   "bytes": 18004
  },
+ "mini_anyang": {
+  "file": "assets/mini_anyang.jpg",
+  "bytes": 48963
+ },
+ "mini_baishou": {
+  "file": "assets/mini_baishou.jpg",
+  "bytes": 55014
+ },
  "mini_creek": {
   "file": "assets/mini_creek.jpg",
   "bytes": 60435
+ },
+ "mini_handan": {
+  "file": "assets/mini_handan.jpg",
+  "bytes": 61808
+ },
+ "mini_hejiang": {
+  "file": "assets/mini_hejiang.jpg",
+  "bytes": 60046
  },
  "mini_mist": {
   "file": "assets/mini_mist.jpg",
@@ -1070,6 +1118,18 @@
  "mini_pine": {
   "file": "assets/mini_pine.jpg",
   "bytes": 57198
+ },
+ "mini_qianling": {
+  "file": "assets/mini_qianling.jpg",
+  "bytes": 45658
+ },
+ "mini_qingyang": {
+  "file": "assets/mini_qingyang.jpg",
+  "bytes": 54941
+ },
+ "mini_shangshan": {
+  "file": "assets/mini_shangshan.jpg",
+  "bytes": 43497
  },
  "mini_taixuforest": {
   "file": "assets/mini_taixuforest.jpg",
@@ -1126,6 +1186,10 @@
  "mini_wolfvalley": {
   "file": "assets/mini_wolfvalley.jpg",
   "bytes": 54260
+ },
+ "mini_yinlong": {
+  "file": "assets/mini_yinlong.jpg",
+  "bytes": 53557
  },
  "pd_ss_1221": {
   "file": "assets/pd_ss_1221.webp",
