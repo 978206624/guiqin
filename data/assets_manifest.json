@@ -291,6 +291,22 @@
   "file": "assets/bg_yinlong.webp",
   "bytes": 475284
  },
+ "bg_zy1": {
+  "file": "assets/bg_zy1.webp",
+  "bytes": 268908
+ },
+ "bg_zy2": {
+  "file": "assets/bg_zy2.webp",
+  "bytes": 326184
+ },
+ "bg_zy3": {
+  "file": "assets/bg_zy3.webp",
+  "bytes": 245924
+ },
+ "bg_zy4": {
+  "file": "assets/bg_zy4.webp",
+  "bytes": 292200
+ },
  "boar": {
   "file": "assets/boar.webp",
   "bytes": 12944
@@ -631,6 +647,10 @@
   "file": "assets/head_kk_npc07.webp",
   "bytes": 14770
  },
+ "head_kk_npc08": {
+  "file": "assets/head_kk_npc08.webp",
+  "bytes": 11116
+ },
  "head_kk_npc13": {
   "file": "assets/head_kk_npc13.webp",
   "bytes": 11596
@@ -638,6 +658,10 @@
  "head_kk_npc14": {
   "file": "assets/head_kk_npc14.webp",
   "bytes": 13402
+ },
+ "head_kk_npc16066": {
+  "file": "assets/head_kk_npc16066.webp",
+  "bytes": 6622
  },
  "head_kk_npc20": {
   "file": "assets/head_kk_npc20.webp",
@@ -650,6 +674,10 @@
  "head_kk_npc33": {
   "file": "assets/head_kk_npc33.webp",
   "bytes": 14828
+ },
+ "head_kk_npc36": {
+  "file": "assets/head_kk_npc36.webp",
+  "bytes": 10410
  },
  "head_kk_npc45": {
   "file": "assets/head_kk_npc45.webp",
@@ -670,6 +698,14 @@
  "head_kk_npc59": {
   "file": "assets/head_kk_npc59.webp",
   "bytes": 12378
+ },
+ "head_kk_npc60": {
+  "file": "assets/head_kk_npc60.webp",
+  "bytes": 8350
+ },
+ "head_kk_npc65_bs08": {
+  "file": "assets/head_kk_npc65_bs08.webp",
+  "bytes": 3624
  },
  "head_kk_npc_cyblq": {
   "file": "assets/head_kk_npc_cyblq.webp",
@@ -1055,6 +1091,10 @@
   "file": "assets/kk_mon_100006.webp",
   "bytes": 29238
  },
+ "kk_mon_30005": {
+  "file": "assets/kk_mon_30005.webp",
+  "bytes": 28208
+ },
  "kk_mon_40010": {
   "file": "assets/kk_mon_40010.webp",
   "bytes": 20744
@@ -1062,6 +1102,10 @@
  "kk_mon_50004": {
   "file": "assets/kk_mon_50004.webp",
   "bytes": 19578
+ },
+ "kk_mon_50008": {
+  "file": "assets/kk_mon_50008.webp",
+  "bytes": 13756
  },
  "kk_mon_60009": {
   "file": "assets/kk_mon_60009.webp",
@@ -1071,6 +1115,10 @@
   "file": "assets/kk_npc07.webp",
   "bytes": 13950
  },
+ "kk_npc08": {
+  "file": "assets/kk_npc08.webp",
+  "bytes": 18352
+ },
  "kk_npc13": {
   "file": "assets/kk_npc13.webp",
   "bytes": 13816
@@ -1078,6 +1126,10 @@
  "kk_npc14": {
   "file": "assets/kk_npc14.webp",
   "bytes": 15580
+ },
+ "kk_npc16066": {
+  "file": "assets/kk_npc16066.webp",
+  "bytes": 48642
  },
  "kk_npc20": {
   "file": "assets/kk_npc20.webp",
@@ -1090,6 +1142,10 @@
  "kk_npc33": {
   "file": "assets/kk_npc33.webp",
   "bytes": 14762
+ },
+ "kk_npc36": {
+  "file": "assets/kk_npc36.webp",
+  "bytes": 16246
  },
  "kk_npc45": {
   "file": "assets/kk_npc45.webp",
@@ -1110,6 +1166,14 @@
  "kk_npc59": {
   "file": "assets/kk_npc59.webp",
   "bytes": 52072
+ },
+ "kk_npc60": {
+  "file": "assets/kk_npc60.webp",
+  "bytes": 60200
+ },
+ "kk_npc65_bs08": {
+  "file": "assets/kk_npc65_bs08.webp",
+  "bytes": 36510
  },
  "kk_npc_cyblq": {
   "file": "assets/kk_npc_cyblq.webp",
@@ -1246,6 +1310,22 @@
  "mini_yinlong": {
   "file": "assets/mini_yinlong.jpg",
   "bytes": 53557
+ },
+ "mini_zy1": {
+  "file": "assets/mini_zy1.jpg",
+  "bytes": 37166
+ },
+ "mini_zy2": {
+  "file": "assets/mini_zy2.jpg",
+  "bytes": 39315
+ },
+ "mini_zy3": {
+  "file": "assets/mini_zy3.jpg",
+  "bytes": 35395
+ },
+ "mini_zy4": {
+  "file": "assets/mini_zy4.jpg",
+  "bytes": 34949
  },
  "pd_ss_1221": {
   "file": "assets/pd_ss_1221.webp",

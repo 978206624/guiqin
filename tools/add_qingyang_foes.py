@@ -5,7 +5,7 @@ import sys, json
 from PIL import Image
 R = __file__.rsplit('/tools/', 1)[0]
 src = sys.argv[1]
-MON = {'100006': '开山力士', '40010': '恶灵', '100004': '摄魂使者', '50004': '泥石兵俑', '100005': '盾甲兵', '60009': '熔骨血尸'}
+MON = {'100006': '开山力士', '40010': '恶灵', '100004': '摄魂使者', '50004': '泥石兵俑', '100005': '盾甲兵', '60009': '熔骨血尸', '30005': '噬人妖', '50008': '暴怒尸鬼'}   # 后两只是紫阴古城副本怪
 p = R + '/js/assets.js'; s = open(p).read(); i = s.index('{'); j = s.rindex('}'); A = json.loads(s[i:j + 1])
 for pid, nm in MON.items():
     im = Image.open(f'{src}/m{pid}/cg_001.png').convert('RGBA'); im = im.crop(im.getchannel('A').getbbox())

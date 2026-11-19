@@ -460,7 +460,15 @@ function openSmith(tab) {
 }
 const ACTS = {
   towerGo() { towerEnterFloor(towerFloor()); },
-  fbGo() { $('modal').hidden = true; modalOnClose = null; toast('副本尚未开放，银两未扣除'); },
+  fbGo() {
+    $('modal').hidden = true; modalOnClose = null;
+    const fb = D.maps[M.id] && (D.maps[M.id].npcs || []).map(n => D.npcs[n.id]).find(i => i && i.fb); if (!fb) return;
+    const f = fb.fb;
+    if (S.coin < f.fee) { toast('银两不足，进入需要 ' + f.fee); return; }
+    S.coin -= f.fee; S.cleared = S.cleared.filter(x => !x.startsWith(f.prefix));   // 每次进入重新计：上次的通关记录清掉
+    $('coin').textContent = '银两 ' + fmt(S.coin);
+    loadMap(f.enter); save(); toast('进入 ' + f.name + '（-' + f.fee + ' 银两）');
+  },
   towerNext() { const f = M.def.tower; if (f < 7 && (S.tower | 0) >= f * 10) towerEnterFloor(f + 1); },
   towerLeave() { $('modal').hidden = true; modalOnClose = null; const t = D.maps.town; loadMap('town', toMap(t, 850, 610)); save(); toast('走出了玄兵塔'); },
   petUse(id) { if (!ownPet(id)) return; S.petAct = id; petSel = id; save(); applyPetLook(); toast(D.petDex[id].name + ' 出战'); openPet(); },
@@ -586,7 +594,7 @@ function makePortal(p) {
   const el = document.createElement('div'); el.className = 'portal'; const sz = p.art && AS.size[p.art];
   el.innerHTML = (sz ? '<img class="arr" alt="" src="' + IMG(p.art) + '" style="width:' + sz[0] + 'px;height:' + sz[1] + 'px;left:' + (-sz[0] / 2) + 'px;top:' + (-sz[1] / 2) + 'px">' : '<i></i>') + '<div class="tag"' + (sz ? ' style="bottom:' + (sz[1] / 2 + 6) + 'px"' : '') + '></div>';
   world.appendChild(el);
-  const a = { kind: 'portal', id: 'portal_' + p.to, name: p.name, el, tag: el.querySelector('.tag'), pos: I(p.at[0], p.at[1]), h: 50, mark: false, to: p.to, arrive: p.arrive, needStep: p.needStep, lockMsg: p.lockMsg };
+  const a = { kind: 'portal', id: 'portal_' + p.to, name: p.name, el, tag: el.querySelector('.tag'), pos: I(p.at[0], p.at[1]), h: 50, mark: false, to: p.to, arrive: p.arrive, needStep: p.needStep, needStages: p.needStages, lockMsg: p.lockMsg };
   el.style.transform = 'translate(' + a.pos.x + 'px,' + a.pos.y + 'px)'; el.style.zIndex = sz ? 0 : 1;
   drawTag(a); return a;
 }
@@ -1178,9 +1186,10 @@ function openFoe(a) {
   if (a.stage.story && q0 && q0.stage === a.stage.id && q0.pre && q0.pre.length && S.preSeen !== S.step) { S.preSeen = S.step; save(); showPages(q0.pre, () => openFoe(a)); return; }
   if (a.done) { openModal(a.stage.name, '<p class="center">这名守卫你已经打败了，不能重复挑战。</p><p class="center"><button type="button" class="tbtn" data-act="close">知道了</button></p>'); return; }
   const st = a.stage, names = st.enemies.map(e => D.enemies[e].name).join('、');
-  const needSt = st.need && !S.cleared.includes(st.need) ? D.stages.find(s => s.id === st.need) : null;
+  const needId = st.need && !S.cleared.includes(st.need) ? st.need : (st.needAll || []).find(x => !S.cleared.includes(x));
+  const needSt = needId ? D.stages.find(s => s.id === needId) : null;
   let h;
-  if (needSt) h = '<p class="center">他们人多势众，贸然上前太危险。<br>先打通「' + needSt.name + '」再来。</p><p class="center"><button type="button" class="tbtn" data-act="close">知道了</button></p>';
+  if (needSt) h = '<p class="center">' + (st.needMsg || '他们人多势众，贸然上前太危险。') + '<br>先打通「' + needSt.name + '」再来。</p><p class="center"><button type="button" class="tbtn" data-act="close">知道了</button></p>';
   else if (st.needStep != null && S.step < st.needStep) h = '<p class="center">山寨大门紧闭，头目不肯露面。<br>先回城里打听打听消息。</p><p class="center"><button type="button" class="tbtn" data-act="close">知道了</button></p>';
   else h = '<p class="center">' + st.desc + '<br>敌人：' + names + '　建议 ' + st.rec + ' 级（你现在 ' + S.lv + ' 级）</p>' +
     '<p class="center"><button type="button" class="tbtn red" data-act="fight:' + st.id + '">开战</button>　<button type="button" class="tbtn" data-act="close">再等等</button></p>';
@@ -1269,7 +1278,7 @@ function arrive() {
   stop(); S.pos = { x: player.pos.x, y: player.pos.y }; save();
   if (!near) return;
   if (n.kind !== 'portal') { player.face = n.pos.x >= player.pos.x ? 1 : -1; player.dir = n.pos.y < player.pos.y - 24 ? 'b' : 'f'; }
-  if (n.kind === 'portal') { if (n.needStep != null && S.step < n.needStep) toast(n.lockMsg || '现在还不能过去'); else travel(n); }
+  if (n.kind === 'portal') { if (n.needStep != null && S.step < n.needStep) toast(n.lockMsg || '现在还不能过去'); else if (n.needStages && n.needStages.some(x => !S.cleared.includes(x))) toast(n.lockMsg || '先击败这一层的守卫'); else travel(n); }
   else if (n.kind === 'foe') openFoe(n); else talk(n);
 }
 function stepPlayer(dt) {
