@@ -1954,7 +1954,7 @@ function startBattle(st) {
   const foes = { persons: [], pets: [] };
   st.enemies.forEach(id => {
     const e = D.enemies[id];
-    (e.pet ? foes.pets : foes.persons).push({ name: e.name, sprite: e.sprite, h: e.h * 1.12, flip: true, data: e, ai: e.boss ? 'boss' : 'attack',
+    (e.pet ? foes.pets : foes.persons).push({ name: e.name, sprite: e.sprite, h: e.h * 1.12, flip: !/^kk_mon_/.test(e.sprite), data: e, ai: e.boss ? 'boss' : 'attack',
       stats: { hp: e.hp, maxHp: e.hp, atk: e.atk, def: e.def, spd: e.spd } });
   });
   beginBattle('pve', st.name, {
