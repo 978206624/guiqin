@@ -110,6 +110,7 @@ LINKS = {
 }
 for _k, _v in LINKS.items(): MAPS[_k].update(_v)
 # 世界地图上的位置（world.webp 2300×2300）：沿东侧田舍往北、再往西，和老地图的圆点错开
+NPCS = {'qingyang': [{'id': 'fb50_guard', 'at': [640, 420]}]}
 WORLD = {'hejiang': [2045, 1431], 'qianling': [2134, 843], 'anyang': [2096, 435], 'handan': [1636, 307],
          'shangshan': [1380, 153], 'baishou': [767, 383], 'yinlong': [332, 588], 'qingyang': [281, 843]}
 for _k, _w in WORLD.items(): MAPS[_k]['world'] = _w
@@ -129,6 +130,7 @@ def build_def(k, m):
     d['portals'] = []
     for to, name, at, _ in m['portals']:
         d['portals'].append(dict(to=to, name=name, at=S(at), arrive=None))
+    d['npcs'] = NPCS.get(k, [])  # 手写 NPC，重跑脚本时保留
     d['foes'] = []
     return d
 

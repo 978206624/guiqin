@@ -460,6 +460,7 @@ function openSmith(tab) {
 }
 const ACTS = {
   towerGo() { towerEnterFloor(towerFloor()); },
+  fbGo() { $('modal').hidden = true; modalOnClose = null; toast('副本尚未开放，银两未扣除'); },
   towerNext() { const f = M.def.tower; if (f < 7 && (S.tower | 0) >= f * 10) towerEnterFloor(f + 1); },
   towerLeave() { $('modal').hidden = true; modalOnClose = null; const t = D.maps.town; loadMap('town', toMap(t, 850, 610)); save(); toast('走出了玄兵塔'); },
   petUse(id) { if (!ownPet(id)) return; S.petAct = id; petSel = id; save(); applyPetLook(); toast(D.petDex[id].name + ' 出战'); openPet(); },
@@ -1137,6 +1138,7 @@ function talk(n) {
     else if (info.shop) openShop(info.shop);
     else if (info.act === 'ssEnvoy') openEnvoy();
     else if (info.act === 'towerEnter') openTowerEnter();
+    else if (info.act === 'fbEntry') openFbEntry(info);
     else if (info.act === 'towerTp') openTowerTp();
     else if (info.act === 'joinSect') joinDaoTalk();
     else if (info.act === 'pickHall') pickHallTalk(info.hall);
@@ -1154,6 +1156,12 @@ function openTowerEnter() {
   if (S.lv < T.minLv) { openModal('百炼玄兵塔', '<p class="center">塔里的守卫不是闹着玩的。<br>等你到 <b>' + T.minLv + ' 级</b> 再来（你现在 ' + S.lv + ' 级）。</p><p class="center"><button type="button" class="tbtn" data-act="close">知道了</button></p>'); return; }
   openModal('百炼玄兵塔', '<p class="center">已通关守卫 <b>' + p + ' / 70</b>　' + (p >= 70 ? '全塔通关' : '当前所在：第 ' + f + ' 层 · ' + T.floors[f - 1].name) + '<br><small style="color:var(--muted)">每层十名守卫，按顺序挑战；第十名是本层首领，打败后才能上楼。</small></p>' +
     '<p class="center"><button type="button" class="tbtn red" data-act="towerGo">进入玄兵塔</button>　<button type="button" class="tbtn" data-act="close">以后再说</button></p>');
+}
+function openFbEntry(info) {
+  const f = info.fb;
+  openModal(f.name, '<p style="text-align:left">' + f.intro + '</p><p class="center"><small style="color:var(--muted)">副本等级 LV' + f.lv + '　每天可进入 ' + f.daily + ' 次</small></p>' +
+    '<p class="center">进入该副本需要支付<br><b>银两 ' + f.fee + '</b><br>您确定进入吗？</p>' +
+    '<p class="center"><button type="button" class="tbtn red" data-act="fbGo">确定</button>　<button type="button" class="tbtn" data-act="close">取消</button></p>');
 }
 function towerEnterFloor(f, arrive) {
   const id = 'tower' + f, dest = D.maps[id]; $('modal').hidden = true; modalOnClose = null;

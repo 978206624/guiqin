@@ -643,6 +643,10 @@
   "file": "assets/head_kk_npc20.webp",
   "bytes": 12906
  },
+ "head_kk_npc24": {
+  "file": "assets/head_kk_npc24.webp",
+  "bytes": 12056
+ },
  "head_kk_npc33": {
   "file": "assets/head_kk_npc33.webp",
   "bytes": 14828
@@ -1042,6 +1046,10 @@
  "kk_npc20": {
   "file": "assets/kk_npc20.webp",
   "bytes": 20206
+ },
+ "kk_npc24": {
+  "file": "assets/kk_npc24.webp",
+  "bytes": 18100
  },
  "kk_npc33": {
   "file": "assets/kk_npc33.webp",
