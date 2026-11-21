@@ -835,8 +835,8 @@ function addBtn(parent, icon, label, x, y, size, key, dot) {
 addBtn($('btns'), 'icon_gear', '设置', 676, 246 + 7 * 76, 54, 'gear', 0);
 const autoBtn = addBtn($('btns'), 'icon_auto', '', 652, 1186, 86, 'auto');
 addBtn($('btns'), 'icon_ride', '', 562, 1214, 56, 'ride');
-addBtn($('btns'), 'icon_potion', '', 594, 1144, 56, 'potion');
-const manaBtn = addBtn($('btns'), 'item_mp_potion', '', 530, 1144, 56, 'mpPotion');
+addBtn($('btns'), 'icon_potion', '', 667, 1107, 56, 'potion');
+const manaBtn = addBtn($('btns'), 'item_mp_potion', '', 603, 1107, 56, 'mpPotion');
 manaBtn.classList.add('quickMana');
 manaBtn.setAttribute('aria-label', '补蓝（回气丹）');
 // 点头像开角色面板，点宠物头像开宠物面板

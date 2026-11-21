@@ -150,8 +150,8 @@ namespace GuiQin
             // 右下角：自动挂机（大）、坐骑、回气丹和金创药快捷键
             autoBtn = RoundIcon("auto", "icon_auto", 609, 1143, 86, () => onKey("auto"));
             RoundIcon("ride", "icon_ride", 534, 1186, 56, () => onKey("ride"));
-            RoundIcon("mpPotion", "item_mp_potion", 502, 1116, 56, () => onKey("mpPotion"));
-            RoundIcon("potion", "icon_potion", 566, 1116, 56, () => onKey("potion"));
+            RoundIcon("mpPotion", "item_mp_potion", 575, 1079, 56, () => onKey("mpPotion"));
+            RoundIcon("potion", "icon_potion", 639, 1079, 56, () => onKey("potion"));
 
             var log = WebUi.Panel("systemMessages", town);
             var logBtn = log.gameObject.AddComponent<Button>(); logBtn.targetGraphic = log; logBtn.transition = Selectable.Transition.None; logBtn.onClick.AddListener(() => onKey("chat"));       // 点这块打开聊天
