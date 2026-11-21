@@ -10,7 +10,17 @@ var builder = WebApplication.CreateBuilder(args);
 var connection = builder.Configuration.GetConnectionString("Game")
     ?? throw new InvalidOperationException("请设置 ConnectionStrings__Game。");
 var port = builder.Configuration.GetValue("GuiQin:Port", 5090);
-builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, port));
+IPAddress lan = null;
+var lanAddress = builder.Configuration["GuiQin:LanAddress"];
+if (!string.IsNullOrWhiteSpace(lanAddress) &&
+    (!IPAddress.TryParse(lanAddress, out lan) || lan.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork ||
+     lan.Equals(IPAddress.Any) || lan.Equals(IPAddress.Broadcast) || IPAddress.IsLoopback(lan)))
+    throw new InvalidOperationException("GuiQin:LanAddress 必须是电脑网卡上的局域网 IPv4 地址。");
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Listen(IPAddress.Loopback, port);
+    if (lan != null) options.Listen(lan, port);
+});
 var directory = Path.Combine(AppContext.BaseDirectory, "Data");
 GameData.Load(new FileDataSource(directory));
 var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(Path.Combine(directory, "data.json"))));
