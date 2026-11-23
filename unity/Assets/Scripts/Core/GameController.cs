@@ -22,8 +22,9 @@ namespace GuiQin
         readonly List<Actor> list = new List<Actor>();
         List<Vector2> route = new List<Vector2>();
         Actor talkTarget;
+        bool showMapRoute;
         DialogUi dialog; ToastUi toast; HudUi hud; SettingsUi menu; FrontUi front;
-        WeatherSystem wx; WeatherUi wxUi; WorldMapUi worldUi; SceneMapUi sceneUi; PetUi petUi; TrainUi trainUi; ChatUi chatUi; BagUi bagUi; QuestUi questUi; ModalUi modal; GameObject netBanner; Text netText; readonly HashSet<int> preSeen = new HashSet<int>();
+        WeatherSystem wx; WorldMapUi worldUi; SceneMapUi sceneUi; PetUi petUi; TrainUi trainUi; ChatUi chatUi; BagUi bagUi; QuestUi questUi; ModalUi modal; GameObject netBanner; Text netText; readonly HashSet<int> preSeen = new HashSet<int>();
         MapFx mapFx; WaterFx waterFx;
         readonly List<Vector2[]> fadePolys = new List<Vector2[]>();
         IGameBackend net; RoleState role; bool entered;
@@ -35,10 +36,12 @@ namespace GuiQin
         void Awake()
         {
             Application.targetFrameRate = 60;
+            if (Application.platform == RuntimePlatform.Android)
+                Screen.sleepTimeout = SleepTimeout.NeverSleep;
             Screen.orientation = ScreenOrientation.Portrait;
             GameData.Load(new UnityRulesDataSource());
             BuildCamera(); BuildEventSystem();
-            wx = new WeatherSystem(cam);
+            wx = new WeatherSystem(cam, () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + ((net as WsBackend)?.ServerTimeOffsetMs ?? 0));
             BuildUi();
             worldRoot = new GameObject("World").transform;
             CreatePlayerAndPet();
@@ -66,7 +69,7 @@ namespace GuiQin
         {
             netBanner.SetActive(false); entered = false;
             if (battle != null) { battle.Dispose(); battle = null; }
-            ClearMap(); map = null; menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); petUi.Close(); trainUi.Close(); chatUi.BindRole(null); bagUi.Close(); dialog.Close();
+            ClearMap(); map = null; menu.Close(); worldUi.Close(); sceneUi.Close(); petUi.Close(); trainUi.Close(); chatUi.BindRole(null); bagUi.Close(); dialog.Close();
             ShowWorld(false);
             modal.Open("连接已断开", string.IsNullOrEmpty(why) ? "和服务器的连接断开了。" : why, new ModalUi.Btn("返回登录", () => { NewNet(); front.Open(false); }));
         }
@@ -77,11 +80,15 @@ namespace GuiQin
             if (!entered || role == null) return;
             string currentRole = role.id;
             var backend = net;
-            var er = await backend.EnterGame(currentRole);
+            var er = await backend.EnterGame(currentRole, resume: true);
             if (!entered || role?.id != currentRole || net != backend) return;
             if (!er.Ok) { toast.Show("同步失败：" + er.msg); return; }
             role = er.data.role; ApplyRoleLook(); ApplyPetLook();
-            if (battle == null && map != null && role.map != map.Id) LoadMap(role.map, StageAt(role.map, role.x, role.y));
+            if (battle == null && map != null)
+            {
+                if (role.map != map.Id) LoadMap(role.map, StageAt(role.map, role.x, role.y));
+                else { SyncStory(); RefreshQuest(); }
+            }
             await chatUi.LoadHistory();
             if (entered && role?.id == currentRole && net == backend) await RefreshBag();
         }
@@ -119,17 +126,6 @@ namespace GuiQin
             if (battle != null) { toast.Show("战斗中不能切换角色"); return; }
             menu.Close(); Stop(); entered = false; chatUi.BindRole(null); ClearMap(); map = null;
             ShowWorld(false); front.Open(true);
-        }
-
-        void ResetRole()
-        {
-            menu.Close();
-            modal.Open("重新开始", "当前角色的等级、装备、任务进度会全部清空，回到新手状态。\n<size=22>（仅本地演示后端可用）</size>", new ModalUi.Btn("重新开始", () =>
-            {
-                var m = net as MockBackend;
-                if (m == null) { toast.Show("只有本地演示后端能重置"); return; }
-                m.ResetRole(); SwitchRole();
-            }, true), new ModalUi.Btn("再想想", null));
         }
 
         // 数据坐标（服务端存的）→ 舞台像素；x<0 表示出生点
@@ -178,9 +174,9 @@ namespace GuiQin
             var aspect = uiStage.gameObject.AddComponent<UnityEngine.UI.AspectRatioFitter>();
             aspect.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;
             aspect.aspectRatio = 720f / 1280f;
-            hud = new HudUi(uiStage, ToggleSettings, OpenWeather, OpenWorld, OpenBag,
+            hud = new HudUi(uiStage, ToggleSettings, OpenWorld, OpenBag,
                 OpenRole, OpenPet, OpenSceneMap, OnHudKey);
-            questUi = new QuestUi(uiStage, QuestGo);
+            questUi = new QuestUi(uiStage, OpenQuestDetails);
             front = new FrontUi(uiStage, () => modal, () => net, EnterRole);
             modal = new ModalUi(uiStage);
             dialog = new DialogUi(uiStage);
@@ -189,15 +185,14 @@ namespace GuiQin
             Ui.Anchor(nb.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             netText = Ui.Label("t", nb.transform, "", 34, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleCenter);
             Ui.Anchor(netText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero); netBanner.SetActive(false);
-            menu = new SettingsUi(uiStage, SwitchRole, ResetRole);
-            wxUi = new WeatherUi(uiStage, wx, () => map != null ? map.Def.name : "");
+            menu = new SettingsUi(uiStage, SwitchRole);
             worldUi = new WorldMapUi(uiStage, id => GoWorld(id), () => map != null ? map.Id : "village");
             sceneUi = new SceneMapUi(uiStage, OpenWorld);
             petUi = new PetUi(uiStage, () => role, PetRun, m => toast.Show(m));
             trainUi = new TrainUi(uiStage, () => role, TrainRun, m => toast.Show(m));
             chatUi = new ChatUi(uiStage, () => net, () => role, hud.SetChatPreview);
             bagUi = new BagUi(uiStage, (c, q) => net.BagOp(c, q), () => role, m => toast.Show(m), RefreshHud);
-            wx.Changed += (k, announce) => { hud.SetWeather(WeatherSystem.NameOf(k)); if (announce) toast.Show("天气转为 " + WeatherSystem.NameOf(k)); };
+            wx.Changed += (k, announce) => { hud.SetWeather(k); if (announce) toast.Show("天气转为 " + WeatherSystem.NameOf(k)); };
             var mk = new GameObject("clickMark"); mk.transform.SetParent(transform, false);
             mark = mk.AddComponent<SpriteRenderer>(); mark.sprite = Art.Dot(); mark.color = new Color(1f, 0.9f, 0.4f, 0f); mark.sortingOrder = 30000;
         }
@@ -220,22 +215,26 @@ namespace GuiQin
         }
 
         // ---------------- 载入地图 ----------------
-        bool ModalOpen { get { return menu.Visible || wxUi.Visible || worldUi.Visible || sceneUi.Visible || petUi.Visible || trainUi.Visible || chatUi.Visible || bagUi.Visible || modal.Visible; } }
+        bool ModalOpen { get { return menu.Visible || worldUi.Visible || sceneUi.Visible || petUi.Visible || trainUi.Visible || chatUi.Visible || bagUi.Visible || modal.Visible; } }
 
-        void OpenWeather() { if (!wxUi.Visible) { menu.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close(); wxUi.Open(); } else wxUi.Close(); }
-        void OpenWorld() { Stop(); menu.Close(); wxUi.Close(); bagUi.Close(); sceneUi.Close(); worldUi.Open(); }
+        void OpenWorld() { Stop(); menu.Close(); bagUi.Close(); sceneUi.Close(); worldUi.Open(); }
 
         void ToggleSettings()
         {
-            wxUi.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close();
+            worldUi.Close(); sceneUi.Close(); bagUi.Close();
             menu.Toggle();
         }
 
         void OpenSceneMap()
         {
             if (map == null || battle != null) return;
-            Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); bagUi.Close();
-            sceneUi.Open(map, player.Pos, list, GoTalk, p => MoveTo(p, false));
+            SetWander(false); menu.Close(); worldUi.Close(); bagUi.Close();
+            sceneUi.Open(map, player.Pos, list, n => GoTalk(n, true), p =>
+            {
+                if (!MoveTo(p, false, true)) return false;
+                talkTarget = null;
+                return true;
+            });
         }
 
         void RefreshHud()
@@ -263,13 +262,12 @@ namespace GuiQin
                 case "friend": OpenChat("friends"); break;
                 case "chat": OpenChat("all"); break;
                 case "auto": SetWander(!wander); toast.Show(wander ? "开始挂机闲逛，再点一次停止" : "停止挂机"); break;
-                case "ride": toast.Show("「坐骑」暂未开放"); break;
                 case "potion": QuickPotion("hp_potion"); break;
                 case "mpPotion": QuickPotion("mp_potion"); break;
             }
         }
 
-        void OpenChat(string tab) { Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close(); chatUi.Open(tab); }
+        void OpenChat(string tab) { Stop(); menu.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close(); chatUi.Open(tab); }
 
         void SetWander(bool on) { bool was = wander; wander = on; wanderWait = 0f; hud.SetAuto(on); if (!on && was && player != null) Stop(); }
 
@@ -308,22 +306,14 @@ namespace GuiQin
         void OpenRole()
         {
             if (role == null || ModalOpen) return;
-            var s = GuiQin.Inventory.RoleStats.Compute(role.cls, role.lv, role.bag);
-            modal.OpenWithPortrait(role.name, "cls_" + role.cls,
-                $"Lv.{role.lv} · {GuiQin.Sect.SectService.ClsName(role.cls)}\n战力 {HudUi.Power(s):N0}\n\n气血 {s.maxHp}　法力 {s.maxMp}\n物攻 {s.atk}　物防 {s.def}\n法攻 {s.matk}　法防 {s.mdef}\n速度 {s.spd}　暴击 {s.crit:0.#}%",
-                new ModalUi.Btn("装备", OpenEquipment), new ModalUi.Btn("关闭", null));
-        }
-
-        async void OpenEquipment()
-        {
-            Stop(); await RefreshBag();
-            if (entered) bagUi.Open(BagUi.Tab.Equip, fromRole: true);
+            Stop();
+            bagUi.OpenRole();
         }
 
         void OpenPet()
         {
             if (role == null || ModalOpen) return;
-            Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close();
+            Stop(); menu.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close();
             petUi.Open();
         }
 
@@ -347,11 +337,11 @@ namespace GuiQin
             return r.data.msg;
         }
 
-        void OpenTrain(string who) { Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close(); trainUi.Open(who); }
+        void OpenTrain(string who) { Stop(); menu.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close(); trainUi.Open(who); }
 
         async void OpenEnvoy()
         {
-            Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close();
+            Stop(); menu.Close(); worldUi.Close(); sceneUi.Close(); bagUi.Close();
             await RefreshBag();
             if (entered) petUi.OpenEnvoy();
         }
@@ -373,11 +363,11 @@ namespace GuiQin
         }
 
         // 背包 / 商店：先向服务端要一份最新的（战斗、任务都会改背包），再打开
-        async void OpenBag() { if (bagUi.Visible) { bagUi.Close(); return; } Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Bag); }
-        async void OpenShop(string shop) { Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Shop, shop); }
+        async void OpenBag() { if (bagUi.Visible) { bagUi.Close(); return; } Stop(); menu.Close(); worldUi.Close(); sceneUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Bag); }
+        async void OpenShop(string shop) { Stop(); menu.Close(); worldUi.Close(); sceneUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Shop, shop); }
         async void OpenMall()
         {
-            Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close();
+            Stop(); menu.Close(); worldUi.Close(); sceneUi.Close();
             if (await RefreshBag()) bagUi.Open(BagUi.Tab.Mall);
         }
 
@@ -389,6 +379,7 @@ namespace GuiQin
             if (!r.Ok || !r.data.ok) { if (!r.Ok) toast.Show(r.msg); return false; }
             role.bag = r.data.bag; role.coin = r.data.coin; role.hp = r.data.hp; role.mp = r.data.mp;
             role.yuanbao = r.data.yuanbao; role.silverNote = r.data.silverNote;
+            if (r.data.petMana != null) role.petMana = r.data.petMana;
             RefreshHud();
             return true;
         }
@@ -407,6 +398,7 @@ namespace GuiQin
 
         void ClearMap()
         {
+            sceneUi.Close();
             if (waterFx != null) { waterFx.Destroy(); waterFx = null; }
             if (mapFx != null) { mapFx.Destroy(); mapFx = null; }
             foreach (var a in list) { if (a.Tag != null) a.Tag.Destroy(); Destroy(a.gameObject); }
@@ -435,7 +427,7 @@ namespace GuiQin
             if (def.npcs != null) foreach (var n in def.npcs) AddNpc(n);
             if (def.portals != null) foreach (var p in def.portals) AddPortal(p);
             if (def.tower > 0) AddTowerFoes(def);
-            else if (def.foes != null) foreach (var f in def.foes) AddFoe(f);
+            else if (def.foes != null) foreach (var f in def.foes) AddFoe(f, roam: true);
 
             Vector2 start = at.HasValue && map.Inside(at.Value) ? at.Value : map.ToMap(def.start);
             player.Pos = start; player.Face = 1; player.Dir = 'f'; player.Dist = 0;
@@ -490,7 +482,7 @@ namespace GuiQin
             }
         }
 
-        void AddFoe(FoePlace f, bool done = false)
+        void AddFoe(FoePlace f, bool done = false, bool roam = false)
         {
             StageDef st; EnemyDef en;
             if (!GameData.Stages.TryGetValue(f.stage, out st)) { Debug.LogWarning("没有关卡：" + f.stage); return; }
@@ -499,7 +491,13 @@ namespace GuiQin
             var sprite = Art.One(en.sprite);
             if (sprite == null) { Debug.LogWarning("敌人缺图：" + en.sprite); return; }
             var sz = Art.Size(en.sprite);
-            var a = Actor.Make<Actor>("foe_" + st.id, worldRoot, sprite, map.ToMap(f.at), sz != null ? sz[0] * 0.6f : 50f);
+            var position = map.ToMap(f.at);
+            float shadowWidth = sz != null ? sz[0] * 0.6f : 50f;
+            Actor a = roam && !st.story && !en.boss && lead != "dummy"
+                ? Actor.Make<RoamingFoeActor>("foe_" + st.id, worldRoot, sprite, position, shadowWidth)
+                : Actor.Make<Actor>("foe_" + st.id, worldRoot, sprite, position, shadowWidth);
+            if (a is RoamingFoeActor roamingFoe)
+                roamingFoe.InitRoam(GameData.Raw["battleFacing"]?["left"]?.Any(x => (string)x == en.sprite) == true);
             a.Kind = ActorKind.Foe; a.Id = "foe_" + st.id; a.StageInfo = st; a.DisplayName = st.name; a.Done = done;
             a.Title = done ? "已通关" : (st.tower && st.n % 10 == 0 ? "首领 " : "") + "建议 " + st.rec + " 级";
             a.NameColor = done ? new Color(0.6f, 0.64f, 0.71f) : new Color(1f, 0.6f, 0.54f); a.TitleColor = done ? new Color(0.56f, 0.82f, 0.63f) : new Color(1f, 0.84f, 0.42f);
@@ -515,7 +513,7 @@ namespace GuiQin
             return Stage.FromWorld(w);
         }
 
-        bool MoveTo(Vector2 dest, bool quiet)
+        bool MoveTo(Vector2 dest, bool quiet, bool markMapRoute = false)
         {
             Vector2 d;
             if (!map.Snap(dest, out d)) return false;
@@ -523,13 +521,15 @@ namespace GuiQin
             if (path == null || path.Count == 0) return false;
             if (!player.Moving) player.MoveT = 0f;
             route = path; player.Moving = true;
+            showMapRoute = markMapRoute;
             if (!quiet) { mark.transform.position = Stage.ToWorld(d); markT = 0f; }
             return true;
         }
 
-        void GoTalk(Actor n)
+        void GoTalk(Actor n, bool markMapRoute = false)
         {
             talkTarget = n;
+            if (n is RoamingFoeActor roamingFoe) roamingFoe.PauseRoam(player.Pos);
             int side = player.Pos.x >= n.Pos.x ? 1 : -1;
             Vector2 c = n.Pos;
             if (n.Kind != ActorKind.Portal)
@@ -539,10 +539,15 @@ namespace GuiQin
                 if (!ok) c = n.Pos;
             }
             if (Vector2.Distance(c, player.Pos) < 8f) { Arrive(); return; }
-            if (!MoveTo(c, true)) Arrive();
+            if (!MoveTo(c, true, markMapRoute)) Arrive();
         }
 
-        void Stop() { player.Moving = false; route.Clear(); talkTarget = null; }
+        void Stop()
+        {
+            player.Moving = false; route.Clear(); talkTarget = null; showMapRoute = false;
+            hud.SetRoute(player.Pos, null);
+            sceneUi.SetRoute(player.Pos, null);
+        }
 
         void Arrive()
         {
@@ -567,12 +572,12 @@ namespace GuiQin
 
         void OpenBattle(BattleView view, Actor foe)
         {
-            Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); petUi.Close(); trainUi.Close(); bagUi.Close();
+            Stop(); menu.Close(); worldUi.Close(); sceneUi.Close(); petUi.Close(); trainUi.Close(); bagUi.Close();
             SetWander(false); chatUi.Close();
             ShowWorld(false);
             hud.SetBattleVisible();
             string bid = view.id;
-            battle = BattleController.Begin(cam, uiStage, view, cmd => net.BattleAct(bid, cmd), end => EndBattle(end, foe), msg => toast.Show(msg), hud.SetVitals);
+            battle = BattleController.Begin(cam, uiStage, view, cmd => net.BattleAct(bid, cmd), end => EndBattle(end, foe), msg => toast.Show(msg), hud.SetVitals, hud.SetPetVitals);
         }
 
         void ShowWorld(bool on)
@@ -587,7 +592,9 @@ namespace GuiQin
             ShowWorld(true);
             var beat = Cur; bool advanced = end.step != role.step;
             ApplyExperience(end.exp, end.lv);
-            role.lv = end.lv; role.step = end.step; role.cnt = end.cnt; role.tower = end.tower; role.bond = end.bond; RefreshBag();
+            role.lv = end.lv; role.step = end.step; role.cnt = end.cnt; role.tower = end.tower; role.bond = end.bond;
+            if (end.petId != null) GuiQin.Pets.PetService.SaveMana(role, end.petId, end.petMana);
+            RefreshBag();
             if (end.result == "lose" && !string.IsNullOrEmpty(end.respawnMap)) { LoadMap(end.respawnMap, null); toast.Show("战败，回到" + map.Def.name); return; }
             if (end.result == "win" && foe != null && foe.StageInfo != null && !foe.StageInfo.tower) { if (foe.Tag != null) foe.Tag.Destroy(); list.Remove(foe); Destroy(foe.gameObject); }
             if (end.result == "win" && foe != null && foe.StageInfo != null && foe.StageInfo.tower) LoadMap(map.Id, player.Pos);      // 塔里：守卫留在原地变灰，下一名守卫现身
@@ -786,8 +793,59 @@ namespace GuiQin
             var q = Cur;
             questUi.Set(q != null ? q.title : "江湖路远", q != null ? q.goal + (q.type == "kill" ? "（" + Mathf.Min(role.cnt, q.n) + "/" + q.n + "）" : "") : "第一章已完成，去各处历练升级吧", q != null ? q.chapter : "待续");
             var tgt = QuestTarget();
-            foreach (var a in list) { bool m = a == tgt; if (a.Marked != m) { a.Marked = m; a.SetTag(); } }
+            var marks = new QuestService(role).NpcMarkers(map.Id);
+            foreach (var a in list)
+            {
+                a.Marked = a == tgt;
+                var mark = QuestNpcMark.None;
+                if (a.Kind == ActorKind.Npc && !a.Hidden)
+                    marks.TryGetValue(a.Id, out mark);
+                else if (a.Kind == ActorKind.Foe && a.Sb == role.step && q?.type == "fight")
+                {
+                    // 剧情战斗临时替换同名 NPC，交付未就绪的灰问号跟随场上的同一人物。
+                    var npc = list.Find(n => n.Kind == ActorKind.Npc && n.Hidden && n.DisplayName == a.DisplayName);
+                    if (npc != null && marks.TryGetValue(npc.Id, out var pending) && pending == QuestNpcMark.Pending)
+                        mark = pending;
+                }
+                if (a.QuestMark != mark) { a.QuestMark = mark; a.SetTag(); }
+            }
             hud.SetMapActors(list);
+        }
+
+        void OpenQuestDetails()
+        {
+            if (ModalOpen || dialog.Visible || battle != null || !entered) return;
+            var quest = Cur;
+            if (quest == null)
+            {
+                modal.Open("任务详情", "当前没有可追踪的主线任务。", new ModalUi.Btn("返回", null));
+                return;
+            }
+
+            var lines = new List<string>();
+            if (!string.IsNullOrEmpty(quest.chapter)) lines.Add("<color=#ffd56a>" + quest.chapter + "</color>");
+            if (!string.IsNullOrEmpty(quest.summary)) lines.Add(quest.summary);
+            lines.Add("目标：" + quest.goal);
+            if (quest.type == "kill") lines.Add("进度：" + Mathf.Min(role.cnt, quest.n) + " / " + quest.n);
+            if (quest.map != null && GameData.Maps.TryGetValue(quest.map, out var destination))
+                lines.Add("地点：" + destination.name);
+
+            var reward = quest;
+            for (int step = role.step + 1; !reward.last && quest.qid != null; step++)
+            {
+                var next = StoryBeats.At(step);
+                if (next == null || next.qid != quest.qid) break;
+                reward = next;
+            }
+            var rewards = new List<string>();
+            if (reward.exp > 0) rewards.Add("经验 +" + reward.exp);
+            if (reward.coin > 0) rewards.Add("银两 +" + reward.coin);
+            foreach (var item in reward.items)
+                rewards.Add(((string)GameData.Raw["items"][item.Key]?["name"] ?? item.Key) + " ×" + item.Value);
+            if (rewards.Count > 0) lines.Add("完成奖励：" + string.Join("、", rewards));
+
+            modal.Open(quest.title, string.Join("\n\n", lines),
+                new ModalUi.Btn("前往目标", QuestGo, true), new ModalUi.Btn("返回", null));
         }
 
         void QuestGo()
@@ -838,7 +896,7 @@ namespace GuiQin
             if (!string.IsNullOrEmpty(r.data.msg)) toast.Show(string.IsNullOrEmpty(info.restMsg) ? r.data.msg : info.restMsg);
         }
 
-        async void OpenSmith() { Stop(); menu.Close(); wxUi.Close(); worldUi.Close(); sceneUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Smith); }
+        async void OpenSmith() { Stop(); menu.Close(); worldUi.Close(); sceneUi.Close(); await RefreshBag(); bagUi.Open(BagUi.Tab.Smith); }
 
         // ---------------- 门派 ----------------
         static Newtonsoft.Json.Linq.JToken Cls(string id) { return GameData.Raw["classes"][id]; }
@@ -1025,11 +1083,18 @@ namespace GuiQin
             StepWander(dt);
             StepPlayer(dt); StepFox(dt);
             hud.SetPosition(player.Pos);
+            var remainingRoute = showMapRoute ? route : null;
+            hud.SetRoute(player.Pos, remainingRoute);
+            if (sceneUi.Visible) sceneUi.SetRoute(player.Pos, remainingRoute);
             var target = CamTarget();
             cam.transform.position = Vector3.Lerp(cam.transform.position, target, 1f - Mathf.Exp(-14f * dt));
             player.Sync(); player.Animate(time);
             fox.Sync(); fox.Animate(time);
-            foreach (var a in list) a.Animate(time);
+            foreach (var a in list)
+            {
+                if (a is RoamingFoeActor roamingFoe && a != talkTarget) roamingFoe.TickRoam(map, dt);
+                a.Animate(time);
+            }
             dialog.Tick(dt); toast.Tick(dt);
             worldUi.Tick(dt);
             wx.Tick(dt);

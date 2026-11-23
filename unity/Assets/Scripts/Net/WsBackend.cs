@@ -213,7 +213,7 @@ namespace GuiQin.Net
         public Task<Result<RoleListResp>> RoleList(string server) { return Call<RoleListResp>(Cmd.RoleList, new RoleListReq { server = server }); }
         public Task<Result<RoleCreateResp>> RoleCreate(string server, string name, string cls) { return Call<RoleCreateResp>(Cmd.RoleCreate, new RoleCreateReq { server = server, name = name, cls = cls }); }
         public Task<Result<Empty>> RoleDelete(string roleId) { return Call<Empty>(Cmd.RoleDelete, new RoleDeleteReq { roleId = roleId }); }
-        public Task<Result<EnterResp>> EnterGame(string roleId) { return Call<EnterResp>(Cmd.EnterGame, new EnterReq { roleId = roleId }); }
+        public Task<Result<EnterResp>> EnterGame(string roleId, bool resume = false) { return Call<EnterResp>(Cmd.EnterGame, new EnterReq { roleId = roleId, resume = resume }); }
         public Task<Result<MoveResp>> Move(MoveReq req) { return Call<MoveResp>(Cmd.Move, req); }
         public Task<Result<MapChangeResp>> Portal(string from, string to) { return Call<MapChangeResp>(Cmd.Portal, new PortalReq { from = from, to = to }); }
         public Task<Result<MapChangeResp>> Teleport(string to, string npc = null) { return Call<MapChangeResp>(Cmd.Teleport, new TeleportReq { to = to, npc = npc }); }

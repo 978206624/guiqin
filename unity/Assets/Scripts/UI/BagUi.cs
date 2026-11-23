@@ -12,11 +12,11 @@ using UnityEngine.UI;
 namespace GuiQin
 {
     // 背包 / 装备 / 锻造（含宝石镶嵌与合成）/ 商店。所有改动都发给后端，收到整包背包后重画——界面自己不改任何数据。
-    public class BagUi
+    public partial class BagUi
     {
-        public enum Tab { Bag, Equip, Smith, Shop, Mall }
+        public enum Tab { Bag, Equip, Smith, Shop, Mall, Attributes, Skills }
 
-        readonly GameObject root; readonly RectTransform body; readonly Text title, coinLabel, msg;
+        readonly GameObject root; readonly RectTransform body; readonly Text title, coinLabel, msg, manaReserveLabel;
         readonly ModalUi expandConfirm;
         readonly Func<string, BagOpReq, Task<Result<BagResp>>> op; readonly Func<RoleState> getRole; readonly Action<string> toast; readonly Action onChanged;
         Tab tab = Tab.Bag; string shopId; string filter = "all"; int page; string selId, selSlot; string forgeGem; bool busy;
@@ -46,6 +46,8 @@ namespace GuiQin
             Ui.Anchor(title.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(205, -70), new Vector2(475, -12));
             coinLabel = Ui.Label("coin", bg.transform, "", 28, new Color(1f, 0.85f, 0.4f), TextAnchor.MiddleRight);
             Ui.Anchor(coinLabel.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-215, -70), new Vector2(-64, -12));
+            manaReserveLabel = Ui.Label("manaReserve", bg.transform, "", 17, WebUi.Light, TextAnchor.MiddleLeft);
+            WebUi.At(manaReserveLabel.rectTransform, 24, 16, 170, 40);
             var x = WebUi.Close(bg.transform, Close);
             Ui.Anchor(x.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-50, -54), new Vector2(-10, -14));
             string[][] ts = { new[] { "Bag", "背包" }, new[] { "Equip", "装备" }, new[] { "Smith", "锻造" } };
@@ -56,6 +58,7 @@ namespace GuiQin
                 Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(0, 1), new Vector2(24 + i * 150, -140), new Vector2(24 + i * 150 + 140, -80));
                 tabBtns.Add(b);
             }
+            BuildRoleTabs(bg.transform);
             msg = Ui.Label("msg", bg.transform, "", 24, new Color(1f, 0.92f, 0.65f), TextAnchor.MiddleLeft);
             Ui.Anchor(msg.rectTransform, new Vector2(0, 0), new Vector2(1, 0), new Vector2(24, 8), new Vector2(-24, 52));
             body = Ui.Rect("body", bg.transform); Ui.Anchor(body, Vector2.zero, Vector2.one, new Vector2(16, 56), new Vector2(-16, -150));
@@ -67,6 +70,7 @@ namespace GuiQin
         {
             this.fromRole = fromRole;
             tab = t; shopId = shop; selId = null; selSlot = null; page = 0; mallCurrency = 0; filter = "all"; msg.text = "";
+            roleScroll = null;
             root.SetActive(true); Redraw();
         }
         public void Close() { expandConfirm.Close(); root.SetActive(false); }
@@ -160,6 +164,7 @@ namespace GuiQin
                 if (!r.Ok) { msg.text = r.msg ?? "操作失败"; return; }
                 var d = r.data; var role = Role;
                 if (d.bag != null) role.bag = d.bag;
+                if (d.petMana != null) role.petMana = d.petMana;
                 role.coin = d.coin; role.hp = d.hp; role.mp = d.mp;
                 role.yuanbao = d.yuanbao; role.silverNote = d.silverNote;
                 msg.text = d.msg ?? "";
@@ -172,19 +177,32 @@ namespace GuiQin
         // ---------------- 重画 ----------------
         void Redraw()
         {
+            float scrollY = roleScroll == null ? 0f : roleScroll.anchoredPosition.y;
             Clear();
+            roleScroll = null;
             var role = Role; if (role == null || role.bag == null) return;
-            coinLabel.gameObject.SetActive(tab != Tab.Mall);
+            coinLabel.gameObject.SetActive(!fromRole && tab != Tab.Mall);
             coinLabel.text = "银两 " + role.coin.ToString("N0");
-            title.text = tab == Tab.Mall ? "商城" : tab == Tab.Shop ? ((string)GameData.Raw["shops"]?[shopId]?["name"] ?? "商店") :
+            manaReserveLabel.gameObject.SetActive(!fromRole && tab == Tab.Bag &&
+                (Bag.manaReserve > 0 || Bag.equip.ContainsKey("pouch")));
+            manaReserveLabel.text = "药囊法力储备 " + Bag.manaReserve;
+            title.text = fromRole ? "角色" : tab == Tab.Mall ? "商城" : tab == Tab.Shop ? ((string)GameData.Raw["shops"]?[shopId]?["name"] ?? "商店") :
                 tab == Tab.Smith ? "铁匠铺" : tab == Tab.Equip ? "装备" : "背包";
             bool storefront = tab == Tab.Shop || tab == Tab.Mall;
             for (int i = 0; i < tabBtns.Count; i++)
             {
-                tabBtns[i].gameObject.SetActive(!storefront && (!fromRole || i != (int)Tab.Smith));
+                tabBtns[i].gameObject.SetActive(!storefront && !fromRole);
                 WebUi.Button(tabBtns[i], (int)tab == i ? WebUi.C("#8a5a14") : WebUi.Purple);
             }
             if (selId != null && !Bag.items.ContainsKey(selId) && !storefront) selId = null;
+            foreach (var entry in roleTabs)
+            {
+                entry.Value.gameObject.SetActive(fromRole);
+                if (fromRole) WebUi.Button(entry.Value, entry.Key == tab ? WebUi.C("#3b2a5c") : WebUi.Purple);
+            }
+            if (fromRole) { DrawRole(scrollY); return; }
+            roleHeader.gameObject.SetActive(false);
+            Ui.Anchor(body, Vector2.zero, Vector2.one, new Vector2(16, 56), new Vector2(-16, -150));
             switch (tab) { case Tab.Bag: DrawBag(); break; case Tab.Equip: DrawEquip(); break; case Tab.Smith: DrawSmith(); break; case Tab.Shop: DrawShop(); break; case Tab.Mall: DrawMall(); break; }
         }
 
@@ -272,6 +290,7 @@ namespace GuiQin
             var row = Ui.Rect("acts", box.transform); Ui.Anchor(row, new Vector2(0, 0), new Vector2(1, 0), new Vector2(12, 8), new Vector2(-12, 68));
             int slot = 0; string id = selId;
             if (type == "potion") Act(row, "使用", slot++, new Color(0.2f, 0.5f, 0.3f), () => Do(BagCmd.Use, new BagOpReq { id = id }));
+            if (id == "mp_potion") Act(row, "存入药囊", slot++, WebUi.Purple, () => Do(BagCmd.Use, new BagOpReq { id = id, storeInPouch = true }));
             if (type == "equip") Act(row, "装备", slot++, new Color(0.2f, 0.5f, 0.3f), () => Do(BagCmd.Equip, new BagOpReq { id = id }));
             if (type == "gem" && (int)it["lv"] < 5) Act(row, "合成", slot++, new Color(0.45f, 0.3f, 0.6f), () => Do(BagCmd.Merge, new BagOpReq { id = id }), Bag.items[id] >= 3);
             if (type != "potion" && it["price"] != null && (int)it["price"] > 0) Act(row, "出售 " + (int)it["price"], slot++, new Color(0.55f, 0.35f, 0.15f), () => Do(BagCmd.Sell, new BagOpReq { id = id }));

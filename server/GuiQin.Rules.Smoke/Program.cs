@@ -8,6 +8,7 @@ using GuiQin.Battle;
 using GuiQin.Inventory;
 using GuiQin.Net;
 using GuiQin.Quest;
+using GuiQin.Pets;
 using GuiQin.Sect;
 using GuiQin;
 
@@ -47,6 +48,8 @@ internal static class Program
         VerifySectStory();
         VerifyPetSurvivesOwner();
         Console.WriteLine("宠物续战：主角倒下后继续行动，宠物独力可获胜，全员倒下才判负。");
+        VerifyPetManaAndPouch();
+        Console.WriteLine("宠物法力：旧档从零开始，药囊补蓝，施法扣蓝，换宠和下一场保留各自法力。");
         return 0;
     }
 
@@ -127,6 +130,57 @@ internal static class Program
         }
     }
 
+    static void VerifyPetManaAndPouch()
+    {
+        var role = new RoleState { cls = "novice_f", lv = 12, map = "village", bag = InventoryService.NewBag() };
+        var inventory = new InventoryService(role);
+        var stage = GameData.Stages["boar"];
+        var empty = BattleFactory.Create(role, stage, Seed);
+        if (empty.Engine.Pet.Mp != 0 || empty.Engine.Pet.MaxMp != 108 ||
+            empty.View.petSkills.Single(s => s.id == "foxfire").mp != 20)
+            throw new InvalidOperationException("旧存档的法力或宠物技能消耗不正确。");
+        var unavailable = empty.Engine.RunRound(new BattleCmd { type = "defend", petSkill = "foxfire", petTarget = 1 });
+        if (!unavailable.Any(e => e.t == "act" && e.u == empty.Engine.Pet.Id && e.skill == "bite"))
+            throw new InvalidOperationException("无蓝的宠物应使用免费普通招式。");
+
+        inventory.Give("mp_potion", 1);
+        int potions = inventory.ItemCount("mp_potion");
+        if (inventory.StoreManaPotion("mp_potion") || inventory.ItemCount("mp_potion") != potions)
+            throw new InvalidOperationException("未装备药囊时不能消耗回气丹。");
+        inventory.Give("herb_pouch", 1);
+        if (!inventory.Equip("herb_pouch")) throw new InvalidOperationException("无法装备测试用药囊。");
+        int maxMana = RoleStats.Compute(role.cls, role.lv, role.bag).maxMp;
+        role.mp = maxMana - 15;
+        if (!inventory.StoreManaPotion("mp_potion") || inventory.ItemCount("mp_potion") != potions - 1 ||
+            role.mp != maxMana || PetService.CurrentMana(role, "fox") != 108 || role.bag.manaReserve != 177)
+            throw new InvalidOperationException("储备未按人物、宠物的顺序补蓝。");
+
+        var battle = BattleFactory.Create(role, stage, Seed);
+        var events = battle.Engine.RunRound(new BattleCmd { type = "defend", petSkill = "foxfire", petTarget = 1 });
+        if (!events.Any(e => e.t == "mp" && e.u == battle.Engine.Pet.Id && e.mp == 88) ||
+            battle.Snapshot().units.Single(u => u.id == battle.Engine.Pet.Id).mp != 88)
+            throw new InvalidOperationException("施法扣蓝或重连快照错误。");
+
+        battle.Engine.Over = "win";
+        var result = BattleSettlement.Settle(role, battle);
+        if (result.petMana != 108 || role.bag.manaReserve != 157)
+            throw new InvalidOperationException("战斗胜利后药囊应只补缺少的法力。");
+        role.bag.manaReserve = 0;
+        var noReserve = BattleFactory.Create(role, stage, Seed);
+        noReserve.Engine.Pet.Mp = 0;
+        noReserve.Engine.Over = "win";
+        BattleSettlement.Settle(role, noReserve);
+        if (BattleFactory.Create(role, stage, Seed).Engine.Pet.Mp != 0)
+            throw new InvalidOperationException("没有储备时下一场不能恢复法力。");
+
+        role.petOwn.Add("ss_1227");
+        PetService.SaveMana(role, "ss_1227", 31);
+        role.petAct = "ss_1227";
+        if (BattleFactory.Create(role, stage, Seed).Engine.Pet.Mp != 31 ||
+            PetService.CurrentMana(role, "fox") != 0)
+            throw new InvalidOperationException("宠物法力未按个体分别保存。");
+    }
+
     static string RunBattle()
     {
         var role = new RoleState
@@ -134,6 +188,7 @@ internal static class Program
             id = "smoke", name = "回放角色", cls = "novice_f", lv = 5,
             map = "village", hp = 500, bag = InventoryService.NewBag()
         };
+        PetService.SaveMana(role, "fox", PetService.MaxMana(role.lv));
         var battle = BattleFactory.Create(role, GameData.Stages["boar"], Seed);
         var inventory = new InventoryService(role);
         battle.Engine.ItemUse = id => inventory.UseInBattle(id, out int hp, out int mp) ? new[] { hp, mp } : null;

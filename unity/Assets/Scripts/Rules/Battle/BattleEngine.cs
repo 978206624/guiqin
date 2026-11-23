@@ -170,10 +170,17 @@ namespace GuiQin.Battle
             var s = Sk(act.skill); if (s == null) return;
             if (u.Me && SkillLv != null) { int lv; SkillLv.TryGetValue(act.skill, out lv); float km = GuiQin.Train.TrainService.Mul(lv); if (km != 1f) s = s.Scaled(km); }
             BUnit chosen = act.target >= 0 ? Units.FirstOrDefault(x => x.Id == act.target) : null;
-            if (s.mp > 0)
+            float mana = u == Pet ? GuiQin.Pets.PetService.ManaCost(act.skill, (int)s.mp) : s.mp;
+            if (mana > 0)
             {
-                if (u.Mp < s.mp) { Perform(u, new BattleCmd { type = "skill", skill = "attack", target = Weakest(Other(u.Side)) != null ? Weakest(Other(u.Side)).Id : -1 }); return; }
-                u.Mp -= (int)s.mp; Add(new BattleEvent { t = "mp", u = u.Id, mp = u.Mp });
+                if (u.Mp < mana)
+                {
+                    string basic = u == Pet ? PetSkills[0] : "attack";
+                    Perform(u, new BattleCmd { type = "skill", skill = basic, target = Weakest(Other(u.Side))?.Id ?? -1 });
+                    return;
+                }
+                u.Mp -= (int)mana;
+                Add(new BattleEvent { t = "mp", u = u.Id, mp = u.Mp });
             }
 
             if (s.teamBuff != null || s.rage > 0)                      // 战魂歌（全队增益）/ 狂龙吼（自身舍防换伤）

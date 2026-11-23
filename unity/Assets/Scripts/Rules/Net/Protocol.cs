@@ -72,7 +72,7 @@ namespace GuiQin.Net
     public class RoleCreateResp { public bool ok; public string msg; public RoleBrief role; }
     public class RoleDeleteReq { public string roleId; }
 
-    public class EnterReq { public string roleId; }
+    public class EnterReq { public string roleId; public bool? resume; }
     public class RoleState
     {
         public string id, name, cls, map;
@@ -86,6 +86,7 @@ namespace GuiQin.Net
         public GuiQin.Inventory.BagState bag;         // 背包 / 装备 / 星级 / 宝石
         public List<string> petOwn = new List<string>();   // 已拥有的神兽 id（灵狐出生自带，不在里面）
         public string petAct = "fox";                 // 出战宠物
+        public Dictionary<string, int> petMana = new Dictionary<string, int>(); // 每只宠物的当前法力，旧存档默认零
         public int bond;                              // 亲密度：打赢一场 +1，升档后宠物气血 / 攻击提高
         public bool ssGift;                           // 神兽体验福利是否领过
         public bool guildMember;

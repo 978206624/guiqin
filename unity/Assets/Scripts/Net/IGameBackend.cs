@@ -25,7 +25,7 @@ namespace GuiQin.Net
         Task<Result<RoleListResp>> RoleList(string server);
         Task<Result<RoleCreateResp>> RoleCreate(string server, string name, string cls);   // 名字长度 / 重名 / 每区三个角色 / 职业是否开放：都由服务端判
         Task<Result<Empty>> RoleDelete(string roleId);
-        Task<Result<EnterResp>> EnterGame(string roleId);
+        Task<Result<EnterResp>> EnterGame(string roleId, bool resume = false);
         Task<Result<MoveResp>> Move(MoveReq req);
         Task<Result<MapChangeResp>> Portal(string from, string to);     // 走传送阵：服务端判任务锁 / 等级
         Task<Result<MapChangeResp>> Teleport(string to, string npc = null);   // 传送：接引师请求带 NPC ID，由服务端校验

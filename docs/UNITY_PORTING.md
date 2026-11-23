@@ -21,7 +21,7 @@ HTML 只是原型。**数据、素材、规则**都已与代码分离，移植�
 - 伤害：物理用 atk−def，法术用 matk−mdef（技能系数见 `data.skills`）；闪避 `random*100 < dodge` 完全躲开；暴击 `random*100 < crit`，伤害 ×1.5。
 - 属性：`base + grow × 等级`；灵狐 = 主角裸属性 × `pet` 系数；战力 `powerOf`。
 - 装备：12 栏位、5 档品质、强化到 15 星、宝石镶嵌、锻造宝石；背包 `bagSize`。
-- 商店 `shops`、任务 `quests`、关卡 `stages`、天气 `weather`（按地图 `byMap`）。
+- 商店 `shops`、任务 `quests`、关卡 `stages`、天气 `weather`（统一 UTC 时段）。
 
 ## 4. 特效
 - 动态雾 `maps[id].fog`（云雾谷）；恒山村水面动画由 `tools/water.py` 生成的遮罩 + 画布着色（js/water.js）。

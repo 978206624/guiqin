@@ -4,15 +4,15 @@ using UnityEngine.UI;
 
 namespace GuiQin
 {
-    // 设置：画面特效开关、战斗速度、切换角色、重新开始。音效暂缓。
+    // 设置：画面特效开关、战斗速度、切换角色。音效暂缓。
     public class SettingsUi
     {
-        readonly GameObject root; readonly RectTransform body; readonly Action onSwitch, onReset;
+        readonly GameObject root; readonly RectTransform body; readonly Action onSwitch;
         public bool Visible { get { return root.activeSelf; } }
 
-        public SettingsUi(Transform parent, Action onSwitchRole, Action onResetRole)
+        public SettingsUi(Transform parent, Action onSwitchRole)
         {
-            onSwitch = onSwitchRole; onReset = onResetRole;
+            onSwitch = onSwitchRole;
             var bg = WebUi.Panel("settings", parent); root = bg.gameObject;
             Ui.Anchor(bg.rectTransform, Vector2.zero, Vector2.one, new Vector2(30, 120), new Vector2(-30, -110));
             var title = Ui.Label("title", bg.transform, "设置", 36, new Color(1f, 0.92f, 0.65f), TextAnchor.UpperCenter);
@@ -57,10 +57,8 @@ namespace GuiQin
                 Ui.Anchor(b.GetComponent<RectTransform>(), new Vector2(1, 1), new Vector2(1, 1), new Vector2(-230 + j * 76 - 0, -4 * 100 - 76), new Vector2(-230 + j * 76 + 70, -4 * 100 - 14));
             }
             var sw = Ui.Btn("switch", body, "切换角色", 28, new Color(0.25f, 0.3f, 0.5f), () => { Close(); onSwitch(); });
-            Ui.Anchor(sw.GetComponent<RectTransform>(), new Vector2(0, 1), new Vector2(0.5f, 1), new Vector2(0, -5 * 100 - 90), new Vector2(-8, -5 * 100 - 20));
-            var rs = Ui.Btn("reset", body, "重新开始", 28, new Color(0.55f, 0.2f, 0.2f), () => { Close(); onReset(); });
-            Ui.Anchor(rs.GetComponent<RectTransform>(), new Vector2(0.5f, 1), new Vector2(1, 1), new Vector2(8, -5 * 100 - 90), new Vector2(0, -5 * 100 - 20));
-            var tip = Ui.Label("tip", body, "这些设置只保存在这台设备上。“重新开始”会清掉当前角色的进度。", 22, new Color(0.65f, 0.7f, 0.85f), TextAnchor.UpperLeft);
+            Ui.Anchor(sw.GetComponent<RectTransform>(), new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(-140, -5 * 100 - 90), new Vector2(140, -5 * 100 - 20));
+            var tip = Ui.Label("tip", body, "这些设置只保存在这台设备上。", 22, new Color(0.65f, 0.7f, 0.85f), TextAnchor.UpperLeft);
             Ui.Anchor(tip.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -5 * 100 - 190), new Vector2(0, -5 * 100 - 110));
         }
     }

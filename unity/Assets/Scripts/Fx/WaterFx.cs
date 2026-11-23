@@ -16,6 +16,7 @@ namespace GuiQin
         readonly MapRuntime map; readonly WaterDef def;
         readonly int w, h; readonly float f, kk;          // 蒙版像素 → 舞台像素的系数 kk = 舞台宽 / 蒙版宽
         readonly Material mat; readonly GameObject go;
+        readonly bool villageDetail;
         readonly bool[] solid;
         readonly List<int> pts = new List<int>();
         readonly List<Fall> falls = new List<Fall>();
@@ -34,12 +35,12 @@ namespace GuiQin
             var shader = Shader.Find("GuiQin/Water");
             if (mask == null || bg == null || shader == null) { Debug.LogWarning("水面没开：缺蒙版 / 底图 / 着色器（" + mapId + "）"); return null; }
             if (!mask.isReadable) { Debug.LogWarning("水面蒙版不可读：" + mapId + "（确认 Editor/ArtImporter 对 Resources/GuiQin/Water 生效）"); return null; }
-            return new WaterFx(parent, map, def, mask, bg, shader);
+            return new WaterFx(parent, map, def, mask, bg, shader, mapId == "village");
         }
 
-        WaterFx(Transform parent, MapRuntime map, WaterDef def, Texture2D mask, Texture2D bg, Shader shader)
+        WaterFx(Transform parent, MapRuntime map, WaterDef def, Texture2D mask, Texture2D bg, Shader shader, bool villageDetail)
         {
-            this.map = map; this.def = def;
+            this.map = map; this.def = def; this.villageDetail = villageDetail;
             w = mask.width; h = mask.height; f = w / 1000f; kk = map.W / w;
             solid = new bool[w * h];
             var px = mask.GetPixels32();
@@ -55,7 +56,7 @@ namespace GuiQin
                     if (m <= 6) continue;
                     int i = y * w + x;
                     if (m > 128) { solid[i] = true; if (i % 37 == 0) pts.Add(i); }
-                    float[] d = restDir; float sp = restSp; bool vert = Mathf.Abs(restDir[1]) > Mathf.Abs(restDir[0]) * 1.5f;
+                    float[] d = restDir; float sp = restSp; bool vert = false; // 平缓水流也可以朝下，瀑布由分区指定。
                     foreach (var z in zones)
                         if (x >= z.rect[0] * f && x < z.rect[2] * f && y >= z.rect[1] * f && y < z.rect[3] * f)
                         { d = Norm(z.dir ?? restDir); sp = z.speed > 0 ? z.speed : 20f; vert = Mathf.Abs(d[1]) > Mathf.Abs(d[0]) * 1.5f; break; }
@@ -83,6 +84,15 @@ namespace GuiQin
             mat.SetTexture("_MainTex", mask); mat.SetTexture("_BgTex", bg); mat.SetTexture("_FlowTex", flowTex);
             mat.SetTexture("_TileH", WaterTiles.H); mat.SetTexture("_TileV", WaterTiles.V);
             mat.SetVector("_MaskSize", new Vector4(w, h, f, 0f));
+            if (villageDetail)
+            {
+                mat.SetFloat("_VillageDetail", 1f);
+                // 坐标按底图宽 1000 标定，四处分别为桥下、石阶、水车和右上瀑布。
+                mat.SetVector("_BridgeFoam", new Vector4(488f, 514f, 46f, 29f));
+                mat.SetVector("_StepsFoam", new Vector4(664f, 560f, 52f, 31f));
+                mat.SetVector("_WheelFoam", new Vector4(731f, 505f, 44f, 45f));
+                mat.SetVector("_FallFoam", new Vector4(988f, 265f, 26f, 37f));
+            }
             go = new GameObject("water"); go.transform.SetParent(parent, false);
             var mesh = new Mesh { name = "waterQuad" };
             float W = map.W / Art.PX, H = map.H / Art.PX;
@@ -95,7 +105,7 @@ namespace GuiQin
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; mr.receiveShadows = false;
 
             ringB = new QuadBatch("ripples", parent, Art.RingTex(), false, -9989, 16);
-            softB = new QuadBatch("mist", parent, Art.SoftTex(), false, -9988, 96);
+            softB = new QuadBatch("mist", parent, Art.SoftTex(), false, -9988, villageDetail ? 144 : 96);
             whiteB = new QuadBatch("sparks", parent, Art.WhiteTex(), false, -9987, 256);
             leafB = new QuadBatch("leaves", parent, Art.EllipseTex(), false, -9986, 12);
             if (pts.Count > 0) for (int i = 0; i < 46; i++) sparks.Add(new Spark { i = pts[Random.Range(0, pts.Count)], ph = Random.value * 6.28f, fr = 0.8f + Random.value * 1.8f });
@@ -129,19 +139,16 @@ namespace GuiQin
             ringB.End();
 
             // 闪光点 + 溅起的水珠（同一张白贴图）
-            whiteB.Begin();
+            whiteB.Begin(); softB.Begin();
             foreach (var sp in sparks)
             {
                 float v = Mathf.Sin(t * sp.fr * 2f + sp.ph);
                 if (v < 0.55f) { if (v < -0.98f) sp.i = pts[Random.Range(0, pts.Count)]; continue; }
                 float a = (v - 0.55f) / 0.45f, r = (1f + a * 1.4f) * f; float x = sp.i % w, y = sp.i / w;
-                var c = QuadBatch.Rgb(255, 255, 245, 0.85f * a);
-                whiteB.Quad(P(x, y), S(r), S(r * 0.5f), 0f, c);
-                whiteB.Quad(P(x, y), S(r * 0.5f), S(r * 1.4f), 0f, c);
+                softB.Quad(P(x, y), S(r * 1.8f), S(r * 0.8f), 0f, QuadBatch.Rgb(230, 250, 245, 0.30f * a));
             }
 
             // 瀑布水雾
-            softB.Begin();
             foreach (var fl in falls)
             {
                 if (Random.value < dt * 7f) mist.Add(new Mist { x = fl.x + (Random.value - 0.5f) * fl.w * 0.9f, y = fl.y, vx = (Random.value - 0.5f) * 8f * f, vy = -(9f + Random.value * 14f) * f, r = (5f + Random.value * 6f) * f, life = 1.2f + Random.value * 0.9f });

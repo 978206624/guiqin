@@ -104,16 +104,6 @@ namespace GuiQin.Net
         }
         static RoleBrief Brief(RoleState r) { return new RoleBrief { id = r.id, name = r.name, cls = r.cls, lv = r.lv, map = r.map }; }
 
-        // 重新开始：同一个角色回到出生状态（职业回到新手）。只给本地演示后端用；真服务器没有这个命令
-        public void ResetRole()
-        {
-            if (role == null) return;
-            var z = Zone(enteredServer); int i = z.FindIndex(r => r.id == role.id);
-            string baseCls = (string)GameData.Raw["classes"][role.cls]["gender"] == "m" ? "novice_m" : "novice_f";
-            role = NewRole(role.id, role.name, baseCls); if (i >= 0) z[i] = role;
-            if (chats.TryGetValue(role.id, out var chat)) chat.Bind(role);
-        }
-
         // 返回给客户端的数据一律深拷贝：Mock 和真服务器一样，客户端拿到的是“副本”，不会和服务端状态共享引用
         static T Clone<T>(T o) { return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(Newtonsoft.Json.JsonConvert.SerializeObject(o)); }
 
@@ -154,9 +144,19 @@ namespace GuiQin.Net
             return Task.FromResult(Result<Empty>.Fail(Code.Protocol, "没有这个角色"));
         }
 
-        public Task<Result<EnterResp>> EnterGame(string roleId)
+        public Task<Result<EnterResp>> EnterGame(string roleId, bool resume = false)
         {
-            foreach (var kv in zones) { var r = kv.Value.Find(x => x.id == roleId); if (r != null) { if (role != r) battle = null; role = r; enteredServer = kv.Key; GuiQin.Train.TrainService.EnsureSkl(role); QuestService.EnsureSectLevel(role); return Reply(new EnterResp { role = Clone(role) }); } }
+            foreach (var kv in zones)
+            {
+                var r = kv.Value.Find(x => x.id == roleId);
+                if (r == null) continue;
+                if (role != r) battle = null;
+                if (role != r || !resume) ChatFor(r).BeginSession();
+                role = r; enteredServer = kv.Key;
+                GuiQin.Train.TrainService.EnsureSkl(role);
+                QuestService.EnsureSectLevel(role);
+                return Reply(new EnterResp { role = Clone(role) });
+            }
             return Task.FromResult(Result<EnterResp>.Fail(Code.Protocol, "没有这个角色"));
         }
 
@@ -258,7 +258,7 @@ namespace GuiQin.Net
                 case BagCmd.Get: ok = true; svc.Msg = null; break;
                 case BagCmd.Rest: { var st = RoleStats.Compute(role.cls, role.lv, role.bag); bool need = role.hp >= 0 && role.hp < st.maxHp || role.mp >= 0 && role.mp < st.maxMp; role.hp = -1; role.mp = -1; ok = true; svc.Msg = need ? "歇了一会儿，气血法力回满" : null; break; }
                 case BagCmd.Gift: ok = svc.DailyGift(DateTime.UtcNow); break;
-                case BagCmd.Use: ok = svc.Use(q.id); break;
+                case BagCmd.Use: ok = q.storeInPouch ? svc.StoreManaPotion(q.id) : svc.Use(q.id); break;
                 case BagCmd.Equip: ok = svc.Equip(q.id); break;
                 case BagCmd.Unequip: ok = svc.Unequip(q.slot); break;
                 case BagCmd.Sell: ok = svc.Sell(q.id); break;
@@ -276,7 +276,7 @@ namespace GuiQin.Net
                 Chat.SystemMessage(svc.Msg);
             if (cmd == BagCmd.Forge && ok && svc.Star >= 10 && svc.Star > oldStar && q.slot != null && role.bag.equip.TryGetValue(q.slot, out var forged))
                 ZoneNotice("恭喜玩家「" + role.name + "」将" + ItemName(forged) + "锻造至 " + svc.Star + " 星！");
-            return Result<BagResp>.Success(new BagResp { ok = ok, msg = svc.Msg, bag = Clone(role.bag), coin = role.coin, yuanbao = role.yuanbao, silverNote = role.silverNote, hp = role.hp, mp = role.mp, star = svc.Star });
+            return Result<BagResp>.Success(new BagResp { ok = ok, msg = svc.Msg, bag = Clone(role.bag), coin = role.coin, yuanbao = role.yuanbao, silverNote = role.silverNote, hp = role.hp, mp = role.mp, petMana = Clone(role.petMana), star = svc.Star });
         }
 
         // ---------------- 战斗（参考实现：服务端该做的事都在这里）----------------

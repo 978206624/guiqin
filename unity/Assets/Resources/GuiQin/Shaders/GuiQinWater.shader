@@ -12,6 +12,7 @@ Shader "GuiQin/Water"
         _FlowTex ("Flow", 2D) = "gray" {}
         _TileH ("Tile H", 2D) = "white" {}
         _TileV ("Tile V", 2D) = "white" {}
+        _VillageDetail ("Village Water Detail", Float) = 0
     }
     SubShader
     {
@@ -33,6 +34,8 @@ Shader "GuiQin/Water"
             sampler2D _TileV;
             float4 _MaskSize;
             float _T;
+            float _VillageDetail;
+            float4 _BridgeFoam, _StepsFoam, _WheelFoam, _FallFoam;
 
             struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; };
             struct v2f { float4 pos : SV_POSITION; float2 uv : TEXCOORD0; };
@@ -55,6 +58,23 @@ Shader "GuiQin/Water"
                 return S(tex, pc / 256.0);
             }
 
+            // 岸边局部水花：碎泡随水推进，从中心往外自然减弱。
+            float foamPatch(float2 p, float4 patch, float2 flow, float speed, float phase)
+            {
+                float2 offset = p - patch.xy;
+                float2 area = offset / patch.zw;
+                float fade = saturate(1.0 - dot(area, area));
+                if (fade <= 0.0) return 0.0;
+                float along = dot(offset, flow);
+                float across = dot(offset, float2(-flow.y, flow.x));
+                float folds = sin(across * 0.31 + phase) + 0.55 * sin(across * 0.71);
+                float wave = along * 0.62 - _T * speed + folds + phase;
+                float crest = 0.5 + 0.5 * sin(wave);
+                float trail = 0.5 + 0.5 * sin(wave - 0.9);
+                float breaks = smoothstep(0.18, 0.75, 0.5 + 0.5 * sin(across * 0.52 + along * 0.12 + phase));
+                return fade * sqrt(fade) * (0.8 * pow(crest, 3.2) + 0.2 * pow(trail, 2.0)) * breaks;
+            }
+
             float4 frag (v2f i) : SV_Target
             {
                 float2 uv = i.uv;
@@ -69,40 +89,54 @@ Shader "GuiQin/Water"
                 float f = _MaskSize.z;
                 float2 pxp = float2(uv.x, 1.0 - uv.y) * _MaskSize.xy;     // 蒙版像素，y 向下
                 float2 pf = pxp / f;                                       // 除掉 f：和 JS 里的 xf / yf 一样（按 1000 宽为准）
-                float A = 1.15 * f;
-
-                float2 off;
-                float2 offV = float2(A * 1.7 * sin(pf.y * 0.5 - _T * 9.0 + pf.x * 0.2), 0.0);
-                float2 offH = float2(A * sin(pf.y * 0.16 + _T * 1.7 + pf.x * 0.05), A * sin(pf.x * 0.13 + _T * 1.35 + pf.y * 0.04));
-                off = vert ? offV : offH;
-                // float2(A * sin(pf.y * 0.16 + _T * 1.7 + pf.x * 0.05), A * sin(pf.x * 0.13 + _T * 1.35 + pf.y * 0.04));
+                // 向内采样区分河岸和河心，让折射在岸边渐弱。
+                float2 edgeRadius = 6.0 * f / _MaskSize.xy;
+                float inner = min(min(S(_MainTex, uv + float2(edgeRadius.x, 0)).r, S(_MainTex, uv - float2(edgeRadius.x, 0)).r),
+                                  min(S(_MainTex, uv + float2(0, edgeRadius.y)).r, S(_MainTex, uv - float2(0, edgeRadius.y)).r));
+                float core = smoothstep(0.28, 0.85, inner);
+                float2 across = float2(-dir.y, dir.x);
+                float2 drift = dir * spd * _T;
+                float2 water = (pxp - drift) / f;
+                float axial = dot(water, dir), lateral = dot(water, across);
+                float wave = sin(lateral * 0.21 + axial * 0.075) * sin(axial * 0.16 - lateral * 0.08);
+                float2 off = (across * wave + dir * sin(axial * 0.12 + lateral * 0.34) * 0.35) * f;
+                off *= lerp(0.12, vert ? 1.2 : 0.82, core);
                 float2 buv = uv + float2(off.x, -off.y) / _MaskSize.xy;
                 float3 col = S(_BgTex, buv).rgb;
 
-                // 岸边水花：蒙版亮度在中间的像素（软边）混白色，随时间脉动
-                float e = 1.0 - abs(2.0 * m - 1.0);
-                float foamOn = (e > 0.27 && !vert) ? 1.0 : 0.0;
-                float fo = e * (0.5 + 0.5 * sin(_T * 1.8 + pf.x * 0.09 + pf.y * 0.07)) * 0.7 * foamOn;
-                col = lerp(col, float3(1, 1, 1), fo);
+                // 流纹分两层；瀑布在纵向拉长，平水的第二层在河心更明显。
+                float4 t0, t1;
+                float2 tilePx = pxp / f;
+                if (vert)
+                {
+                    t0 = flowLayer(_TileV, tilePx, 0.92, drift / f, 1.02);
+                    t1 = flowLayer(_TileV, tilePx, 0.57, drift / f, 1.65);
+                }
+                else
+                {
+                    t0 = flowLayer(_TileH, tilePx, 0.95, drift / f, 0.68);
+                    t1 = flowLayer(_TileH, tilePx + float2(57.0, 23.0), 0.68, drift / f, 1.35);
+                }
+                float wet = smoothstep(0.15, 0.74, m);
+                col = lerp(col, t0.rgb, t0.a * wet * (vert ? 0.69 : 0.54));
+                col = lerp(col, t1.rgb, t1.a * wet * (vert ? 0.34 : 0.26 * core));
 
-                // 三层流动纹理（缩放、倍速、透明度）
-                float2 fv = dir * spd * _T;
-                float k = vert ? 1.0 : 0.7;
-                float vf = vert ? 1.0 : 0.0;
-                float4 t0 = lerp(flowLayer(_TileH, pxp, 1.0, fv, 1.0), flowLayer(_TileV, pxp, 1.0, fv, 1.0), vf);
-                col = lerp(col, t0.rgb, t0.a * 0.8 * k);
-                float4 t1 = lerp(flowLayer(_TileH, pxp, 1.55, fv, 0.62), flowLayer(_TileV, pxp, 1.55, fv, 0.62), vf);
-                col = lerp(col, t1.rgb, t1.a * 0.55 * k);
-                float4 t2 = lerp(flowLayer(_TileH, pxp, 0.7, fv, 1.35), flowLayer(_TileV, pxp, 0.7, fv, 1.35), vf);
-                col = lerp(col, t2.rgb, t2.a * 0.3 * k);
+                // 泡沫主要留在水侧软边，碎段顺着流向移动。
+                float bank = (1.0 - core) * smoothstep(0.21, 0.70, m);
+                float breaks = sin(axial * 0.18 + sin(lateral * 0.31)) * 0.66 + sin(axial * 0.51 - lateral * 0.41) * 0.34;
+                float foamLine = bank * smoothstep(0.37, 0.84, breaks);
+                float foamStrength = vert ? 0.17 : lerp(0.23, 0.11, _VillageDetail);
+                col = lerp(col, float3(0.88, 0.97, 0.96), foamLine * foamStrength);
 
-                // 水面中央（离岸远）再叠一层 1.7 倍速，岸边保持慢
-                float2 r = 5.0 * f / _MaskSize.xy;
-                float c = min(min(S(_MainTex, uv + float2(r.x, 0)).r, S(_MainTex, uv - float2(r.x, 0)).r),
-                              min(S(_MainTex, uv + float2(0, r.y)).r, S(_MainTex, uv - float2(0, r.y)).r));
-                c = smoothstep(0.45, 0.6, c) * (1.0 - vf);
-                float4 tc = flowLayer(_TileH, pxp, 1.0, fv, 1.7);
-                col = lerp(col, tc.rgb, tc.a * 0.38 * c);
+                if (_VillageDetail > 0.5)
+                {
+                    float foam = foamPatch(pf, _BridgeFoam, float2(0.55, 0.84), 3.8, 0.3) * 1.02;
+                    foam += foamPatch(pf, _StepsFoam, float2(-0.94, 0.34), 3.2, 2.4) * 1.13;
+                    foam += foamPatch(pf, _WheelFoam, float2(-0.52, 0.85), 5.0, 4.6) * 1.23;
+                    foam += foamPatch(pf, _FallFoam, float2(0.12, 0.99), 6.9, 1.2) * 1.31;
+                    float water = smoothstep(0.08, 0.64, m);
+                    col = lerp(col, float3(0.91, 0.98, 0.95), saturate(foam) * water);
+                }
                 return float4(col, m);
             }
             ENDCG

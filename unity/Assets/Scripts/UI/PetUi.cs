@@ -115,7 +115,7 @@ namespace GuiQin
             Pic(Show(dx), 150, 76, 170, 200);
             var name = T((string)dx["name"] + "  <size=16><color=" + Hex(qc) + ">【" + (string)Quality(q)["name"] + "】</color></size>", 30, 332, 80, 330, 40, WebUi.Light); WebUi.Title(name); name.color = WebUi.Light;
             T(Stars((int)Quality(q)["stars"], qc) + "　" + (string)dx["kind"], 17, 332, 124, 330, 28);
-            T("等级 <color=#ffd56a>" + role.lv + "</color>（随主人成长）　战力 <color=#ffd56a>" + PetService.Power(s).ToString("N0") + "</color>", 17, 332, 156, 330, 28);
+            T("等级 <color=#ffd56a>" + role.lv + "</color>（随主人成长）", 17, 332, 156, 330, 28);
             T("亲密度 · <color=#ffd9a0>" + bd.name + "</color>　" + bd.n + (bd.to > 0 ? " / " + bd.to : ""), 15, 332, 190, 330, 24, WebUi.Muted);
             var back = WebUi.Gradient("bondBack", box, WebUi.C("#1a0f14"), WebUi.C("#1a0f14"), 5); WebUi.At(back.rectTransform, 332, 218, 320, 10);
             float pct = bd.to > 0 ? Mathf.Clamp01((bd.n - bd.from) / (float)(bd.to - bd.from)) : 1f;
@@ -136,14 +136,14 @@ namespace GuiQin
         {
             var b = GameData.Raw["base"]; var g = GameData.Raw["grow"]; var m = PetService.Mult(id); int L = role.lv; float kb = 1f + bd.bonus;
             Func<string, string, float, string> note = (k, mk, kk) => "(基础 " + Mathf.Round((float)b[k] * (float)m[mk]) + " + 成长 " + Mathf.Round((float)g[k] * L * (float)m[mk]) + ")" + (bd.i > 0 && kk > 1f ? "  <color=#ffd9a0>× 亲密 " + kb.ToString("0.00") + "</color>" : "");
-            var rows = new[] { new object[] { "气血", s.maxHp, note("hp", "hp", kb) }, new object[] { "攻击", s.atk, note("atk", "atk", kb) }, new object[] { "防御", s.def, note("def", "def", 1f) }, new object[] { "速度", s.spd, note("spd", "spd", 1f) } };
+            var rows = new[] { new object[] { "气血", s.maxHp, note("hp", "hp", kb) }, new object[] { "法力", s.maxMp, "（基础 60 + 等级 × 4）" }, new object[] { "攻击", s.atk, note("atk", "atk", kb) }, new object[] { "防御", s.def, note("def", "def", 1f) }, new object[] { "速度", s.spd, note("spd", "spd", 1f) } };
             for (int i = 0; i < rows.Length; i++)
             {
-                float y = 362 + i * 60;
-                var bg = WebUi.Gradient("row", box, WebUi.C("#22183a"), WebUi.C("#120c20"), 8); WebUi.At(bg.rectTransform, 140, y, 518, 52);
-                T((string)rows[i][0], 20, 156, y, 70, 52, WebUi.Light, TextAnchor.MiddleLeft);
-                T(rows[i][1].ToString(), 24, 226, y, 100, 52, WebUi.Amber, TextAnchor.MiddleLeft);
-                T((string)rows[i][2], 14, 326, y, 330, 52, WebUi.Muted, TextAnchor.MiddleLeft);
+                float y = 362 + i * 49;
+                var bg = WebUi.Gradient("row", box, WebUi.C("#22183a"), WebUi.C("#120c20"), 8); WebUi.At(bg.rectTransform, 140, y, 518, 44);
+                T((string)rows[i][0], 20, 156, y, 70, 44, WebUi.Light, TextAnchor.MiddleLeft);
+                T(rows[i][1].ToString(), 24, 226, y, 100, 44, WebUi.Amber, TextAnchor.MiddleLeft);
+                T((string)rows[i][2], 14, 326, y, 330, 44, WebUi.Muted, TextAnchor.MiddleLeft);
             }
             var T5 = (JArray)GameData.Raw["bondTiers"];
             for (int i = 0; i < T5.Count; i++)
@@ -163,15 +163,17 @@ namespace GuiQin
             {
                 foreach (var a in dx["act"].Where(a => (string)a[0] != "ss_hit"))
                 {
-                    var x = GameData.Raw["skills"][(string)a[0]];
-                    items.Add(new[] { ((string)x["name"]).Substring(0, 1), (string)x["name"], "主动" + (x["cd"] != null ? " · 冷却 " + (int)x["cd"] + " 回合" : ""), (string)x["des"] });
+                    string skill = (string)a[0];
+                    var x = GameData.Raw["skills"][skill];
+                    int mana = PetService.ManaCost(skill, (int?)x["mp"] ?? 0);
+                    items.Add(new[] { ((string)x["name"]).Substring(0, 1), (string)x["name"], "主动 · 法力 " + mana + (x["cd"] != null ? " · 冷却 " + (int)x["cd"] + " 回合" : ""), (string)x["des"] });
                 }
                 if (dx["pasList"] != null) foreach (var a in dx["pasList"]) items.Add(new[] { ((string)a[0]).Substring(0, 1), (string)a[0], "被动", (string)a[1] });
             }
             else
             {
                 items.Add(new[] { "咬", "撕咬", "普通招式", "扑上去撕咬一名敌人，造成 " + s.atk + " 点基础伤害。出手时有 65% 的几率使用。" });
-                items.Add(new[] { "火", "狐火", "主动 · 35% 触发", "喷出一团幽蓝狐火，对一名敌人造成 " + Mathf.Round(s.atk * 1.6f) + " 点伤害（约 1.6 倍攻击），并优先攻击气血最低的敌人。" });
+                items.Add(new[] { "火", "狐火", "主动 · 法力 " + PetService.ManaCost("foxfire", 0), "喷出一团幽蓝狐火，对一名敌人造成 " + Mathf.Round(s.atk * 1.6f) + " 点伤害（约 1.6 倍攻击），并优先攻击气血最低的敌人。" });
                 items.Add(new[] { "灵", "灵犀", "被动", "与主人越亲近越强：当前「" + bd.name + "」档，气血、攻击" + (bd.i > 0 ? " +" + bd.i * 3 + "%" : "尚无加成") + "。" });
             }
             float y0 = 362;

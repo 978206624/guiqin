@@ -11,11 +11,12 @@ namespace GuiQin.Inventory
         public Dictionary<string, int> items = new Dictionary<string, int>();      // 背包里的物品（未穿戴）
         public Dictionary<string, string> equip = new Dictionary<string, string>();  // 部位 → 装备 id
         public Dictionary<string, GearState> gear = new Dictionary<string, GearState>();
+        public int manaReserve;                                                    // 回气丹转存的法力点数
         public int cap = 40;                                                        // 格子数（不同物品各占一格，同种叠加）
     }
 
-    public class BagOpReq { public string shop, id, slot, gem; public int i, quantity, capacity; }      // 各命令用到哪几个字段见 InventoryService
-    public class BagResp { public bool ok; public string msg; public BagState bag; public int coin, yuanbao, silverNote, hp = -1, mp = -1, star = -1; }
+    public class BagOpReq { public string shop, id, slot, gem; public int i, quantity, capacity; public bool storeInPouch; }      // 各命令用到哪几个字段见 InventoryService
+    public class BagResp { public bool ok; public string msg; public BagState bag; public int coin, yuanbao, silverNote, hp = -1, mp = -1, star = -1; public Dictionary<string, int> petMana; }
 
     public class MallOffer
     {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using GuiQin.Inventory;
 using GuiQin.Net;
 using GuiQin.Quest;
+using GuiQin.Pets;
 
 namespace GuiQin.Battle
 {
@@ -13,6 +14,7 @@ namespace GuiQin.Battle
             var eng = b.Engine; var p = eng.Player;
             var end = new BattleEnd { result = eng.Over, round = eng.Round, lv = role.lv, step = role.step, cnt = role.cnt, tower = role.tower };
             role.hp = Math.Max(1, p.Hp); role.mp = p.Mp;
+            if (eng.Pet != null && b.PetId != null) PetService.SaveMana(role, b.PetId, eng.Pet.Mp);
             if (eng.Over == "win")
             {
                 // 掉落使用独立的随机序列，不受战斗内随机调用次数影响。
@@ -46,8 +48,11 @@ namespace GuiQin.Battle
                 if (b.Stage.tower && b.Stage.n > role.tower) { role.tower = b.Stage.n; end.note = (end.note != null ? end.note + "　" : "") + (b.Stage.n % 10 == 0 ? "本层首领已破，可以找塔内传送师上楼" : "玄兵塔进度 " + b.Stage.n + "/70"); }
                 end.step = role.step; end.cnt = role.cnt; end.tower = role.tower;
                 end.lv = role.lv; end.bond = role.bond;
-                int heal = new InventoryService(role).PouchHeal();      // 升级已回满时 hp = -1，不会再加
+                var inventory = new InventoryService(role);
+                int heal = inventory.PouchHeal();      // 升级已回满时 hp = -1，不会再加
                 if (heal > 0) end.note = (end.note != null ? end.note + "　" : "") + "药囊回血 +" + heal;
+                var restored = inventory.RestorePouchMana();
+                if (restored != null) end.note = (end.note != null ? end.note + "　" : "") + restored;
             }
             else if (eng.Over == "lose")
             {
@@ -55,6 +60,7 @@ namespace GuiQin.Battle
                 MapDef md; end.respawnMap = GameData.Maps.TryGetValue(role.map, out md) && !string.IsNullOrEmpty(md.home) ? md.home : role.map;
                 role.map = end.respawnMap; role.x = -1f; role.y = -1f;
             }
+            if (b.PetId != null) { end.petId = b.PetId; end.petMana = PetService.CurrentMana(role, b.PetId); }
             return end;
         }
     }

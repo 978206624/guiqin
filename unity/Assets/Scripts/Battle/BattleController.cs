@@ -35,7 +35,7 @@ namespace GuiQin.Battle
         readonly Dictionary<int, BU> units = new Dictionary<int, BU>();
         readonly List<Fl> floats = new List<Fl>();
         Text roundText, clockText, bannerText, tipText;
-        Action<int, int, int, int> onVitals;
+        Action<int, int, int, int> onVitals, onPetVitals;
         RectTransform cmdPanel, listRoot; ScrollRect commandScroll; Button autoBtn; Text autoLabel;
         GameObject resultPanel;
         Button[] commandButtons;
@@ -47,11 +47,11 @@ namespace GuiQin.Battle
         public bool Active { get; private set; }
 
         // ---------------- 开战 ----------------
-        public static BattleController Begin(Camera cam, Transform uiParent, BattleView view, Func<BattleCmd, Task<Result<BattleRoundResp>>> send, Action<BattleEnd> onDone, Action<string> toast, Action<int, int, int, int> onVitals)
+        public static BattleController Begin(Camera cam, Transform uiParent, BattleView view, Func<BattleCmd, Task<Result<BattleRoundResp>>> send, Action<BattleEnd> onDone, Action<string> toast, Action<int, int, int, int> onVitals, Action<int, int, int, int> onPetVitals)
         {
             var go = new GameObject("Battle");
             var b = go.AddComponent<BattleController>();
-            b.cam = cam; b.view = view; b.send = send; b.onDone = onDone; b.toast = toast; b.onVitals = onVitals; b.Active = true;
+            b.cam = cam; b.view = view; b.send = send; b.onDone = onDone; b.toast = toast; b.onVitals = onVitals; b.onPetVitals = onPetVitals; b.Active = true;
             b.Build(uiParent);
             Time.timeScale = Settings.Speed;                 // 战斗速度：整个战斗按倍速跑（回合倒计时用的是真实时间，不受影响）
             b.StartCoroutine(b.Loop());
@@ -195,6 +195,7 @@ namespace GuiQin.Battle
         void UpdateStat()
         {
             if (me != null) onVitals?.Invoke(me.Hp, me.MaxHp, me.Mp, me.V.maxMp);
+            if (pet != null) onPetVitals?.Invoke(pet.Hp, pet.MaxHp, pet.Mp, pet.V.maxMp);
         }
 
         void ClearList()
@@ -267,8 +268,10 @@ namespace GuiQin.Battle
                 var s = sk;
                 int cd = 0;
                 if (petTurn && view.petCooldowns != null) view.petCooldowns.TryGetValue(s.id, out cd);
-                bool ok = s.usable && (petTurn ? pet.Mp : me.Mp) >= s.mp && cd <= 1;
+                bool enoughMana = (petTurn ? pet.Mp : me.Mp) >= s.mp;
+                bool ok = s.usable && enoughMana && cd <= 1;
                 string detail = cd > 1 ? "冷却 " + (cd - 1) + " 回合" : s.usable ? "法力 " + s.mp : s.note;
+                if (petTurn && s.usable && !enoughMana && cd <= 1) detail = "法力不足 · 需 " + s.mp;
                 string label = s.name + "\n<size=13>" + detail + "</size>";
                 var b = Ui.Btn("sk_" + s.id, listRoot, label, 17, ok ? new Color(0.3f, 0.34f, 0.56f) : new Color(0.25f, 0.25f, 0.3f), () => OnSkill(s));
                 b.GetComponentInChildren<Text>().supportRichText = true; b.interactable = ok;

@@ -65,17 +65,24 @@ internal sealed partial class GameStore
         message.id = checked((int)cmd.LastInsertedId);
     }
 
-    public List<ChatMsg> ChatHistory(string zone, string id, bool guild, string party)
+    public int LatestChatId()
+    {
+        using var db = Open();
+        using var cmd = Sql(db, "SELECT COALESCE(MAX(id), 0) FROM chat_msg");
+        return Convert.ToInt32(cmd.ExecuteScalar());
+    }
+
+    public List<ChatMsg> ChatHistory(string zone, string id, bool guild, string party, int sessionAfter)
     {
         using var db = Open();
         using var cmd = Sql(db, """
             SELECT id,sender_role_id,payload_json FROM chat_msg WHERE zone_id=@zone AND
-            (channel IN ('world','notice') OR (channel='guild' AND @guild)
+            ((id>@sessionAfter AND (channel IN ('world','notice') OR (channel='system' AND recipient_role_id=@id)))
+                OR (channel='guild' AND @guild)
                 OR (channel='pm' AND (sender_role_id=@id OR recipient_role_id=@id))
-                OR (channel='party' AND scope_id=@party)
-                OR (channel='system' AND recipient_role_id=@id))
+                OR (channel='party' AND scope_id=@party))
             ORDER BY id DESC LIMIT 200
-            """, ("@zone", zone), ("@id", id), ("@guild", guild), ("@party", party));
+            """, ("@zone", zone), ("@id", id), ("@guild", guild), ("@party", party), ("@sessionAfter", sessionAfter));
         using var reader = cmd.ExecuteReader();
         var result = new List<ChatMsg>();
         while (reader.Read())

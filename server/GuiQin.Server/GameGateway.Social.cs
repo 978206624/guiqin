@@ -23,7 +23,7 @@ internal sealed partial class GameGateway
             case ChatCmd.Hist:
                 return new ChatHistResp
                 {
-                    msgs = store.ChatHistory(Zone, role.id, role.guildMember, parties.GetValueOrDefault(role.id)?.Id), friends = store.Friends(role.id),
+                    msgs = store.ChatHistory(Zone, role.id, role.guildMember, parties.GetValueOrDefault(role.id)?.Id, session.SessionChatAfter), friends = store.Friends(role.id),
                     party = PartyView(role.id),
                     guild = role.guildMember ? (string)ChatConfig["guildName"] : null,
                     members = role.guildMember ? store.GuildMembers(Zone) : 0

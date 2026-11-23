@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 namespace GuiQin
 {
-    // 天气：每张地图各有自己的天气（种类 + 到期时间），到点按权重随机换一个；室内永远是晴。
+    // 天气：户外使用同一份 UTC 天气表；室内不播放天气。
     // 画面是屏幕空间的一层（挂在相机下）：暗角 / 云影 / 雾 / 雨丝 / 雪点 / 闪电，
     // 各种效果都有 0~1 的“强度”，朝目标值缓缓靠拢，所以换天气是渐变的。对应网页版 wxDraw。
     public class WeatherSystem
     {
-        public static readonly string[] Kinds = { "clear", "rain", "storm", "snow" };
+        static readonly string[] Kinds = { "clear", "rain", "storm", "snow" };
         static readonly Dictionary<string, float[]> Target = new Dictionary<string, float[]>   // rain, storm, snow, fog, cloud, dark
         {
             { "clear", new float[] { 0, 0, 0, 0, 0, 0 } },
@@ -17,7 +18,6 @@ namespace GuiQin
             { "storm", new[] { 1f, 1, 0, .2f, 1, 1 } },
             { "snow",  new[] { 0, 0, 1f, .3f, .6f, .2f } } };
 
-        class State { public string kind; public float until; }
         class Drop { public float x, y, v, l; }
         class Flake { public float x, y, v, r, ph; }
         class FogP { public float x, y, r, v, ph; }
@@ -25,20 +25,22 @@ namespace GuiQin
         public event Action<string, bool> Changed;           // (新天气, 是否要提示)
 
         readonly Camera cam;
-        readonly Dictionary<string, State> states = new Dictionary<string, State>();
+        readonly Func<long> utcNow;
+        readonly long intervalMs;
         readonly float[] lv = new float[6];                  // 当前强度
         readonly List<Drop> rain = new List<Drop>(); readonly List<Flake> snow = new List<Flake>(); readonly List<FogP> fogs = new List<FogP>();
         readonly QuadBatch softB, whiteB, flakeB;
-        MapRuntime map; string lockKind, shown;
+        MapRuntime map; string shown;
+        long shownSlot = long.MinValue;
         float t, flash, flashAt = 4f, flash2;
 
-        public string Lock { get { return lockKind; } }
         public float Wet { get { return Mathf.Min(1f, lv[0] + lv[2] * 0.8f + lv[3] * 0.5f); } }
         public float Precip { get { return lv[0] + lv[1] + lv[2]; } }
 
-        public WeatherSystem(Camera cam)
+        public WeatherSystem(Camera cam, Func<long> utcNow)
         {
-            this.cam = cam;
+            this.cam = cam; this.utcNow = utcNow;
+            intervalMs = (long)GameData.Raw["weather"]["intervalSeconds"] * 1000;
             softB = new QuadBatch("wxSoft", cam.transform, Art.SoftTex(), false, 20000, 16);
             whiteB = new QuadBatch("wxFill", cam.transform, Art.WhiteTex(), false, 20001, 460);
             flakeB = new QuadBatch("wxSnow", cam.transform, Art.EllipseTex(), false, 20002, 140);
@@ -50,63 +52,43 @@ namespace GuiQin
 
         // ---------- 数据 ----------
         public static string NameOf(string kind) { return (string)GameData.Raw["weather"][kind]["name"]; }
-        public static string DescOf(string kind) { return (string)GameData.Raw["weather"][kind]["desc"]; }
-
-        string Pick(string mapId, string not)
+        // 固定的加权选择。网页版使用相同的 FNV-1a 与键顺序。
+        static string KindAtSlot(long slot)
         {
-            var w = new Dictionary<string, int>();
-            var by = GameData.Raw["weather"]["byMap"][mapId];
-            if (by != null) foreach (var kv in by.ToObject<Dictionary<string, int>>()) w[kv.Key] = kv.Value; else w["clear"] = 1;
-            if (not != null && w.Count > 1) w.Remove(not);
-            int sum = 0; foreach (var kv in w) sum += kv.Value;
-            float r = UnityEngine.Random.value * sum;
-            foreach (var kv in w) { r -= kv.Value; if (r <= 0f) return kv.Key; }
+            var weights = GameData.Raw["weather"]["weights"];
+            int total = 0;
+            foreach (var kind in Kinds) total += (int)weights[kind];
+            uint hash = 2166136261;
+            foreach (char c in slot.ToString(CultureInfo.InvariantCulture))
+                hash = unchecked((hash ^ c) * 16777619);
+            int roll = (int)(hash % (uint)total);
+            foreach (var kind in Kinds)
+            {
+                roll -= (int)weights[kind];
+                if (roll < 0) return kind;
+            }
             return "clear";
         }
 
-        State Roll(string mapId, string not)
-        {
-            var span = GameData.Raw["weather"]["span"];
-            float lo = (float)span[0], hi = (float)span[1];
-            return new State { kind = Pick(mapId, not), until = Time.unscaledTime + lo + UnityEngine.Random.value * (hi - lo) };
-        }
+        public string Kind => shown ?? "clear";
 
-        public string Kind
+        public void SetMap(MapRuntime m)
         {
-            get
-            {
-                if (map == null || map.Def.indoor) return "clear";           // 室内（玄兵塔）永远是晴
-                State s;
-                return lockKind ?? (states.TryGetValue(map.Id, out s) ? s.kind : "clear");
-            }
-        }
-
-        // 还有多久换天气（分钟），固定天气时返回 -1
-        public int MinutesLeft()
-        {
-            State s;
-            if (lockKind != null || map == null || !states.TryGetValue(map.Id, out s)) return -1;
-            return Mathf.Max(1, Mathf.RoundToInt((s.until - Time.unscaledTime) / 60f));
-        }
-
-        public void SetLock(string kind) { lockKind = kind; Refresh(true); }
-        public void Auto() { lockKind = null; Refresh(true); }
-
-        // ---------- 状态 ----------
-        public void SetMap(MapRuntime m)         // 进新地图：不渐变，直接是那里的天气
-        {
-            map = m; shown = null; Refresh(false);
+            map = m; shown = null; shownSlot = long.MinValue; Refresh(false);
             Array.Copy(Target[Kind], lv, 6);
         }
 
         void Refresh(bool announce)
         {
             if (map == null) return;
-            State s;
-            if (!states.TryGetValue(map.Id, out s)) states[map.Id] = Roll(map.Id, null);
-            else if (lockKind == null && Time.unscaledTime > s.until) states[map.Id] = Roll(map.Id, s.kind);
-            string k = Kind;
-            if (k != shown) { bool first = shown == null; shown = k; if (Changed != null) Changed(k, announce && !first); }
+            long slot = utcNow() / intervalMs;
+            if (slot == shownSlot && shown != null) return;
+            shownSlot = slot;
+            string next = map.Def.indoor ? "clear" : KindAtSlot(slot);
+            if (next == shown) return;
+            bool first = shown == null;
+            shown = next;
+            Changed?.Invoke(next, announce && !first);
         }
 
         // ---------- 每帧 ----------

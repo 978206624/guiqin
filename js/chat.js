@@ -267,7 +267,6 @@ function reset(serverName, roleName) {
   for (const k in unread) delete unread[k]; for (const k in lastAt) delete lastAt[k]; for (const k in lastTxt) delete lastTxt[k]; sendCh = 'world'; tab = 'all';
   add('system', { text: '欢迎来到 ' + serverName + '，' + roleName });
   add('system', { text: '点击地面行走，按住可以拖着走；点击人物对话' });
-  add('world', { from: '青锋', cls: 'm_spear', lv: 44, text: '新来的少侠，有问题就在世界频道问～' });
   timers.push(setTimeout(() => notice('欢迎来到归秦！新服已开，愿各位少侠仗剑江湖。'), 5000));
   timers.push(setTimeout(simulateTalk, 7000));
   timers.push(setTimeout(simulateWhisper, rnd(25000, 40000)));

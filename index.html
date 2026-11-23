@@ -104,8 +104,6 @@ body{background:var(--ink);color:var(--text);font-family:var(--body);display:fle
 .bar b{position:relative;font-weight:500}
 #hp{top:42px} #hp i,.hpb i{background:linear-gradient(#ff8a78,#c0241c)}
 #mp{top:60px} #mp i{background:linear-gradient(#84ccff,#2060c0)}
-#hud .pow{position:absolute;left:108px;top:78px;font-size:13px;color:#d9c08a}
-#hud .pow b{font-size:16px;color:var(--amber);margin-left:4px;font-variant-numeric:tabular-nums}
 
 /* 小地图 */
 #mini{left:580px;top:16px;width:124px;height:124px;border-radius:50%;background:linear-gradient(var(--gold-hi),var(--gold) 45%,var(--gold-lo));box-shadow:0 3px 10px rgba(0,0,0,.6)}
@@ -115,10 +113,11 @@ body{background:var(--ink);color:var(--text);font-family:var(--body);display:fle
 #place{left:566px;top:148px;width:152px;height:34px;text-align:center;font-family:var(--display);font-size:22px;line-height:34px;color:#4a2a10;background:linear-gradient(#fbf0cc,#dcc48a);border:1.5px solid var(--gold-lo);border-radius:4px;box-shadow:0 3px 8px rgba(0,0,0,.5)}
 #place::before,#place::after{content:"";position:absolute;top:-4px;width:9px;height:40px;border-radius:5px;background:#5a2e14}
 #place::before{left:-7px} #place::after{right:-7px}
-#coin{left:566px;top:188px;width:152px;text-align:center;font-size:14px;font-weight:700;color:var(--amber);text-shadow:var(--edge);font-variant-numeric:tabular-nums}
 
 /* 任务 */
-#quest{left:10px;top:136px;width:214px;padding:0 0 8px;cursor:pointer}
+#quest{left:10px;top:136px;width:214px}
+#qBody{padding:0 0 8px;cursor:pointer}
+#qToggle{width:36px;border:0;background:none;color:var(--amber);font:inherit;cursor:pointer}
 #quest h3{margin:0;display:flex;font-size:15px;font-weight:700;border-bottom:1px solid rgba(226,176,74,.5)}
 #quest h3 span{flex:1;text-align:center;line-height:30px;color:var(--muted);font-weight:400}
 #quest h3 span.on{background:rgba(122,82,22,.9);color:#ffe8a8;font-weight:700;border-radius:9px 0 0 0}
@@ -214,7 +213,6 @@ button.row[disabled]{opacity:.45;cursor:default}
 .dglow{position:absolute;left:50%;bottom:20px;width:220px;height:44px;margin-left:-110px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,224,138,.45),rgba(255,224,138,0))}
 .doll>img{position:absolute;left:50%;bottom:30px;height:300px;transform:translateX(-50%);filter:drop-shadow(0 8px 10px rgba(0,0,0,.6))}
 .dname{position:absolute;left:0;right:0;top:8px;text-align:center}.dname b{font-family:var(--display);font-weight:400;font-size:24px;color:#fff3c4;margin-right:8px}.dname small{color:var(--muted);font-size:14px}
-.dpow{position:absolute;left:0;right:0;top:40px;text-align:center;color:#d9c08a;font-size:13px}.dpow b{font-size:19px;color:var(--amber)}
 .dcol{position:absolute;top:10px;display:flex;flex-direction:column;gap:7px}.dcol.dl{left:10px}.dcol.dr{right:10px}
 .dslot{position:relative;width:54px;height:54px;padding:0;border-radius:10px;border:2px solid var(--qc);background:linear-gradient(rgba(255,255,255,.1),rgba(0,0,0,.3));cursor:pointer;color:#fff3c4;font:inherit}
 .dslot img{width:100%;height:100%;display:block}.dslot span{position:absolute;left:0;right:0;bottom:0;font-size:11px;line-height:15px;background:rgba(10,6,22,.78);border-radius:0 0 8px 8px}.dslot.empty{border-style:dashed}.dslot.empty span{background:none;color:var(--muted);bottom:14px;font-size:13px}.dslot.sel{box-shadow:0 0 0 2px var(--gold-hi),0 0 14px rgba(255,224,138,.55)}
@@ -291,13 +289,8 @@ button.row[disabled]{opacity:.45;cursor:default}
 #smapList button.q{border-color:#ff8a7a;color:#ffd0c8}#smapList small{opacity:.7;margin-right:4px}
 #smapBtns{position:absolute;left:0;right:0;bottom:44px;display:flex;gap:18px;justify-content:center}#smapBtns .tbtn{padding:10px 34px}
 #wx{position:absolute;left:0;top:0;width:720px;height:1280px;pointer-events:none}
-#wxBtn{left:520px;top:148px;width:40px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#fbf0cc,#dcc48a);border:1.5px solid var(--gold-lo);border-radius:4px;box-shadow:0 3px 8px rgba(0,0,0,.5);cursor:pointer}
-#wxBtn svg{width:26px;height:26px}
-.wxnow{display:flex;gap:18px;align-items:center;margin-bottom:14px}.wxnow svg{width:88px;height:88px;flex:none}
-.wxnow h5{margin:0;font-family:var(--display);font-weight:400;font-size:36px;color:#fff3c4}.wxnow p{margin:4px 0 0;color:var(--muted)}.wxnow small{color:var(--muted);font-size:15px}
-.wxgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
-.wxgrid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;font:inherit;font-size:18px;color:#fff3c4;border:1px solid rgba(226,176,74,.35);border-radius:10px;background:rgba(255,255,255,.05);cursor:pointer}
-.wxgrid button.on{border-color:var(--gold);background:linear-gradient(#3b2a5c,#1d1433)}.wxgrid svg{width:40px;height:40px}
+#wxStatus{left:520px;top:148px;width:40px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#fbf0cc,#dcc48a);border:1.5px solid var(--gold-lo);border-radius:4px;box-shadow:0 3px 8px rgba(0,0,0,.5);pointer-events:none}
+#wxStatus svg{width:26px;height:26px}
 #notice{left:20px;right:100px;top:318px;height:38px;display:flex;align-items:center;gap:10px;padding:0 12px;box-sizing:border-box;border-radius:19px;background:linear-gradient(90deg,rgba(120,40,20,.86),rgba(30,16,40,.82));border:1px solid rgba(255,176,32,.7);box-shadow:0 3px 10px rgba(0,0,0,.5);z-index:4;pointer-events:none}
 #notice b{flex:none;font-size:15px;color:#2a1405;background:#ffb020;border-radius:10px;padding:1px 9px}
 #notice .nr{flex:1;min-width:0;overflow:hidden;white-space:nowrap}#notice .nr span{display:inline-block;font-size:18px;color:#fff3c4;text-shadow:0 1px 2px #000}
@@ -547,20 +540,20 @@ svg.em{width:1.25em;height:1.25em;vertical-align:-.28em;margin:0 1px}
     <div class="who2"><div class="name" id="hudName">云中客</div><div class="sect" id="hudSect">游侠</div></div>
     <div class="bar" id="hp"><i></i><b></b></div>
     <div class="bar" id="mp"><i></i><b></b></div>
-    <div class="pow">战力<b id="hudPow"></b></div>
     <button type="button" id="hudPet" aria-label="宠物"><img id="hudPetImg" alt=""><i>宠</i></button>
   </div>
 
   <div class="townui">
     <div class="ui" id="mini"><div class="map" id="miniMap"><div id="miniDots"></div><div class="me" id="me"></div></div><div class="n">北</div></div>
     <div class="ui" id="place"></div>
-    <button type="button" class="ui" id="wxBtn" aria-label="天气"></button>
-    <div class="ui" id="coin"></div>
-    <div class="ui panel" id="quest" role="button" tabindex="0" aria-label="任务追踪，点击自动寻路">
-      <h3><span class="on" data-qt="0">任务</span><span data-qt="1">队伍</span></h3>
-      <div class="q cur"><em style="color:var(--amber)">[主线]</em> <span id="qTitle"></span><p id="qGoal"></p></div>
-      <div class="q"><em style="color:var(--sky)">[历练]</em> 各地敌人<p id="qSide"></p></div>
-      <div id="qParty" hidden></div>
+    <div class="ui" id="wxStatus" role="img" aria-label="天气"></div>
+    <div class="ui panel" id="quest">
+      <h3><span class="on" data-qt="0">任务</span><span data-qt="1">队伍</span><button id="qToggle" type="button" aria-controls="qBody" aria-expanded="true" aria-label="收起任务栏">▾</button></h3>
+      <div id="qBody" role="button" tabindex="0" aria-label="任务追踪，点击自动寻路">
+        <div class="q cur"><em style="color:var(--amber)">[主线]</em> <span id="qTitle"></span><p id="qGoal"></p></div>
+        <div class="q"><em style="color:var(--sky)">[历练]</em> 各地敌人<p id="qSide"></p></div>
+        <div id="qParty" hidden></div>
+      </div>
     </div>
     <div class="ui panel" id="chat"><div id="chatLog"></div><div class="in">点这里聊天…</div><i id="chatDot" hidden></i></div>
     <div class="ui" id="notice" hidden><b>公告</b><div class="nr"><span id="noticeTxt"></span></div></div>

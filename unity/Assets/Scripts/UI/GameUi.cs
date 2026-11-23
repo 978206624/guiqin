@@ -2,7 +2,7 @@ using System;
 using GuiQin.Inventory;
 using GuiQin.Net;
 using GuiQin.Quest;
-using GuiQin.Sect;
+using GuiQin.Pets;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -80,37 +80,41 @@ namespace GuiQin
     // 左上角色状态与右上小地图沿用 HTML 舞台的位置。
     public class HudUi
     {
-        readonly RectTransform root, town, hpFill, mpFill, expFill, miniLayer, miniDots;
-        const float MiniScale = 0.09f;
-        Vector2 miniSize;
+        readonly RectTransform root, town, hpFill, mpFill, petHpFill, petMpFill, expFill, miniLayer, miniDots, miniPlayer;
+        const float MiniDiameter = 110f, MinMapScale = 0.09f;
+        Vector2 miniSize, mapSize;
+        float miniScale, mapCoordScale;
+        Vector2Int lastMapCoord;
         readonly CanvasGroup hudInput;
         readonly RectTransform systemLog;
-        readonly GameObject unreadDot;
-        readonly Text place, weather, name, level, sect, power, coin, hpText, mpText;
-        readonly Image face, mini;
+        readonly GameObject unreadDot, routeStatus;
+        readonly Text place, mapCoord, name, level, petLevel;
+        readonly Image face, petFace, mini, weather;
+        readonly MapRouteGraphic miniRoute;
+        readonly Sprite[] weatherIcons = new Sprite[4];
 
-        public HudUi(Transform parent, Action onMenu, Action onWeather, Action onWorld, Action onBag,
+        public HudUi(Transform parent, Action onMenu, Action onWorld, Action onBag,
             Action onRole, Action onPet, Action onScene, Action<string> onKey)
         {
             root = Ui.Rect("hud", parent);
             Ui.Anchor(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             hudInput = root.gameObject.AddComponent<CanvasGroup>();
-            var plate = WebUi.Panel("plate", root);
-            plate.raycastTarget = false;
-            WebUi.At(plate.rectTransform, 56, 24, 280, 92);
-            face = Portrait("role", 10, 20, 96, onRole);
-            petFace = Portrait("pet", 335, 48, 62, onPet);
-            petFace.sprite = Art.One("ph_ss_bs20", true);
-            var badge = WebUi.Gradient("levelBadge", root, WebUi.C("#a12a20"), WebUi.C("#761913"), 12);
-            WebUi.At(badge.rectTransform, 76, 88, 30, 30);
-            level = Label("level", "", 14, WebUi.Light, 76, 88, 30, 30, TextAnchor.MiddleCenter);
-            name = Label("name", "", 19, WebUi.Light, 118, 28, 130, 23);
-            name.resizeTextForBestFit = true; name.resizeTextMinSize = 12; name.resizeTextMaxSize = 19;
-            sect = Label("sect", "", 13, WebUi.Sky, 250, 28, 66, 23);
-            hpFill = Bar("hp", 116, 60, 190, 14, "#ff8a78", "#c0241c", out hpText);
-            mpFill = Bar("mp", 116, 78, 190, 14, "#84ccff", "#2060c0", out mpText);
-            power = Label("power", "", 14, WebUi.Amber, 118, 94, 195, 20);
-            expFill = Bar("exp", 0, 1272, 720, 8, "#f6e66a", "#8fe06a", out _);
+            var roleVitals = VitalsPanel("roleVitals", 95, 26);
+            var petVitals = VitalsPanel("petVitals", 275, 30);
+            name = Ui.Label("name", roleVitals, "", 14, WebUi.C("#ffe7b6"), TextAnchor.MiddleLeft);
+            name.fontStyle = FontStyle.Bold;
+            name.resizeTextForBestFit = true; name.resizeTextMinSize = 10; name.resizeTextMaxSize = 14;
+            name.verticalOverflow = VerticalWrapMode.Truncate;
+            WebUi.At(name.rectTransform, 7, 6, 72, 19);
+            hpFill = StatusBar("hp", roleVitals, 25, "#ffa994", "#a02d25");
+            mpFill = StatusBar("mp", roleVitals, 40, "#b8ebff", "#286599");
+            petHpFill = StatusBar("hp", petVitals, 22, "#ffa994", "#a02d25");
+            petMpFill = StatusBar("mp", petVitals, 37, "#b8ebff", "#286599");
+            face = Portrait("role", 12, 18, onRole, out level);
+            petFace = Portrait("pet", 192, 22, onPet, out petLevel);
+            var expBack = WebUi.Gradient("exp", root, WebUi.C("#1a0f14"), WebUi.C("#0a0612"), 4);
+            WebUi.At(expBack.rectTransform, 0, 1272, 720, 8);
+            expFill = BarFill(expBack.transform, "#f6e66a", "#8fe06a");
 
             town = Ui.Rect("TownControls", root);
             Ui.Anchor(town, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -118,8 +122,8 @@ namespace GuiQin
             mapButton.image.sprite = WebUi.Circle();
             mapButton.image.color = WebUi.Gold;
             WebUi.At((RectTransform)mapButton.transform, 580, 16, 124, 124);
-            var clip = WebUi.RoundMask("clip", mapButton.transform);
-            WebUi.At(clip.rectTransform, 7, 7, 110, 110);
+            var clip = WebUi.RoundMask("clip", mapButton.transform, geometric: true);
+            WebUi.At(clip.rectTransform, 7, 7, MiniDiameter, MiniDiameter);
             var miniBack = Ui.Box("mapBack", clip.transform, WebUi.C("#224433"));
             miniBack.raycastTarget = false;
             WebUi.At(miniBack.rectTransform, 0, 0, 110, 110);
@@ -127,16 +131,42 @@ namespace GuiQin
             mini = Ui.Box("mapImage", miniLayer, Color.white);
             mini.raycastTarget = false;
             Ui.Anchor(mini.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            miniRoute = MapRouteGraphic.Create(miniLayer);
             miniDots = Ui.Rect("dots", miniLayer);
             Ui.Anchor(miniDots, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             var marker = Ui.Label("playerMarker", clip.transform, "▲", 14, Color.white, TextAnchor.MiddleCenter);
-            WebUi.At(marker.rectTransform, 48, 46, 14, 14);
+            miniPlayer = marker.rectTransform;
+            WebUi.At(miniPlayer, 48, 46, 14, 14);
             WebUi.Edge(marker);
             TownLabel("north", "北", 13, WebUi.Light, 630, 8, 24, 24);
-            place = MapButton("place", "", 566, 152, 138, onWorld);
-            weather = MapButton("weather", "晴", 520, 152, 40, onWeather);
-            coin = TownLabel("coin", "", 14, WebUi.Amber, 566, 188, 138, 24);
-            WebUi.Edge(coin);
+            var coordPlate = WebUi.Gradient("coordPlate", town, WebUi.C("#8a5a14e8"), WebUi.C("#51301cea"), 4);
+            coordPlate.raycastTarget = false;
+            WebUi.At(coordPlate.rectTransform, 437, 49, 124, 29);
+            mapCoord = Ui.Label("mapCoord", coordPlate.transform, "", 16, WebUi.Light, TextAnchor.MiddleCenter);
+            WebUi.At(mapCoord.rectTransform, 0, 3, 124, 24);
+            place = MapButton("place", "", 430, 18, 138, onWorld);
+            var routing = Ui.Label("routeStatus", town, "自动寻路中", 18, WebUi.Amber, TextAnchor.MiddleRight);
+            WebUi.At(routing.rectTransform, 430, 80, 138, 25);
+            WebUi.Edge(routing);
+            routing.raycastTarget = false;
+            routeStatus = routing.gameObject;
+            routeStatus.SetActive(false);
+            var weatherBadge = WebUi.Panel("weatherBadge", town);
+            weatherBadge.raycastTarget = false;
+            WebUi.Dress(weatherBadge, WebUi.C("#fbf0cc"), WebUi.C("#dcc48a"), WebUi.C("#8a5a14"), 4);
+            WebUi.At(weatherBadge.rectTransform, 389, 19, 34, 34);
+            weather = Ui.Box("weather", weatherBadge.transform, Color.white);
+            weather.raycastTarget = false;
+            WebUi.At(weather.rectTransform, 4, 4, 26, 26);
+            // 图集沿用网页版图样，顺序为晴、雨、雷暴、雪。
+            var weatherAtlas = Resources.Load<Texture2D>("GuiQin/Art/hud_weather");
+            if (weatherAtlas != null)
+            {
+                int size = weatherAtlas.height;
+                for (int i = 0; i < weatherIcons.Length; i++)
+                    weatherIcons[i] = Sprite.Create(weatherAtlas, new Rect(i * size, 0, size, size), Vector2.one * 0.5f);
+            }
+            SetWeather("clear");
             // 右侧一列快捷入口（和网页版同样的顺序、位置）：活动 福利 商城 竞技 背包 帮派 好友 设置
             Shortcut("act", "活动", "icon_act", 219, () => onKey("act"));
             Shortcut("gift", "福利", "icon_gift", 295, () => onKey("gift"));
@@ -147,9 +177,8 @@ namespace GuiQin
             Shortcut("guild", "帮派", "icon_guild", 599, () => onKey("guild"));
             Shortcut("friend", "好友", "icon_friend", 675, () => onKey("friend"));
             Shortcut("settings", "设置", "icon_gear", 751, onMenu);
-            // 右下角：自动挂机（大）、坐骑、回气丹和金创药快捷键
+            // 右下角：自动挂机（大）、回气丹和金创药快捷键
             autoBtn = RoundIcon("auto", "icon_auto", 609, 1143, 86, () => onKey("auto"));
-            RoundIcon("ride", "icon_ride", 534, 1186, 56, () => onKey("ride"));
             RoundIcon("mpPotion", "item_mp_potion", 575, 1079, 56, () => onKey("mpPotion"));
             RoundIcon("potion", "icon_potion", 639, 1079, 56, () => onKey("potion"));
 
@@ -173,27 +202,42 @@ namespace GuiQin
             unreadDot.SetActive(false);
         }
 
-        Image Portrait(string id, float x, float y, float size, Action open)
+        RectTransform VitalsPanel(string id, float x, float y)
         {
-            var button = Ui.Btn(id, root, "", 14, Color.clear, () => open());
-            var ring = Ui.Box("ring", button.transform, WebUi.Gold);
-            ring.sprite = WebUi.Circle(); ring.raycastTarget = false;
-            WebUi.At(ring.rectTransform, 0, 0, size, size);
-            WebUi.At((RectTransform)button.transform, x, y, size, size);
-            var clip = WebUi.RoundMask("clip", button.transform);
-            WebUi.At(clip.rectTransform, 5, 5, size - 10, size - 10);
-            var image = Ui.Box("portrait", clip.transform, Color.white);
-            image.raycastTarget = false;
-            Ui.Anchor(image.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            return image;
+            var panel = Ui.Box(id, root, Color.white);
+            panel.raycastTarget = false;
+            WebUi.Dress(panel, WebUi.C("#705038"), WebUi.C("#302620"), WebUi.C("#b9905e"), 11);
+            WebUi.At(panel.rectTransform, x, y, 87, 69);
+            return panel.rectTransform;
         }
 
-        Text Label(string id, string value, int size, Color color, float x, float y, float w, float h,
-            TextAnchor align = TextAnchor.MiddleLeft)
+        Image Portrait(string id, float x, float y, Action open, out Text levelLabel)
         {
-            var label = Ui.Label(id, root, value, size, color, align);
-            WebUi.At(label.rectTransform, x, y, w, h);
-            return label;
+            var button = Ui.Btn(id, root, "", 14, Color.clear, () => open());
+            WebUi.Dress(button.image, WebUi.C("#f4e2b5"), WebUi.C("#94613a"), WebUi.C("#f0d8a2"), 7);
+            WebUi.At((RectTransform)button.transform, x, y, 86, 86);
+            var clip = Ui.Rect("clip", button.transform);
+            clip.gameObject.AddComponent<RectMask2D>();
+            WebUi.At(clip, 4, 4, 78, 78);
+            var backing = WebUi.Gradient("backing", clip, WebUi.C("#665142"), WebUi.C("#2e2725"), 3);
+            Ui.Anchor(backing.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var image = Ui.Box("portrait", clip, Color.white);
+            image.raycastTarget = false;
+            image.preserveAspect = true;
+            Ui.Anchor(image.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            var frame = Ui.Box("innerFrame", button.transform, Color.white);
+            frame.raycastTarget = false;
+            WebUi.Dress(frame, Color.clear, Color.clear, WebUi.C("#f5dbab85"), 4);
+            WebUi.At(frame.rectTransform, 3, 3, 80, 80);
+            var badge = Ui.Box("levelBadge", button.transform, Color.white);
+            badge.raycastTarget = false;
+            WebUi.Dress(badge, WebUi.C("#9f4b36"), WebUi.C("#5e281f"), WebUi.C("#e5bd77"), 4);
+            WebUi.At(badge.rectTransform, 57, 62, 25, 20);
+            levelLabel = Ui.Label("level", badge.transform, "", 13, WebUi.C("#fff0ca"), TextAnchor.MiddleCenter);
+            levelLabel.fontStyle = FontStyle.Bold;
+            levelLabel.resizeTextForBestFit = true; levelLabel.resizeTextMinSize = 9; levelLabel.resizeTextMaxSize = 13;
+            WebUi.At(levelLabel.rectTransform, 0, 0, 25, 20);
+            return image;
         }
 
         Text TownLabel(string id, string value, int size, Color color, float x, float y, float w, float h)
@@ -206,9 +250,10 @@ namespace GuiQin
         Text MapButton(string id, string value, float x, float y, float w, Action open)
         {
             var button = Ui.Btn(id, town, value, 20, Color.clear, () => open());
-            WebUi.Dress(button.image, WebUi.C("#fbf0cc"), WebUi.C("#dcc48a"), WebUi.C("#8a5a14"), 4);
+            WebUi.Dress(button.image, WebUi.C("#fff3d8"), WebUi.C("#e7c493"), WebUi.C("#ad7b41"), 4);
             WebUi.At((RectTransform)button.transform, x, y, w, 34);
-            var label = WebUi.Title(button.GetComponentInChildren<Text>());
+            var label = button.GetComponentInChildren<Text>();
+            label.fontStyle = FontStyle.Bold;
             label.color = WebUi.C("#4a2a10");
             label.resizeTextForBestFit = true; label.resizeTextMinSize = 12; label.resizeTextMaxSize = 20;
             return label;
@@ -238,14 +283,21 @@ namespace GuiQin
             WebUi.Edge(caption);
         }
 
-        RectTransform Bar(string id, float x, float y, float w, float h, string top, string bottom, out Text label)
+        static RectTransform StatusBar(string id, Transform parent, float y, string top, string bottom)
         {
-            var back = WebUi.Gradient(id, root, WebUi.C("#1a0f14"), WebUi.C("#0a0612"), 4);
-            WebUi.At(back.rectTransform, x, y, w, h);
-            var fill = WebUi.Gradient("fill", back.transform, WebUi.C(top), WebUi.C(bottom), 4);
+            var back = Ui.Box(id, parent, Color.white);
+            back.raycastTarget = false;
+            WebUi.Dress(back, WebUi.C("#241712"), WebUi.C("#694a32"), WebUi.C("#9c784d"), 4);
+            WebUi.At(back.rectTransform, 7, y, 72, 12);
+            var inset = Ui.Rect("track", back.transform);
+            WebUi.At(inset, 1, 1, 70, 10);
+            return BarFill(inset, top, bottom);
+        }
+
+        static RectTransform BarFill(Transform parent, string top, string bottom)
+        {
+            var fill = WebUi.Gradient("fill", parent, WebUi.C(top), WebUi.C(bottom), 3);
             Ui.Anchor(fill.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            label = id == "exp" ? null : Label(id + "Value", "", 11, Color.white, x, y, w, h, TextAnchor.MiddleCenter);
-            if (label != null) WebUi.Edge(label);
             return fill.rectTransform;
         }
 
@@ -254,7 +306,6 @@ namespace GuiQin
             fill.anchorMax = new Vector2(Mathf.Clamp01(value), 1);
         }
 
-        Image petFace;
         public void SetPet(string headKey, string fallbackKey)      // HUD 宠物按钮：只显示头部（ph_ 开头），没有就用整图
         {
             string k = Art.Has(headKey) ? headKey : fallbackKey; petFace.sprite = Art.One(k, true); petFace.enabled = petFace.sprite != null;
@@ -263,7 +314,11 @@ namespace GuiQin
         public void SetRole(RoleState role, StatBlock stats)
         {
             name.text = role.name;
-            sect.text = SectService.ClsName(role.cls);
+            petLevel.text = role.lv.ToString();
+            string petId = PetService.ActiveId(role);
+            var petStats = PetService.Stats(role, petId);
+            // 地图显示已存档的法力，战斗中由服务端快照和回合事件刷新。
+            SetPetVitals(petStats.maxHp, petStats.maxHp, PetService.CurrentMana(role, petId), petStats.maxMp);
             level.text = role.lv.ToString();
             string portrait = "head_" + role.cls;
             face.sprite = Art.One(Art.Has(portrait) ? portrait : "head_player", true);
@@ -271,16 +326,18 @@ namespace GuiQin
             int mp = role.mp < 0 ? stats.maxMp : role.mp;
             SetVitals(hp, stats.maxHp, mp, stats.maxMp);
             SetBar(expFill, role.exp / (float)Mathf.Max(1, Rewards.ExpNeed(role.lv)));
-            power.text = "战力 " + Power(stats).ToString("N0");
-            coin.text = "银两 " + role.coin.ToString("N0");
         }
 
         public void SetVitals(int hp, int maxHp, int mp, int maxMp)
         {
-            hpText.text = hp + "/" + maxHp;
-            mpText.text = mp + "/" + maxMp;
             SetBar(hpFill, hp / (float)Mathf.Max(1, maxHp));
             SetBar(mpFill, mp / (float)Mathf.Max(1, maxMp));
+        }
+
+        public void SetPetVitals(int hp, int maxHp, int mp, int maxMp)
+        {
+            SetBar(petHpFill, hp / (float)Mathf.Max(1, maxHp));
+            SetBar(petMpFill, mp / (float)Mathf.Max(1, maxMp));
         }
 
         public void SetChatPreview(System.Collections.Generic.IReadOnlyList<GuiQin.Chat.ChatMsg> lines, bool unread)
@@ -289,14 +346,15 @@ namespace GuiQin
             unreadDot.SetActive(unread);
         }
 
-        public static int Power(StatBlock s) => Mathf.RoundToInt(s.atk * 6 + s.matk * 4 + s.def * 5 + s.mdef * 3
-            + s.maxHp / 2f + s.maxMp / 4f + s.spd * 3 + s.crit * 12 + s.dodge * 12);
-
         public void SetPlace(MapRuntime map)
         {
             place.text = map.Def.name;
+            mapCoordScale = map.Sc;
+            lastMapCoord = new Vector2Int(-1, -1);
             mini.sprite = Art.One(Art.Has(map.Def.mini) ? map.Def.mini : map.Def.img, true);
-            miniSize = new Vector2(map.W, map.H) * MiniScale;
+            mapSize = new Vector2(map.W, map.H);
+            miniScale = Mathf.Max(MinMapScale, MiniDiameter / Mathf.Min(map.W, map.H));
+            miniSize = mapSize * miniScale;
         }
 
         public void SetMapActors(System.Collections.Generic.IEnumerable<Actor> actors)
@@ -315,13 +373,39 @@ namespace GuiQin
                 var dot = Ui.Box("dot", miniDots, color);
                 dot.sprite = WebUi.Circle();
                 dot.raycastTarget = false;
-                WebUi.At(dot.rectTransform, actor.Pos.x * MiniScale - 3, actor.Pos.y * MiniScale - 3, 6, 6);
+                WebUi.At(dot.rectTransform, actor.Pos.x * miniScale - 3, actor.Pos.y * miniScale - 3, 6, 6);
             }
+        }
+
+        public void SetRoute(Vector2 player, System.Collections.Generic.IReadOnlyList<Vector2> route)
+        {
+            miniRoute.Show(player, route, mapSize);
+            bool routing = route != null && route.Count > 0;
+            if (routeStatus.activeSelf != routing) routeStatus.SetActive(routing);
         }
 
         public void SetPosition(Vector2 p)
         {
-            WebUi.At(miniLayer, 55 - p.x * MiniScale, 55 - p.y * MiniScale, miniSize.x, miniSize.y);
+            // 舞台像素换回地图配置坐标，跨过一格时才刷新文字。
+            if (mapCoordScale > 0f)
+            {
+                var coordinate = Vector2Int.FloorToInt(p / mapCoordScale);
+                if (coordinate != lastMapCoord)
+                {
+                    lastMapCoord = coordinate;
+                    mapCoord.text = $"({coordinate.x}, {coordinate.y})";
+                }
+            }
+            float radius = MiniDiameter * 0.5f;
+            var center = Vector2.one * radius;
+            var point = p * miniScale;
+            // 靠近地图边缘时停止滚动，角色箭头在圆内继续移动。
+            var offset = new Vector2(
+                Mathf.Clamp(radius - point.x, Mathf.Min(0f, MiniDiameter - miniSize.x), 0f),
+                Mathf.Clamp(radius - point.y, Mathf.Min(0f, MiniDiameter - miniSize.y), 0f));
+            WebUi.At(miniLayer, offset.x, offset.y, miniSize.x, miniSize.y);
+            var marker = center + Vector2.ClampMagnitude(point + offset - center, radius - 8f);
+            WebUi.At(miniPlayer, marker.x - 7f, marker.y - 7f, 14, 14);
         }
         public void SetVisible(bool visible)
         {
@@ -336,23 +420,36 @@ namespace GuiQin
             hudInput.blocksRaycasts = false;
             town.gameObject.SetActive(false);
         }
-        public void SetWeather(string value) => weather.text = value;
+        public void SetWeather(string kind)
+        {
+            int index = kind == "rain" ? 1 : kind == "storm" ? 2 : kind == "snow" ? 3 : 0;
+            weather.sprite = weatherIcons[index];
+            weather.enabled = weather.sprite != null;
+        }
     }
 
     public class QuestUi
     {
         readonly GameObject root;
-        readonly Text title, goal, progress;
+        readonly Text title, goal, progress, toggleLabel;
+        readonly RectTransform frame, details;
+        bool collapsed;
 
-        public QuestUi(Transform parent, Action onGo)
+        public QuestUi(Transform parent, Action onOpenDetails)
         {
             var panel = WebUi.Panel("quest", parent); root = panel.gameObject;
-            WebUi.At(panel.rectTransform, 10, 136, 214, 146);
+            frame = panel.rectTransform;
+            WebUi.At(frame, 10, 136, 214, 146);
             var strip = WebUi.Gradient("header", panel.transform, WebUi.C("#8a5a14"), WebUi.C("#5a3a0c"), 5);
             WebUi.At(strip.rectTransform, 1, 1, 212, 28);
             var heading = Ui.Label("heading", panel.transform, "任务", 15, WebUi.Light, TextAnchor.MiddleCenter);
             WebUi.At(heading.rectTransform, 0, 0, 214, 29);
-            var b = Ui.Btn("current", panel.transform, "", 15, Color.clear, () => onGo());
+            var toggle = Ui.Btn("toggle", panel.transform, "▾", 18, Color.clear, Toggle);
+            WebUi.At((RectTransform)toggle.transform, 174, 0, 40, 30);
+            toggleLabel = toggle.GetComponentInChildren<Text>();
+            details = Ui.Rect("details", panel.transform);
+            WebUi.At(details, 0, 0, 214, 146);
+            var b = Ui.Btn("current", details, "", 15, Color.clear, () => onOpenDetails());
             WebUi.Dress(b.image, WebUi.C("#e2b04a35"), WebUi.C("#e2b04a18"), Color.clear, 4);
             WebUi.At((RectTransform)b.transform, 5, 34, 204, 60);
             title = Ui.Label("title", b.transform, "", 15, WebUi.Light, TextAnchor.MiddleLeft);
@@ -361,8 +458,16 @@ namespace GuiQin
             goal = Ui.Label("goal", b.transform, "", 13, WebUi.Jade, TextAnchor.UpperLeft);
             goal.verticalOverflow = VerticalWrapMode.Truncate;
             WebUi.At(goal.rectTransform, 8, 27, 188, 32);
-            progress = Ui.Label("progress", panel.transform, "", 13, WebUi.Muted, TextAnchor.UpperLeft);
+            progress = Ui.Label("progress", details, "", 13, WebUi.Muted, TextAnchor.UpperLeft);
             WebUi.At(progress.rectTransform, 13, 101, 190, 34);
+        }
+
+        void Toggle()
+        {
+            collapsed = !collapsed;
+            details.gameObject.SetActive(!collapsed);
+            WebUi.At(frame, 10, 136, 214, collapsed ? 30 : 146);
+            toggleLabel.text = collapsed ? "▸" : "▾";
         }
 
         public void Set(string label, string target, string chapter)

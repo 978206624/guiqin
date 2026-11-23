@@ -11,6 +11,7 @@ namespace GuiQin.Battle
     {
         public string Id, StageId; public BattleEngine Engine; public BattleView View; public StageDef Stage;
         public int Seed { get; internal set; }
+        public string PetId;
 
         // 当前战场快照：开战时的静态信息 + 引擎里每个单位此刻的血 / 蓝 / 存活 / 状态。断线重连、重进游戏时发给客户端重建战场。
         public BattleView Snapshot()
@@ -86,7 +87,7 @@ namespace GuiQin.Battle
             {
                 Id = nextId++, Side = "ally", Row = "pet", Name = (string)dx["name"], Sprite = (string)dx["sprite"], H = F(dx["h"], 62f),
                 Ai = dx["ai"] != null ? (string)dx["ai"] : "fox", MagicAtk = dx["mag"] != null && (bool)dx["mag"],
-                MaxHp = pHp, Hp = pHp, Atk = pst.atk, Matk = pst.matk, Def = pst.def, Mdef = pst.mdef, Spd = pst.spd, Crit = 10f, Dodge = 3f
+                MaxHp = pHp, Hp = pHp, MaxMp = pst.maxMp, Mp = GuiQin.Pets.PetService.CurrentMana(role, pid), Atk = pst.atk, Matk = pst.matk, Def = pst.def, Mdef = pst.mdef, Spd = pst.spd, Crit = 10f, Dodge = 3f
             };
             pet.Flip = FlipSprite(pet.Sprite, false);
             if (dx["act"] != null) pet.Kit = dx["act"].Select(a => new KeyValuePair<string, float>((string)a[0], (float)a[1])).ToList();
@@ -109,11 +110,11 @@ namespace GuiQin.Battle
                 units = units.Select(u => new UnitView { id = u.Id, side = u.Side, row = u.Row, name = u.Name, sprite = u.Sprite, h = u.H, flip = u.Flip, me = u.Me, boss = u.Boss, hp = u.Hp, maxHp = u.MaxHp, mp = u.Mp, maxMp = u.MaxMp }).ToList(),
                 petSkills = eng.PetSkills.Select(id => new SkillView
                 {
-                    id = id, name = Skills[id].name, target = Skills[id].target ?? "one", mp = (int)Skills[id].mp, usable = true
+                    id = id, name = Skills[id].name, target = Skills[id].target ?? "one", mp = GuiQin.Pets.PetService.ManaCost(id, (int)Skills[id].mp), usable = true
                 }).ToList(),
                 skills = list.Where(id => Skills.ContainsKey(id)).Select(id => new SkillView { id = id, name = Skills[id].name + (table && usable(id) ? " Lv." + GuiQin.Train.TrainService.Level(role, id) : ""), target = (Skills[id].heal > 0 || Skills[id].healPow > 0 || Skills[id].revive > 0) && (Skills[id].target ?? "one") == "one" ? "ally" : (Skills[id].target ?? "one"), mp = (int)Skills[id].mp, usable = usable(id), note = usable(id) ? null : (table ? "未学习" : Skills[id].lv + " 级解锁") }).ToList()
             };
-            return new BattleSession { Id = view.id, StageId = st.id, Engine = eng, View = view, Stage = st, Seed = seed };
+            return new BattleSession { Id = view.id, StageId = st.id, Engine = eng, View = view, Stage = st, Seed = seed, PetId = pid };
         }
     }
 }

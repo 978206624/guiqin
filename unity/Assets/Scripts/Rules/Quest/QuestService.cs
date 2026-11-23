@@ -4,6 +4,8 @@ using GuiQin.Tower;
 
 namespace GuiQin.Quest
 {
+    public enum QuestNpcMark { None, Available, Pending, TurnIn }
+
     // 任务进度的服务端参考逻辑。进度（step / cnt / cleared）只在服务端改，客户端发“我和谁说话了 / 打赢了”之类的事件，服务端自己判。
     public class QuestService
     {
@@ -11,6 +13,38 @@ namespace GuiQin.Quest
         public QuestService(RoleState role) { this.role = role; }
 
         public Beat Current { get { return StoryBeats.Current(role); } }
+
+        public Dictionary<string, QuestNpcMark> NpcMarkers(string map)
+        {
+            var marks = new Dictionary<string, QuestNpcMark>();
+            var current = Current;
+            if (current == null) return marks;
+            if (current.IsSectGate)
+            {
+                var mark = role.lv >= GuiQin.Sect.SectService.SectLv ? QuestNpcMark.TurnIn : QuestNpcMark.Pending;
+                if (map == "taixuforest") marks["dao_menzhu"] = mark;
+                if (map == "taixupeak") marks["taixu_mo"] = mark;
+                return marks;
+            }
+
+            // 单段对话任务在同一轮对话接取并完成，显示接取标记。
+            if (current.first && current.type == "talk")
+            {
+                if (current.map == map && current.npc != null) marks[current.npc] = QuestNpcMark.Available;
+                return marks;
+            }
+
+            var last = current;
+            for (int step = role.step + 1; !last.last; step++)
+            {
+                var next = StoryBeats.At(step);
+                if (next == null || next.qid != current.qid) return marks;
+                last = next;
+            }
+            if (last.type == "talk" && last.map == map && last.npc != null)
+                marks[last.npc] = last == current ? QuestNpcMark.TurnIn : QuestNpcMark.Pending;
+            return marks;
+        }
 
         // 旧角色可能按原奖励走完了引见；只补到入门所需等级，不重发任务奖励。
         public static int EnsureSectLevel(RoleState role)

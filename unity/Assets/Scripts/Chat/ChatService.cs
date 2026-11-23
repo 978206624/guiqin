@@ -20,7 +20,7 @@ namespace GuiQin.Chat
         readonly Dictionary<string, (string text, long time)> lastText = new Dictionary<string, (string, long)>();
         readonly List<(long time, Action run)> queue = new List<(long, Action)>();
         readonly Random rng = new Random();
-        int uid, revision, outing, guildVersion;
+        int uid, revision, outing, guildVersion, sessionAfter;
         long nextWorld, nextGuild, nextParty, nextNotice, nextGreet;
         string guild;
         int Members => guild == null ? 0 : D["guildMembers"].Count() + 1;
@@ -32,11 +32,15 @@ namespace GuiQin.Chat
             this.role = role;
             long now = Now();
             nextWorld = now + 4000; nextGuild = now + 9000; nextNotice = now + 60000; nextGreet = now + 90000;
-            for (int i = 0; i < 4; i++) Save(BotMsg("world", PickBot(), Fill(Pick(D["lines"]))), false);
-            Save(Make("notice", (string)D["notices"][0]), false);
         }
 
         public void Bind(RoleState current) => role = current;
+
+        public void BeginSession()
+        {
+            sessionAfter = uid;
+            nextWorld = Now() + 4000;
+        }
 
         string Pick(JToken values) => (string)values[rng.Next(values.Count())];
         string PickBot() => (string)D["bots"][rng.Next(D["bots"].Count())]["name"];
@@ -79,7 +83,7 @@ namespace GuiQin.Chat
         PartyState Party() => new PartyState { roleId = role.id, revision = revision,
             members = party.Select(Person).ToList(), pending = pending.ToList() };
         void PushParty() { revision++; OnParty?.Invoke(Party()); }
-        public ChatHistResp History() => new ChatHistResp { msgs = hist.Select(Clone).ToList(), guild = guild,
+        public ChatHistResp History() => new ChatHistResp { msgs = hist.Where(m => m.id > sessionAfter || (m.ch != "world" && m.ch != "system" && m.ch != "notice")).Select(Clone).ToList(), guild = guild,
             members = Members, friends = friends.Select(Person).ToList(), party = Party() };
 
         public ChatResp SetGuild(bool join)

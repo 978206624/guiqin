@@ -91,6 +91,7 @@ namespace GuiQin
     {
         public readonly RectTransform Root;
         readonly Text title, name;
+        Text questMarker;
 
         public TagLabel(Transform parent)
         {
@@ -108,6 +109,32 @@ namespace GuiQin
         {
             title.text = titleText ?? ""; title.color = titleColor;
             name.text = nameText ?? ""; name.color = nameColor;
+        }
+
+        internal static string QuestSymbol(GuiQin.Quest.QuestNpcMark mark) =>
+            mark == GuiQin.Quest.QuestNpcMark.Available ? "!" : "?";
+
+        internal static Color QuestColor(GuiQin.Quest.QuestNpcMark mark) =>
+            mark == GuiQin.Quest.QuestNpcMark.Pending ? WebUi.C("#a3a2a2") : WebUi.C("#ffd24a");
+
+        public void SetQuestMarker(GuiQin.Quest.QuestNpcMark mark)
+        {
+            if (mark == GuiQin.Quest.QuestNpcMark.None)
+            {
+                if (questMarker != null) questMarker.gameObject.SetActive(false);
+                return;
+            }
+            if (questMarker == null)
+            {
+                questMarker = Ui.Label("questMark", Root, "", 29, WebUi.Amber, TextAnchor.MiddleCenter);
+                questMarker.fontStyle = FontStyle.Bold;
+                AddShadow(questMarker);
+            }
+            questMarker.gameObject.SetActive(true);
+            questMarker.text = QuestSymbol(mark);
+            questMarker.color = QuestColor(mark);
+            float y = string.IsNullOrEmpty(title.text) ? 28f : 51f;
+            Ui.Anchor(questMarker.rectTransform, Vector2.zero, Vector2.right, new Vector2(0, y), new Vector2(0, y + 32f));
         }
 
         public void SetVisible(bool v) { if (Root.gameObject.activeSelf != v) Root.gameObject.SetActive(v); }

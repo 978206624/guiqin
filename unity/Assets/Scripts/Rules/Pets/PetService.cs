@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace GuiQin.Pets
 {
-    public struct PetStats { public int maxHp, atk, matk, def, mdef, spd; }
+    public struct PetStats { public int maxHp, maxMp, atk, matk, def, mdef, spd; }
     public struct BondInfo { public int n, i, from, to; public string name; public float bonus; }      // to = -1 表示已满级
 
     // 宠物 / 神兽：拥有、出战、亲密度、属性、兑换。服务端权威；客户端只用这里的静态公式显示面板（和战斗里算的一样）。
@@ -51,9 +51,31 @@ namespace GuiQin.Pets
             Func<string, float, float, int> v = (key, mul, kk) => (int)Math.Round((F(b[key], 0) + F(g[key], 0) * L) * mul * kk, MidpointRounding.AwayFromZero);
             return new PetStats
             {
-                maxHp = v("hp", F(p["hp"], 1f), k), atk = v("atk", F(p["atk"], 1f), k), matk = v("matk", F(p["atk"], 1f), k),
+                maxMp = MaxMana(L), maxHp = v("hp", F(p["hp"], 1f), k), atk = v("atk", F(p["atk"], 1f), k), matk = v("matk", F(p["atk"], 1f), k),
                 def = v("def", F(p["def"], 1f), 1f), mdef = v("mdef", F(p["def"], 1f), 1f), spd = v("spd", F(p["spd"], 1f), 1f)
             };
+        }
+
+        public static int MaxMana(int level) => 60 + 4 * Math.Max(1, level);
+
+        public static int CurrentMana(RoleState role, string id)
+        {
+            return role.petMana != null && role.petMana.TryGetValue(id, out int saved)
+                ? Math.Max(0, Math.Min(MaxMana(role.lv), saved)) : 0;
+        }
+
+        public static void SaveMana(RoleState role, string id, int mana)
+        {
+            role.petMana ??= new Dictionary<string, int>();
+            role.petMana[id] = Math.Max(0, Math.Min(MaxMana(role.lv), mana));
+        }
+
+        public static int ManaCost(string skill, int configuredCost)
+        {
+            if (skill == null || skill == "bite" || skill == "ss_hit") return 0;
+            if (configuredCost > 0) return configuredCost;
+            if (skill == "foxfire") return 20;
+            return skill.StartsWith("ss_", StringComparison.Ordinal) && skill != "ss_hit" ? 30 : 0;
         }
 
         public static int Power(PetStats s) { return (int)Math.Round(s.maxHp / 10.0 + s.atk * 2 + s.def * 1.5 + s.spd); }

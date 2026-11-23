@@ -43,7 +43,7 @@
 1. `GET https://gw.xxx/api/config`：返回维护状态、最低客户端版本、配置表 hash、区服列表、公告。版本过低 → 强更；hash 不同 → 提示更新数据（`data.json` / `assets.json` 是客户端与服务端共用的同一份，服务端也加载它）。
 2. `POST https://gw.xxx/api/login`：账号密码 / 手机验证码 / 微信 / Apple 登录 → 返回 `accountToken`（JWT，有效期数小时）。
 3. 选区 → 连接 `wss://zoneN.xxx/ws`，首条消息 `auth.login{token,device,platform,clientVer,dataHash}`，服务端验签后返回角色列表和 `session`（用于断线续传）。
-4. `role.enter{roleId}`：服务端装载角色，返回完整 `RoleState`，客户端进入对应地图。同账号再次登录 → 老连接收到 `push.kick` 被顶下线。
+4. `role.enter{roleId,resume:false}`：服务端装载角色，返回完整 `RoleState`，客户端进入对应地图。同账号再次登录 → 老连接收到 `push.kick` 被顶下线。
 
 （当前骨架把 1–2 步折叠进 `auth.login` 一条消息；真实接入时在 `WsBackend.Login` 前加一步 HTTPS 即可，接口不变。）
 
@@ -95,6 +95,7 @@ JSON 文本帧，一条 = 一个 `Envelope`：
 | `battle.resume` | 请求 | 取进行中战斗的快照 |
 | `train.do` | 请求 | 技能修炼 `{who: menzhu/hall, id}`：服务端判师父教不教、人物等级、银两、等级上限 |
 | `gift.daily` | 请求 | 每日福利（走 `BagResp`）：银两 + 金创药，按服务端日期（北京时间）一天一次 |
+| `bag.use`（`storeInPouch=true`） | 请求 | 装备药囊时将一颗回气丹转为法力储备，先补人物再补出战宠物，余量保存在角色的背包状态中 |
 | `chat.send` / `chat.hist` / `chat.guild` | 请求 | 权限、40 字、敏感词过滤、世界 6 秒/帮派与队伍 1.5 秒/私聊 1 秒冷却、同频道或会话 20 秒内防重复；历史最近 200 条；演示加入或退出帮派 |
 | `friend.add` / `friend.del` / `friend.list` | 请求 | 增删用 `{peer}`，列表不带参数；返回 `{ok,msg,friends}`，上限取 `chat.friendLimit` |
 | `party.invite` / `party.leave` | 请求 | 邀请用 `{peer}`，离开不带参数；服务端检查重复与容量（含自己和待确认名额共 5 人），返回 `{ok,msg,party}` |
@@ -258,7 +259,7 @@ story.json 的每个任务展平成“节拍”（talk 找人 / spot 采集点 /
 - 掉线判定：socket 关闭 / 异常，或已登录后 35 秒收不到任何包（心跳带 seq，服务端必须回 pong）。
 - 重连：退避 1/2/4/8/15/15/15/15 秒，最多 8 次。连上先发 `auth.resume{session,lastSeq}`；成功后把未收到回包的请求**用原 seq 补发**。服务端必须按 (session, seq) 缓存最近一批回包，命中就直接回缓存，不重复执行（防止重复扣费 / 发奖 / 出手）。
 - `auth.resume` 回 401 = 会话过期；`push.kick` = 被顶号 / 封禁；重连用尽 —— 三种都不再重连，客户端 `OnDisconnected` 回登录界面。
-- 客户端表现：掉线盖一层“网络断开，正在重连…（第 n 次）”；重连成功后 `Resync`（重新 `role.enter` 取权威状态，地图变了就重载）。
+- 客户端表现：掉线盖一层“网络断开，正在重连…（第 n 次）”；重连成功后 `Resync`（重新 `role.enter{roleId,resume:true}` 取权威状态，地图变了就重载）。
 - `battle.resume`：返回进行中战斗的快照（`BattleView.round`，每个单位的 hp/mp/`dead`/`sts`）。客户端在 `role.enter` 成功后调用，有就直接接着打；没有 → `code=4001`。同一进程内的重连不重建战场，靠补发的 `battle.cmd` 自然接上。
 - 服务端回合超时：玩家掉线 / 不操作超过 `turnSeconds`，服务端按“自动战斗”出手并推进，保证 `battle.resume` 总是最新状态。
 
@@ -276,4 +277,4 @@ story.json 的每个任务展平成“节拍”（talk 找人 / spot 采集点 /
 - 每日福利：`giftDay` 记上次领取日期，服务端按北京时间换日。
 - 聊天：客户端点任意一条别人的发言即私聊对方。表情图、物品链接、组队、好友列表还没做（后两者要多人在线服务）。Mock 里的路人发言 / 公告 / 私聊回话是模拟的，真服务器换成真人广播。
 
-聊天历史附带当前帮派、好友和队伍快照。每条 `ChatMsg` 的 `id` 在角色历史中单调递增，重连可按 ID 合并历史和实时推送，`roleId` 用于过滤切角色时迟到的消息。物品链接只由服务端从发言者背包生成，`links` 返回 `{start,length,itemId}`，范围以过滤后正文的 UTF-16 字符为单位。未通过校验的方括号内容仍按原文显示。奖励、升级、成功锻造等事件由服务端写入历史并用 `push.chat` 推送，`system` 是个人消息，`notice` 是区服公告。
+聊天历史附带当前帮派、好友和队伍快照。主动进入角色时记录世界、系统和公告的消息 ID 起点，同一角色断线重连沿用该起点；`chat.hist` 在取最近 200 条前过滤更早的世界消息、个人系统消息和区服公告。每条 `ChatMsg` 的 `id` 在角色历史中单调递增，重连可按 ID 合并历史和实时推送，`roleId` 用于过滤切角色时迟到的消息。物品链接只由服务端从发言者背包生成，`links` 返回 `{start,length,itemId}`，范围以过滤后正文的 UTF-16 字符为单位。未通过校验的方括号内容仍按原文显示。奖励、升级、成功锻造等事件由服务端写入历史并用 `push.chat` 推送，`system` 是个人消息，`notice` 是区服公告。

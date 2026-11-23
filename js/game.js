@@ -138,8 +138,6 @@ function refresh() {
   $('hudLv').textContent = S.lv;
   if (B.active && B.player) { setBar('hp', B.player.hp, B.player.maxHp); setBar('mp', B.player.mp, B.player.maxMp); }
   else { setBar('hp', S.hp, st.maxHp); setBar('mp', S.mp, st.maxMp); }
-  $('hudPow').textContent = fmt(powerOf(st));
-  $('coin').textContent = '银两 ' + fmt(S.coin);
   $('expBar').style.width = (S.exp / expNeed() * 100) + '%';
   showQuest();
 }
@@ -213,7 +211,6 @@ function usePotion(id) {
   return true;
 }
 let roleTab = 'attr';
-const powerOf = st => Math.round(st.atk * 6 + (st.matk || 0) * 4 + st.def * 5 + (st.mdef || 0) * 3 + st.maxHp / 2 + (st.maxMp || 0) / 4 + st.spd * 3 + (st.crit || 0) * 12 + (st.dodge || 0) * 12);
 function reopen() { if (lastPanel === 'role') openRole(); else openBag(); }
 // 装备页：上面人物预览 + 装备栏，下面背包格子，点格子看详情、对比、穿戴
 function equipView() {
@@ -226,7 +223,7 @@ function equipView() {
         (getGear(sl).star ? '<i class="sstar">★' + getGear(sl).star + '</i>' : '') + '<span>' + SLOTNAME[sl] + '</span></button>';
     };
   let h = '<div class="doll"><div class="dglow"></div><div class="dcol dl">' + D.slotLeft.map(slotTile).join('') + '</div><div class="dcol dr">' + D.slotRight.map(slotTile).join('') + '</div>' +
-    '<div class="dname"><b>' + ROLE.name + '</b><small>Lv.' + S.lv + ' · ' + clsName(D.classes[ROLE.cls]) + '</small></div><div class="dpow">战力 <b>' + fmt(powerOf(st)) + '</b></div>' +
+    '<div class="dname"><b>' + ROLE.name + '</b><small>Lv.' + S.lv + ' · ' + clsName(D.classes[ROLE.cls]) + '</small></div>' +
     '<img alt="" src="' + IMG('cls_' + ROLE.cls) + '">' +
     '<div class="dstats"><div>攻击<b>' + Math.round(st.atk) + '</b></div><div>防御<b>' + Math.round(st.def) + '</b></div><div>速度<b>' + Math.round(st.spd) + '</b></div><div>气血<b>' + Math.round(st.maxHp) + '</b></div></div></div>';
   h += '<div class="grid eqgrid">';
@@ -344,7 +341,7 @@ function openRole() {
   const st = stats(), cls = D.classes[ROLE.cls], need = expNeed();
   const bar = (cur, max, cls2) => '<div class="rbar ' + cls2 + '"><i style="width:' + Math.max(0, Math.min(100, cur / max * 100)) + '%"></i><span>' + Math.round(cur) + ' / ' + max + '</span></div>';
   let h = '<div class="who"><img alt="" src="' + IMG('cls_' + ROLE.cls) + '"><div><h5>' + ROLE.name + '</h5><p>' + clsName(cls) + ' · ' + cls.role + ' · ' + (cls.gender === 'm' ? '男' : '女') + '</p>' +
-    '<p>等级 <b class="gold">' + S.lv + '</b>　战力 <b class="gold">' + fmt(powerOf(st)) + '</b></p>' +
+    '<p>等级 <b class="gold">' + S.lv + '</b></p>' +
     '<p class="small">经验 ' + S.exp + ' / ' + need + '</p><div class="rbar exp"><i style="width:' + Math.min(100, S.exp / need * 100) + '%"></i></div></div></div>' +
     '<div class="rtabs"><button type="button" class="rtab' + (roleTab === 'attr' ? ' on' : '') +
         '" data-act="roleTab:attr">属性</button><button type="button" class="rtab' + (roleTab === 'equip' ? ' on' : '') +
@@ -370,7 +367,6 @@ function openRole() {
     h = h.slice(h.indexOf('<div class="rtabs">')) + equipView();
     openModal('角色', h); return;
   }
-  h += '<p class="center" style="margin:16px 0 0"><button type="button" class="tbtn" data-act="switchRole">切换角色</button>　<button type="button" class="tbtn red" data-act="reset">重新开始</button></p>';
   openModal('角色', h);
 }
 function skillsHTML() {
@@ -384,12 +380,11 @@ function skillsHTML() {
   return h + '<p class="hint" style="margin-top:14px">' + (curCls().skills ? (ROLE.sect ? (curCls().sect && !/弟子$/.test(curCls().name) ? '分堂技能找本堂堂主学习、升级。' : '基础技能找' + (ROLE.sect === 'mo' ? '墨巨子' : '道家门主') + '学习、升级。') + '　' : '') : '') + '技能在战斗中使用。' + (curCls().weapon ? '武器：' + curCls().weapon + '。' : '') + '</p>';
 }
 let petTab = 'attr', petSel = 'fox';
-function petPower(p) { return Math.round(p.maxHp / 10 + p.atk * 2 + p.def * 1.5 + p.spd); }
 function stars(n, color) { return '<span class="stars" style="color:' + color + '">' + '★'.repeat(n) + '<i>' + '★'.repeat(5 - n) + '</i></span>'; }
 function openPet() {
   const pid = petAct(), dex = D.petDex[pid], q = D.petQuality[dex.q], p = petStats(pid), bd = bondInfo(), b = D.base, g = D.grow, L = S.lv, m = dex.mult || D.pet, kb = 1 + bd.bonus;
   let h = '<div class="pethero"><div class="pglow"></div><img alt="" src="' + IMG(dex.show || dex.sprite) + '"><div class="pinfo"><h5>' + dex.name + ' <span class="qual" style="color:' + q.color + ';border-color:' + q.color + '">' + q.name + '</span></h5>' +
-    '<p>' + stars(q.stars, q.color) + '　' + dex.kind + '</p><p>等级 <b class="gold">' + L + '</b>（随主人成长）　战力 <b class="gold">' + fmt(petPower(p)) + '</b></p>' +
+    '<p>' + stars(q.stars, q.color) + '　' + dex.kind + '</p><p>等级 <b class="gold">' + L + '</b>（随主人成长）</p>' +
     '<p class="small">亲密度 · <b style="color:#ffd9a0">' + bd.name + '</b>　' + bd.n + (bd.to ? ' / ' + bd.to : '') + '</p><div class="rbar exp bond"><i style="width:' + (bd.to ? Math.min(100, (bd.n - bd.from) / (bd.to - bd.from) * 100) : 100) + '%"></i></div></div></div>' +
     '<div class="rtabs">' + [['attr', '属性'], ['skill', '技能'], ['dex', '图鉴']].map(t => '<button type="button" class="rtab' + (petTab === t[0] ? ' on' : '') + '" data-act="petTab:' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
   if (petTab === 'attr') {
@@ -466,7 +461,6 @@ const ACTS = {
     const f = fb.fb;
     if (S.coin < f.fee) { toast('银两不足，进入需要 ' + f.fee); return; }
     S.coin -= f.fee; S.cleared = S.cleared.filter(x => !x.startsWith(f.prefix));   // 每次进入重新计：上次的通关记录清掉
-    $('coin').textContent = '银两 ' + fmt(S.coin);
     loadMap(f.enter); save(); toast('进入 ' + f.name + '（-' + f.fee + ' 银两）');
   },
   towerNext() { const f = M.def.tower; if (f < 7 && (S.tower | 0) >= f * 10) towerEnterFloor(f + 1); },
@@ -502,11 +496,7 @@ const ACTS = {
   buy(id) { const it = D.items[id]; if (S.coin < it.price) return; S.coin -= it.price; addItem(id, 1); save(); refresh(); toast('买下了' + it.name); openShop(shopId); },
   sell(id) { const it = D.items[id]; if (!S.items[id]) return; addItem(id, -1); S.coin += it.price; save(); refresh(); openShop(shopId); },
   fight(id) { $('modal').hidden = true; modalOnClose = null; startBattle(D.stages.find(s => s.id === id)); },
-  reset() { openModal('重新开始', '<p class="center">会清掉等级、背包和任务进度，从头再来。</p><p class="center"><button type="button" class="tbtn red" data-act="resetYes">确定清档</button>　<button type="button" class="tbtn" data-act="close">再想想</button></p>'); },
-  resetYes() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} S = newGame(); bagSel = null; loadMap(S.map); closeModal(); refresh(); toast('已重新开始'); },
   arena() { $('modal').hidden = true; modalOnClose = null; if (B.active) { B.active = false; $('units').innerHTML = ''; } startArena(); },
-  wx(k) { wxLock = k; wxUpdate(true); openWeather(); },
-  wxAuto() { wxLock = null; wxUpdate(true); openWeather(); },
   forgeSlot(sl) { forgeSlot = sl; gemPick = null; openSmith('forge'); },
   smithTab(t) { openSmith(t); },
   forgeGem(id) { forgeGem = id; openSmith('forge'); },
@@ -828,13 +818,12 @@ function addBtn(parent, icon, label, x, y, size, key, dot) {
   b.style.cssText = 'left:' + (x - size / 2) + 'px;top:' + (y - size / 2) + 'px;width:' + size + 'px';
   b.innerHTML = '<img alt="" src="' + IMG(icon) + '">' + (label ? '<span>' + label + '</span>' : '') + (dot ? '<i class="dot"></i>' : '');
   b.setAttribute('aria-label', label || key);
-  b.addEventListener('click', e => { e.stopPropagation(); onBtn(key, label, b); });
+  b.addEventListener('click', e => { e.stopPropagation(); onBtn(key, b); });
   parent.appendChild(b); return b;
 }
 [['act', '活动', 0], ['gift', '福利', 1], ['mall', '商城', 0], ['rank', '竞技', 0], ['bag', '背包', 0], ['guild', '帮派', 0], ['friend', '好友', 0]].forEach((r, i) => addBtn($('btns'), 'icon_' + r[0], r[1], 676, 246 + i * 76, 54, r[0], r[2]));
 addBtn($('btns'), 'icon_gear', '设置', 676, 246 + 7 * 76, 54, 'gear', 0);
 const autoBtn = addBtn($('btns'), 'icon_auto', '', 652, 1186, 86, 'auto');
-addBtn($('btns'), 'icon_ride', '', 562, 1214, 56, 'ride');
 addBtn($('btns'), 'icon_potion', '', 667, 1107, 56, 'potion');
 const manaBtn = addBtn($('btns'), 'item_mp_potion', '', 603, 1107, 56, 'mpPotion');
 manaBtn.classList.add('quickMana');
@@ -848,13 +837,13 @@ function openSettings() {
   const h = '<div class="row"><div><h5>音效</h5><p>战斗与界面音效</p></div><button type="button" class="tbtn' + (SND.muted ? '' : ' red') + '" data-act="cfg:snd">' + (SND.muted ? '关' : '开') + '</button></div>' +
     sw('water', '水面动效', '流水、折射、浪花；关闭可减轻发热') + sw('bf', '蝴蝶', '晴天的村庄蝴蝶') + sw('wx', '天气特效', '雨、雷、雪的画面') + sw('shake', '震屏', '战斗受击的屏幕抖动') +
     '<div class="row"><div><h5>战斗速度</h5><p>战斗动作的快慢</p></div><span>' + [1, 1.5, 2].map(v => '<button type="button" class="tbtn' + (CFG.speed === v ? ' red' : '') + '" data-act="cfg:speed:' + v + '">' + v + '×</button>').join(' ') + '</span></div>' +
-    '<p class="center" style="margin:16px 0 0"><button type="button" class="tbtn" data-act="switchRole">切换角色</button>　<button type="button" class="tbtn red" data-act="reset">重新开始</button></p>' +
-    '<p class="hint center">设置只保存在本机浏览器里。「重新开始」会清除当前角色的存档。</p>';
+    '<p class="center" style="margin:16px 0 0"><button type="button" class="tbtn" data-act="switchRole">切换角色</button></p>' +
+    '<p class="hint center">设置只保存在本机浏览器里。</p>';
   openModal('设置', h);
 }
 ACTS.cfg = v => { const [k, x] = v.split(':'); if (k === 'snd') { SND.toggle(); const b = $('sndBtn'); if (b) b.textContent = SND.muted ? '🔇' : '🔊'; } else if (k === 'speed') CFG.speed = +x; else CFG[k] = CFG[k] ? 0 : 1; applyCfg(); openSettings(); };
 let wander = false, wanderWait = 0;
-function onBtn(key, label, b) {
+function onBtn(key, b) {
   if (key === 'gear') openSettings();
   else if (key === 'bag') openBag();
   else if (key === 'pet') openPet();
@@ -886,9 +875,8 @@ function onBtn(key, label, b) {
       '<br>双方各 5 名侠客、5 只宠物，等级相同。<br>你操作自己的角色，队友和宠物自动出手；每回合 ' + TURN_SECONDS +
       ' 秒，超时自动行动。<br>演示对战，不影响等级和背包。</p><p class="center"><button type="button" class="tbtn red" data-act="arena">开始 5v5 对战</button></p>');
   else if (key === 'act') toast('中秋灯会将在戌时三刻开始');
-  else toast('「' + (label || '坐骑') + '」暂未开放');
 }
-['hud', 'coin', 'chat'].forEach(id => $(id).addEventListener('click', e => e.stopPropagation()));
+['hud', 'chat'].forEach(id => $(id).addEventListener('click', e => e.stopPropagation()));
 
 // ---------- 世界地图：点小地图打开，点任意地点可以直接传送 ----------
 // 世界地图：一张大图，手指拖动浏览（带惯性）；地点坐标是 D.maps[id].world = [x, y]（大图原图像素），新增地点只要给一个坐标
@@ -1295,8 +1283,15 @@ function questGo() {
   if (t) { goTalk(t); toast('自动寻路：' + t.name); }
 }
 ACTS.sectTravel = id => { if (currentQuest()?.type === 'sect') { closeModal(); worldTravel(id); } };
-$('quest').addEventListener('click', e => { e.stopPropagation(); questGo(); });
-$('quest').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); questGo(); } });
+$('qBody').addEventListener('click', e => { e.stopPropagation(); questGo(); });
+$('qBody').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); questGo(); } });
+$('qToggle').addEventListener('click', e => {
+  e.stopPropagation();
+  const collapsed = $('qBody').hidden = !$('qBody').hidden;
+  e.currentTarget.setAttribute('aria-expanded', String(!collapsed));
+  e.currentTarget.setAttribute('aria-label', collapsed ? '展开任务栏' : '收起任务栏');
+  e.currentTarget.textContent = collapsed ? '▸' : '▾';
+});
 
 // ---------- 行走 ----------
 const SPEED = 230; let route = [], talkNpc = null, auto = false;
@@ -1415,10 +1410,8 @@ const petals = []; if (!reduce) for (let i = 0; i < 16; i++) { const d = documen
 const ring = $('ring'), me = $('me'); let last = performance.now();
 
 // ---------- 天气 ----------
-// 每张地图有自己的天气（kind + 到期时间），到点按权重随机换一个。画面全在一张 720×1280 的 canvas 上：
-// 各种效果各有一个 0~1 的“强度”，朝目标值缓缓靠拢，所以换天气是渐变的。演示面板可以把天气固定住。
+// 户外共用 UTC 天气表，效果的强度朝目标值渐变。
 const WXD = D.weather, wxCv = $('wx'), wxCtx = wxCv.getContext('2d');
-const CLOUD = 'M7 18a4 4 0 0 1 .5-7.97A5.5 5.5 0 0 1 18 11a3.5 3.5 0 0 1-.5 7z';
 const wxSvg = (inner) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + inner + '</svg>';
 const WXICON = {
   clear:  wxSvg('<circle cx="12" cy="12" r="5" fill="#f7b928" stroke="#b9750d"/><g stroke="#e59a12" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></g>'),
@@ -1434,25 +1427,33 @@ const WXTARGET = {            // 各效果强度的目标值
   snow:   { rain: 0, storm: 0, snow: 1, fog: .3,  cloud: .6, dark: .2 }
 };
 const wxLv = { rain: 0, storm: 0, snow: 0, fog: 0, cloud: 0, dark: 0 };
-const wxSt = {}; let wxLock = null, wxShown = null, wxFlash = 0, wxFlashAt = 4, wxT = 0;
+let wxSlot = null, wxShown = null, wxFlash = 0, wxFlashAt = 4, wxT = 0;
 const rainP = Array.from({ length: 420 }, () => ({ x: Math.random() * 820, y: Math.random() * 1280, v: .8 + Math.random() * .5, l: 20 + Math.random() * 28 }));
 const snowP = Array.from({ length: 130 }, () => ({ x: Math.random() * 720, y: Math.random() * 1280, v: 30 + Math.random() * 50, r: 1.4 + Math.random() * 2.6, ph: Math.random() * 10 }));
 const fogP = Array.from({ length: 7 }, (_, i) => ({ x: i * 130, y: 160 + (i % 4) * 280 + Math.random() * 120, r: 260 + Math.random() * 160, v: 10 + Math.random() * 14, ph: Math.random() * 10 }));
-function wxPick(mapId, not) {
-  const w = Object.assign({}, WXD.byMap[mapId] || { clear: 1 }); if (not && Object.keys(w).length > 1) delete w[not];
-  let sum = 0; for (const k in w) sum += w[k]; let r = Math.random() * sum;
-  for (const k in w) { r -= w[k]; if (r <= 0) return k; } return 'clear';
+function wxKindAtSlot(slot) {
+  // 与 Unity 使用相同的哈希、权重和键顺序。
+  let hash = 2166136261;
+  for (const ch of String(slot)) hash = Math.imul(hash ^ ch.charCodeAt(0), 16777619) >>> 0;
+  let roll = hash % WXKINDS.reduce((total, k) => total + WXD.weights[k], 0);
+  for (const k of WXKINDS) {
+    roll -= WXD.weights[k];
+    if (roll < 0) return k;
+  }
+  return 'clear';
 }
-const wxRoll = (mapId, not) => ({ kind: wxPick(mapId, not), until: Date.now() + (WXD.span[0] + Math.random() * (WXD.span[1] - WXD.span[0])) * 1000 });
-const wxKind = () => (M && M.def.indoor) ? 'clear' : wxLock || (wxSt[M.id] && wxSt[M.id].kind) || 'clear';   // 室内（玄兵塔）永远是晴，不下雨雪
-function wxUpdate(announce) {          // 到期就换；换了就刷新图标并提示
+const wxKind = () => wxShown || 'clear';
+function wxUpdate(announce) {
   if (!M) return;
-  if (!wxSt[M.id]) wxSt[M.id] = wxRoll(M.id);
-  else if (!wxLock && Date.now() > wxSt[M.id].until) wxSt[M.id] = wxRoll(M.id, wxSt[M.id].kind);
-  const k = wxKind();
+  const slot = Math.floor(Date.now() / (WXD.intervalSeconds * 1000));
+  if (slot === wxSlot && wxShown !== null) return;
+  wxSlot = slot;
+  const k = M.def.indoor ? 'clear' : wxKindAtSlot(slot);
   if (k !== wxShown) {
     const first = wxShown === null; wxShown = k;
-    $('wxBtn').innerHTML = WXICON[k]; $('wxBtn').title = WXD[k].name;
+    $('wxStatus').innerHTML = WXICON[k];
+    $('wxStatus').setAttribute('aria-label', '天气：' + WXD[k].name);
+    $('wxStatus').title = WXD[k].name;
     if (announce && !first) toast('天气转为 ' + WXD[k].name);
   }
 }
@@ -1502,18 +1503,6 @@ function wxDraw(dt) {
   }
   if (wxFlash > .01) { g.fillStyle = 'rgba(236,242,255,' + (wxFlash * .62).toFixed(3) + ')'; g.fillRect(0, 0, 720, 1280); wxFlash *= Math.exp(-7 * dt); }
 }
-function openWeather() {
-  if (B.active) return;
-  const k = wxKind(), d = WXD[k], st = wxSt[M.id];
-  let eta = '天气会一直保持';
-  if (!wxLock && st) { const m = Math.max(1, Math.round((st.until - Date.now()) / 60000)); eta = '约 ' + m + ' 分钟后转天气'; }
-  openModal('天气', '<div class="wxnow">' + WXICON[k].replace('<svg ', '<svg class="big" ') + '<div><h5>' + M.def.name + ' · ' + d.name + '</h5><p>' + d.desc + '</p><small>' + eta + '</small></div></div>' +
-    '<p style="margin:10px 0 4px;color:var(--muted)">演示：直接切换这张地图的天气</p><div class="wxgrid">' +
-    WXKINDS.map(x => '<button type="button" class="' + (x === k && wxLock ? 'on' : '') + '" data-act="wx:' + x + '">' + WXICON[x] + WXD[x].name + '</button>').join('') + '</div>' +
-    '<p class="center" style="margin:14px 0 0"><button type="button" class="tbtn' + (wxLock ? '' : ' on') + '" data-act="wxAuto">' + (wxLock ? '恢复自动天气' : '自动天气中') + '</button></p>');
-}
-$('wxBtn').addEventListener('click', e => { e.stopPropagation(); openWeather(); });
-
 // ============================================================ 流水（水面遮罩 + 滚动高光 + 涟漪 + 落叶）
 // 水面遮罩由 tools/water.py 按颜色抠出；每帧在遮罩内滚动两层纹理，不改原图。
 const WT = { on: false, cv: null, cx: null, mask: null, zones: [], leaves: [], rip: [], pts: null, acc: 0, tiles: null };
@@ -1997,7 +1986,7 @@ function beginBattle(mode, title, teams, names) {
     const list = teams[side][row === 'person' ? 'persons' : 'pets'];
     list.forEach((def, i) => { const u = makeUnit(side, row, def, slotPos(side, row, i, list.length)); if (def.me) B.player = u; });
   }));
-  if (mode === 'arena') { const p = B.player; $('hudLv').textContent = D.arena.lv; $('hudPow').textContent = fmt(p.atk * 6 + p.def * 5 + p.maxHp / 2 + p.spd * 3); }
+  if (mode === 'arena') $('hudLv').textContent = D.arena.lv;
   drawUnit(B.player); drawCmd(); loop();
 }
 // 野外 / 剧情战斗：我方是主角 + 玄晶天狐，敌方按关卡配置

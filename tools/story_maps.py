@@ -156,8 +156,6 @@ NPCS = {'qingyang': [{'id': 'fb50_guard', 'at': [2090, 1015]}],
 WORLD = {'hejiang': [2045, 1431], 'qianling': [2134, 843], 'anyang': [2096, 435], 'handan': [1636, 307],
          'shangshan': [1380, 153], 'baishou': [767, 383], 'yinlong': [332, 588], 'qingyang': [281, 843]}
 for _k, _w in WORLD.items(): MAPS[_k]['world'] = _w
-WEATHER = {'hejiang': 'clear: 4, rain: 2', 'qianling': 'clear: 2, rain: 3', 'anyang': 'clear: 3, rain: 1', 'handan': 'clear: 5, rain: 2',
-           'shangshan': 'clear: 2, storm: 2', 'baishou': 'clear: 4, storm: 1', 'yinlong': 'clear: 3, snow: 1', 'qingyang': 'clear: 4, rain: 2'}
 
 def S(p): return [round(p[0] * F), round(p[1] * F)]
 # 连到老地图的传送：到对方地图后的落点（数据坐标，对方地图自己的坐标系）。老地图那一头的传送点在 js/data.js 里手写。
@@ -263,10 +261,6 @@ def main():
     p = f'{R}/js/data.js'; s = open(p).read()
     if '// <story-maps>' in s: s = re.sub(r'    // <story-maps>.*?// </story-maps>\n', lambda _: block, s, flags=re.S)
     else: s = s.replace('\n    taixuforest: {\n', '\n' + block + '    taixuforest: {\n', 1)
-    if '// <story-weather>' not in s:
-        s = s.replace("      outskirts: { clear: 4, rain: 2 },", "      outskirts: { clear: 4, rain: 2 },\n      // <story-weather>\n      // </story-weather>", 1)
-    wx = '      // <story-weather>\n' + ''.join(f'      {k}: {{ {v} }},\n' for k, v in WEATHER.items()) + '      // </story-weather>'
-    s = re.sub(r'      // <story-weather>.*?// </story-weather>', lambda _: wx, s, flags=re.S)
     open(p, 'w').write(s); print('写入 js/data.js、assets/、js/assets.js')
 
 if __name__ == '__main__': main()

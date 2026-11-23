@@ -4,6 +4,7 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using GuiQin.Net;
 using GuiQin.Quest;
+using GuiQin.Pets;
 
 namespace GuiQin.Inventory
 {
@@ -73,6 +74,47 @@ namespace GuiQin.Inventory
         }
         public int ItemCount(string id) { return Count(id); }
         public bool Take(string id, int n) { if (n <= 0 || Count(id) < n) return false; AddItem(id, -n); return true; }
+
+        public bool StoreManaPotion(string id)
+        {
+            if (id != "mp_potion" || Count(id) <= 0) return Fail("没有可存入的回气丹");
+            if (!HasPouch) return Fail("请先装备药囊");
+            int amount = (int)Item(id)["mp"];
+            if (Bag.manaReserve > int.MaxValue - amount) return Fail("法力储备已满");
+            AddItem(id, -1);
+            Bag.manaReserve += amount;
+            string restored = RestorePouchMana();
+            return Ok("存入回气丹，法力储备 " + Bag.manaReserve + (restored == null ? "" : "　" + restored));
+        }
+
+        bool HasPouch => Bag.equip.TryGetValue("pouch", out string id) && !string.IsNullOrEmpty(id);
+
+        public string RestorePouchMana()
+        {
+            if (Bag.manaReserve <= 0 || !HasPouch) return null;
+            int missing = Stats().maxMp - Mp;
+            int playerAdd = Math.Min(Bag.manaReserve, Math.Max(0, missing));
+            if (playerAdd > 0)
+            {
+                role.mp = Mp + playerAdd;
+                Bag.manaReserve -= playerAdd;
+            }
+
+            string pet = PetService.ActiveId(role);
+            int current = PetService.CurrentMana(role, pet);
+            int petAdd = Math.Min(Bag.manaReserve, PetService.MaxMana(role.lv) - current);
+            if (petAdd > 0)
+            {
+                PetService.SaveMana(role, pet, current + petAdd);
+                Bag.manaReserve -= petAdd;
+            }
+
+            if (playerAdd == 0 && petAdd == 0) return null;
+            var parts = new List<string>();
+            if (playerAdd > 0) parts.Add("人物 +" + playerAdd);
+            if (petAdd > 0) parts.Add("宠物 +" + petAdd);
+            return "药囊补蓝：" + string.Join("、", parts);
+        }
 
         // 药囊：战斗打赢后自动回血，回复量 = 药囊自带气血（含星级加成）。护符先不做，坑位保留
         public int PouchHeal()

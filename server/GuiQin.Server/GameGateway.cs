@@ -33,6 +33,7 @@ internal sealed partial class GameGateway(GameStore store, string rulesVersion)
     {
         public string Account { get; } = account;
         public string Role;
+        public int SessionChatAfter;
         public ConnectionState Connection;
         public DateTimeOffset Seen = DateTimeOffset.UtcNow;
         public readonly Dictionary<int, Envelope> Replies = new();
@@ -162,8 +163,12 @@ internal sealed partial class GameGateway(GameStore store, string rulesVersion)
                 onlineGuild.Remove(id);
                 return new Empty();
             case Cmd.EnterGame:
-                var entered = OwnRole(session, Read<EnterReq>(request).roleId);
+                var enter = Read<EnterReq>(request);
+                var entered = OwnRole(session, enter.roleId);
                 if (QuestService.EnsureSectLevel(entered.State) > 0) Save(session, entered);
+                // 重连续用当前角色的起点。旧客户端省略参数时，保留同一角色的起点。
+                if (session.Role != entered.State.id || enter.resume == false)
+                    session.SessionChatAfter = store.LatestChatId();
                 session.Role = entered.State.id;
                 if (entered.State.guildMember) onlineGuild.Add(session.Role);
                 return new EnterResp { role = entered.State };
@@ -389,7 +394,7 @@ internal sealed partial class GameGateway(GameStore store, string rulesVersion)
             BagCmd.Expand => inventory.Expand(req.capacity),
             BagCmd.MallBuy => inventory.BuyMall(req.id, req.quantity, out purchase),
             BagCmd.Rest => Rest(),
-            BagCmd.Use => req.id != null && inventory.Use(req.id),
+            BagCmd.Use => req.id != null && (req.storeInPouch ? inventory.StoreManaPotion(req.id) : inventory.Use(req.id)),
             BagCmd.Equip => req.id != null && inventory.Equip(req.id),
             BagCmd.Unequip => req.slot != null && inventory.Unequip(req.slot),
             BagCmd.Sell => req.id != null && inventory.Sell(req.id),
@@ -411,7 +416,7 @@ internal sealed partial class GameGateway(GameStore store, string rulesVersion)
             if (request.cmd == BagCmd.Forge && inventory.Star == 10 && oldStar < 10 && state.bag.equip.TryGetValue(req.slot, out var item))
                 SystemChat(state.id, "恭喜「" + state.name + "」将" + (string)GameData.Raw["items"][item]["name"] + "锻造至 10 星！", true);
         }
-        return new() { ok = ok, msg = inventory.Msg, bag = state.bag, coin = state.coin, yuanbao = state.yuanbao, silverNote = state.silverNote, hp = state.hp, mp = state.mp, star = inventory.Star };
+        return new() { ok = ok, msg = inventory.Msg, bag = state.bag, coin = state.coin, yuanbao = state.yuanbao, silverNote = state.silverNote, hp = state.hp, mp = state.mp, petMana = state.petMana, star = inventory.Star };
     }
 
     BattleStartResp Start(SavedRole role, string stageId)

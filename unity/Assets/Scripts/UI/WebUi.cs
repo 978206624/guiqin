@@ -125,10 +125,12 @@ namespace GuiQin
             return circle;
         }
 
-        public static Image RoundMask(string name, Transform parent)
+        public static Image RoundMask(string name, Transform parent, bool geometric = false)
         {
-            var image = Ui.Box(name, parent, Color.white);
-            image.sprite = Circle();
+            var image = geometric
+                ? Ui.Rect(name, parent).gameObject.AddComponent<CircularMaskImage>()
+                : Ui.Box(name, parent, Color.white);
+            if (!geometric) image.sprite = Circle();
             image.raycastTarget = false;
             image.gameObject.AddComponent<Mask>().showMaskGraphic = false;
             return image;
@@ -137,6 +139,27 @@ namespace GuiQin
         public static Button Close(Transform parent, UnityEngine.Events.UnityAction close)
         {
             return Ui.Btn("close", parent, "×", 24, Red, close);
+        }
+    }
+
+    // 小地图用实际的圆形网格写入遮罩，路线和地图底图共同受裁切。
+    internal sealed class CircularMaskImage : Image
+    {
+        protected override void OnPopulateMesh(VertexHelper mesh)
+        {
+            mesh.Clear();
+            const int segments = 64;
+            var rect = GetPixelAdjustedRect();
+            var radius = rect.size * 0.5f;
+            mesh.AddVert(rect.center, color, Vector2.one * 0.5f);
+            for (int i = 0; i < segments; i++)
+            {
+                float angle = -i * 2f * Mathf.PI / segments;
+                var direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                mesh.AddVert(rect.center + Vector2.Scale(radius, direction), color, Vector2.one * 0.5f);
+            }
+            for (int i = 0; i < segments; i++)
+                mesh.AddTriangle(0, i + 1, (i + 1) % segments + 1);
         }
     }
 }

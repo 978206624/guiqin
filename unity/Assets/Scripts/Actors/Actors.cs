@@ -1,4 +1,5 @@
 using UnityEngine;
+using GuiQin.Quest;
 
 namespace GuiQin
 {
@@ -27,7 +28,8 @@ namespace GuiQin
         public int Sb = -1;                      // >=0：剧情临时演员（首领 / 采集点），值是它对应的节拍序号
         public bool Done;                        // 玄兵塔里已通关的守卫（变灰，不能再打）
         public bool Hidden;                      // 剧情里和首领同名的 NPC：战斗前后只显示一个
-        public bool Marked;                      // 头顶感叹号（任务）
+        public bool Marked;                      // 小地图上的任务寻路目标
+        public QuestNpcMark QuestMark;           // NPC 的任务接取或交付状态
         public StageDef StageInfo;               // 敌人：对应的关卡
         public PortalDef Portal;
         public NpcInfo Info;
@@ -70,7 +72,8 @@ namespace GuiQin
         public void SetTag()
         {
             if (Tag == null) return;
-            Tag.Set((Marked ? "! " : "") + (Title ?? ""), TitleColor, DisplayName, NameColor);
+            Tag.Set(Title, TitleColor, DisplayName, NameColor);
+            Tag.SetQuestMarker(QuestMark);
         }
 
         // 站着时轻微呼吸，走路时上下起伏（宠物、NPC 用）；主角在子类里换帧
@@ -80,6 +83,84 @@ namespace GuiQin
             float br = Moving ? 1f : 1f + Mathf.Sin(t * 2.2f + Pos.x) * 0.012f;
             bodyT.localPosition = new Vector3(0, bob / Art.PX, 0);
             bodyT.localScale = new Vector3(Face * bodyScale, br * bodyScale, 1f);
+        }
+    }
+
+    // 野怪只在出生点附近走短直线；沿途用地图的同一套通行判定。
+    public class RoamingFoeActor : Actor
+    {
+        const float Radius = 110f;
+        const float Speed = 46f;
+        const float PortalClearance = 72f;
+
+        Vector2 home, destination;
+        float wait;
+        int rightFacing;
+
+        public void InitRoam(bool spriteFacesLeft)
+        {
+            home = Pos;
+            rightFacing = spriteFacesLeft ? -1 : 1;
+            wait = Random.Range(0.8f, 2.8f);
+            Hop = 3f;
+        }
+
+        public void PauseRoam(Vector2 playerPos)
+        {
+            Moving = false;
+            wait = Random.Range(1.2f, 2.8f);
+            FaceToward(playerPos);
+        }
+
+        void FaceToward(Vector2 point)
+        {
+            if (Mathf.Abs(point.x - Pos.x) > 1f) Face = point.x > Pos.x ? rightFacing : -rightFacing;
+        }
+
+        public void TickRoam(MapRuntime map, float dt)
+        {
+            if (!Moving)
+            {
+                wait -= dt;
+                if (wait > 0f) return;
+
+                wait = Random.Range(1.2f, 2.8f);
+                for (int i = 0; i < 8; i++)
+                {
+                    var target = home + Random.insideUnitCircle * Radius;
+                    if (!CanWalk(map, target)) continue;
+                    destination = target;
+                    FaceToward(target);
+                    Moving = true;
+                    break;
+                }
+                if (!Moving) return;
+            }
+
+            Pos = Vector2.MoveTowards(Pos, destination, Speed * dt);
+            if (Pos == destination) Moving = false;
+            Sync();
+        }
+
+        bool CanWalk(MapRuntime map, Vector2 target)
+        {
+            var delta = target - Pos;
+            float distance = delta.magnitude;
+            if (distance < 24f || distance > 100f) return false;
+
+            // 整条短路线都要绕开传送阵，而不只是落脚点。
+            if (map.Def.portals != null)
+                foreach (var portal in map.Def.portals)
+                {
+                    var center = map.ToMap(portal.at);
+                    float t = Mathf.Clamp01(Vector2.Dot(center - Pos, delta) / delta.sqrMagnitude);
+                    if ((center - (Pos + delta * t)).sqrMagnitude < PortalClearance * PortalClearance) return false;
+                }
+
+            int steps = Mathf.CeilToInt(distance / 4f);
+            for (int i = 0; i <= steps; i++)
+                if (!map.Inside(Pos + delta * ((float)i / steps))) return false;
+            return true;
         }
     }
 
