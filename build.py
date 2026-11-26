@@ -202,6 +202,12 @@ for k,n in [('f','dao_dz'),('m','dao_dz_m')]:
     cut_row(f'{DB}/back_{k}.png',['b_'+n],{'b_'+n:126})
     c=keyed(f'{DB}/port_{k}.png'); c=c.crop(c.getchannel('A').point(lambda v:255 if v>40 else 0).getbbox())
     c=c.resize((round(c.width*900/c.height),900),Image.LANCZOS); c.save(f'{AD}/cls_{n}.webp',quality=52,method=6); dao_head(c,n)
+# 道家女行走改用视频完整周期版（art-src/dao-walk8/build_full.py：一个步态周期的全部视频帧 + 1 格待机，24fps 按时间播放），
+# 覆盖上面天音 / 琴魔 / 弟子三套女角色的 4 帧表（三套共用同一张）；size 第 5 项是帧率
+import sys; sys.path.insert(0,G+'/dao-walk8'); import build_full
+for _dr,(_d,_idx) in build_full.CYCLE.items():
+    _sh,_sz=build_full.sheet(_d,_idx)
+    for _k in build_full.KEYS: _sh.save(f'{AD}/walk_{_dr}_{_k}.webp',quality=92,method=6); size[f'walk_{_dr}_{_k}']=_sz
 
 # 施法帧动画（art-src/cast-anim，图像生成：背影施法 4 帧）→ bc_<id>：4 格等宽精灵表，脚底对齐、按首帧身高缩放到与 b_ 立绘同尺寸
 def cast_anim(src,name,stand_h=126):

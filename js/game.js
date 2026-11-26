@@ -1356,8 +1356,11 @@ function placePlayer() {
     w.style.width = sz[0] + 'px'; w.style.height = sz[1] + 'px'; w.style.left = (-sz[2]) + 'px'; w.style.setProperty('--ox', sz[2] + 'px');
   }
   const stp = a.dir === 'b' && ROLE.cls.indexOf('dao_') === 0 ? 24 : STEP_LEN;      // 道家女背面步幅小：步频加快，免得脚像在地上滑
-  const nf = sz[3] || 4, frame = a.moving && !reduce ? Math.floor(a.dist / (stp * 4 / nf)) % nf : (sz[3] || 1);     // 站着不动用“并脚”那一帧
-  const bobY = a.moving && !reduce && a.dir === 'b' ? -Math.abs(Math.sin(a.dist / stp * Math.PI / 2)) * 3 : 0;   // 走路时身体随步子轻微起伏
+  // size 第 5 项 = 帧率：按时间播放（视频原帧率），否则按走过的距离换帧
+  const nf = sz[3] || 4, now = performance.now();
+  if (sz[4]) { if (a.moving && !reduce) a.wt = (a.wt || 0) + Math.min(.05, (now - (a.wlast || now)) / 1000); else a.wt = 0; a.wlast = now; }
+  const frame = a.moving && !reduce ? (sz[4] ? Math.floor(a.wt * sz[4]) : Math.floor(a.dist / (stp * 4 / nf))) % nf : (sz[3] || 1);     // 站着不动用“并脚”/待机那一帧
+  const bobY = a.moving && !reduce && a.dir === 'b' && !sz[4] ? -Math.abs(Math.sin(a.dist / stp * Math.PI / 2)) * 3 : 0;   // 走路时身体随步子轻微起伏（视频帧自带起伏，不再叠加）
   w.style.backgroundPosition = (-frame * sz[0]) + 'px 0';
   // 正面图朝右下：往左走要翻；背影图朝左上：往右走要翻
   w.style.transform = 'translateY(' + bobY.toFixed(1) + 'px) scaleX(' + (a.dir === 'f' ? a.face : -a.face) + ')';
