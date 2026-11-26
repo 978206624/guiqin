@@ -252,7 +252,7 @@ for h in ['ms','dj','dz']:
 # b_ss_<id> = 待机首帧的紧裁剪静图（地图 / 面板用）。图集元数据（格子大小、锚点、帧序列、释放帧）写进 ASSETS.pet。
 petmeta={}
 def hd_pet(k, H, q=0.75):
-    cfg=json.load(open(f'{G}/shenshou/pets.json'))[k]; A=cfg['anims']; reg=cfg['region']; hd=f'{G}/shenshou/hd/{k}'
+    cfg=json.load(open(f'{G}/shenshou/pets.json',encoding='utf-8'))[k]; A=cfg['anims']; reg=cfg['region']; hd=f'{G}/shenshou/hd/{k}'
     def png(f): return f'{hd}/zd_{int(f):03d}.png' if str(f).isdigit() else f'{hd}/zd_{f.split("-")[0]}-{int(f.split("-")[1]):03d}.png'
     if k=='1221':      # 逆天魔龙：原作 manifest 的战斗兼容动画（待机 / 攻击 / 受击 / 闪避）
         seq={'idle':['idle-1','idle-2','idle-3','idle-4','idle-5','idle-4','idle-3','idle-2'],'atk':['attack-1','attack-2','attack-3','attack-4'],'hit':['hit-1','hit-2','hit-3'],'dodge':['dodge-1','dodge-2','dodge-3','dodge-4']}
@@ -339,7 +339,7 @@ for k,H in [('1227',142),('1222',160),('1223',150),('1224',150),('1225',150),('1
     if os.path.isdir(f'{G}/shenshou/ai/{k}'): ai_pet(k,H)
 # 神兽弹道特效：从原作技能帧里切出身体以外的光束 / 龙焰（x≥650 的部分，原图朝右、保持朝右），战斗里按目标方向旋转、飞向目标。
 def pfx_pet(k,H,sets,q=0.9,boost=1.5):
-    cfg=json.load(open(f'{G}/shenshou/pets.json'))[k]; reg=cfg['region']; hd=f'{G}/shenshou/hd/{k}'; ls=H/reg[str(cfg['anims'][0][0])][3]
+    cfg=json.load(open(f'{G}/shenshou/pets.json',encoding='utf-8'))[k]; reg=cfg['region']; hd=f'{G}/shenshou/hd/{k}'; ls=H/reg[str(cfg['anims'][0][0])][3]
     crops=[]; amap={}; scm={}
     for sk,(ids,xcut,sc) in sets.items():
         amap[sk]=[]; scm[sk]=sc
@@ -441,18 +441,18 @@ def uri(p):
         import io; b=io.BytesIO(); Image.open(p).convert('RGB').save(b,'WEBP',quality=LOWQ[nm],method=6); return f'data:{mt};base64,'+base64.b64encode(b.getvalue()).decode()
     return f'data:{mt};base64,'+base64.b64encode(open(p,'rb').read()).decode()
 rel='// 素材清单（相对路径版）。单文件版里这一段会被换成内嵌的 data URI。\nwindow.ASSETS = '+json.dumps(dict(img={k:'assets/'+f for k,f in keys.items()},size=size,pet=petmeta,occ=OCC),ensure_ascii=False,indent=1)+';\n'
-open(R+'/js/assets.js','w').write(rel)
+open(R+'/js/assets.js','w',encoding='utf-8').write(rel)
 inl='window.ASSETS = '+json.dumps(dict(img={k:uri(f'{AD}/{f}') for k,f in keys.items()},size=size,pet=petmeta,occ=OCC))+';'
-src=open(R+'/index.src.html').read()
-single=src.replace('<!--SCRIPTS-->','<script>\n'+inl+'\n</script>\n<script>\n'+open(R+'/js/masks.js').read()+'\n</script>\n<script>\n'+open(R+'/js/water.js').read()+'\n</script>\n<script>\n'+open(R+'/js/data.js').read()+'\n</script>\n<script>\n'+open(R+'/js/story.js').read()+'\n</script>\n<script>\n'+open(R+'/js/chat.js').read()+'\n</script>\n<script>\n'+open(R+'/js/game.js').read()+'\n</script>\n<script>\n'+open(R+'/js/front.js').read()+'\n</script>')
-open(DIST+'/guiqin.html','w').write(single)
-if os.environ.get('GUIQIN_PUBLISH_COPY'): open(os.environ['GUIQIN_PUBLISH_COPY'],'w').write(single)      # 可选：同时复制到别处（比如要发布的位置）
+src=open(R+'/index.src.html',encoding='utf-8').read()
+single=src.replace('<!--SCRIPTS-->','<script>\n'+inl+'\n</script>\n<script>\n'+open(R+'/js/masks.js',encoding='utf-8').read()+'\n</script>\n<script>\n'+open(R+'/js/water.js',encoding='utf-8').read()+'\n</script>\n<script>\n'+open(R+'/js/data.js',encoding='utf-8').read()+'\n</script>\n<script>\n'+open(R+'/js/story.js',encoding='utf-8').read()+'\n</script>\n<script>\n'+open(R+'/js/chat.js',encoding='utf-8').read()+'\n</script>\n<script>\n'+open(R+'/js/game.js',encoding='utf-8').read()+'\n</script>\n<script>\n'+open(R+'/js/front.js',encoding='utf-8').read()+'\n</script>')
+open(DIST+'/guiqin.html','w',encoding='utf-8').write(single)
+if os.environ.get('GUIQIN_PUBLISH_COPY'): open(os.environ['GUIQIN_PUBLISH_COPY'],'w',encoding='utf-8').write(single)      # 可选：同时复制到别处（比如要发布的位置）
 multi='<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<style>body{margin:0}[hidden]{display:none!important}</style>\n'+src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/masks.js"></script>\n<script src="js/water.js"></script>\n<script src="js/data.js"></script>\n<script src="js/story.js"></script>\n<script src="js/chat.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')+'\n</body>\n</html>\n'
 multi=multi.replace('<div id="fit">','</head>\n<body>\n<div id="fit">',1)
-open(R+'/index.html','w').write(multi)
+open(R+'/index.html','w',encoding='utf-8').write(multi)
 # 发布用：不带 doctype / head 的页面片段（Artifact 会自己包一层），脚本和图片作为旁边的文件
 pub=src.replace('<!--SCRIPTS-->','<script src="js/assets.js"></script>\n<script src="js/masks.js"></script>\n<script src="js/water.js"></script>\n<script src="js/data.js"></script>\n<script src="js/story.js"></script>\n<script src="js/chat.js"></script>\n<script src="js/game.js"></script>\n<script src="js/front.js"></script>')
-open(DIST+'/pub_index.html','w').write(pub)
+open(DIST+'/pub_index.html','w',encoding='utf-8').write(pub)
 z=zipfile.ZipFile(DIST+'/guiqin_source.zip','w',zipfile.ZIP_DEFLATED)
 for p in ['index.html','js/assets.js','js/masks.js','js/water.js','js/data.js','js/story.js','js/chat.js','js/game.js','js/front.js']:
     if os.path.exists(f'{R}/{p}'): z.write(f'{R}/{p}','guiqin/'+p)
