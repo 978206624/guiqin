@@ -545,6 +545,10 @@
   "file": "assets/fx_soul.webp",
   "bytes": 169714
  },
+ "fx_tianmo_soul": {
+  "file": "assets/fx_tianmo_soul.webp",
+  "bytes": 192182
+ },
  "fx_wave": {
   "file": "assets/fx_wave.webp",
   "bytes": 243490

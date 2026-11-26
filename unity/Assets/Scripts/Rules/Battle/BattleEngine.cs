@@ -232,6 +232,7 @@ namespace GuiQin.Battle
             var primary = chosen != null && chosen.Alive && chosen.Side != u.Side ? chosen : foes[0];
             var targets = s.target == "all" ? foes : new List<BUnit> { primary };
             if (s.hits > 1) targets = new List<BUnit> { primary }.Concat(foes.Where(x => x != primary).OrderBy(x => rng.Next()).Take(s.hits - 1)).ToList();
+            if (s.maxTargets > 0 && targets.Count > s.maxTargets) targets = targets.Take(s.maxTargets).ToList();
             bool magic = s.magic || ((act.skill == "attack" || act.skill == "ss_hit") && u.MagicAtk);
             if (s.cd > 0) u.Cd[act.skill] = s.cd + 1;
             if (s.absorb > 0 || s.guard > 0)                         // 自身防护：伤害转治疗 N 次 / N 次免伤
@@ -244,8 +245,17 @@ namespace GuiQin.Battle
             }
             if (s.selfVuln > 0) { SetSt(u, "vuln", s.selfVuln + 1); Float(u, "易伤", "info"); }
             if (s.selfCost > 0) { int c = R(u.MaxHp * s.selfCost); u.Hp = Math.Max(1, u.Hp - c); Add(new BattleEvent { t = "dot", u = u.Id, v = c, text = "", hp = u.Hp }); }
-            Add(new BattleEvent { t = "act", u = u.Id, skill = act.skill, ts = targets.Select(x => x.Id).ToArray() });
+            for (int strike = 0; strike < Math.Max(1, s.strikes); strike++)
+            {
+                if (strike > 0) targets.RemoveAll(t => !t.Alive);
+                if (targets.Count == 0) break;
+                Add(new BattleEvent { t = "act", u = u.Id, skill = act.skill, ts = targets.Select(x => x.Id).ToArray(), followUp = strike > 0 });
+                ResolveHits(u, act.skill, s, targets, magic);
+            }
+        }
 
+        void ResolveHits(BUnit u, string skill, SkillDef s, List<BUnit> targets, bool magic)
+        {
             foreach (var t in targets)
             {
                 if (Chance(t.Dodge)) { Add(new BattleEvent { t = "miss", u = t.Id, text = "闪避" }); continue; }
@@ -286,7 +296,7 @@ namespace GuiQin.Battle
                     if (tp.reviveAtk > 0) { t.Atk = R(t.Atk * (1 + tp.reviveAtk)); t.Matk = R(t.Matk * (1 + tp.reviveAtk)); }
                 }
                 if (t.Hp <= 0 && tp.lethalStun > 0 && !t.Ls) { t.Ls = true; SetSt(u, "stun", 1); u.Take2 = true; Float(u, "定身", "info"); }
-                Add(new BattleEvent { t = "hit", u = t.Id, v = d, crit = crit, hp = t.Hp, skill = act.skill });
+                Add(new BattleEvent { t = "hit", u = t.Id, v = d, crit = crit, hp = t.Hp, skill = skill });
                 if (s.lifesteal > 0 && u.Alive)
                 {
                     int hv = Math.Max(1, R(d * s.lifesteal)); u.Hp = Math.Min(u.MaxHp, u.Hp + hv);

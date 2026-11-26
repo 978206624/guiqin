@@ -12,7 +12,7 @@ namespace GuiQin.Battle
     {
         public string name, target, desc;
         public float mp, power, heal, healPow, revive, lifesteal, vsMark, vsBleed, selfCost, defDown, hpCut;
-        public int lv, cd, hits, absorb, guard, shield, fear, mark, slow, vuln, selfVuln, rage, critUp, mfear;
+        public int lv, cd, hits, strikes, maxTargets, absorb, guard, shield, fear, mark, slow, vuln, selfVuln, rage, critUp, mfear;
         public bool magic, fire, melee, cleanse, critAtk, baoti, curse, ss;
         public BleedDef bleed; public HotDef hot; public TeamBuffDef teamBuff;
 
@@ -72,7 +72,7 @@ namespace GuiQin.Battle
     {
         public string t; public int u = -1; public int[] ts;
         public string skill, text, kind, st;
-        public int v, hp, mp, maxHp, turns; public bool crit;
+        public int v, hp, mp, maxHp, turns; public bool crit, followUp;
     }
 
     public class BattleEnd

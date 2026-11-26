@@ -49,6 +49,8 @@ internal static class Program
         VerifyPetSurvivesOwner();
         Console.WriteLine("宠物续战：主角倒下后继续行动，宠物独力可获胜，全员倒下才判负。");
         VerifyPetManaAndPouch();
+        VerifyFoxfireTargets();
+        VerifySoulStrike();
         Console.WriteLine("宠物法力：旧档从零开始，药囊补蓝，施法扣蓝，换宠和下一场保留各自法力。");
         return 0;
     }
@@ -179,6 +181,70 @@ internal static class Program
         if (BattleFactory.Create(role, stage, Seed).Engine.Pet.Mp != 31 ||
             PetService.CurrentMana(role, "fox") != 0)
             throw new InvalidOperationException("宠物法力未按个体分别保存。");
+    }
+
+    static void VerifyFoxfireTargets()
+    {
+        var role = new RoleState { cls = "novice_f", lv = 12, bag = InventoryService.NewBag() };
+        PetService.SaveMana(role, "fox", PetService.MaxMana(role.lv));
+        for (int living = 1; living <= 7; living++)
+        {
+            var stage = new StageDef { id = "foxfire-test", enemies = Enumerable.Repeat("boar", living + 1).ToList() };
+            var battle = BattleFactory.Create(role, stage, Seed);
+            var fallen = battle.Engine.Units.First(u => u.Side == "enemy");
+            fallen.Alive = false;
+            fallen.Hp = 0;
+            var expected = battle.Engine.Units.Where(u => u.Side == "enemy" && u.Alive).Take(6).Select(u => u.Id).ToArray();
+            var action = battle.Engine.RunRound(new BattleCmd { type = "defend", petSkill = "foxfire" })
+                .Single(e => e.t == "act" && e.u == battle.Engine.Pet.Id && e.skill == "foxfire");
+            if (!action.ts.SequenceEqual(expected) || action.ts.Length != Math.Min(living, 6))
+                throw new InvalidOperationException("灵狐焚天应只选择最多六个存活敌人。");
+        }
+        Console.WriteLine("灵狐焚天：已验证 1～7 个存活敌人的选敌、六目标上限和跳过倒地敌人。");
+    }
+
+    static void VerifySoulStrike()
+    {
+        var role = new RoleState { cls = "novice_f", lv = 50, bag = InventoryService.NewBag(), petAct = "ss_1224" };
+        role.petOwn.Add("ss_1224");
+        PetService.SaveMana(role, "ss_1224", PetService.MaxMana(role.lv));
+
+        for (int living = 1; living <= 6; living++)
+        {
+            foreach (bool killPrimary in new[] { false, true })
+            {
+                var stage = new StageDef { id = "soul-test", enemies = Enumerable.Repeat("boar", living + 1).ToList() };
+                var battle = BattleFactory.Create(role, stage, Seed);
+                var enemies = battle.Engine.Units.Where(u => u.Side == "enemy").ToArray();
+                var pet = battle.Engine.Pet;
+                pet.Spd = 10000;
+                pet.Crit = 0;
+                pet.Matk = 1000;
+                foreach (var enemy in enemies)
+                {
+                    enemy.Hp = enemy.MaxHp = 4000;
+                    enemy.Dodge = 0;
+                    enemy.Mdef = 0;
+                }
+                enemies[0].Alive = false;
+                enemies[0].Hp = 0;
+                var primary = enemies[enemies.Length - 1];
+                if (killPrimary) primary.Hp = 1;
+                int initialMana = pet.Mp;
+                var events = battle.Engine.RunRound(new BattleCmd { type = "defend", petSkill = "ss_ts", petTarget = primary.Id });
+                var attacks = events.Where(e => e.t == "act" && e.u == pet.Id && e.skill == "ss_ts").ToArray();
+                var first = attacks.First().ts;
+                var second = first.Where(id => !killPrimary || id != primary.Id).ToArray();
+                if (attacks[0].followUp || first.Length != Math.Min(3, living) || first[0] != primary.Id || first.Distinct().Count() != first.Length ||
+                    first.Contains(enemies[0].Id) || attacks.Length != (second.Length > 0 ? 2 : 1) ||
+                    (second.Length > 0 && (!attacks[1].followUp || !attacks[1].ts.SequenceEqual(second))) ||
+                    events.Count(e => e.t == "mp" && e.u == pet.Id) != 1 || pet.Mp != initialMana - 30 ||
+                    events.Count(e => e.t == "hit" && e.skill == "ss_ts") != first.Length + second.Length ||
+                    events.Any(e => e.t == "status" && e.st == "dd"))
+                    throw new InvalidOperationException("天魔噬魂的选敌、追击或法力消耗错误。");
+            }
+        }
+        Console.WriteLine("天魔噬魂：验证最多三目标、两段伤害、倒地跳过和法力只扣一次。");
     }
 
     static string RunBattle()

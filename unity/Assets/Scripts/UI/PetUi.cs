@@ -172,9 +172,9 @@ namespace GuiQin
             }
             else
             {
-                items.Add(new[] { "咬", "撕咬", "普通招式", "扑上去撕咬一名敌人，造成 " + s.atk + " 点基础伤害。出手时有 65% 的几率使用。" });
-                items.Add(new[] { "火", "狐火", "主动 · 法力 " + PetService.ManaCost("foxfire", 0), "喷出一团幽蓝狐火，对一名敌人造成 " + Mathf.Round(s.atk * 1.6f) + " 点伤害（约 1.6 倍攻击），并优先攻击气血最低的敌人。" });
-                items.Add(new[] { "灵", "灵犀", "被动", "与主人越亲近越强：当前「" + bd.name + "」档，气血、攻击" + (bd.i > 0 ? " +" + bd.i * 3 + "%" : "尚无加成") + "。" });
+                var fire = Battle.BattleFactory.Skills["foxfire"];
+                items.Add(new[] { "火", fire.name, "主动 · 法力 " + PetService.ManaCost("foxfire", (int)fire.mp), fire.desc });
+                if (dx["pasList"] != null) foreach (var a in dx["pasList"]) items.Add(new[] { ((string)a[0]).Substring(0, 1), (string)a[0], "天生 · 被动", (string)a[1] });
             }
             float y0 = 362;
             for (int i = 0; i < items.Count && i < 5; i++)

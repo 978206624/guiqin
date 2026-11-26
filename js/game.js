@@ -360,7 +360,7 @@ function openRole() {
       '<div class="alist">' + ['atk', 'matk', 'def', 'mdef', 'hp', 'mp', 'spd'].map(k => line(k)).join('') +
       line('crit', '暴击时伤害 ×1.5') + line('dodge', '被攻击时有几率完全躲开') +
       '<div class="arow"><span>银两</span><b>' + fmt(S.coin) + '</b><small></small></div></div>' +
-      '<p class="hint">物攻用于普通招式，法攻用于剑气纵横、狐火这类法术招式；物防、法防分别抵挡对应伤害。升级固定成长，装备、星级和宝石提供额外加成。</p>';
+      '<p class="hint">物攻用于普通招式，法攻用于剑气纵横、' + D.skills.foxfire.name + '这类法术招式；物防、法防分别抵挡对应伤害。升级固定成长，装备、星级和宝石提供额外加成。</p>';
   } else if (roleTab === 'skill') {
     h += skillsHTML();
   } else {
@@ -408,9 +408,8 @@ function openPet() {
         '</div><p class="hint">技能描述取自原作；演示版数值已按本作难度折算。宠物在战斗中自动出手。进阶形态「' + dex.adv + '」暂未开放。</p>';
     } else
     h += '<div class="pskills">' +
-      '<div class="pskill"><div class="pico">咬</div><div><h6>撕咬<small>普通招式</small></h6><p>扑上去撕咬一名敌人，造成 ' + Math.round(p.atk * 1.0) + ' 点基础伤害。出手时有 65% 的几率使用。</p></div></div>' +
-      '<div class="pskill"><div class="pico fire">火</div><div><h6>狐火<small>主动 · 35% 触发</small></h6><p>喷出一团幽蓝狐火，对一名敌人造成 ' + Math.round(p.atk * 1.6) + ' 点伤害（约 1.6 倍攻击），并优先攻击气血最低的敌人。</p></div></div>' +
-      '<div class="pskill"><div class="pico bond">灵</div><div><h6>灵犀<small>被动</small></h6><p>与主人越亲近越强：当前「' + bd.name + '」档，气血、攻击 ' + (bd.i ? '+' + bd.i * 3 + '%' : '尚无加成') + '。' + (bd.to ? '再打赢 ' + (bd.to - bd.n) + ' 场升到「' + D.bondTiers[bd.i + 1].name + '」。' : '已满级。') + '</p></div></div>' +
+      '<div class="pskill"><div class="pico fire">火</div><div><h6>' + D.skills.foxfire.name + '<small>主动 · 35% 触发</small></h6><p>' + D.skills.foxfire.desc + '</p></div></div>' +
+      (dex.pasList || []).map(a => '<div class="pskill"><div class="pico bond">' + a[0][0] + '</div><div><h6>' + a[0] + '<small>天生 · 被动</small></h6><p>' + a[1] + '</p></div></div>').join('') +
       '</div><p class="hint">宠物在战斗中自动出手，不需要手动指挥。</p>';
   } else {
     const ids = Object.keys(D.petDex), own = ownPet, sel = D.petDex[petSel] || D.petDex.fox, sq = D.petQuality[sel.q];
@@ -1806,7 +1805,7 @@ function petIdle(u) {
   loop();
 }
 // 播一段帧序列；到释放帧时调用 onRel；整段播完（回到待机）后 resolve
-function petPlay(u, name, onRel) {
+function petPlay(u, name, onRel, windupScale = 1) {
   const p = u.pa; if (!p || !p.m.seq[name]) { onRel && onRel(); return Promise.resolve(); }
   const g = ++p.gen, s = p.m.seq[name], rel = p.m.rel[name]; clearTimeout(p.tm);
   return new Promise(res => {
@@ -1814,24 +1813,454 @@ function petPlay(u, name, onRel) {
     const run = () => {
       if (p.gen !== g || !u.el.isConnected) { onRel && i <= rel && onRel(); return res(); }
       if (i >= s.length) { p.i = 0; petIdle(u); return res(); }
-      const [f, ms] = s[i]; petShow(u, f); if (i === rel && onRel) onRel(); i++; p.tm = setTimeout(run, ms);
+      const [f, ms] = s[i]; petShow(u, f); if (i === rel && onRel) onRel(); p.tm = setTimeout(run, ms * (i < rel ? windupScale : 1)); i++;
     };
     run();
   });
 }
 
-// 神兽弹道特效：原作光束 / 龙焰帧（图集 ASSETS.pet[...].pfx），原图朝右，按施法者→目标的方向旋转、飞向目标
-function petFx(u, skill, t) {
-  const m = u.pa && u.pa.m.pfx; if (!m || !m.map[skill] || !AS.img[m.sheet]) return 0;
-  const fr = m.map[skill], k = u.h / u.pa.m.H * ((m.sc && m.sc[skill]) || 1), w = m.cw * k, h = m.ch * k;
-  const sx = u.pos.x - u.h * 0.12, sy = u.pos.y - u.h * 0.55, ex = t.pos.x, ey = t.pos.y - t.h * 0.5, ang = Math.atan2(ey - sy, ex - sx) * 180 / Math.PI, dist = Math.hypot(ex - sx, ey - sy);
+// 六只神兽的背视演出配色、蓄力速度、飞行节奏与弹道形状，和 Unity 的 PetCue 对应。
+const PET_CUES = Object.fromEntries(Object.entries({
+  ss_sl_bw: ['#60DDF2', 530, 0.76, 0.92, 15, true],
+  ss_kl:    ['#83C4FF', 670, 1.15, 1.18, 33, true, null, 'wave'],
+  ss_qk:    ['#BE70FF', 930, 1.02, 0.76, 0, true, null, 'orbit'],
+  ss_sy:    ['#C9E7FF', 1070, 0.82, 1.02, 0, false, null, 'swords'],
+  ss_sx:    ['#F2DB78', 530, 0.80, 1.06, 0, false, 'ss_hit'],
+  ss_tsy:   ['#ED547D', 530, 1.30, 1.07, 24, true],
+  ss_sg:    ['#FFD189', 500, 0.68, 1.13, 0, false, null, 'spear'],
+  ss_zw:    ['#E66166', 390, 1, 1, 0, true],
+  ss_dy:    ['#FF7A3C', 670, 0.82, 0.91, 0, false],
+  ss_th:    ['#FFB846', 970, 1.24, 1.18, 25, true, null, 'fireball']
+}).map(([skill, [color, windup, flight, width, lift, ring, frames, stage]]) =>
+  [skill, { color, windup, flight, width, lift, ring, frames, stage }]));
+
+function petWindupScale(u, seq, cue) {
+  if (!cue || !u.pa.m.seq[seq]) return 1;
+  const meta = u.pa.m;
+  const duration = meta.seq[seq].slice(0, meta.rel?.[seq] || 0).reduce((sum, [, ms]) => sum + ms, 0);
+  return duration ? cue.windup / duration : 1;
+}
+
+function petCastOffset(u, target, side, cue, progress) {
+  if (cue?.stage === 'spear') {
+    const dx = target.pos.x - u.pos.x, dy = target.pos.y - u.pos.y, dist = Math.hypot(dx, dy);
+    if (dist < 1) return [0, 0];
+    const [uw, uh] = AS.size[u.sprite] || [u.h * .6, u.h], [tw, th] = AS.size[target.sprite] || [target.h * .6, target.h];
+    const stop = Math.max(42, uw * u.h / uh * .4 + tw * target.h / th * .32);
+    const load = Math.sin(Math.min(1, progress / .45) * Math.PI) * -u.h * .07;
+    const t = Math.max(0, Math.min(1, (progress - .46) / .54));
+    const advance = (load + Math.max(0, dist - stop) * t * t * (3 - 2 * t)) / dist;
+    return [dx * advance, dy * advance];
+  }
+  if (cue?.stage !== 'wave') return [0, 0];
+  const t = Math.max(0, Math.min(1, (progress - .32) / .68)), jump = t * t * (3 - 2 * t);
+  return [side * u.h * .23 * jump, -u.h * .32 * jump];
+}
+
+function petMuzzle(u, side, cue) {
+  const w = AS.size[u.sprite]?.[0] || u.h * .6;
+  if (cue?.stage === 'spear') return [side * w * .47, -u.h * .49];
+  const forward = cue?.stage === 'fireball' ? .43 : cue?.stage === 'swords' ? .39 : .22;
+  return [side * w * forward, -u.h * (forward > .22 ? .64 : .55)];
+}
+
+function petCharge(u, target, cue, released) {
+  const side = target.pos.x >= u.pos.x ? 1 : -1;
+  if (!cue.stage) { petAccent(u, cue, u === target ? 0 : side, 360, released); return; }
+  const h = u.h, body = u.pa.d, m = u.pa.m.pfx, stage = cue.stage;
+  const count = stage === 'fireball' ? 5 : stage === 'wave' ? 2 : stage === 'spear' ? 1 : 3;
+  const moves = stage === 'wave' || stage === 'spear';
+  const hold = stage === 'spear' ? 100 : 0;
+  const shadow = hold ? u.el.querySelector('.sh') : null;
+  const blade = stage === 'swords' ? m?.map?.ss_sy?.[0] : null;
+  const layers = Array.from({ length: count }, () => {
+    const el = document.createElement('div');
+    el.className = 'pfx';
+    $('units').appendChild(el);
+    return el;
+  });
+  const clamp = t => Math.max(0, Math.min(1, t));
+  const smooth = t => { const k = clamp(t); return k * k * (3 - 2 * k); };
+  let start, releaseAt;
+  const step = now => {
+    if (start == null) start = now;
+    const elapsed = now - start;
+    if (releaseAt == null && (released() || elapsed > cue.windup + 400)) releaseAt = now;
+    const after = releaseAt == null ? 0 : now - releaseAt;
+    if (after >= (moves ? 270 + hold : 120) || !u.el.isConnected) {
+      layers.forEach(el => el.remove());
+      if (moves) body.style.translate = '';
+      if (shadow) shadow.style.translate = '';
+      return;
+    }
+    const p = clamp(((releaseAt ?? now) - start) / cue.windup);
+    const tail = 1 - clamp(after / 120), fall = 1 - smooth((after - hold) / 270);
+    const [dx, dy] = petCastOffset(u, target, side, cue, p), jumpX = dx * fall, jumpY = dy * fall;
+    if (moves) body.style.translate = jumpX + 'px ' + jumpY + 'px';
+    if (shadow) shadow.style.translate = body.style.translate;
+    const [mx, my] = petMuzzle(u, side, cue);
+    layers.forEach((el, i) => {
+      let x = mx, y = my, size = .18 * h, ratio = 1, color = cue.color, ring = false;
+      let alpha = clamp((p - .09 * i) * 3);
+      if (stage === 'wave') {
+        ring = i === 0;
+        if (ring) { x = -jumpX; y = -jumpY - 9; ratio = .38; alpha *= 1 - p * .65; }
+        size = h * (ring ? .72 + .21 * p : .13 + .31 * p);
+      } else if (stage === 'orbit') {
+        const theta = i * 2 * Math.PI / count + p * Math.PI * 3;
+        const radius = .50 - .36 * smooth((p - .64) / .36), gather = clamp((p - .77) / .23) * .58;
+        x = Math.cos(theta) * h * radius + mx * gather;
+        y = -.62 * h + Math.sin(theta) * h * radius * .66 + my * gather;
+        size = h * (.06 + .045 * p);
+        alpha *= .38 + .4 * clamp((p - .65) / .35);
+        const cyan = clamp((p - .37) / .31);
+        color = 'rgb(' + [190 - 106 * cyan, 112 + 120 * cyan, 255].map(Math.round).join(',') + ')';
+      } else if (stage === 'swords') {
+        const spread = smooth((p - .13) / .41) * (1 - smooth((p - .68) / .32));
+        x += side * h * (.20 + (i === 1 ? .28 : .05)) * spread;
+        y += (i - 1) * h * .34 * spread;
+        size = h * (.44 + .23 * p);
+        alpha *= clamp((p - i * .13 - .13) / .15);
+        if (blade != null) ratio = m.ch / m.cw;
+      } else if (stage === 'spear') {
+        size = h * (.07 + .16 * p);
+        alpha = clamp((p - .49) / .39);
+      } else {
+        const gather = smooth((p - .26) / .50);
+        if (i < 2) size = h * (.07 + (i === 0 ? .53 : .27) * gather);
+        else {
+          const spark = p * Math.PI * 4 + (i - 2) * Math.PI * 2 / 3;
+          x += Math.cos(spark) * h * .32 * gather;
+          y += Math.sin(spark) * h * .32 * .82 * gather;
+          size = h * (.05 + Math.abs(Math.sin(spark)) * .05);
+        }
+        alpha *= gather * (i === 0 ? .82 : 1);
+        color = i === 0 ? '#ff4a0a' : '#ffdb57';
+      }
+      if (stage !== 'wave' || i !== 0) x += side * h * .17 * (1 - tail);
+      const sprite = blade != null;
+      const x0 = u.pos.x + jumpX + x - (sprite ? (side < 0 ? size : 0) : size / 2);
+      const y0 = u.pos.y + jumpY + y - size * ratio / 2;
+      const behind = stage === 'orbit' && y < -h * .62;
+      const z = behind ? Math.max(0, (Number(u.el.style.zIndex) || Math.round(u.pos.y)) - 1) : 2000;
+      el.style.cssText = 'left:' + x0 + 'px;top:' + y0 + 'px;width:' + size + 'px;height:' + size * ratio
+        + 'px;opacity:' + alpha * tail + ';z-index:' + z + ';pointer-events:none;filter:none;';
+      if (sprite) {
+        el.style.backgroundImage = 'url(' + IMG(m.sheet) + ')';
+        el.style.backgroundSize = m.n * 100 + '% 100%';
+        el.style.backgroundPosition = (m.n > 1 ? blade * 100 / (m.n - 1) : 0) + '% 0';
+        if (side < 0) el.style.scale = '-1 1';
+      } else if (ring) {
+        el.style.border = '3px solid ' + color;
+        el.style.borderRadius = '50%';
+        el.style.boxShadow = '0 0 14px ' + color;
+      } else {
+        el.style.background = 'radial-gradient(ellipse,#fff 5%,' + color + ' 42%,transparent 70%)';
+      }
+    });
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function petAccent(u, cue, direction, ms, active) {
+  const e = document.createElement('div');
+  e.className = 'pfx';
+  const charging = !!active, size = u.h * (charging ? 0.75 : 0.96);
+  const color = cue.color, origin = u.pos.x + direction * (AS.size[u.sprite]?.[0] || u.h * 0.6) * 0.31;
+  e.style.cssText = 'left:' + (origin - size / 2) + 'px;top:' + (u.pos.y - u.h * (charging ? 0.66 : 0.5) - size * 0.36)
+    + 'px;width:' + size + 'px;height:' + size * 0.72 + 'px;border-radius:50%;z-index:2000;pointer-events:none;';
+  if (cue.ring) {
+    e.style.border = '3px solid ' + color;
+    e.style.boxShadow = '0 0 14px ' + color + ', inset 0 0 12px ' + color;
+  } else e.style.background = 'radial-gradient(ellipse, #fff 0%, ' + color + ' 28%, transparent 70%)';
+  $('units').appendChild(e);
+  let start;
+  const step = now => {
+    if (start == null) start = now;
+    const progress = (now - start) / ms;
+    if ((charging ? active() || progress > 3.9 : progress >= 1) || !e.isConnected) { e.remove(); return; }
+    const t = Math.min(1, progress);
+    const scale = charging ? (cue.ring ? 1 - t * 0.71 : 0.33 + t * 0.67) : 0.30 + 0.74 * t;
+    e.style.transform = 'scale(' + scale + ')';
+    e.style.opacity = charging ? 0.18 + 0.67 * t : 0.88 * (1 - t);
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function petShield(u, cue) {
+  petAccent(u, cue, 0, 540);
+  petAccent(u, { color: cue.color, ring: false }, 0, 230);
+}
+
+function petBloodReturn(target, caster, cue) {
+  const e = document.createElement('div');
+  e.className = 'pfx';
+  const x0 = target.pos.x, y0 = target.pos.y - target.h * 0.53;
+  e.style.cssText = 'left:0;top:0;width:32px;height:23px;z-index:2000;pointer-events:none;background:radial-gradient(ellipse,#fff 0%,' + cue.color + ' 30%,transparent 70%)';
+  $('units').appendChild(e);
+  let start;
+  const step = now => {
+    if (!e.isConnected) return;
+    if (start == null) start = now;
+    const p = (now - start) / 200;
+    if (p >= 1) { e.remove(); petShield(caster, cue); return; }
+    const x = x0 + (caster.pos.x - x0) * p, y = y0 + (caster.pos.y - caster.h * 0.62 - y0) * p - 24 * Math.sin(p * Math.PI);
+    e.style.transform = 'translate(' + (x - 16) + 'px,' + (y - 11.5) + 'px)';
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function petSpearContact(x, y, dx, dy, h) {
+  const angle = Math.atan2(dy, dx), length = h * .53;
+  const streak = document.createElement('div');
+  streak.className = 'pfx';
+  streak.style.cssText = 'left:0;top:0;z-index:1999;filter:none;background:radial-gradient(ellipse,#fff0b8 0%,#ffd378 26%,#dc6d29 52%,transparent 72%);pointer-events:none;';
+  $('units').appendChild(streak);
+  let start;
+  const step = now => {
+    if (!streak.isConnected) return;
+    if (start == null) start = now;
+    const time = now - start;
+    if (time >= 170) { streak.remove(); return; }
+    const p = Math.min(1, time / 75), fade = 1 - Math.max(0, (time - 75) / 95);
+    const w = length * (.38 + .62 * p) * fade, size = h * .11;
+    const tip = h * (-.14 + .175 * p);
+    streak.style.width = w + 'px'; streak.style.height = size + 'px';
+    streak.style.opacity = fade;
+    streak.style.transform = 'translate(' + (x + Math.cos(angle) * tip - w / 2) + 'px,' + (y + Math.sin(angle) * tip - size / 2) + 'px) rotate(' + angle + 'rad)';
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  return 75;
+}
+
+function refreshPetWard(u) {
+  if (u.alive && u.st.absorb) {
+    if (u.ward) return;
+    const ward = document.createElement('div'), w = u.h * .93, h = u.h * 1.05;
+    ward.className = 'pfx';
+    ward.style.cssText = 'left:' + (-w / 2) + 'px;bottom:' + (u.h * .48 - h / 2)
+      + 'px;width:' + w + 'px;height:' + h + 'px;border:2px solid #ed5369;border-radius:49%;z-index:2;opacity:.52;filter:none;'
+      + 'box-shadow:inset 0 0 13px #a83458,0 0 12px #af4359;background:radial-gradient(ellipse,transparent 66%,rgba(172,41,76,.28) 100%);';
+    u.ward = ward;
+    u.el.appendChild(ward);
+  } else if (u.ward) {
+    const ward = u.ward;
+    u.ward = null;
+    ward.style.transition = 'opacity 170ms, transform 170ms';
+    ward.style.opacity = '0';
+    ward.style.transform = 'scale(1.10)';
+    setTimeout(() => ward.remove(), 180);
+  }
+}
+
+// 只在伤害确认后调用。各招按来势播放冲击、碎光或余烬。
+function petHitFx(caster, target, skill, critical) {
+  const cue = PET_CUES[skill];
+  if (!cue || !caster.pa) return false;
+  const stage = skill === 'ss_dy' ? 'fireball' : skill === 'ss_sl_bw' ? 'wave' : cue.stage;
+  const radial = stage === 'wave' || stage === 'orbit', embers = stage === 'fireball', shards = stage === 'swords' || stage === 'spear';
+  const count = radial ? 8 : embers ? 7 : shards ? 6 : 4;
+  const x = target.pos.x, y = target.pos.y - target.h * .48;
+  const bearing = Math.atan2(y - (caster.pos.y - caster.h * .55), x - caster.pos.x);
+  const radius = Math.max(48, Math.min(105, target.h * (critical ? .73 : .57)));
+  const glow = critical || embers ? '#ffd17a' : '#fff';
+  const layers = Array.from({length:count + 1}, (_, i) => {
+    const el = document.createElement('div');
+    el.className = 'pfx';
+    el.style.cssText = 'left:0;top:0;z-index:2001;border-radius:50%;filter:none;pointer-events:none;';
+    if (i === count && radial) {
+      el.style.border = '2px solid ' + cue.color;
+      el.style.boxShadow = '0 0 8px ' + cue.color;
+    } else {
+      el.style.background = 'radial-gradient(ellipse,' + glow + ' 0%,' + cue.color + ' 35%,transparent 72%)';
+    }
+    $('units').appendChild(el);
+    return el;
+  });
+  let start;
+  const step = now => {
+    if (!layers[0].isConnected) return;
+    if (start == null) start = now;
+    const p = (now - start) / 340;
+    if (p >= 1) { layers.forEach(el => el.remove()); return; }
+    const ease = 1 - (1 - p) ** 2, collapse = stage === 'orbit' ? 1 - ease : ease;
+    layers.forEach((el, i) => {
+      const k = i / (count - 1), ring = i === count;
+      const angle = radial ? i * 2 * Math.PI / count
+        : embers ? -2.8 + 2.46 * k
+        : bearing + (shards ? .68 : .45) * (2 * k - 1);
+      const distance = ring ? 0 : radius * (.12 + (i % 2 === 0 ? .90 : .60) * collapse);
+      const dx = x + Math.cos(angle) * distance;
+      const dy = y + Math.sin(angle) * distance - (embers && !ring ? radius * .36 * p : 0);
+      const w = ring ? radius * 1.3 * (.24 + .71 * collapse) : radius * (shards ? .29 : .18) * (1 - .55 * p);
+      const h = w * (ring ? .64 : shards ? .24 : .55);
+      el.style.width = w + 'px'; el.style.height = h + 'px';
+      el.style.transform = 'translate(' + (dx - w / 2) + 'px,' + (dy - h / 2) + 'px)' + (ring ? '' : ' rotate(' + angle + 'rad)');
+      el.style.opacity = ring ? (1 - p) * (radial ? .84 : .48) : (1 - p) ** 2;
+    });
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  if (skill === 'ss_tsy') petBloodReturn(target, caster, cue);
+  return true;
+}
+
+// 神兽弹道按背视场景的施法者和目标连线飞行。
+function petFx(u, skill, t, targetIndex = 0) {
+  if (skill === 'foxfire') return groundFoxfire(t, targetIndex);
+  if (u === t) return 0;
+  const cue = PET_CUES[skill], m = u.pa && u.pa.m.pfx, key = cue?.frames || skill;
+  if (cue?.stage === 'spear') {
+    const side = t.pos.x >= u.pos.x ? 1 : -1;
+    const [ox, oy] = petCastOffset(u, t, side, cue, 1);
+    const dx = t.pos.x - u.pos.x - ox, dy = t.pos.y - u.pos.y - oy;
+    return petSpearContact(t.pos.x, t.pos.y - t.h * .48, Math.hypot(dx, dy) < 1 ? side : dx, dy, u.h);
+  }
+  if (!m || !m.map[key] || !AS.img[m.sheet]) return 0;
+  const fr = m.map[key], k = u.h / u.pa.m.H * ((m.sc && m.sc[skill]) || 1) * (cue?.width || 1), w = m.cw * k, h = m.ch * k;
+  const depth = skill !== 'ss_hit' && skill.startsWith('ss_');
+  const side = t.pos.x >= u.pos.x ? 1 : -1;
+  const [ox, oy] = petCastOffset(u, t, side, cue, 1), [mx, my] = petMuzzle(u, side, cue);
+  const sx = u.pos.x + (depth ? mx + ox : -u.h * .12), sy = u.pos.y + my + oy;
+  const ex = t.pos.x, ey = t.pos.y - t.h * (depth ? 0.48 : 0.5);
+  const ang = Math.atan2(ey - sy, ex - sx) * 180 / Math.PI, dist = Math.hypot(ex - sx, ey - sy);
+  const endScale = depth ? (ey < sy ? 0.62 : 1.18) : 1;
   const e = document.createElement('div'); e.className = 'pfx';
-  e.style.cssText = 'left:' + sx + 'px;top:' + (sy - h / 2) + 'px;width:' + w + 'px;height:' + h + 'px;background-image:url(' + IMG(m.sheet) + ');background-size:' + (m.n * 100) + '% 100%;transform-origin:0 50%;transform:rotate(' + ang + 'deg) translateX(0);z-index:1999';
-  $('units').appendChild(e); const dur = Math.max(160, Math.min(320, dist * 1.1));
+  // 与 Unity 的裁切相同，清除帝君斧头和小青金焰边缘的杂色。
+  const crop = skill === 'ss_th' || skill === 'ss_dy' ? .56 : skill === 'ss_sx' ? .34 : 0;
+  const pivot = crop * w;
+  e.style.cssText = 'left:' + (sx - pivot) + 'px;top:' + (sy - h / 2) + 'px;width:' + w + 'px;height:' + h
+    + 'px;background-image:url(' + IMG(m.sheet) + ');background-size:' + (m.n * 100) + '% 100%;transform-origin:' + pivot
+    + 'px 50%;transform:rotate(' + ang + 'deg) translateX(0);z-index:1999';
+  if (crop) { e.style.clipPath = 'inset(0 0 0 ' + crop * 100 + '%)'; e.style.filter = 'none'; }
+  if (depth) e.style.transform = 'rotate(' + ang + 'deg) translateX(0) scale(1,.78)';
+  $('units').appendChild(e); const dur = Math.max(160, Math.min(320, dist * 1.1)) * (cue?.flight || 1);
+  if (cue) {
+    const travel = Math.max(0, dist - w * (1 - crop) * 0.6 * endScale), dx = dist ? (ex - sx) / dist : 0, dy = dist ? (ey - sy) / dist : 0;
+    let start;
+    const step = now => {
+      if (!e.isConnected) return;
+      if (start == null) start = now;
+      const elapsed = now - start, p = Math.pow(Math.min(1, elapsed / dur), cue.stage ? 1.12 : 1.5);
+      if (cue.stage) e.style.opacity = Math.min(1, elapsed / 55);
+      const scale = 1 + (endScale - 1) * p, f = fr[Math.floor(elapsed / 70) % fr.length];
+      e.style.backgroundPosition = (m.n > 1 ? f * 100 / (m.n - 1) : 0) + '% 0';
+      e.style.transform = 'translate(' + (dx * travel * p) + 'px,' + (dy * travel * p - cue.lift * Math.sin(Math.PI * p))
+        + 'px) rotate(' + ang + 'deg) scale(' + scale + ',' + scale * 0.78 + ')';
+      if (elapsed < dur) { requestAnimationFrame(step); return; }
+      e.style.transition = 'opacity 75ms'; e.style.opacity = 0; setTimeout(() => e.remove(), 75);
+    };
+    requestAnimationFrame(step);
+    return dur;
+  }
   let i = 0; const step = () => { const f = fr[i++ % fr.length]; e.style.backgroundPosition = (m.n > 1 ? f * 100 / (m.n - 1) : 0) + '% 0'; }; step(); const tm = setInterval(step, 70);
-  requestAnimationFrame(() => requestAnimationFrame(() => { e.style.transition = 'transform ' + dur + 'ms cubic-bezier(.4,0,.8,.6),opacity ' + dur + 'ms'; e.style.transform = 'rotate(' + ang + 'deg) translateX(' + Math.max(0, dist - w * 0.6) + 'px)'; }));
+  requestAnimationFrame(() => requestAnimationFrame(() => { e.style.transition = 'transform ' + dur + 'ms cubic-bezier(.4,0,.8,.6),opacity ' + dur + 'ms'; e.style.transform = 'rotate(' + ang + 'deg) translateX(' + Math.max(0, dist - w * 0.6 * endScale) + 'px) scale(' + endScale + ',' + endScale * (depth ? 0.78 : 1) + ')'; }));
   setTimeout(() => { clearInterval(tm); e.style.opacity = 0; setTimeout(() => e.remove(), 160); }, dur);
   return dur;
+}
+function soulWindup(caster, target, isReleased) {
+  const image = AS.img.fx_tianmo_windup;
+  if (!image) return;
+  const e = document.createElement('div');
+  const size = 320 * caster.h / 216;
+  e.className = 'pfx';
+  e.style.cssText = 'left:' + (caster.pos.x - size / 2) + 'px;top:' + (caster.pos.y - size)
+    + 'px;width:' + size + 'px;height:' + size + 'px;background-image:url(' + image + ');background-size:500% 100%;filter:none;z-index:1501'
+    + (target.pos.x < caster.pos.x ? ';transform:scaleX(-1)' : '');
+  $('units').appendChild(e);
+  const body = caster.pa.d, visibility = body.style.visibility;
+  body.style.visibility = 'hidden';
+  let start;
+  const step = now => {
+    if (start == null) start = now;
+    const t = now - start;
+    if (isReleased() || t >= 800 || !e.isConnected) {
+      body.style.visibility = visibility;
+      e.remove();
+      return;
+    }
+    e.style.backgroundPosition = (Math.min(4, Math.floor(t / 78)) * 25) + '% 0';
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+function soulRelease(caster, target) {
+  const image = AS.img.fx_tianmo_release;
+  if (!image) return;
+  const e = document.createElement('div');
+  e.className = 'pfx';
+  const side = target.pos.x >= caster.pos.x ? 1 : -1;
+  const width = AS.size[caster.sprite]?.[0] || caster.h * .6;
+  e.style.cssText = 'left:' + (caster.pos.x + side * width * .52 - 62.5) + 'px;top:' + (caster.pos.y - caster.h * .61 - 59.75)
+    + 'px;width:125px;height:119.5px;background:url(' + image + ') center/100% 100% no-repeat;filter:none;z-index:1999'
+    + (side < 0 ? ';transform:scaleX(-1)' : '');
+  $('units').appendChild(e);
+  let start;
+  const step = now => {
+    if (start == null) start = now;
+    const t = (now - start) / 110;
+    if (t >= 1 || !e.isConnected) { e.remove(); return; }
+    e.style.opacity = 1 - t;
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+// 天魔噬魂：不飞弹道，手前闪光后在每个命中目标身上浮现红色骷髅魂魄缠绕（fx_tianmo_soul，4×2 共 8 帧）。
+// 目标之间错开 45ms，第 4 帧（骷髅缠绕最紧、红光最盛）出现时结算伤害；Unity 的 SoulStrike 与此保持一致。
+const SOUL_HIT = { delay: 60, frame: 70, stagger: 45, peak: 3 };
+function soulStrike(caster, targets) {
+  if (!targets.length) return 0;
+  soulRelease(caster, targets[0]);
+  const image = AS.img.fx_tianmo_soul;
+  if (!image) return 0;
+  targets.forEach((t, i) => {
+    const size = Math.max(150, Math.min(230, t.h * 1.45));
+    const e = document.createElement('div');
+    e.className = 'pfx';
+    e.style.cssText = 'left:' + (t.pos.x - size / 2) + 'px;top:' + (t.pos.y - t.h * .5 - size / 2) + 'px;width:' + size + 'px;height:'
+      + size + 'px;background-image:url(' + image + ');background-size:400% 200%;filter:none;z-index:1999;visibility:hidden';
+    $('units').appendChild(e);
+    let start;
+    const step = now => {
+      if (start == null) start = now;
+      const f = Math.floor((now - start - SOUL_HIT.delay - i * SOUL_HIT.stagger) / SOUL_HIT.frame);
+      if (f >= 8 || !e.isConnected) { e.remove(); return; }
+      if (f >= 0) {
+        e.style.visibility = 'visible';
+        e.style.backgroundPosition = (f % 4) * 100 / 3 + '% ' + (f >= 4 ? 100 : 0) + '%';
+      }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+  return SOUL_HIT.delay + SOUL_HIT.peak * SOUL_HIT.frame + (targets.length - 1) * SOUL_HIT.stagger;
+}
+const GROUND_FOXFIRE_SEQUENCE = [0, 1, 2, 3, 2, 3, 2, 3, 2, 3, 4, 5];
+function groundFoxfire(t, targetIndex) {
+  const image = AS.img.fx_foxfire_ground;
+  if (!image) return 0;
+  const size = Math.max(96, Math.min(150, t.h * 1.15)) * (1 - targetIndex % 3 * 0.06);
+  const e = document.createElement('div');
+  e.className = 'pfx';
+  const height = size * 1.25;
+  e.style.cssText = 'left:' + (t.pos.x - size / 2) + 'px;top:' + (t.pos.y + 4 - height)
+    + 'px;width:' + size + 'px;height:' + height + 'px;background-image:url(' + image
+    + ');background-size:600% 100%;background-position:0 0;z-index:1999'
+    + (targetIndex % 2 ? ';transform:scaleX(-1)' : '');
+  $('units').appendChild(e);
+  let step = 0;
+  const playFrame = () => {
+    if (step >= GROUND_FOXFIRE_SEQUENCE.length || !e.isConnected) { e.remove(); return; }
+    const frame = GROUND_FOXFIRE_SEQUENCE[step++];
+    e.style.backgroundPosition = (frame * 20) + '% 0';
+    setTimeout(playFrame, frame === 2 || frame === 3 ? 92 + targetIndex % 3 * 8 : 75);
+  };
+  playFrame();
+  return 180;
 }
 function petSeqFor(u, skill) { if (!u.pa) return null; const t = D.petSeq && D.petSeq[u.sprite], s = t && t[skill], sq = u.pa.m.seq; return s && sq[s] ? s : sq.atk && (skill === 'attack' || D.skills[skill] && D.skills[skill].ss) ? 'atk' : null; }
 function drawUnit(u) {
@@ -2114,7 +2543,7 @@ function onCmd(cmd) {
   else if (cmd === 'skill') {
     tip(pet ? '选择宠物技能' : '选择技能');
     if (pet) {
-      $('cmdList').innerHTML = petSkillIds(pet).map(id => {
+      $('cmdList').innerHTML = petSkillIds(pet).filter(id => id !== 'bite').map(id => {   // 普通攻击走「攻击」按钮，不列入技能
         const sk = D.skills[id], cd = Math.max(0, (pet.cd[id] || 0) - 1);
         return '<button type="button" class="tbtn" data-pick="skill:' + id + '"' + (cd || pet.mp < sk.mp ? ' disabled' : '') + '>' +
           sk.name + (cd ? '<small>冷却 ' + cd + ' 回合</small>' : '') + '</button>';
@@ -2192,7 +2621,10 @@ function unitAct(u) {
 
 // ---------- 状态：魔化 mark / 减速 slow / 护体 shield / 持续回复 hot ----------
 const FX_BADGE = { bleed: ['血', '#b3182a'], vuln: ['易', '#d4572a'], bless: ['战', '#e0a526'], rage: ['狂', '#c2301f'], fear: ['惧', '#7a4bd1'], mark: ['魔', '#a64bff'], slow: ['缓', '#3d8bff'], shield: ['盾', '#e0a526'], hot: ['愈', '#33b36b'], stun: ['晕', '#8a8a8a'], curse: ['罚', '#c23b3b'], dd: ['破', '#c9772a'], mfear: ['惑', '#9a4bd1'], absorb: ['吸', '#e0a526'] };
-function refreshFx(u) { u.el.querySelector('.stt').innerHTML = Object.keys(u.st).map(k => '<b style="background:' + FX_BADGE[k][1] + '">' + FX_BADGE[k][0] + u.st[k].turns + '</b>').join(''); }
+function refreshFx(u) {
+  u.el.querySelector('.stt').innerHTML = Object.keys(u.st).map(k => '<b style="background:' + FX_BADGE[k][1] + '">' + FX_BADGE[k][0] + u.st[k].turns + '</b>').join('');
+  refreshPetWard(u);
+}
 function clearStatus(u, k) {
   if (!u.st[k]) return;
   if (k === 'stun') u._take2 = 0;
@@ -2291,11 +2723,21 @@ async function perform(u, act) {
   const primary = act.target && act.target.alive && act.target.side !== u.side ? act.target : foes[0];
   let targets = s.target === 'all' ? foes : [primary];
   if (s.hits > 1) targets = [primary].concat(foes.filter(x => x !== primary).sort(() => Math.random() - 0.5).slice(0, s.hits - 1));
+  if (s.maxTargets > 0) targets = targets.slice(0, s.maxTargets);
   const magic = !!s.magic || ((act.skill === 'attack' || act.skill === 'ss_hit') && u.magicAtk);
   if (s.cd) u.cd[act.skill] = s.cd + 1;
   if (s.absorb || s.guard) {                      // 自身防护：真武御体（伤害转治疗，N 次）/ 天蛇噬血的抵挡（N 次免伤）
     if (s.absorb) { u.absorb = s.absorb; u.st.absorb = { turns: 99 }; } if (s.guard) u.guard = s.guard;
-    if (s.absorb) refreshFx(u); floatText(u, s.absorb ? '血盾 ×' + s.absorb : '抵挡 ×' + s.guard, 'info'); SND.heal(); await petPlay(u, 'atk', null); if (!s.power) return;
+    if (s.absorb && act.skill !== 'ss_zw') refreshFx(u); floatText(u, s.absorb ? '血盾 ×' + s.absorb : '抵挡 ×' + s.guard, 'info'); SND.heal();
+    if (act.skill === 'ss_zw') {
+      const cue = PET_CUES.ss_zw;
+      let released = false;
+      if (u.pa) {
+        petCharge(u, u, cue, () => released);
+        await petPlay(u, 'atk', () => { released = true; petShield(u, cue); refreshFx(u); }, petWindupScale(u, 'atk', cue));
+      } else { petShield(u, cue); refreshFx(u); }
+    } else if (act.skill !== 'ss_tsy') await petPlay(u, 'atk', null);
+    if (!s.power) return;
   }
   if (s.selfVuln) { u.st.vuln = { turns: s.selfVuln + 1 }; floatText(u, '易伤', 'info'); refreshFx(u); }
   if (s.selfCost) { const c = Math.round(u.maxHp * s.selfCost); u.hp = Math.max(1, u.hp - c); floatText(u, '-' + c, 'info'); drawUnit(u); }
@@ -2309,68 +2751,84 @@ async function perform(u, act) {
   }
   u.el.classList.add('mv'); u.el.style.transform = 'translate(' + (ux * k) + 'px,' + (uy * k) + 'px)';
   await sleep(pseq ? 60 : music ? 170 : 130); u.el.classList.remove('mv');
-  let relA; const releasedA = new Promise(r => { relA = r; });
-  const poseA = pseq ? petPlay(u, pseq, relA) : (music || (s.melee && hasBc(u))) ? castPose(u, relA) : (relA(), null);
+  let released = false, relA;
+  const releasedA = new Promise(resolve => { relA = () => { released = true; resolve(); }; });
+  const cue = PET_CUES[act.skill];
+  if (pseq && act.skill === 'ss_ts') soulWindup(u, t0, () => released);
+  if (pseq && cue) petCharge(u, t0, cue, () => released);
+  const poseA = pseq ? petPlay(u, pseq, relA, act.skill === 'ss_ts' ? 1.65 : petWindupScale(u, pseq, cue)) : (music || (s.melee && hasBc(u))) ? castPose(u, relA) : (relA(), null);
   await releasedA;
-  if (pseq) { const dly = petFx(u, act.skill, t0); if (dly) await sleep(dly * 0.85); }
   if (!music) { if (s.fire || magic) SND.release(); else SND.slash(); }
   let anyCrit = false, anyHit = false;
-  for (const t of targets) {
-    if (Math.random() * 100 < (t.dodge || 0)) { floatText(t, '闪避', 'miss'); SND.dodge(); dodgeStep(t, u); if (targets.length > 1) await sleep(60); continue; }
-    const crit = Math.random() * 100 < ((u.crit != null ? u.crit : 10) + (s.critUp || 0));
-    let dmg = (magic ? u.matk : u.atk) * s.power * rnd(0.9, 1.1) * (crit ? 1.5 : 1) - (magic ? t.mdef : t.def) * 0.6;
-    if (s.vsMark && t.st.mark) dmg *= s.vsMark;
-    if (s.vsBleed && t.st.bleed) dmg *= s.vsBleed;
-    if (t.st.vuln) dmg *= 1.3;                                           // 墨家：破天吼 / 破甲的易伤
-    if (u.st.bless) dmg *= 1.2;                                          // 战魂歌：伤害 +20%
-    if (u.st.rage) dmg *= 1.6;                                           // 狂龙吼：伤害 +60%
-    if (t.st.shield) dmg *= 0.7;
-    if (t.defending) dmg *= 0.5;
-    const up = u.pas || {}, tp = t.pas || {};
-    if (up.vsFear && t.st.fear) dmg *= up.vsFear;
-    if (up.lowAtk && u.hp < u.maxHp * 0.3) dmg *= 1 + up.lowAtk;
-    if (up.dbl && Math.random() < up.dbl) { dmg *= 2; floatText(u, '双倍', 'info'); }
-    if (tp.take) dmg *= tp.take;
-    if (up.dmgUp) dmg *= 1 + up.dmgUp;                                   // 万剑归宗等：伤害额外提升
-    if (u._dmgBuff) dmg *= 1 + u._dmgBuff;                               // 绝杀咒印触发后的伤害提升
-    if (s.baoti && u._bt) { dmg *= 1 + 0.1 * u._bt; floatText(u, '霸体 ×' + u._bt + ' 燎原', 'info'); u._bt = 0; }   // 天火燎原：消耗霸体
-    if (t._take2) dmg *= 2;                                              // 蛊心定影：被定身期间受伤翻倍
-    if (t.st.curse) dmg *= 1 + 0.1 * t._cu;                              // 天罚：受伤提升
-    if (tp.baoti && t._bt) dmg *= 1 - 0.1 * t._bt;                       // 混元霸体：每层 -10% 受伤
-    if (tp.hurtStack && t._hs) dmg *= 1 - Math.min(tp.hurtStack.max, t._hs) * tp.hurtStack.step;   // 仙魔真诀：每受伤一次，减伤叠加
-    dmg = Math.max(1, Math.round(dmg));
-    if (t.invul) { floatText(t, '无敌', 'miss'); if (targets.length > 1) await sleep(60); continue; }
-    if (t.guard > 0) { t.guard--; floatText(t, '抵挡', 'miss'); SND.dodge(); if (targets.length > 1) await sleep(60); continue; }
-    if (t.absorb > 0) { t.absorb--; if (!t.absorb) clearStatus(t, 'absorb'); t.hp = Math.min(t.maxHp, t.hp + dmg); floatText(t, '+' + dmg, 'heal'); SND.heal(); drawUnit(t); if (targets.length > 1) await sleep(60); continue; }
-    t.hp = Math.max(0, t.hp - dmg); anyHit = true; anyCrit = anyCrit || crit;
-    if (t.hp <= 0 && tp.deathWard && !t._dw) { t._dw = true; t.hp = 1; t.invul = 2; t._dmgBuff = 0.5; floatText(t, '绝杀咒印', 'heal'); SND.heal(); }
-    if (t.hp <= 0 && tp.revive && !t._rv) { t._rv = true; t.hp = Math.round(t.maxHp * tp.revive); floatText(t, tp.reviveText || '神龙祝福', 'heal'); SND.heal(); if (tp.reviveAtk) { t.atk = Math.round(t.atk * (1 + tp.reviveAtk)); t.matk = Math.round(t.matk * (1 + tp.reviveAtk)); } }
-    if (t.hp <= 0 && tp.lethalStun && !t._ls) { t._ls = true; u.st.stun = { turns: 1 }; u._take2 = 1; floatText(u, '定身', 'info'); refreshFx(u); }
-    if (!skillHitFx(act.skill, t)) slashFx(t, !!s.fire);
-    impactAt(t, crit); SND.hit(crit);
-    floatText(t, (crit ? '暴击 ' : '') + '-' + dmg, crit ? 'crit' : dmg >= t.maxHp * 0.25 ? 'big' : '');
-    t.el.classList.remove('hit'); void t.el.offsetWidth; t.el.classList.add('hit'); petPlay(t, 'hit');
-    knock(t, u, crit ? 30 : 15);
-    if (s.lifesteal && u.alive) { const hv = Math.max(1, Math.round(dmg * s.lifesteal)); u.hp = Math.min(u.maxHp, u.hp + hv); floatText(u, '+' + hv, 'heal'); drawUnit(u); }
-    drawUnit(t);
-    if (t.hp <= 0 && tp.ownerAtk && B.player && B.player.alive && t.side === B.player.side) { B.player.atk = Math.round(B.player.atk * (1 + tp.ownerAtk)); B.player.matk = Math.round(B.player.matk * (1 + tp.ownerAtk)); floatText(B.player, '攻击 +' + Math.round(tp.ownerAtk * 100) + '%', 'info'); }
-    if (t.hp > 0 && tp.hurtStack) t._hs = (t._hs || 0) + 1;
-    if (t.hp > 0 && tp.hurtAtk && (t._ha || 0) < tp.hurtAtk.max) { t._ha = (t._ha || 0) + 1; t.atk = Math.round(t.atk * (1 + tp.hurtAtk.step)); t.matk = Math.round(t.matk * (1 + tp.hurtAtk.step)); }
-    if (crit && s.critAtk && (u._ca || 0) < 3) { u._ca = (u._ca || 0) + 1; u.atk = Math.round(u.atk * 1.15); u.matk = Math.round(u.matk * 1.15); floatText(u, '攻击 +15%', 'info'); }
-    if (t.hp <= 0) { t.alive = false; t.st = {}; setTimeout(() => { t.el.classList.add('dead'); SND.die(); }, 160); }
-    else {
-      if (s.fear) { const f = t.st.fear || { turns: 3, n: 0 }; f.n = Math.min(3, f.n + s.fear); f.turns = 3; if (!t._df0) t._df0 = t.def; t.def = Math.round(t._df0 * (1 - 0.12 * f.n)); t.st.fear = f; floatText(t, '恐惧', 'info'); }
-      if (s.hpCut) { const c = Math.round(t.maxHp * s.hpCut); t.maxHp -= c; t.hp = Math.min(t.hp, t.maxHp); floatText(t, '上限 -' + c, 'info'); drawUnit(t); }
-      if (s.defDown) { if (!t._dd0) { t._dd0 = t.def; t.def = Math.round(t.def * (1 - s.defDown)); } t.st.dd = { turns: 3 }; floatText(t, '破防', 'info'); }
-      if (s.mfear) { if (!t._md0) t._md0 = t.mdef; const n = Math.min(3, (t._mf || 0) + 1); t._mf = n; t.mdef = Math.round(t._md0 * (1 - 0.1 * n)); t.st.mfear = { turns: 3 }; floatText(t, '离魂', 'info'); }
-      if (s.curse) { t._cu = Math.min(2, (t._cu || 0) + 1); if (t._cu <= 2) { t.atk = Math.round(t.atk * 0.9); t.matk = Math.round(t.matk * 0.9); } t.st.curse = { turns: 2 }; floatText(t, '天罚', 'info'); }
-      if (s.bleed) { t.st.bleed = { turns: s.bleed.turns, v: Math.max(1, Math.round(t.maxHp * s.bleed.pct)) }; floatText(t, '流血', 'info'); }
-      if (s.vuln) { t.st.vuln = { turns: s.vuln }; floatText(t, '易伤', 'info'); }
-      if (s.mark) { t.st.mark = { turns: s.mark }; floatText(t, '魔化', 'info'); }
-      if (s.slow) { if (!t.st.slow) { t._spd0 = t.spd; t._dg0 = t.dodge; t.spd = Math.round(t.spd * 0.8); t.dodge = Math.max(0, t.dodge - 10); } t.st.slow = { turns: s.slow }; floatText(t, '减速', 'info'); }
+  for (let strike = 0; strike < (s.strikes || 1); strike++) {
+    if (strike > 0) targets = targets.filter(t => t.alive);
+    if (!targets.length) break;
+    if (pseq) {
+      const fxTargets = s.maxTargets > 1 ? targets : [t0];
+      const dly = act.skill === 'ss_ts' ? soulStrike(u, targets)
+        : Math.max(...fxTargets.map((t, i) => petFx(u, act.skill, t, i) || 0));
+      if (dly) await sleep(dly * (cue ? 1 : 0.85));
     }
-    refreshFx(t);
-    if (targets.length > 1) await sleep(60);
+    for (const t of targets) {
+      if (Math.random() * 100 < (t.dodge || 0)) { floatText(t, '闪避', 'miss'); SND.dodge(); dodgeStep(t, u); if (targets.length > 1) await sleep(60); continue; }
+      const crit = Math.random() * 100 < ((u.crit != null ? u.crit : 10) + (s.critUp || 0));
+      let dmg = (magic ? u.matk : u.atk) * s.power * rnd(0.9, 1.1) * (crit ? 1.5 : 1) - (magic ? t.mdef : t.def) * 0.6;
+      if (s.vsMark && t.st.mark) dmg *= s.vsMark;
+      if (s.vsBleed && t.st.bleed) dmg *= s.vsBleed;
+      if (t.st.vuln) dmg *= 1.3;                                           // 墨家：破天吼 / 破甲的易伤
+      if (u.st.bless) dmg *= 1.2;                                          // 战魂歌：伤害 +20%
+      if (u.st.rage) dmg *= 1.6;                                           // 狂龙吼：伤害 +60%
+      if (t.st.shield) dmg *= 0.7;
+      if (t.defending) dmg *= 0.5;
+      const up = u.pas || {}, tp = t.pas || {};
+      if (up.vsFear && t.st.fear) dmg *= up.vsFear;
+      if (up.lowAtk && u.hp < u.maxHp * 0.3) dmg *= 1 + up.lowAtk;
+      if (up.dbl && Math.random() < up.dbl) { dmg *= 2; floatText(u, '双倍', 'info'); }
+      if (tp.take) dmg *= tp.take;
+      if (up.dmgUp) dmg *= 1 + up.dmgUp;                                   // 万剑归宗等：伤害额外提升
+      if (u._dmgBuff) dmg *= 1 + u._dmgBuff;                               // 绝杀咒印触发后的伤害提升
+      if (s.baoti && u._bt) { dmg *= 1 + 0.1 * u._bt; floatText(u, '霸体 ×' + u._bt + ' 燎原', 'info'); u._bt = 0; }   // 天火燎原：消耗霸体
+      if (t._take2) dmg *= 2;                                              // 蛊心定影：被定身期间受伤翻倍
+      if (t.st.curse) dmg *= 1 + 0.1 * t._cu;                              // 天罚：受伤提升
+      if (tp.baoti && t._bt) dmg *= 1 - 0.1 * t._bt;                       // 混元霸体：每层 -10% 受伤
+      if (tp.hurtStack && t._hs) dmg *= 1 - Math.min(tp.hurtStack.max, t._hs) * tp.hurtStack.step;   // 仙魔真诀：每受伤一次，减伤叠加
+      dmg = Math.max(1, Math.round(dmg));
+      if (t.invul) { floatText(t, '无敌', 'miss'); if (targets.length > 1) await sleep(60); continue; }
+      if (t.guard > 0) { t.guard--; floatText(t, '抵挡', 'miss'); SND.dodge(); if (targets.length > 1) await sleep(60); continue; }
+      if (t.absorb > 0) { t.absorb--; if (!t.absorb) clearStatus(t, 'absorb'); t.hp = Math.min(t.maxHp, t.hp + dmg); floatText(t, '+' + dmg, 'heal'); SND.heal(); drawUnit(t); if (targets.length > 1) await sleep(60); continue; }
+      t.hp = Math.max(0, t.hp - dmg); anyHit = true; anyCrit = anyCrit || crit;
+      if (t.hp <= 0 && tp.deathWard && !t._dw) { t._dw = true; t.hp = 1; t.invul = 2; t._dmgBuff = 0.5; floatText(t, '绝杀咒印', 'heal'); SND.heal(); }
+      if (t.hp <= 0 && tp.revive && !t._rv) { t._rv = true; t.hp = Math.round(t.maxHp * tp.revive); floatText(t, tp.reviveText || '神龙祝福', 'heal'); SND.heal(); if (tp.reviveAtk) { t.atk = Math.round(t.atk * (1 + tp.reviveAtk)); t.matk = Math.round(t.matk * (1 + tp.reviveAtk)); } }
+      if (t.hp <= 0 && tp.lethalStun && !t._ls) { t._ls = true; u.st.stun = { turns: 1 }; u._take2 = 1; floatText(u, '定身', 'info'); refreshFx(u); }
+      if (!petHitFx(u, t, act.skill, crit)) {
+        if (!skillHitFx(act.skill, t)) slashFx(t, !!s.fire);
+        impactAt(t, crit);
+      }
+      SND.hit(crit);
+      floatText(t, (crit ? '暴击 ' : '') + '-' + dmg, crit ? 'crit' : dmg >= t.maxHp * 0.25 ? 'big' : '');
+      t.el.classList.remove('hit'); void t.el.offsetWidth; t.el.classList.add('hit'); petPlay(t, 'hit');
+      knock(t, u, crit ? 30 : 15);
+      if (s.lifesteal && u.alive) { const hv = Math.max(1, Math.round(dmg * s.lifesteal)); u.hp = Math.min(u.maxHp, u.hp + hv); floatText(u, '+' + hv, 'heal'); drawUnit(u); }
+      drawUnit(t);
+      if (t.hp <= 0 && tp.ownerAtk && B.player && B.player.alive && t.side === B.player.side) { B.player.atk = Math.round(B.player.atk * (1 + tp.ownerAtk)); B.player.matk = Math.round(B.player.matk * (1 + tp.ownerAtk)); floatText(B.player, '攻击 +' + Math.round(tp.ownerAtk * 100) + '%', 'info'); }
+      if (t.hp > 0 && tp.hurtStack) t._hs = (t._hs || 0) + 1;
+      if (t.hp > 0 && tp.hurtAtk && (t._ha || 0) < tp.hurtAtk.max) { t._ha = (t._ha || 0) + 1; t.atk = Math.round(t.atk * (1 + tp.hurtAtk.step)); t.matk = Math.round(t.matk * (1 + tp.hurtAtk.step)); }
+      if (crit && s.critAtk && (u._ca || 0) < 3) { u._ca = (u._ca || 0) + 1; u.atk = Math.round(u.atk * 1.15); u.matk = Math.round(u.matk * 1.15); floatText(u, '攻击 +15%', 'info'); }
+      if (t.hp <= 0) { t.alive = false; t.st = {}; setTimeout(() => { t.el.classList.add('dead'); SND.die(); }, 160); }
+      else {
+        if (s.fear) { const f = t.st.fear || { turns: 3, n: 0 }; f.n = Math.min(3, f.n + s.fear); f.turns = 3; if (!t._df0) t._df0 = t.def; t.def = Math.round(t._df0 * (1 - 0.12 * f.n)); t.st.fear = f; floatText(t, '恐惧', 'info'); }
+        if (s.hpCut) { const c = Math.round(t.maxHp * s.hpCut); t.maxHp -= c; t.hp = Math.min(t.hp, t.maxHp); floatText(t, '上限 -' + c, 'info'); drawUnit(t); }
+        if (s.defDown) { if (!t._dd0) { t._dd0 = t.def; t.def = Math.round(t.def * (1 - s.defDown)); } t.st.dd = { turns: 3 }; floatText(t, '破防', 'info'); }
+        if (s.mfear) { if (!t._md0) t._md0 = t.mdef; const n = Math.min(3, (t._mf || 0) + 1); t._mf = n; t.mdef = Math.round(t._md0 * (1 - 0.1 * n)); t.st.mfear = { turns: 3 }; floatText(t, '离魂', 'info'); }
+        if (s.curse) { t._cu = Math.min(2, (t._cu || 0) + 1); if (t._cu <= 2) { t.atk = Math.round(t.atk * 0.9); t.matk = Math.round(t.matk * 0.9); } t.st.curse = { turns: 2 }; floatText(t, '天罚', 'info'); }
+        if (s.bleed) { t.st.bleed = { turns: s.bleed.turns, v: Math.max(1, Math.round(t.maxHp * s.bleed.pct)) }; floatText(t, '流血', 'info'); }
+        if (s.vuln) { t.st.vuln = { turns: s.vuln }; floatText(t, '易伤', 'info'); }
+        if (s.mark) { t.st.mark = { turns: s.mark }; floatText(t, '魔化', 'info'); }
+        if (s.slow) { if (!t.st.slow) { t._spd0 = t.spd; t._dg0 = t.dodge; t.spd = Math.round(t.spd * 0.8); t.dodge = Math.max(0, t.dodge - 10); } t.st.slow = { turns: s.slow }; floatText(t, '减速', 'info'); }
+      }
+      refreshFx(t);
+      if (targets.length > 1) await sleep(60);
+    }
   }
   if (anyHit) { shake(anyCrit ? 9 : targets.length > 1 ? 6 : 4, anyCrit ? 340 : 240); await hitstop(anyCrit ? 120 : 70); }
   if (poseA) await poseA;

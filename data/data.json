@@ -86,10 +86,20 @@
    "kind": "灵兽 · 近战",
    "desc": "白毛九尾、颈缠青色灵带的天狐，足下燃着狐火，通人性，会在主人身边寸步不离。",
    "skills": [
-    "bite",
     "foxfire"
    ],
-   "own": true
+   "own": true,
+   "pas": {
+    "revive": 0.5,
+    "reviveAtk": 0.2,
+    "reviveText": "浴火重生"
+   },
+   "pasList": [
+    [
+     "浴火重生",
+     "天生被动。受到致死伤害时于狐火中重生，恢复 50% 气血，法攻与物攻提升 20%（每场战斗一次）。"
+    ]
+   ]
   },
   "deer": {
    "name": "小鹿",
@@ -2740,10 +2750,12 @@
    "target": "one"
   },
   "foxfire": {
-   "name": "狐火",
+   "name": "灵狐焚天",
    "mp": 0,
    "power": 1.6,
-   "target": "one",
+   "target": "all",
+   "maxTargets": 6,
+   "desc": "在最多 6 个存活敌人的脚下引燃狐焰，对每个目标造成火系法术伤害。",
    "fire": true,
    "magic": true
   },
@@ -2854,12 +2866,13 @@
   "ss_ts": {
    "name": "天魔噬魂",
    "mp": 0,
-   "power": 0.8,
+   "power": 0.7,
    "magic": true,
-   "target": "all",
-   "defDown": 0.3,
+   "target": "one",
+   "hits": 3,
+   "strikes": 2,
    "ss": true,
-   "des": "对全体敌人造成 80% 法术伤害，并使其物防降低 30%，持续 3 回合。"
+   "des": "攻击一个指定敌人，并随机攻击最多两个其他敌人。每段造成 70% 法术伤害，随后对仍存活的同一批目标追加一段。"
   },
   "ss_sg": {
    "name": "双龙逆天",

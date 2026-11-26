@@ -36,17 +36,27 @@ namespace GuiQin.Battle
             return arr;
         }
 
-        public static Sprite[] Pfx(PfxMeta p)
+        // 帝君图集左侧含挥斧本体，技能弹道只切出右侧火焰。
+        internal const float EmperorFireCrop = 0.56f, SnakeFireCrop = 0.34f;
+
+        public static Sprite[] Pfx(PfxMeta p, float cropRatio = 0f)
         {
             if (p == null || string.IsNullOrEmpty(p.sheet)) return null;
-            Sprite[] fr; if (pfxCache.TryGetValue(p.sheet, out fr)) return fr;
+            var key = cropRatio > 0f ? p.sheet + "/trim" : p.sheet;
+            Sprite[] fr; if (pfxCache.TryGetValue(key, out fr)) return fr;
             var tex = Art.Tex(p.sheet);
             if (tex != null)
             {
                 int cw = tex.width / p.n; float ppu = cw / (p.cw / Art.PX); fr = new Sprite[p.n];
-                for (int i = 0; i < p.n; i++) fr[i] = Sprite.Create(tex, new Rect(i * cw, 0, cw, tex.height), new Vector2(0f, 0.5f), ppu, 0, SpriteMeshType.FullRect);   // 原图朝右，枢轴在左边中点，方便按方向旋转
+                int crop = Mathf.FloorToInt(cw * cropRatio);
+                for (int i = 0; i < p.n; i++)
+                {
+                    // 朝右的火焰从裁切后的左侧中点发出。
+                    var rect = new Rect(i * cw + crop, 0, cw - crop, tex.height);
+                    fr[i] = Sprite.Create(tex, rect, new Vector2(0f, 0.5f), ppu, 0, SpriteMeshType.FullRect);
+                }
             }
-            pfxCache[p.sheet] = fr; return fr;
+            pfxCache[key] = fr; return fr;
         }
 
         public Sprite Frame(int f) { return Frames[Mathf.Clamp(f, 0, Frames.Length - 1)]; }

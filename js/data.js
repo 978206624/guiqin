@@ -11,7 +11,9 @@ window.DATA = {
   petQuality: { 1: { name: '普通', color: '#c3c9d1', stars: 2 }, 2: { name: '精良', color: '#7ee08a', stars: 3 }, 3: { name: '稀有', color: '#6fb6ff', stars: 4 }, 4: { name: '传说', color: '#ffc857', stars: 5 } },
   bondTiers: [{ at: 0, name: '初识' }, { at: 15, name: '熟悉' }, { at: 40, name: '亲近' }, { at: 80, name: '默契' }, { at: 140, name: '心意相通' }],   // at = 一起打赢的战斗数；每升一档，宠物气血/攻击 +3%
   petDex: {
-    fox:      { name: '玄晶天狐', sprite: 'b_ss_bs20', show: 'pd_ss_bs20', h: 112, q: 3, kind: '灵兽 · 近战', desc: '白毛九尾、颈缠青色灵带的天狐，足下燃着狐火，通人性，会在主人身边寸步不离。', skills: ['bite', 'foxfire'], own: true },
+    fox:      { name: '玄晶天狐', sprite: 'b_ss_bs20', show: 'pd_ss_bs20', h: 112, q: 3, kind: '灵兽 · 近战', desc: '白毛九尾、颈缠青色灵带的天狐，足下燃着狐火，通人性，会在主人身边寸步不离。', skills: ['foxfire'], own: true,
+                pas: { revive: 0.5, reviveAtk: 0.2, reviveText: '浴火重生' },
+                pasList: [['浴火重生', '天生被动。受到致死伤害时于狐火中重生，恢复 50% 气血，法攻与物攻提升 20%（每场战斗一次）。']] },
     deer:     { name: '小鹿', sprite: 'b_deer',    q: 2, kind: '灵兽 · 辅助', desc: '林间的白鹿，蹄声轻柔，据说能听见草木的心跳。', how: '医者职业任务奖励' },
     rabbit:   { name: '玉兔', sprite: 'b_rabbit',  q: 1, kind: '灵兽 · 敏捷', desc: '月宫来的玉兔，行动极快，总能抢在对手前面出手。', how: '竹林采集活动抽取' },
     hawk:     { name: '苍鹰', sprite: 'b_hawk',    q: 3, kind: '飞禽 · 迅捷', desc: '盘旋云端的猛禽，爪下从无活口。', how: '竞技场赛季奖励' },
@@ -164,7 +166,7 @@ window.DATA = {
     zongheng:{ name: '剑气纵横', mp: 110, power: 1.15, target: 'all', magic: true, desc: '剑气四散，攻击全体敌人。', lv: 6 },
     ningshen:{ name: '凝神诀',   mp: 80,  heal: 0.35, target: 'self', desc: '调息凝神，回复 35% 气血。', lv: 7 },
     bite:   { name: '撕咬',     mp: 0,   power: 1.0, target: 'one' },
-    foxfire:{ name: '狐火',     mp: 0,   power: 1.6, target: 'one', fire: true, magic: true },
+    foxfire:{ name: '灵狐焚天',     mp: 0,   power: 1.6, target: 'all', maxTargets: 6, desc: '在最多 6 个存活敌人的脚下引燃狐焰，对每个目标造成火系法术伤害。', fire: true, magic: true },
     // 队友和对手用的招式（由 ai 类型自动选用）
     heal_ally:{ name: '回春术', mp: 0, heal: 0.22, target: 'ally' },
     bolt:   { name: '飞花',     mp: 0,   power: 1.2, target: 'one', magic: true },
@@ -744,7 +746,7 @@ window.DATA.petSeq = {
     ss_sy:  { name: '碎元剑诀', mp: 0, power: 2.0, target: 'one', hpCut: 0.05, ss: true, des: '对目标造成 200% 攻击伤害，并削减对方 5% 生命上限。' },
     ss_sx:  { name: '蛇啸焚天', mp: 0, power: 2.5, magic: true, target: 'one', mfear: 1, ss: true, des: '对目标造成 250% 法术伤害，并使其「离魂」：法防降低 10%，持续 3 回合，最多叠加 3 层。' },
     ss_tsy: { name: '天蛇噬血', mp: 0, power: 4.0, magic: true, target: 'one', cd: 5, guard: 2, ss: true, des: '对目标造成 400% 法术伤害，自身获得 2 次抵挡（免疫 2 次伤害），冷却 5 回合。（原作另有离魂转血量，演示版省略）' },
-    ss_ts:  { name: '天魔噬魂', mp: 0, power: 0.8, magic: true, target: 'all', defDown: 0.3, ss: true, des: '对全体敌人造成 80% 法术伤害，并使其物防降低 30%，持续 3 回合。' },
+    ss_ts:  { name: '天魔噬魂', mp: 0, power: 0.7, magic: true, target: 'one', hits: 3, strikes: 2, ss: true, des: '攻击一个指定敌人，并随机攻击最多两个其他敌人。每段造成 70% 法术伤害，随后对仍存活的同一批目标追加一段。' },
     ss_sg:  { name: '双龙逆天', mp: 0, power: 1.8, target: 'one', critUp: 50, critAtk: true, ss: true, des: '暴击率提高 50%，以 180% 攻击斩向单体；暴击后自身攻击提升 15%，最多叠加 3 次。' },
     ss_zw:  { name: '真武御体', mp: 0, target: 'self', cd: 5, absorb: 2, ss: true, des: '给自己加持血盾：接下来 2 次受到的伤害转化为治疗。冷却 5 回合。' },
     ss_th:  { name: '天火燎原', mp: 0, power: 4.0, magic: true, target: 'one', cd: 5, baoti: true, ss: true, des: '对目标造成 400% 法术伤害，并消耗全部「霸体」层数，每层使伤害提升 10%。冷却 5 回合。' },
